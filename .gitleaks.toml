@@ -1,0 +1,124 @@
+# =============================================================================
+# NOMOS AI - Gitleaks Secret Scanning Configuration
+# https://github.com/gitleaks/gitleaks
+# =============================================================================
+
+title = "NOMOS AI Secret Scanning"
+
+# -----------------------------------------------------------------------------
+# Allowlist - Paths and patterns to ignore
+# -----------------------------------------------------------------------------
+[allowlist]
+description = "Allowlist for false positives and example files"
+paths = [
+  '''\.env\.example$''',
+  '''\.nomos/inspiration/.*''',
+  '''docs/.*\.md$''',
+  '''\.md$''',
+  '''\.gitleaks\.toml$''',
+  '''package-lock\.json$''',
+  '''bun\.lockb$''',
+]
+
+# Regex patterns to ignore (placeholder values)
+regexes = [
+  '''sk-ant-api03-REPLACE_ME''',
+  '''generate-.*-secret''',
+  '''your-.*-here''',
+  '''EXAMPLE_.*''',
+]
+
+# -----------------------------------------------------------------------------
+# Custom Rules
+# -----------------------------------------------------------------------------
+
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic API Key"
+regex = '''sk-ant-api[0-9][0-9]-[a-zA-Z0-9_-]{80,}'''
+tags = ["key", "anthropic", "ai"]
+keywords = ["sk-ant-api"]
+
+[[rules]]
+id = "anthropic-api-key-short"
+description = "Anthropic API Key (shorter format)"
+regex = '''sk-ant-[a-zA-Z0-9_-]{32,}'''
+tags = ["key", "anthropic", "ai"]
+keywords = ["sk-ant-"]
+
+[[rules]]
+id = "openai-api-key"
+description = "OpenAI API Key"
+regex = '''sk-[a-zA-Z0-9]{20,}T3BlbkFJ[a-zA-Z0-9]{20,}'''
+tags = ["key", "openai", "ai"]
+keywords = ["sk-"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey)\s*[:=]\s*['""]?[a-zA-Z0-9_-]{20,}['""]?'''
+tags = ["key", "api"]
+keywords = ["api_key", "apikey", "api-key"]
+
+[[rules]]
+id = "generic-secret"
+description = "Generic Secret"
+regex = '''(?i)(secret|password|passwd|pwd)\s*[:=]\s*['""]?[a-zA-Z0-9_!@#$%^&*()-]{8,}['""]?'''
+tags = ["secret", "password"]
+keywords = ["secret", "password", "passwd"]
+
+[[rules]]
+id = "jwt-token"
+description = "JWT Token"
+regex = '''eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+'''
+tags = ["token", "jwt"]
+keywords = ["eyJ"]
+
+[[rules]]
+id = "private-key-block"
+description = "Private Key Block"
+regex = '''-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY( BLOCK)?-----'''
+tags = ["key", "private"]
+keywords = ["PRIVATE KEY"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub Token"
+regex = '''gh[pousr]_[A-Za-z0-9_]{36,}'''
+tags = ["token", "github"]
+keywords = ["ghp_", "gho_", "ghu_", "ghs_", "ghr_"]
+
+[[rules]]
+id = "password-in-url"
+description = "Password in URL"
+regex = '''[a-zA-Z]{3,10}://[^/\s:@]{3,20}:[^/\s:@]{3,20}@.{1,100}'''
+tags = ["password", "url"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
+tags = ["key", "aws"]
+keywords = ["AKIA", "ASIA"]
+
+[[rules]]
+id = "bearer-token"
+description = "Bearer Token in Header"
+regex = '''(?i)bearer\s+[a-zA-Z0-9_\-\.]+'''
+tags = ["token", "bearer"]
+keywords = ["bearer"]
+
+# -----------------------------------------------------------------------------
+# Entropy-based detection
+# -----------------------------------------------------------------------------
+
+[[rules]]
+id = "high-entropy-base64"
+description = "High entropy base64 string (potential secret)"
+regex = '''[A-Za-z0-9+/]{40,}={0,2}'''
+entropy = 4.5
+tags = ["entropy"]
+allowlist = { regexes = ['''[A-Za-z0-9+/]{40,}={0,2}''']}
+
+# Disable this rule by default - too many false positives
+# Enable with: gitleaks detect --config .gitleaks.toml --enable-rule high-entropy-base64

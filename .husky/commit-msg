@@ -1,0 +1,61 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# =============================================================================
+# NOMOS AI Commit Message Hook
+# Validates commit messages follow conventional commits format
+# =============================================================================
+
+commit_msg=$(cat "$1")
+
+# Pattern: type(scope): description
+# Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+# Scope: optional, can be feature ID like F001 or component name
+# Breaking changes indicated by ! before colon
+pattern="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([A-Za-z0-9_/-]+\))?!?:\s.+"
+
+# Also allow merge commits and revert commits
+merge_pattern="^Merge "
+revert_pattern="^Revert "
+
+if echo "$commit_msg" | grep -qE "$pattern"; then
+  exit 0
+fi
+
+if echo "$commit_msg" | grep -qE "$merge_pattern"; then
+  exit 0
+fi
+
+if echo "$commit_msg" | grep -qE "$revert_pattern"; then
+  exit 0
+fi
+
+echo ""
+echo "❌ Invalid commit message format!"
+echo ""
+echo "Expected format: type(scope): description"
+echo ""
+echo "Types:"
+echo "  feat     - New feature"
+echo "  fix      - Bug fix"
+echo "  docs     - Documentation"
+echo "  style    - Formatting (no code change)"
+echo "  refactor - Code refactoring"
+echo "  perf     - Performance improvement"
+echo "  test     - Adding tests"
+echo "  build    - Build system changes"
+echo "  ci       - CI/CD changes"
+echo "  chore    - Maintenance tasks"
+echo "  revert   - Revert previous commit"
+echo ""
+echo "Examples:"
+echo "  feat(F001): add user authentication"
+echo "  fix(api): resolve connection timeout"
+echo "  docs: update README"
+echo "  chore(deps): update dependencies"
+echo ""
+echo "Your message was:"
+echo "  $commit_msg"
+echo ""
+
+exit 1

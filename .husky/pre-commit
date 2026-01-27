@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# =============================================================================
+# NOMOS AI Pre-commit Hook
+# Runs lint-staged and secret scanning before allowing commits
+# =============================================================================
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged for formatting and linting
+echo "📝 Running lint-staged..."
+bunx lint-staged || {
+  echo "❌ Lint-staged failed. Fix the issues and try again."
+  exit 1
+}
+
+# Run secret scanning on staged files
+echo "🔐 Scanning for secrets..."
+if command -v gitleaks &> /dev/null; then
+  gitleaks detect --staged --verbose --redact || {
+    echo ""
+    echo "❌ Secrets detected in staged files!"
+    echo "   Remove them before committing."
+    echo "   Use 'git diff --cached' to see staged changes."
+    exit 1
+  }
+else
+  echo "⚠️  gitleaks not installed, skipping secret scan"
+  echo "   Install with: brew install gitleaks"
+fi
+
+echo "✅ Pre-commit checks passed"

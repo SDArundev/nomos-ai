@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# =============================================================================
+# NOMOS AI Pre-push Hook
+# Runs type checking and tests before allowing pushes
+# =============================================================================
+
+echo "🚀 Running pre-push checks..."
+
+# Check if package.json exists (project scaffolded)
+if [ ! -f "package.json" ]; then
+  echo "⚠️  Project not yet scaffolded, skipping pre-push checks"
+  exit 0
+fi
+
+# Run TypeScript type checking
+echo "📘 Type checking..."
+bun run check-types || {
+  echo "❌ Type check failed. Fix the errors and try again."
+  exit 1
+}
+
+# Run tests
+echo "🧪 Running tests..."
+bun run test:ci || {
+  echo "❌ Tests failed. Fix the failures and try again."
+  exit 1
+}
+
+echo "✅ Pre-push checks passed"
