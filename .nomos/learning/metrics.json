@@ -1,0 +1,38 @@
+{
+  "features": {
+    "F001": {
+      "id": "F001",
+      "title": "Monorepo scaffold with Turborepo",
+      "category": "CAT-PRJ",
+      "phase": "phase-1",
+      "duration_minutes": 45,
+      "files_changed": 102,
+      "lines_added": 7615,
+      "lines_removed": 2326,
+      "commits": 4,
+      "retries": 0,
+      "risk_level": "LOW",
+      "outcome": "success",
+      "started_at": "2026-01-27T17:35:00Z",
+      "verified_at": "2026-01-27T18:20:00Z",
+      "notes": "Scaffold generated via better-t-stack CLI, minimal custom code"
+    }
+  },
+  "aggregates": {
+    "total_features": 1,
+    "avg_duration_minutes": 45,
+    "avg_files_changed": 102,
+    "avg_lines_added": 7615,
+    "success_rate": 1.0,
+    "total_commits": 4
+  },
+  "thresholds": {
+    "duration_warning": 60,
+    "duration_critical": 120,
+    "files_warning": 50,
+    "files_critical": 100,
+    "retries_warning": 2,
+    "retries_critical": 5
+  },
+  "last_updated": "2026-01-27T18:20:00Z"
+}

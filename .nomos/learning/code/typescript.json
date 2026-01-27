@@ -1,0 +1,68 @@
+{
+  "category": "typescript",
+  "description": "TypeScript patterns and pitfalls for monorepo development",
+  "patterns": [
+    {
+      "id": "TS-001",
+      "title": "Workspace package naming convention",
+      "subcategory": "monorepo",
+      "framework": "turborepo",
+      "problem": "Need consistent naming for internal packages",
+      "solution": "Use @{project-name}/{package-name} format (e.g., @F001/api, @F001/db)",
+      "codeAfter": "\"name\": \"@F001/api\"",
+      "learnedFrom": "F001",
+      "severity": "LOW",
+      "tags": ["naming", "packages", "workspace"],
+      "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-002",
+      "title": "Shared TypeScript config extension",
+      "subcategory": "configuration",
+      "framework": "typescript",
+      "problem": "Duplicating tsconfig settings across packages",
+      "solution": "Create packages/config/tsconfig.base.json and extend it in each package",
+      "codeBefore": "// Each package has full tsconfig",
+      "codeAfter": "{\n  \"extends\": \"@F001/config/tsconfig.base.json\"\n}",
+      "learnedFrom": "F001",
+      "severity": "MEDIUM",
+      "tags": ["tsconfig", "shared-config", "DRY"],
+      "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-003",
+      "title": "Bun workspace catalog for version management",
+      "subcategory": "dependencies",
+      "framework": "bun",
+      "problem": "Keeping dependency versions in sync across packages",
+      "solution": "Use workspaces.catalog in root package.json, reference with \"catalog:\" in packages",
+      "codeAfter": "{\n  \"workspaces\": {\n    \"catalog\": {\n      \"zod\": \"^4.1.13\",\n      \"hono\": \"^4.8.2\"\n    }\n  }\n}\n\n// In package:\n\"dependencies\": {\n  \"zod\": \"catalog:\"\n}",
+      "learnedFrom": "F001",
+      "severity": "MEDIUM",
+      "tags": ["dependencies", "versioning", "bun"],
+      "addedAt": "2026-01-27T18:20:00Z"
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "TS-PIT-001",
+      "title": "TanStack Router routeTree.gen.ts not found",
+      "error": "Cannot find module './routeTree.gen' or its corresponding type declarations",
+      "cause": "Route tree file is auto-generated on first build/dev run",
+      "prevention": "Run 'vite build' or 'vite dev' once before 'tsc --noEmit'",
+      "learnedFrom": "F001",
+      "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-PIT-002",
+      "title": "Vite import.meta.env type casting",
+      "error": "Type 'ImportMeta' has no property 'env'",
+      "cause": "Vite's import.meta.env needs type assertion for @t3-oss/env-core",
+      "prevention": "Use (import.meta as any).env or add proper Vite client types",
+      "codeExample": "runtimeEnv: (import.meta as any).env",
+      "learnedFrom": "F001",
+      "addedAt": "2026-01-27T18:20:00Z"
+    }
+  ],
+  "lastUpdated": "2026-01-27T18:20:00Z"
+}

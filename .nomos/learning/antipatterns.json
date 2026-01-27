@@ -1,0 +1,41 @@
+{
+  "antipatterns": [
+    {
+      "id": "ANTI-001",
+      "name": "SKIP_QA_FOR_INFRASTRUCTURE",
+      "description": "Skipping visual QA testing for 'infrastructure' or 'scaffold' features",
+      "category": "qa",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "severity": "HIGH",
+      "prevention": "ALL features require step-05a-qa, even scaffolds. Visual verification catches integration issues.",
+      "what_went_wrong": "Initially skipped visual testing assuming scaffold didn't need it",
+      "lesson": "Even scaffolds need browser verification to confirm frontend-backend integration works"
+    },
+    {
+      "id": "ANTI-002",
+      "name": "MANUAL_LEARNING_OUTPUT",
+      "description": "Writing superficial 09-learn.md without updating actual learning system files",
+      "category": "learning",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "severity": "MEDIUM",
+      "prevention": "Step-09-learn MUST update: metrics.json, patterns.json, antipatterns.json in .nomos/learning/",
+      "what_went_wrong": "Created output file but didn't update learning infrastructure",
+      "lesson": "Learning extraction requires updating JSON files, not just markdown"
+    },
+    {
+      "id": "ANTI-003",
+      "name": "SKIP_CLEANUP_PROMPT",
+      "description": "Not asking user about worktree cleanup when auto_mode=false",
+      "category": "git-workflow",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "severity": "LOW",
+      "prevention": "When cleanup_mode=false AND auto_mode=false, MUST use AskUserQuestion for cleanup decision",
+      "what_went_wrong": "Worktree left behind without asking user preference",
+      "lesson": "Follow step-08-merge.md cleanup protocol exactly"
+    }
+  ],
+  "last_updated": "2026-01-27T18:20:00Z"
+}
