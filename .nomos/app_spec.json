@@ -566,5 +566,29 @@
         { "from": "verified", "to": "backlog", "trigger": "reopen" }
       ]
     }
+  },
+
+  "featureGeneration": {
+    "functional": {
+      "minimum": 150,
+      "target": 180,
+      "perRequirement": 3
+    },
+    "nonFunctional": {
+      "minimum": 50,
+      "target": 70,
+      "perCategory": 8
+    },
+    "total": {
+      "minimum": 200,
+      "maximum": 300
+    },
+    "sizing": {
+      "XS": 0.30,
+      "S": 0.35,
+      "M": 0.25,
+      "L": 0.08,
+      "XL": 0.02
+    }
   }
 }

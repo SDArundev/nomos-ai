@@ -424,6 +424,119 @@
 					}
 				}
 			}
+		},
+		"featureGeneration": {
+			"type": "object",
+			"description": "Configuration for feature generation from this specification (per Effective Harnesses 200+ features pattern)",
+			"required": ["functional", "nonFunctional"],
+			"properties": {
+				"functional": {
+					"type": "object",
+					"description": "Functional feature generation targets",
+					"required": ["minimum"],
+					"properties": {
+						"minimum": {
+							"type": "integer",
+							"minimum": 100,
+							"default": 150,
+							"description": "Minimum number of functional features to generate"
+						},
+						"target": {
+							"type": "integer",
+							"minimum": 100,
+							"description": "Target number of functional features (aim for this)"
+						},
+						"perRequirement": {
+							"type": "integer",
+							"minimum": 1,
+							"default": 3,
+							"description": "Average features to generate per functional requirement"
+						}
+					}
+				},
+				"nonFunctional": {
+					"type": "object",
+					"description": "Non-functional feature generation targets",
+					"required": ["minimum"],
+					"properties": {
+						"minimum": {
+							"type": "integer",
+							"minimum": 50,
+							"default": 50,
+							"description": "Minimum number of non-functional features to generate"
+						},
+						"target": {
+							"type": "integer",
+							"minimum": 50,
+							"description": "Target number of non-functional features"
+						},
+						"perCategory": {
+							"type": "integer",
+							"minimum": 3,
+							"default": 5,
+							"description": "Average features to generate per NFR category"
+						}
+					}
+				},
+				"total": {
+					"type": "object",
+					"description": "Total feature count constraints",
+					"properties": {
+						"minimum": {
+							"type": "integer",
+							"minimum": 200,
+							"default": 200,
+							"description": "Minimum total features (must be 200+ per Effective Harnesses pattern)"
+						},
+						"maximum": {
+							"type": "integer",
+							"maximum": 999,
+							"description": "Maximum total features (F001-F999 range)"
+						}
+					}
+				},
+				"sizing": {
+					"type": "object",
+					"description": "Feature sizing distribution targets",
+					"properties": {
+						"XS": {
+							"type": "number",
+							"minimum": 0,
+							"maximum": 1,
+							"default": 0.3,
+							"description": "Target percentage of XS features (30min)"
+						},
+						"S": {
+							"type": "number",
+							"minimum": 0,
+							"maximum": 1,
+							"default": 0.35,
+							"description": "Target percentage of S features (1hr)"
+						},
+						"M": {
+							"type": "number",
+							"minimum": 0,
+							"maximum": 1,
+							"default": 0.25,
+							"description": "Target percentage of M features (2hr)"
+						},
+						"L": {
+							"type": "number",
+							"minimum": 0,
+							"maximum": 1,
+							"default": 0.08,
+							"description": "Target percentage of L features (4hr)"
+						},
+						"XL": {
+							"type": "number",
+							"minimum": 0,
+							"maximum": 1,
+							"default": 0.02,
+							"description": "Target percentage of XL features (8hr)"
+						}
+					}
+				}
+			}
 		}
 	},
 	"$defs": {

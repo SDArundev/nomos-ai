@@ -76,16 +76,16 @@
 		},
 		"features": {
 			"type": "array",
-			"description": "All project features (target: 150+ atomic features)",
+			"description": "All project features (target: 200+ atomic features per Effective Harnesses pattern)",
 			"items": {
 				"$ref": "#/$defs/feature"
 			},
-			"minItems": 50
+			"minItems": 200
 		},
 		"summary": {
 			"type": "object",
 			"description": "Feature statistics",
-			"required": ["totalFeatures", "byCategory", "byPhase", "byStatus"],
+			"required": ["totalFeatures", "byCategory", "byPhase", "byStatus", "byPasses"],
 			"properties": {
 				"totalFeatures": { "type": "integer" },
 				"byCategory": {
@@ -99,11 +99,20 @@
 				"byStatus": {
 					"type": "object",
 					"properties": {
+						"backlog": { "type": "integer" },
 						"pending": { "type": "integer" },
-						"running": { "type": "integer" },
-						"completed": { "type": "integer" },
-						"failed": { "type": "integer" },
-						"verified": { "type": "integer" }
+						"in_progress": { "type": "integer" },
+						"waiting_approval": { "type": "integer" },
+						"verified": { "type": "integer" },
+						"failed": { "type": "integer" }
+					}
+				},
+				"byPasses": {
+					"type": "object",
+					"description": "Count of features by passes flag (critical for NOMOS auto-detection)",
+					"properties": {
+						"passed": { "type": "integer" },
+						"notPassed": { "type": "integer" }
 					}
 				}
 			}
@@ -120,7 +129,8 @@
 				"description",
 				"phase",
 				"acceptanceCriteria",
-				"status"
+				"status",
+				"passes"
 			],
 			"properties": {
 				"id": {
