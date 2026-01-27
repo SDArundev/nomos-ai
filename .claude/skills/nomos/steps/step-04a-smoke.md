@@ -11,12 +11,15 @@ next_step: steps/step-05-validate.md
 
 - 🛑 NEVER skip this step - ALL features must be runtime tested
 - 🛑 NEVER mark pass if server fails to start
+- 🛑 NEVER proceed to next step without stopping dev servers
 - ✅ ALWAYS start both server AND web (full stack)
 - ✅ ALWAYS hit real endpoints (not mocked)
 - ✅ ALWAYS verify the feature at runtime
+- ✅ ALWAYS stop dev servers before proceeding (prevent port conflicts)
 - 📋 YOU ARE A QA ENGINEER, not a code reviewer
 - 💬 FOCUS on "Does it actually run?"
 - 🚫 FORBIDDEN to proceed if runtime fails
+- 🚫 FORBIDDEN to leave dev servers running after step completes
 
 <critical>
 ## NO SKIP POLICY
@@ -315,10 +318,19 @@ grep -i "error\|exception\|failed" "$SERVER_LOG" || echo "No errors"
 **Runtime Status:** ✓ All smoke tests passed
 ```
 
-### 8. Cleanup
+### 8. Cleanup (MANDATORY)
+
+<critical>
+## DEV SERVER CLEANUP IS MANDATORY
+
+You MUST stop all dev servers before proceeding to the next step.
+Leaving servers running causes port conflicts and resource leaks.
+</critical>
+
+**Stop all dev servers started in this step:**
 
 ```bash
-# Stop background processes (only if we started them, not if EXISTING)
+# Kill by PID (if we started them)
 if [[ "$SERVER_PID" != "EXISTING" ]]; then
     kill $SERVER_PID 2>/dev/null || true
 fi
@@ -326,9 +338,20 @@ if [[ "$WEB_PID" != "EXISTING" ]]; then
     kill $WEB_PID 2>/dev/null || true
 fi
 
-# Optionally clean up port allocation file (uncomment if single-use)
-# rm -f .nomos/locks/{feature_id}.ports
+# Kill by port (failsafe - ensures ports are freed)
+lsof -ti:$SERVER_PORT | xargs kill -9 2>/dev/null || true
+lsof -ti:$WEB_PORT | xargs kill -9 2>/dev/null || true
+
+# Verify servers stopped
+sleep 1
+curl -s "http://localhost:$SERVER_PORT" > /dev/null 2>&1 && echo "WARNING: Server still running!" || echo "✓ Server stopped"
+curl -s "http://localhost:$WEB_PORT" > /dev/null 2>&1 && echo "WARNING: Web still running!" || echo "✓ Web stopped"
 ```
+
+**Cleanup is complete when:**
+- [ ] Server port ($SERVER_PORT) is free
+- [ ] Web port ($WEB_PORT) is free
+- [ ] No background bun/vite processes from this step
 
 ### 9. Handle Failures
 
@@ -383,10 +406,12 @@ Append to `{output_dir}/04a-smoke.md`:
 ✅ No runtime exceptions in logs
 ✅ UI renders (if applicable)
 ✅ Console has no errors
+✅ Dev servers stopped before proceeding to next step
 
 ## FAILURE MODES:
 
 ❌ **CRITICAL**: Skipping smoke test for "non-UI" or "library" features
+❌ **CRITICAL**: Leaving dev servers running after step completes
 ❌ Not starting BOTH server and web
 ❌ Ignoring startup errors
 ❌ Proceeding with runtime failures
@@ -394,6 +419,7 @@ Append to `{output_dir}/04a-smoke.md`:
 ❌ **CRITICAL**: Marking pass without running code
 ❌ Not verifying database features via API AND UI
 ❌ Only testing one layer (e.g., only API, not UI)
+❌ Proceeding to next step without killing dev processes
 
 ## SMOKE TEST PROTOCOLS:
 

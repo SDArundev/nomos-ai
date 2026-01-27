@@ -11,12 +11,15 @@ next_step: steps/step-06-review.md
 
 - 🛑 NEVER skip this step - ALL features have acceptance criteria to test
 - 🛑 NEVER claim AC met without actually testing in running app
+- 🛑 NEVER proceed to next step without stopping dev servers
 - ✅ ALWAYS test each acceptance criterion
 - ✅ ALWAYS use real application (server + web running)
 - ✅ ALWAYS capture evidence (screenshots, API responses, logs)
+- ✅ ALWAYS stop dev servers before proceeding (prevent port conflicts)
 - 📋 YOU ARE A QA SPECIALIST, not a code reviewer
 - 💬 FOCUS on "Does the feature work as specified?"
 - 🚫 FORBIDDEN to proceed without evidence
+- 🚫 FORBIDDEN to leave dev servers running after step completes
 
 <critical>
 ## NO SKIP POLICY
@@ -354,7 +357,42 @@ questions:
     multiSelect: false
 ```
 
-### 8. Complete Output
+### 8. Cleanup Dev Servers (MANDATORY)
+
+<critical>
+## DEV SERVER CLEANUP IS MANDATORY
+
+You MUST stop all dev servers before proceeding to step-06-review.
+Leaving servers running causes port conflicts and resource leaks.
+</critical>
+
+**Stop all dev servers:**
+
+```bash
+# Kill by PID (if tracked)
+[[ -n "$SERVER_PID" ]] && kill $SERVER_PID 2>/dev/null || true
+[[ -n "$WEB_PID" ]] && kill $WEB_PID 2>/dev/null || true
+
+# Kill by port (failsafe - ensures ports are freed)
+lsof -ti:$SERVER_PORT | xargs kill -9 2>/dev/null || true
+lsof -ti:$WEB_PORT | xargs kill -9 2>/dev/null || true
+
+# Kill any turbo/vite processes from this worktree
+pkill -f "turbo dev" 2>/dev/null || true
+pkill -f "vite.*$WEB_PORT" 2>/dev/null || true
+
+# Verify cleanup
+sleep 1
+curl -s "http://localhost:$SERVER_PORT" > /dev/null 2>&1 && echo "⚠️ Server still running on $SERVER_PORT" || echo "✓ Server stopped"
+curl -s "http://localhost:$WEB_PORT" > /dev/null 2>&1 && echo "⚠️ Web still running on $WEB_PORT" || echo "✓ Web stopped"
+```
+
+**Cleanup checklist:**
+- [ ] Server port ($SERVER_PORT) is free
+- [ ] Web port ($WEB_PORT) is free
+- [ ] Verification messages show "✓ stopped"
+
+### 9. Complete Output
 
 Append to `{output_dir}/05a-qa.md`:
 
@@ -379,10 +417,12 @@ Append to `{output_dir}/05a-qa.md`:
 ✅ Tests performed on running application
 ✅ All ACs pass (or failures documented)
 ✅ User-facing functionality verified
+✅ Dev servers stopped before proceeding
 
 ## FAILURE MODES:
 
 ❌ **CRITICAL**: Skipping QA for "non-UI" or "database-only" features
+❌ **CRITICAL**: Leaving dev servers running after step completes
 ❌ Skipping acceptance criteria
 ❌ Testing against mocks instead of real app
 ❌ Not capturing evidence (screenshots OR API responses)
@@ -391,6 +431,7 @@ Append to `{output_dir}/05a-qa.md`:
 ❌ **CRITICAL**: Proceeding with failed ACs
 ❌ Only testing one layer (API but not UI, or vice versa)
 ❌ Not verifying data appears correctly in UI for database features
+❌ Proceeding to review without killing dev processes
 
 ## QA PROTOCOLS:
 
