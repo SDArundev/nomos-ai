@@ -230,11 +230,13 @@
         "Type inference works correctly"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-27T15:17:56Z",
+      "verifiedAt": "2026-01-27T15:34:57Z"
     },
     {
       "id": "F004",

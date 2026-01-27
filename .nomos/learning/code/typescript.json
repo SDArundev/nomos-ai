@@ -71,6 +71,33 @@
       "severity": "MEDIUM",
       "tags": ["enums", "const-assertion", "zod", "validation"],
       "addedAt": "2026-01-27T19:30:00Z"
+    },
+    {
+      "id": "TS-006",
+      "title": "Regex pattern validation with branded types",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Need to validate string IDs match specific patterns (F001, CAT-XXX) at runtime",
+      "solution": "Chain .regex() before .brand() for pattern-validated branded types",
+      "codeAfter": "const FeatureIdSchema = z\n  .string()\n  .regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999')\n  .brand<'FeatureId'>();",
+      "learnedFrom": "F003",
+      "severity": "HIGH",
+      "tags": ["regex", "validation", "branded-types", "zod"],
+      "addedAt": "2026-01-27T15:35:00Z"
+    },
+    {
+      "id": "TS-007",
+      "title": "Zod default() does not need optional()",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Redundant .default().optional() creates semantic confusion",
+      "solution": "Use .default() alone - it already handles undefined input",
+      "codeBefore": "model: ModelSchema.default('sonnet').optional()",
+      "codeAfter": "model: ModelSchema.default('sonnet')",
+      "learnedFrom": "F003",
+      "severity": "MEDIUM",
+      "tags": ["zod", "defaults", "optional", "anti-pattern"],
+      "addedAt": "2026-01-27T15:35:00Z"
     }
   ],
   "pitfalls": [
@@ -104,5 +131,5 @@
       "addedAt": "2026-01-27T19:30:00Z"
     }
   ],
-  "lastUpdated": "2026-01-27T19:30:00Z"
+  "lastUpdated": "2026-01-27T15:35:00Z"
 }
