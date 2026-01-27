@@ -2,13 +2,16 @@ import { z } from "zod";
 
 /**
  * Feature status values following the NOMOS state machine:
- * backlog → in_progress → waiting_approval → verified
+ * backlog → pending → in_progress → waiting_approval → verified
+ * (failed is a terminal state for features that cannot be completed)
  */
 export const FEATURE_STATUS = {
 	BACKLOG: "backlog",
+	PENDING: "pending",
 	IN_PROGRESS: "in_progress",
 	WAITING_APPROVAL: "waiting_approval",
 	VERIFIED: "verified",
+	FAILED: "failed",
 } as const;
 
 /** Feature status type derived from constant values */
@@ -18,9 +21,11 @@ export type FeatureStatus =
 /** Zod schema for validating feature status values */
 export const FeatureStatusSchema = z.enum([
 	FEATURE_STATUS.BACKLOG,
+	FEATURE_STATUS.PENDING,
 	FEATURE_STATUS.IN_PROGRESS,
 	FEATURE_STATUS.WAITING_APPROVAL,
 	FEATURE_STATUS.VERIFIED,
+	FEATURE_STATUS.FAILED,
 ]);
 
 /**

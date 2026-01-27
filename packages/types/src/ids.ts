@@ -5,8 +5,11 @@ import { z } from "zod";
  * These prevent mixing up different ID types at compile time.
  */
 
-/** Schema for validating and branding Feature IDs */
-export const FeatureIdSchema = z.string().brand<"FeatureId">();
+/** Schema for validating and branding Feature IDs (F001-F999 format) */
+export const FeatureIdSchema = z
+	.string()
+	.regex(/^F[0-9]{3}$/, "Feature ID must be in format F001-F999")
+	.brand<"FeatureId">();
 
 /** Schema for validating and branding Project IDs */
 export const ProjectIdSchema = z.string().brand<"ProjectId">();

@@ -1,16 +1,16 @@
 import { describe, expect, it } from "bun:test";
 import {
+	type FeatureId,
 	FeatureIdSchema,
+	type ProjectId,
 	ProjectIdSchema,
 	SessionIdSchema,
 	UserIdSchema,
-	type FeatureId,
-	type ProjectId,
 } from "../ids";
 
 describe("Branded ID Schemas", () => {
 	describe("FeatureIdSchema", () => {
-		it("accepts valid string IDs", () => {
+		it("accepts valid F001 format", () => {
 			const result = FeatureIdSchema.safeParse("F001");
 			expect(result.success).toBe(true);
 			if (result.success) {
@@ -18,11 +18,46 @@ describe("Branded ID Schemas", () => {
 			}
 		});
 
-		it("accepts UUIDs", () => {
+		it("accepts F123 format", () => {
+			const result = FeatureIdSchema.safeParse("F123");
+			expect(result.success).toBe(true);
+		});
+
+		it("accepts F999 format", () => {
+			const result = FeatureIdSchema.safeParse("F999");
+			expect(result.success).toBe(true);
+		});
+
+		it("rejects UUIDs (must be F001-F999 format)", () => {
 			const result = FeatureIdSchema.safeParse(
 				"550e8400-e29b-41d4-a716-446655440000",
 			);
-			expect(result.success).toBe(true);
+			expect(result.success).toBe(false);
+		});
+
+		it("rejects F0001 (too many digits)", () => {
+			const result = FeatureIdSchema.safeParse("F0001");
+			expect(result.success).toBe(false);
+		});
+
+		it("rejects F00 (too few digits)", () => {
+			const result = FeatureIdSchema.safeParse("F00");
+			expect(result.success).toBe(false);
+		});
+
+		it("rejects F1 (too few digits)", () => {
+			const result = FeatureIdSchema.safeParse("F1");
+			expect(result.success).toBe(false);
+		});
+
+		it("rejects lowercase f001", () => {
+			const result = FeatureIdSchema.safeParse("f001");
+			expect(result.success).toBe(false);
+		});
+
+		it("rejects A001 (wrong prefix)", () => {
+			const result = FeatureIdSchema.safeParse("A001");
+			expect(result.success).toBe(false);
 		});
 
 		it("rejects numbers", () => {

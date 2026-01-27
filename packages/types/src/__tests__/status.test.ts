@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import {
 	FEATURE_STATUS,
+	type FeatureStatus,
 	FeatureStatusSchema,
 	PROJECT_STATUS,
 	ProjectStatusSchema,
 	SESSION_STATUS,
 	SessionStatusSchema,
-	type FeatureStatus,
 } from "../status";
 
 describe("Status Enum Schemas", () => {
@@ -34,6 +34,22 @@ describe("Status Enum Schemas", () => {
 		it("accepts VERIFIED", () => {
 			const result = FeatureStatusSchema.safeParse(FEATURE_STATUS.VERIFIED);
 			expect(result.success).toBe(true);
+		});
+
+		it("accepts PENDING", () => {
+			const result = FeatureStatusSchema.safeParse(FEATURE_STATUS.PENDING);
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data).toBe("pending");
+			}
+		});
+
+		it("accepts FAILED", () => {
+			const result = FeatureStatusSchema.safeParse(FEATURE_STATUS.FAILED);
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data).toBe("failed");
+			}
 		});
 
 		it("rejects invalid status strings", () => {
@@ -115,13 +131,15 @@ describe("Status Enum Schemas", () => {
 	});
 
 	describe("NOMOS state machine values", () => {
-		it("has exactly 4 feature statuses", () => {
+		it("has exactly 6 feature statuses", () => {
 			const statuses = Object.values(FEATURE_STATUS);
 			expect(statuses).toEqual([
 				"backlog",
+				"pending",
 				"in_progress",
 				"waiting_approval",
 				"verified",
+				"failed",
 			]);
 		});
 
