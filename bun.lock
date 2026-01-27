@@ -5,6 +5,7 @@
       "name": "F001",
       "dependencies": {
         "@nomos-ai/env": "workspace:*",
+        "@nomos-ai/types": "workspace:*",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },
@@ -144,6 +145,18 @@
       "dependencies": {
         "@t3-oss/env-core": "^0.13.1",
         "dotenv": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@nomos-ai/config": "workspace:*",
+        "@types/bun": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/types": {
+      "name": "@nomos-ai/types",
+      "version": "0.0.0",
+      "dependencies": {
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -405,6 +418,8 @@
     "@nomos-ai/db": ["@nomos-ai/db@workspace:packages/db"],
 
     "@nomos-ai/env": ["@nomos-ai/env@workspace:packages/env"],
+
+    "@nomos-ai/types": ["@nomos-ai/types@workspace:packages/types"],
 
     "@open-draft/deferred-promise": ["@open-draft/deferred-promise@2.2.0", "", {}, "sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA=="],
 
