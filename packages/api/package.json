@@ -1,5 +1,5 @@
 {
-	"name": "@F001/api",
+	"name": "@nomos-ai/api",
 	"exports": {
 		".": {
 			"default": "./src/index.ts"
@@ -12,15 +12,15 @@
 	"scripts": {},
 	"devDependencies": {
 		"typescript": "catalog:",
-		"@F001/config": "workspace:*",
+		"@nomos-ai/config": "workspace:*",
 		"hono": "catalog:"
 	},
 	"dependencies": {
 		"dotenv": "catalog:",
 		"zod": "catalog:",
-		"@F001/env": "workspace:*",
-		"@F001/auth": "workspace:*",
-		"@F001/db": "workspace:*",
+		"@nomos-ai/env": "workspace:*",
+		"@nomos-ai/auth": "workspace:*",
+		"@nomos-ai/db": "workspace:*",
 		"@orpc/server": "catalog:",
 		"@orpc/client": "catalog:",
 		"@orpc/openapi": "catalog:",

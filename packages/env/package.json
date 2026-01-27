@@ -1,5 +1,5 @@
 {
-	"name": "@F001/env",
+	"name": "@nomos-ai/env",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -15,6 +15,6 @@
 	"devDependencies": {
 		"typescript": "catalog:",
 		"@types/bun": "catalog:",
-		"@F001/config": "workspace:*"
+		"@nomos-ai/config": "workspace:*"
 	}
 }

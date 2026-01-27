@@ -1,4 +1,4 @@
-import type { AppRouterClient } from "@F001/api/routers/index";
+import type { AppRouterClient } from "@nomos-ai/api/routers/index";
 import { createORPCClient } from "@orpc/client";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import type { QueryClient } from "@tanstack/react-query";
@@ -26,11 +26,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 	head: () => ({
 		meta: [
 			{
-				title: "F001",
+				title: "nomos-ai",
 			},
 			{
 				name: "description",
-				content: "F001 is a web application",
+				content: "nomos-ai - Autonomous AI Development Studio",
 			},
 		],
 		links: [

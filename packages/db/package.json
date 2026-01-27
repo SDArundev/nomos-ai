@@ -1,5 +1,5 @@
 {
-	"name": "@F001/db",
+	"name": "@nomos-ai/db",
 	"type": "module",
 	"exports": {
 		".": {
@@ -18,13 +18,13 @@
 	},
 	"devDependencies": {
 		"typescript": "catalog:",
-		"@F001/config": "workspace:*",
+		"@nomos-ai/config": "workspace:*",
 		"drizzle-kit": "^0.31.8"
 	},
 	"dependencies": {
 		"dotenv": "catalog:",
 		"zod": "catalog:",
-		"@F001/env": "workspace:*",
+		"@nomos-ai/env": "workspace:*",
 		"drizzle-orm": "^0.45.1",
 		"@libsql/client": "catalog:",
 		"libsql": "catalog:"

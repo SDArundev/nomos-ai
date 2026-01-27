@@ -1,4 +1,4 @@
-import { env } from "@F001/env/web";
+import { env } from "@nomos-ai/env/web";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({

@@ -4,12 +4,12 @@
     "": {
       "name": "F001",
       "dependencies": {
-        "@F001/env": "workspace:*",
+        "@nomos-ai/env": "workspace:*",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@F001/config": "workspace:*",
+        "@nomos-ai/config": "workspace:*",
         "@types/bun": "catalog:",
         "turbo": "^2.6.3",
         "typescript": "catalog:",
@@ -18,10 +18,10 @@
     "apps/server": {
       "name": "server",
       "dependencies": {
-        "@F001/api": "workspace:*",
-        "@F001/auth": "workspace:*",
-        "@F001/db": "workspace:*",
-        "@F001/env": "workspace:*",
+        "@nomos-ai/api": "workspace:*",
+        "@nomos-ai/auth": "workspace:*",
+        "@nomos-ai/db": "workspace:*",
+        "@nomos-ai/env": "workspace:*",
         "@orpc/openapi": "catalog:",
         "@orpc/server": "catalog:",
         "@orpc/zod": "catalog:",
@@ -31,7 +31,7 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@F001/config": "workspace:*",
+        "@nomos-ai/config": "workspace:*",
         "@types/bun": "catalog:",
         "tsdown": "^0.16.5",
         "typescript": "catalog:",
@@ -41,12 +41,12 @@
       "name": "web",
       "version": "0.0.0",
       "dependencies": {
-        "@F001/api": "workspace:*",
-        "@F001/auth": "workspace:*",
-        "@F001/env": "workspace:*",
         "@base-ui/react": "^1.0.0",
         "@hookform/resolvers": "^5.1.1",
         "@libsql/client": "catalog:",
+        "@nomos-ai/api": "workspace:*",
+        "@nomos-ai/auth": "workspace:*",
+        "@nomos-ai/env": "workspace:*",
         "@orpc/client": "catalog:",
         "@orpc/server": "catalog:",
         "@orpc/tanstack-query": "^1.12.2",
@@ -70,7 +70,7 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@F001/config": "workspace:*",
+        "@nomos-ai/config": "workspace:*",
         "@tanstack/react-query-devtools": "^5.91.1",
         "@tanstack/react-router-devtools": "^1.141.1",
         "@tanstack/router-plugin": "^1.141.1",
@@ -86,11 +86,11 @@
       },
     },
     "packages/api": {
-      "name": "@F001/api",
+      "name": "@nomos-ai/api",
       "dependencies": {
-        "@F001/auth": "workspace:*",
-        "@F001/db": "workspace:*",
-        "@F001/env": "workspace:*",
+        "@nomos-ai/auth": "workspace:*",
+        "@nomos-ai/db": "workspace:*",
+        "@nomos-ai/env": "workspace:*",
         "@orpc/client": "catalog:",
         "@orpc/openapi": "catalog:",
         "@orpc/server": "catalog:",
@@ -99,47 +99,47 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@F001/config": "workspace:*",
+        "@nomos-ai/config": "workspace:*",
         "hono": "catalog:",
         "typescript": "catalog:",
       },
     },
     "packages/auth": {
-      "name": "@F001/auth",
+      "name": "@nomos-ai/auth",
       "dependencies": {
-        "@F001/db": "workspace:*",
-        "@F001/env": "workspace:*",
+        "@nomos-ai/db": "workspace:*",
+        "@nomos-ai/env": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@F001/config": "workspace:*",
+        "@nomos-ai/config": "workspace:*",
         "typescript": "catalog:",
       },
     },
     "packages/config": {
-      "name": "@F001/config",
+      "name": "@nomos-ai/config",
       "version": "0.0.0",
     },
     "packages/db": {
-      "name": "@F001/db",
+      "name": "@nomos-ai/db",
       "dependencies": {
-        "@F001/env": "workspace:*",
         "@libsql/client": "catalog:",
+        "@nomos-ai/env": "workspace:*",
         "dotenv": "catalog:",
         "drizzle-orm": "^0.45.1",
         "libsql": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@F001/config": "workspace:*",
+        "@nomos-ai/config": "workspace:*",
         "drizzle-kit": "^0.31.8",
         "typescript": "catalog:",
       },
     },
     "packages/env": {
-      "name": "@F001/env",
+      "name": "@nomos-ai/env",
       "version": "0.0.0",
       "dependencies": {
         "@t3-oss/env-core": "^0.13.1",
@@ -147,7 +147,7 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@F001/config": "workspace:*",
+        "@nomos-ai/config": "workspace:*",
         "@types/bun": "catalog:",
         "typescript": "catalog:",
       },
@@ -168,16 +168,6 @@
     "zod": "^4.1.13",
   },
   "packages": {
-    "@F001/api": ["@F001/api@workspace:packages/api"],
-
-    "@F001/auth": ["@F001/auth@workspace:packages/auth"],
-
-    "@F001/config": ["@F001/config@workspace:packages/config"],
-
-    "@F001/db": ["@F001/db@workspace:packages/db"],
-
-    "@F001/env": ["@F001/env@workspace:packages/env"],
-
     "@antfu/ni": ["@antfu/ni@25.0.0", "", { "dependencies": { "ansis": "^4.0.0", "fzf": "^0.5.2", "package-manager-detector": "^1.3.0", "tinyexec": "^1.0.1" }, "bin": { "na": "bin/na.mjs", "ni": "bin/ni.mjs", "nr": "bin/nr.mjs", "nci": "bin/nci.mjs", "nlx": "bin/nlx.mjs", "nun": "bin/nun.mjs", "nup": "bin/nup.mjs" } }, "sha512-9q/yCljni37pkMr4sPrI3G4jqdIk074+iukc5aFJl7kmDCCsiJrbZ6zKxnES1Gwg+i9RcDZwvktl23puGslmvA=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.28.6", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.28.5", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q=="],
@@ -405,6 +395,16 @@
     "@nodelib/fs.stat": ["@nodelib/fs.stat@2.0.5", "", {}, "sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A=="],
 
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
+
+    "@nomos-ai/api": ["@nomos-ai/api@workspace:packages/api"],
+
+    "@nomos-ai/auth": ["@nomos-ai/auth@workspace:packages/auth"],
+
+    "@nomos-ai/config": ["@nomos-ai/config@workspace:packages/config"],
+
+    "@nomos-ai/db": ["@nomos-ai/db@workspace:packages/db"],
+
+    "@nomos-ai/env": ["@nomos-ai/env@workspace:packages/env"],
 
     "@open-draft/deferred-promise": ["@open-draft/deferred-promise@2.2.0", "", {}, "sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA=="],
 

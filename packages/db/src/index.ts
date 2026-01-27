@@ -1,4 +1,4 @@
-import { env } from "@F001/env/server";
+import { env } from "@nomos-ai/env/server";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";

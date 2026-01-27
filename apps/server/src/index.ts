@@ -1,7 +1,7 @@
-import { createContext } from "@F001/api/context";
-import { appRouter } from "@F001/api/routers/index";
-import { auth } from "@F001/auth";
-import { env } from "@F001/env/server";
+import { createContext } from "@nomos-ai/api/context";
+import { appRouter } from "@nomos-ai/api/routers/index";
+import { auth } from "@nomos-ai/auth";
+import { env } from "@nomos-ai/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";

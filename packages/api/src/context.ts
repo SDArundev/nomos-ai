@@ -1,4 +1,4 @@
-import { auth } from "@F001/auth";
+import { auth } from "@nomos-ai/auth";
 import type { Context as HonoContext } from "hono";
 
 export type CreateContextOptions = {

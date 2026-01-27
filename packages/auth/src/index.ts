@@ -1,6 +1,6 @@
-import { db } from "@F001/db";
-import * as schema from "@F001/db/schema/auth";
-import { env } from "@F001/env/server";
+import { db } from "@nomos-ai/db";
+import * as schema from "@nomos-ai/db/schema/auth";
+import { env } from "@nomos-ai/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 

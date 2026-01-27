@@ -1,5 +1,5 @@
 {
-	"name": "@F001/auth",
+	"name": "@nomos-ai/auth",
 	"exports": {
 		".": {
 			"default": "./src/index.ts"
@@ -12,13 +12,13 @@
 	"scripts": {},
 	"devDependencies": {
 		"typescript": "catalog:",
-		"@F001/config": "workspace:*"
+		"@nomos-ai/config": "workspace:*"
 	},
 	"dependencies": {
 		"dotenv": "catalog:",
 		"zod": "catalog:",
-		"@F001/env": "workspace:*",
-		"@F001/db": "workspace:*",
+		"@nomos-ai/env": "workspace:*",
+		"@nomos-ai/db": "workspace:*",
 		"better-auth": "catalog:"
 	}
 }

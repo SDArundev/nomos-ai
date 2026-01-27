@@ -1,5 +1,5 @@
-import type { AppRouterClient } from "@F001/api/routers/index";
-import { env } from "@F001/env/web";
+import type { AppRouterClient } from "@nomos-ai/api/routers/index";
+import { env } from "@nomos-ai/env/web";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";

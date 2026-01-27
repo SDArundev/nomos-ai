@@ -1,3 +1,3 @@
 {
-	"extends": "@F001/config/tsconfig.base.json"
+	"extends": "@nomos-ai/config/tsconfig.base.json"
 }

@@ -12,10 +12,10 @@
 	"dependencies": {
 		"dotenv": "catalog:",
 		"zod": "catalog:",
-		"@F001/env": "workspace:*",
-		"@F001/api": "workspace:*",
-		"@F001/auth": "workspace:*",
-		"@F001/db": "workspace:*",
+		"@nomos-ai/env": "workspace:*",
+		"@nomos-ai/api": "workspace:*",
+		"@nomos-ai/auth": "workspace:*",
+		"@nomos-ai/db": "workspace:*",
 		"hono": "catalog:",
 		"@orpc/server": "catalog:",
 		"@orpc/openapi": "catalog:",
@@ -25,7 +25,7 @@
 	"devDependencies": {
 		"typescript": "catalog:",
 		"tsdown": "^0.16.5",
-		"@F001/config": "workspace:*",
+		"@nomos-ai/config": "workspace:*",
 		"@types/bun": "catalog:"
 	}
 }
