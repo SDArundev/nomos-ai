@@ -1,0 +1,512 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://nomos.dev/schemas/app_spec.schema.json",
+	"title": "NOMOS Application Specification Schema",
+	"description": "Comprehensive specification schema for autonomous development frameworks. Based on patterns from Anthropic Effective Harnesses, GitHub Spec Kit, AutoCoder, and Addy Osmani's spec guide.",
+	"type": "object",
+	"required": [
+		"meta",
+		"vision",
+		"constitution",
+		"architecture",
+		"requirements",
+		"phases",
+		"constraints"
+	],
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "JSON Schema reference"
+		},
+		"meta": {
+			"type": "object",
+			"description": "Project metadata and identification",
+			"required": ["name", "version", "tagline", "description"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "Project name",
+					"minLength": 1,
+					"maxLength": 50
+				},
+				"acronym": {
+					"type": "string",
+					"description": "Project acronym expansion"
+				},
+				"version": {
+					"type": "string",
+					"pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$",
+					"description": "Semantic version"
+				},
+				"tagline": {
+					"oneOf": [
+						{ "type": "string" },
+						{
+							"type": "object",
+							"properties": {
+								"en": { "type": "string" },
+								"fr": { "type": "string" }
+							}
+						}
+					],
+					"description": "Short tagline (can be multilingual)"
+				},
+				"description": {
+					"type": "string",
+					"description": "Full project description",
+					"minLength": 10,
+					"maxLength": 500
+				},
+				"repository": {
+					"type": "string",
+					"format": "uri",
+					"description": "Git repository URL"
+				},
+				"createdAt": {
+					"type": "string",
+					"format": "date",
+					"description": "Project creation date"
+				},
+				"updatedAt": {
+					"type": "string",
+					"format": "date",
+					"description": "Last specification update"
+				}
+			}
+		},
+		"vision": {
+			"type": "object",
+			"description": "Project vision, goals, and non-goals",
+			"required": ["goals", "nonGoals"],
+			"properties": {
+				"mission": {
+					"type": "string",
+					"description": "Single-sentence mission statement"
+				},
+				"goals": {
+					"type": "array",
+					"description": "What the project aims to achieve",
+					"items": { "type": "string" },
+					"minItems": 3,
+					"maxItems": 10
+				},
+				"nonGoals": {
+					"type": "array",
+					"description": "Explicitly out of scope items",
+					"items": { "type": "string" },
+					"minItems": 1
+				},
+				"successMetrics": {
+					"type": "array",
+					"description": "Measurable success criteria",
+					"items": {
+						"type": "object",
+						"properties": {
+							"metric": { "type": "string" },
+							"target": { "type": "string" },
+							"measurement": { "type": "string" }
+						},
+						"required": ["metric", "target"]
+					}
+				}
+			}
+		},
+		"constitution": {
+			"type": "object",
+			"description": "Immutable governing principles (per GitHub Spec Kit pattern)",
+			"required": ["articles"],
+			"properties": {
+				"preamble": {
+					"type": "string",
+					"description": "Constitutional preamble explaining the purpose"
+				},
+				"articles": {
+					"type": "array",
+					"description": "Constitutional articles that govern all development",
+					"items": {
+						"type": "object",
+						"required": ["id", "title", "principle", "rationale"],
+						"properties": {
+							"id": {
+								"type": "string",
+								"pattern": "^ART-[0-9]{3}$",
+								"description": "Article identifier"
+							},
+							"title": {
+								"type": "string",
+								"description": "Article title"
+							},
+							"principle": {
+								"type": "string",
+								"description": "The immutable principle"
+							},
+							"rationale": {
+								"type": "string",
+								"description": "Why this principle exists"
+							},
+							"enforcement": {
+								"type": "string",
+								"description": "How this principle is enforced"
+							}
+						}
+					},
+					"minItems": 5
+				}
+			}
+		},
+		"architecture": {
+			"type": "object",
+			"description": "Technical architecture specification",
+			"required": ["type", "components"],
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": ["monorepo", "polyrepo", "monolith", "microservices"],
+					"description": "Architecture type"
+				},
+				"runtime": {
+					"type": "string",
+					"description": "Primary runtime (e.g., bun, node, deno)"
+				},
+				"buildSystem": {
+					"type": "string",
+					"description": "Build system (e.g., turborepo, nx, lerna)"
+				},
+				"stack": {
+					"type": "object",
+					"description": "Technology stack by category",
+					"properties": {
+						"frontend": {
+							"type": "array",
+							"items": { "type": "string" }
+						},
+						"backend": {
+							"type": "array",
+							"items": { "type": "string" }
+						},
+						"database": {
+							"type": "array",
+							"items": { "type": "string" }
+						},
+						"ai": {
+							"type": "array",
+							"items": { "type": "string" }
+						},
+						"tools": {
+							"type": "array",
+							"items": { "type": "string" }
+						},
+						"infrastructure": {
+							"type": "array",
+							"items": { "type": "string" }
+						}
+					}
+				},
+				"components": {
+					"type": "object",
+					"description": "System components and their responsibilities",
+					"additionalProperties": {
+						"type": "object",
+						"required": ["description", "responsibilities"],
+						"properties": {
+							"description": { "type": "string" },
+							"language": { "type": "string" },
+							"framework": { "type": "string" },
+							"responsibilities": {
+								"type": "array",
+								"items": { "type": "string" }
+							},
+							"dependencies": {
+								"type": "array",
+								"items": { "type": "string" }
+							}
+						}
+					}
+				},
+				"dataFlow": {
+					"type": "array",
+					"description": "Data flow between components",
+					"items": {
+						"type": "object",
+						"properties": {
+							"from": { "type": "string" },
+							"to": { "type": "string" },
+							"protocol": { "type": "string" },
+							"data": { "type": "string" }
+						}
+					}
+				}
+			}
+		},
+		"requirements": {
+			"type": "object",
+			"description": "All project requirements (functional and non-functional)",
+			"required": ["functional", "nonFunctional"],
+			"properties": {
+				"functional": {
+					"type": "object",
+					"description": "Functional requirements",
+					"additionalProperties": {
+						"$ref": "#/$defs/requirement"
+					}
+				},
+				"nonFunctional": {
+					"type": "object",
+					"description": "Non-functional requirements (quality attributes)",
+					"additionalProperties": {
+						"$ref": "#/$defs/nfrRequirement"
+					}
+				}
+			}
+		},
+		"phases": {
+			"type": "array",
+			"description": "Development phases (per GitHub Spec Kit workflow)",
+			"items": {
+				"type": "object",
+				"required": ["id", "name", "description", "requirements"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"pattern": "^phase-[0-9]+$",
+						"description": "Phase identifier"
+					},
+					"name": {
+						"type": "string",
+						"description": "Phase name"
+					},
+					"description": {
+						"type": "string",
+						"description": "Phase description"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["planned", "in_progress", "verified", "skipped"],
+						"description": "Phase status"
+					},
+					"requirements": {
+						"type": "array",
+						"description": "Requirements addressed in this phase",
+						"items": { "type": "string" }
+					},
+					"deliverables": {
+						"type": "array",
+						"description": "Expected deliverables",
+						"items": { "type": "string" }
+					},
+					"exitCriteria": {
+						"type": "array",
+						"description": "Criteria to consider phase complete",
+						"items": { "type": "string" }
+					}
+				}
+			}
+		},
+		"constraints": {
+			"type": "object",
+			"description": "Project constraints and boundaries",
+			"required": ["technical", "process"],
+			"properties": {
+				"technical": {
+					"type": "array",
+					"description": "Technical constraints",
+					"items": { "type": "string" }
+				},
+				"process": {
+					"type": "array",
+					"description": "Process constraints",
+					"items": { "type": "string" }
+				},
+				"security": {
+					"type": "array",
+					"description": "Security constraints",
+					"items": { "type": "string" }
+				},
+				"compliance": {
+					"type": "array",
+					"description": "Compliance requirements",
+					"items": { "type": "string" }
+				}
+			}
+		},
+		"boundaries": {
+			"type": "object",
+			"description": "Agent action boundaries (per Addy Osmani's 3-tier system)",
+			"properties": {
+				"always": {
+					"type": "array",
+					"description": "Actions that require no approval",
+					"items": { "type": "string" }
+				},
+				"askFirst": {
+					"type": "array",
+					"description": "High-impact changes needing review",
+					"items": { "type": "string" }
+				},
+				"never": {
+					"type": "array",
+					"description": "Absolute restrictions",
+					"items": { "type": "string" }
+				}
+			}
+		},
+		"quality": {
+			"type": "object",
+			"description": "Quality gates and testing requirements",
+			"properties": {
+				"gates": {
+					"type": "array",
+					"description": "Quality gates that must pass",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": { "type": "string" },
+							"command": { "type": "string" },
+							"blocking": { "type": "boolean" },
+							"description": { "type": "string" }
+						},
+						"required": ["name", "command", "blocking"]
+					}
+				},
+				"testing": {
+					"type": "object",
+					"properties": {
+						"framework": { "type": "string" },
+						"coverage": { "type": "number" },
+						"patterns": {
+							"type": "array",
+							"items": { "type": "string" }
+						}
+					}
+				},
+				"codeStyle": {
+					"type": "object",
+					"properties": {
+						"linter": { "type": "string" },
+						"formatter": { "type": "string" },
+						"rules": { "type": "string" }
+					}
+				}
+			}
+		},
+		"workflow": {
+			"type": "object",
+			"description": "Development workflow configuration",
+			"properties": {
+				"gitWorkflow": {
+					"type": "object",
+					"properties": {
+						"branchNaming": { "type": "string" },
+						"commitFormat": { "type": "string" },
+						"prTemplate": { "type": "string" },
+						"mainBranch": { "type": "string" }
+					}
+				},
+				"featureWorkflow": {
+					"type": "object",
+					"properties": {
+						"states": {
+							"type": "array",
+							"items": { "type": "string" }
+						},
+						"transitions": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"from": { "type": "string" },
+									"to": { "type": "string" },
+									"trigger": { "type": "string" },
+									"guard": { "type": "string" }
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"$defs": {
+		"requirement": {
+			"type": "object",
+			"required": ["title", "description", "priority", "acceptance"],
+			"properties": {
+				"title": {
+					"type": "string",
+					"description": "Requirement title"
+				},
+				"description": {
+					"type": "string",
+					"description": "Detailed description"
+				},
+				"priority": {
+					"type": "string",
+					"enum": ["critical", "high", "medium", "low"],
+					"description": "Requirement priority"
+				},
+				"acceptance": {
+					"type": "array",
+					"description": "Acceptance criteria",
+					"items": { "type": "string" },
+					"minItems": 1
+				},
+				"rationale": {
+					"type": "string",
+					"description": "Why this requirement exists"
+				},
+				"dependencies": {
+					"type": "array",
+					"description": "Dependent requirements",
+					"items": { "type": "string" }
+				},
+				"risks": {
+					"type": "array",
+					"description": "Associated risks",
+					"items": { "type": "string" }
+				}
+			}
+		},
+		"nfrRequirement": {
+			"type": "object",
+			"required": ["title", "category", "requirements"],
+			"properties": {
+				"title": {
+					"type": "string",
+					"description": "NFR title"
+				},
+				"category": {
+					"type": "string",
+					"enum": [
+						"security",
+						"performance",
+						"reliability",
+						"observability",
+						"scalability",
+						"usability",
+						"maintainability",
+						"accessibility"
+					],
+					"description": "NFR category"
+				},
+				"requirements": {
+					"type": "array",
+					"description": "Specific requirements",
+					"items": { "type": "string" },
+					"minItems": 1
+				},
+				"metrics": {
+					"type": "array",
+					"description": "Measurable metrics",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": { "type": "string" },
+							"target": { "type": "string" },
+							"measurement": { "type": "string" }
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,818 @@
+{
+  "$schema": "../schemas/features.schema.json",
+  "meta": {
+    "version": "3.0.0",
+    "generatedFrom": "Automaker feature catalog + NOMOS requirements",
+    "generatedAt": "2026-01-27",
+    "totalFeatures": 150,
+    "categories": {
+      "foundation": { "count": 15, "prefix": "F00" },
+      "agent": { "count": 20, "prefix": "F06" },
+      "quality": { "count": 10, "prefix": "F08" },
+      "security": { "count": 10, "prefix": "F09" },
+      "ui": { "count": 25, "prefix": "F10" },
+      "git": { "count": 15, "prefix": "F11" },
+      "terminal": { "count": 10, "prefix": "F12" },
+      "automation": { "count": 15, "prefix": "F13" },
+      "learning": { "count": 10, "prefix": "F14" },
+      "container": { "count": 10, "prefix": "F17" },
+      "polish": { "count": 10, "prefix": "F18" }
+    }
+  },
+
+  "features": [
+    {
+      "id": "F001",
+      "title": "Monorepo Setup with Turborepo",
+      "description": "Configure Turborepo for monorepo management with apps/server, apps/web, and packages/* structure.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "critical",
+      "requirements": ["REQ-F001"]
+    },
+    {
+      "id": "F002",
+      "title": "TypeScript Strict Configuration",
+      "description": "Configure TypeScript with strict mode, path aliases, and shared tsconfig base in packages/config.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "critical",
+      "requirements": ["REQ-NF006"]
+    },
+    {
+      "id": "F003",
+      "title": "Biome Linting Setup",
+      "description": "Configure Biome for linting and formatting with strict rules, tab indentation, double quotes.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "high",
+      "requirements": ["REQ-NF006"]
+    },
+    {
+      "id": "F004",
+      "title": "Shared Types Package",
+      "description": "Create @nomos/types package with Zod schemas for Feature, Agent, Settings, Profile, WebSocket types.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "critical",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F005",
+      "title": "Database Package with Drizzle",
+      "description": "Create @nomos/db package with Drizzle ORM, SQLite schema, migrations, and repository pattern.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "critical",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F006",
+      "title": "Environment Validation Package",
+      "description": "Create @nomos/env package with @t3-oss/env-core for type-safe environment variables.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "high",
+      "requirements": ["REQ-NF001"]
+    },
+    {
+      "id": "F007",
+      "title": "Hono Server Setup",
+      "description": "Set up Hono backend server with middleware stack (CORS, JSON parser, logging).",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "critical",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F008",
+      "title": "tRPC Integration",
+      "description": "Integrate tRPC with Hono using @hono/trpc-server for type-safe API procedures.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "high",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F009",
+      "title": "React 19 Frontend Setup",
+      "description": "Set up React 19 with Vite 6, TanStack Router, and basic layout structure.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "critical",
+      "requirements": ["REQ-F009"]
+    },
+    {
+      "id": "F010",
+      "title": "TanStack Query Integration",
+      "description": "Configure TanStack Query with tRPC client for server state management.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "high",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F011",
+      "title": "Zustand State Management",
+      "description": "Set up Zustand stores for app state, agent state, and feature state.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "high",
+      "requirements": ["REQ-F009"]
+    },
+    {
+      "id": "F012",
+      "title": "shadcn/ui Component Setup",
+      "description": "Configure shadcn/ui with Tailwind CSS 4 and Radix UI primitives.",
+      "category": "foundation",
+      "status": "verified",
+      "priority": "high",
+      "requirements": ["REQ-F009"]
+    },
+
+    {
+      "id": "F061",
+      "title": "Claude Agent SDK Integration",
+      "description": "Integrate @anthropic-ai/claude-agent-sdk with session management, tool integration, and streaming support.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F005"],
+      "planningMode": "spec",
+      "thinkingLevel": "deep"
+    },
+    {
+      "id": "F062",
+      "title": "Agent Execution Service",
+      "description": "Create AgentService for session lifecycle, message sending, tool execution, and streaming.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "critical",
+      "dependencies": ["F061"],
+      "requirements": ["REQ-F005", "REQ-F012"]
+    },
+    {
+      "id": "F063",
+      "title": "Agent Concurrency Support",
+      "description": "Implement parallel agent execution with atomic feature selection and concurrency limits.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F062"],
+      "requirements": ["REQ-F006"]
+    },
+    {
+      "id": "F064",
+      "title": "Extended Thinking Configuration",
+      "description": "Implement thinking level configuration: none (0), medium (16K), deep (32K), ultra (64K) tokens.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F061"],
+      "requirements": ["REQ-F014"]
+    },
+    {
+      "id": "F065",
+      "title": "Planning Mode Implementation",
+      "description": "Implement planning modes: skip, lite (brief), spec (XML), full (approval required).",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F061"],
+      "requirements": ["REQ-F013"]
+    },
+    {
+      "id": "F066",
+      "title": "Agent Session Persistence",
+      "description": "Persist agent sessions to database with SDK session ID for resume support.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F062"],
+      "requirements": ["REQ-F003"]
+    },
+    {
+      "id": "F067",
+      "title": "Custom MCP Tools",
+      "description": "Create NOMOS-specific MCP tools: update_feature_status, get_feature_context, run_quality_gate.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F061"],
+      "requirements": ["REQ-F012"]
+    },
+    {
+      "id": "F068",
+      "title": "Agent Cost Tracking",
+      "description": "Track token usage and cost per session with budget limits for autonomous mode.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F062"],
+      "requirements": ["REQ-F005"]
+    },
+    {
+      "id": "F069",
+      "title": "Agent Error Recovery",
+      "description": "Implement error classification, retry logic, and graceful degradation for agent failures.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F062"],
+      "requirements": ["REQ-NF003"]
+    },
+    {
+      "id": "F070",
+      "title": "AI Profiles System",
+      "description": "Implement AI profiles with presets (Heavy Task, Balanced, Quick Edit) and custom profiles.",
+      "category": "agent",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F061"],
+      "requirements": ["REQ-F018"]
+    },
+
+    {
+      "id": "F085",
+      "title": "TypeScript Quality Gate",
+      "description": "Implement TypeScript compilation quality gate with error extraction and reporting.",
+      "category": "quality",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F004", "REQ-NF006"]
+    },
+    {
+      "id": "F086",
+      "title": "Biome Lint Quality Gate",
+      "description": "Implement Biome lint quality gate with auto-fix and error reporting.",
+      "category": "quality",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F004"]
+    },
+    {
+      "id": "F087",
+      "title": "Vitest Test Quality Gate",
+      "description": "Implement test quality gate with coverage reporting and failure extraction.",
+      "category": "quality",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F004"]
+    },
+    {
+      "id": "F088",
+      "title": "Security Scan Quality Gate",
+      "description": "Implement Trivy security scan quality gate for vulnerability detection.",
+      "category": "quality",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-F004", "REQ-NF001"]
+    },
+    {
+      "id": "F089",
+      "title": "Secret Detection Quality Gate",
+      "description": "Implement gitleaks quality gate for secret detection in code.",
+      "category": "quality",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-F004", "REQ-NF001"]
+    },
+    {
+      "id": "F090",
+      "title": "Quality Gate Pipeline Runner",
+      "description": "Create pipeline runner that executes quality gates in sequence with failure handling.",
+      "category": "quality",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F085", "F086", "F087"],
+      "requirements": ["REQ-F004"]
+    },
+    {
+      "id": "F091",
+      "title": "Quality Gate Event Emission",
+      "description": "Emit WebSocket events for quality gate progress and results.",
+      "category": "quality",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F090"],
+      "requirements": ["REQ-F011"]
+    },
+
+    {
+      "id": "F096",
+      "title": "Security Headers Middleware",
+      "description": "Implement security headers middleware: X-Content-Type-Options, X-Frame-Options, CSP, etc.",
+      "category": "security",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-NF001"]
+    },
+    {
+      "id": "F097",
+      "title": "Path Validation Middleware",
+      "description": "Implement path validation against ALLOWED_ROOT_DIRECTORIES with traversal detection.",
+      "category": "security",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-NF001"]
+    },
+    {
+      "id": "F098",
+      "title": "Structured Logging with Pino",
+      "description": "Implement Pino structured logging with request IDs and credential masking.",
+      "category": "security",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-NF004"]
+    },
+    {
+      "id": "F099",
+      "title": "Rate Limiting Middleware",
+      "description": "Implement rate limiting middleware with configurable limits per endpoint.",
+      "category": "security",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-NF001"]
+    },
+
+    {
+      "id": "F100",
+      "title": "Kanban Board Component",
+      "description": "Create Kanban board with 4 columns (backlog, in_progress, waiting_approval, verified).",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F009"]
+    },
+    {
+      "id": "F101",
+      "title": "Feature Card Component",
+      "description": "Create feature card with title, description preview, status badge, and quick actions.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F009"]
+    },
+    {
+      "id": "F102",
+      "title": "Drag and Drop Integration",
+      "description": "Integrate @dnd-kit for drag and drop between columns with visual feedback.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F100", "F101"],
+      "requirements": ["REQ-F009"]
+    },
+    {
+      "id": "F103",
+      "title": "Feature Detail Modal",
+      "description": "Create feature detail modal with full description, dependencies, and agent config.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F104",
+      "title": "Feature Create Form",
+      "description": "Create feature creation form with TanStack Form validation and image upload.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F105",
+      "title": "Feature Edit Form",
+      "description": "Create feature edit form with inline editing and optimistic updates.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-F010"]
+    },
+    {
+      "id": "F106",
+      "title": "Dependency Selection Modal",
+      "description": "Create multi-select modal for feature dependencies with cycle detection.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-F020"]
+    },
+    {
+      "id": "F107",
+      "title": "Agent Streaming View",
+      "description": "Create agent streaming view with real-time text output and tool call display.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F011"]
+    },
+    {
+      "id": "F108",
+      "title": "Tool Call Visualization",
+      "description": "Visualize tool calls with collapsible input/output and execution time.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F107"],
+      "requirements": ["REQ-F011"]
+    },
+    {
+      "id": "F109",
+      "title": "Git Diff Viewer",
+      "description": "Create diff viewer with syntax highlighting, inline/split modes, and hunk navigation.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-F015"]
+    },
+    {
+      "id": "F110",
+      "title": "WebSocket Connection Manager",
+      "description": "Create WebSocket connection manager with auto-reconnect and subscription handling.",
+      "category": "ui",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-F011"]
+    },
+
+    {
+      "id": "F111",
+      "title": "Git Worktree Service",
+      "description": "Create worktree service for creating, deleting, and managing git worktrees.",
+      "category": "git",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F002"]
+    },
+    {
+      "id": "F112",
+      "title": "Branch Name Sanitization",
+      "description": "Implement branch name sanitization with Windows reserved name handling.",
+      "category": "git",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-F002"]
+    },
+    {
+      "id": "F113",
+      "title": "Git Status API",
+      "description": "Create API for git status, diff, and changed files list.",
+      "category": "git",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-F015"]
+    },
+    {
+      "id": "F114",
+      "title": "Commit Message Generation",
+      "description": "AI-assisted commit message generation from diff analysis.",
+      "category": "git",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F061"],
+      "requirements": ["REQ-F015"]
+    },
+    {
+      "id": "F115",
+      "title": "PR Creation Workflow",
+      "description": "Create PR directly from completed feature with auto-generated description.",
+      "category": "git",
+      "status": "backlog",
+      "priority": "low",
+      "requirements": ["REQ-F015"]
+    },
+
+    {
+      "id": "F120",
+      "title": "Terminal Service with PTY",
+      "description": "Create terminal service with bun-pty for PTY session management.",
+      "category": "terminal",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-F016"]
+    },
+    {
+      "id": "F121",
+      "title": "Terminal WebSocket Handler",
+      "description": "Create WebSocket handler for terminal I/O with throttling and buffering.",
+      "category": "terminal",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F120"],
+      "requirements": ["REQ-F016"]
+    },
+    {
+      "id": "F122",
+      "title": "xterm.js Integration",
+      "description": "Integrate xterm.js for terminal rendering with addons (fit, webgl).",
+      "category": "terminal",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-F016"]
+    },
+    {
+      "id": "F123",
+      "title": "Multi-Tab Terminal",
+      "description": "Support multiple terminal tabs with session persistence.",
+      "category": "terminal",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F122"],
+      "requirements": ["REQ-F016"]
+    },
+    {
+      "id": "F124",
+      "title": "Split Pane Terminal",
+      "description": "Support horizontal/vertical terminal pane splitting with keyboard navigation.",
+      "category": "terminal",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F123"],
+      "requirements": ["REQ-F016"]
+    },
+
+    {
+      "id": "F130",
+      "title": "Auto-Mode Service",
+      "description": "Create auto-mode orchestration service for autonomous feature execution loop.",
+      "category": "automation",
+      "status": "backlog",
+      "priority": "critical",
+      "dependencies": ["F062"],
+      "requirements": ["REQ-F005"]
+    },
+    {
+      "id": "F131",
+      "title": "Atomic Feature Selection",
+      "description": "Implement atomic feature selection with file locking to prevent race conditions.",
+      "category": "automation",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F130"],
+      "requirements": ["REQ-F006"]
+    },
+    {
+      "id": "F132",
+      "title": "Failure Tracking System",
+      "description": "Track consecutive failures and auto-pause after threshold (default: 3).",
+      "category": "automation",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F130"],
+      "requirements": ["REQ-NF003"]
+    },
+    {
+      "id": "F133",
+      "title": "Checkpoint System",
+      "description": "Save checkpoints after each pipeline step for resume support.",
+      "category": "automation",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F130"],
+      "requirements": ["REQ-F003"]
+    },
+    {
+      "id": "F134",
+      "title": "Context Loading Service",
+      "description": "Load context files (CLAUDE.md, memories, dependencies) for agent execution.",
+      "category": "automation",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["REQ-F003"]
+    },
+    {
+      "id": "F135",
+      "title": "Dynamic Port Allocation",
+      "description": "Allocate unique ports for parallel feature execution to avoid conflicts.",
+      "category": "automation",
+      "status": "backlog",
+      "priority": "medium",
+      "dependencies": ["F063"],
+      "requirements": ["REQ-F006"]
+    },
+
+    {
+      "id": "F140",
+      "title": "Metrics Collection System",
+      "description": "Collect metrics for each feature: duration, retries, files changed, lines added/removed.",
+      "category": "learning",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-F007"]
+    },
+    {
+      "id": "F141",
+      "title": "Pattern Extraction",
+      "description": "Extract successful patterns from completed features for learning.",
+      "category": "learning",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F140"],
+      "requirements": ["REQ-F007"]
+    },
+    {
+      "id": "F142",
+      "title": "Anti-Pattern Detection",
+      "description": "Extract anti-patterns from failed features for avoidance.",
+      "category": "learning",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F140"],
+      "requirements": ["REQ-F007"]
+    },
+    {
+      "id": "F143",
+      "title": "Learning Reports",
+      "description": "Generate learning reports with insights and recommendations.",
+      "category": "learning",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F141", "F142"],
+      "requirements": ["REQ-F007"]
+    },
+
+    {
+      "id": "F163",
+      "title": "Feature ID Validation",
+      "description": "Enforce Feature ID format (F followed by 3 digits) with Zod schema validation.",
+      "category": "foundation",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-F001"]
+    },
+    {
+      "id": "F164",
+      "title": "Authentication Middleware",
+      "description": "Implement bearer token authentication with timing-safe comparison.",
+      "category": "security",
+      "status": "backlog",
+      "priority": "critical",
+      "requirements": ["REQ-NF001"]
+    },
+    {
+      "id": "F165",
+      "title": "Authorization Layer",
+      "description": "Implement authorization layer with permission checking per endpoint.",
+      "category": "security",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F164"],
+      "requirements": ["REQ-NF001"]
+    },
+
+    {
+      "id": "F173",
+      "title": "Agent Base Docker Image",
+      "description": "Create minimal Docker image for agent execution with Bun runtime and git.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "high",
+      "requirements": ["ADR-001"]
+    },
+    {
+      "id": "F174",
+      "title": "Docker Compose Orchestration",
+      "description": "Create docker-compose files for dev and production with agent network.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F173"],
+      "requirements": ["ADR-001"]
+    },
+    {
+      "id": "F175",
+      "title": "Secure Directory Boundaries",
+      "description": "Mount only worktree directory as writable in agent containers.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "critical",
+      "dependencies": ["F173"],
+      "requirements": ["ADR-001"]
+    },
+    {
+      "id": "F176",
+      "title": "Agent Spawn Service API",
+      "description": "Create API for spawning agent containers with resource limits.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F173"],
+      "requirements": ["ADR-001"]
+    },
+    {
+      "id": "F177",
+      "title": "Agent Communication Protocol",
+      "description": "Define protocol for host-container communication via mounted files or API.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F176"],
+      "requirements": ["ADR-001"]
+    },
+    {
+      "id": "F178",
+      "title": "Agent Cleanup Service",
+      "description": "Automatic cleanup of agent containers after execution or timeout.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F176"],
+      "requirements": ["ADR-001"]
+    },
+    {
+      "id": "F179",
+      "title": "gVisor Integration (Optional)",
+      "description": "Optional gVisor integration for additional kernel-level isolation.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "low",
+      "dependencies": ["F173"],
+      "requirements": ["ADR-001"]
+    },
+    {
+      "id": "F180",
+      "title": "Container Secret Management",
+      "description": "Secure injection of API keys and secrets into agent containers.",
+      "category": "container",
+      "status": "backlog",
+      "priority": "high",
+      "dependencies": ["F176"],
+      "requirements": ["ADR-001", "REQ-NF001"]
+    },
+
+    {
+      "id": "F181",
+      "title": "Theme System",
+      "description": "Implement theme system with 50+ themes (dark/light) and persistence.",
+      "category": "polish",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-NF005"]
+    },
+    {
+      "id": "F182",
+      "title": "Keyboard Shortcuts",
+      "description": "Implement customizable keyboard shortcuts for common actions.",
+      "category": "polish",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-NF005"]
+    },
+    {
+      "id": "F183",
+      "title": "Toast Notifications",
+      "description": "Implement toast notification system with Sonner for user feedback.",
+      "category": "polish",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-NF005"]
+    },
+    {
+      "id": "F184",
+      "title": "Accessibility Improvements",
+      "description": "WCAG 2.1 AA compliance: ARIA labels, focus management, screen reader support.",
+      "category": "polish",
+      "status": "backlog",
+      "priority": "medium",
+      "requirements": ["REQ-NF007"]
+    },
+    {
+      "id": "F185",
+      "title": "Loading States",
+      "description": "Implement consistent loading states and skeletons across the app.",
+      "category": "polish",
+      "status": "backlog",
+      "priority": "low",
+      "requirements": ["REQ-NF005"]
+    }
+  ],
+
+  "summary": {
+    "total": 85,
+    "byStatus": {
+      "backlog": 73,
+      "verified": 12
+    },
+    "byPriority": {
+      "critical": 18,
+      "high": 28,
+      "medium": 25,
+      "low": 14
+    },
+    "byCategory": {
+      "foundation": 13,
+      "agent": 10,
+      "quality": 7,
+      "security": 7,
+      "ui": 11,
+      "git": 5,
+      "terminal": 5,
+      "automation": 6,
+      "learning": 4,
+      "container": 8,
+      "polish": 5
+    }
+  }
+}

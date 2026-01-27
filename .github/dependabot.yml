@@ -1,0 +1,112 @@
+# =============================================================================
+# NOMOS Dependabot Configuration
+# Based on: git-github-expert/SKILL.md - Dependabot section
+# =============================================================================
+
+version: 2
+
+updates:
+  # ---------------------------------------------------------------------------
+  # NPM Dependencies
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+
+    # Group updates to reduce PR noise
+    groups:
+      # Production dependencies
+      production:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "vitest*"
+          - "playwright*"
+          - "@testing-library/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Dev dependencies
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "vitest*"
+          - "@testing-library/*"
+        dependency-type: "development"
+
+      # Testing
+      testing:
+        patterns:
+          - "vitest*"
+          - "playwright*"
+          - "@testing-library/*"
+
+    # Limit PRs
+    open-pull-requests-limit: 10
+
+    # Commit message format
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+    # Labels for PRs
+    labels:
+      - "dependencies"
+      - "automated"
+
+    # Reviewers
+    reviewers:
+      - "your-team"
+
+    # Ignore specific packages
+    ignore:
+      # Major versions require manual review
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+    commit-message:
+      prefix: "ci(deps)"
+
+    labels:
+      - "ci"
+      - "automated"
+
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # ---------------------------------------------------------------------------
+  # Docker
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+    commit-message:
+      prefix: "chore(docker)"
+
+    labels:
+      - "docker"
+      - "automated"

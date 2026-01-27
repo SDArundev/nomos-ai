@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "updated": null,
+  "patterns": [
+    {
+      "id": "VP-XXX",
+      "name": "Pattern Name",
+      "description": "What this pattern represents",
+      "category": "CAT-API|CAT-UI|CAT-DB|CAT-CORE",
+      "type": "runtime|logic|security|quality|integration",
+      "frequency": 0,
+      "first_seen": null,
+      "last_seen": null,
+      "features_affected": [],
+      "root_cause": "Why this happens",
+      "prevention": "How to prevent it",
+      "detection": "How to detect it early",
+      "fix_pattern": "Common fix approach"
+    }
+  ],
+  "statistics": {
+    "total_verifications": 0,
+    "total_issues_found": 0,
+    "most_common_category": null,
+    "most_common_type": null
+  }
+}

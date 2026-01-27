@@ -1,0 +1,389 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://nomos.dev/schemas/feature.schema.json",
+	"title": "NOMOS Feature Schema",
+	"description": "Comprehensive feature schema for autonomous development. Based on patterns from Automaker (feature types, planning modes, thinking levels), Anthropic Effective Harnesses (200+ features, passes field), AutoCoder (SQLite tracking), and GitHub Spec Kit (task decomposition).",
+	"type": "object",
+	"required": ["project", "categories", "features"],
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "JSON Schema reference"
+		},
+		"project": {
+			"type": "object",
+			"description": "Project identification",
+			"required": ["name", "version"],
+			"properties": {
+				"name": { "type": "string" },
+				"acronym": { "type": "string" },
+				"version": { "type": "string" },
+				"tagline": {
+					"oneOf": [{ "type": "string" }, { "type": "object" }]
+				},
+				"specRef": {
+					"type": "string",
+					"description": "Reference to app_spec.json"
+				}
+			}
+		},
+		"categories": {
+			"type": "array",
+			"description": "Feature categories (per Effective Harnesses pattern)",
+			"items": {
+				"type": "object",
+				"required": ["id", "name", "description"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"pattern": "^CAT-[A-Z]{3}$",
+						"description": "Category identifier"
+					},
+					"name": {
+						"type": "string",
+						"description": "Category name"
+					},
+					"description": {
+						"type": "string",
+						"description": "Category description"
+					},
+					"order": {
+						"type": "integer",
+						"description": "Display order"
+					}
+				}
+			}
+		},
+		"phases": {
+			"type": "array",
+			"description": "Development phases with feature assignments",
+			"items": {
+				"type": "object",
+				"required": ["id", "name", "features"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"pattern": "^phase-[0-9]+$"
+					},
+					"name": { "type": "string" },
+					"description": { "type": "string" },
+					"features": {
+						"type": "array",
+						"items": { "type": "string" }
+					}
+				}
+			}
+		},
+		"features": {
+			"type": "array",
+			"description": "All project features (target: 150+ atomic features)",
+			"items": {
+				"$ref": "#/$defs/feature"
+			},
+			"minItems": 50
+		},
+		"summary": {
+			"type": "object",
+			"description": "Feature statistics",
+			"required": ["totalFeatures", "byCategory", "byPhase", "byStatus"],
+			"properties": {
+				"totalFeatures": { "type": "integer" },
+				"byCategory": {
+					"type": "object",
+					"additionalProperties": { "type": "integer" }
+				},
+				"byPhase": {
+					"type": "object",
+					"additionalProperties": { "type": "integer" }
+				},
+				"byStatus": {
+					"type": "object",
+					"properties": {
+						"pending": { "type": "integer" },
+						"running": { "type": "integer" },
+						"completed": { "type": "integer" },
+						"failed": { "type": "integer" },
+						"verified": { "type": "integer" }
+					}
+				}
+			}
+		}
+	},
+	"$defs": {
+		"feature": {
+			"type": "object",
+			"description": "Individual feature definition (atomic, 1-2 hour scope). Schema aligned with Automaker feature types.",
+			"required": [
+				"id",
+				"title",
+				"category",
+				"description",
+				"phase",
+				"acceptanceCriteria",
+				"status"
+			],
+			"properties": {
+				"id": {
+					"type": "string",
+					"pattern": "^F[0-9]{3}$",
+					"description": "Feature identifier (F001-F999)"
+				},
+				"title": {
+					"type": "string",
+					"description": "Concise feature title",
+					"minLength": 5,
+					"maxLength": 80
+				},
+				"titleGenerating": {
+					"type": "boolean",
+					"description": "Whether title is being AI-generated (Automaker pattern)",
+					"default": false
+				},
+				"category": {
+					"type": "string",
+					"description": "Category reference (CAT-XXX)",
+					"pattern": "^CAT-[A-Z]{3}$"
+				},
+				"description": {
+					"type": "string",
+					"description": "Detailed feature description",
+					"minLength": 20,
+					"maxLength": 500
+				},
+				"descriptionHistory": {
+					"type": "array",
+					"description": "History of description changes (Automaker pattern)",
+					"items": {
+						"$ref": "#/$defs/descriptionHistoryEntry"
+					}
+				},
+				"phase": {
+					"type": "string",
+					"description": "Phase assignment",
+					"pattern": "^phase-[0-9]+$"
+				},
+				"priority": {
+					"type": "integer",
+					"description": "Execution priority (lower = higher priority)",
+					"minimum": 1,
+					"maximum": 999
+				},
+				"requirements": {
+					"type": "array",
+					"description": "Linked requirements from app_spec (traceability)",
+					"items": {
+						"type": "string",
+						"pattern": "^REQ-(F|NF)[0-9]{3}$"
+					}
+				},
+				"dependencies": {
+					"type": "array",
+					"description": "Feature dependencies (must be verified first)",
+					"items": {
+						"type": "string",
+						"pattern": "^F[0-9]{3}$"
+					}
+				},
+				"acceptanceCriteria": {
+					"type": "array",
+					"description": "Testable acceptance criteria",
+					"items": { "type": "string" },
+					"minItems": 1,
+					"maxItems": 10
+				},
+				"spec": {
+					"type": "string",
+					"description": "Detailed specification content (Automaker pattern)"
+				},
+				"technicalNotes": {
+					"type": "string",
+					"description": "Technical implementation notes"
+				},
+				"testingRequirements": {
+					"type": "object",
+					"description": "Testing specifications",
+					"properties": {
+						"unit": { "type": "array", "items": { "type": "string" } },
+						"integration": { "type": "array", "items": { "type": "string" } },
+						"e2e": { "type": "array", "items": { "type": "string" } },
+						"manual": { "type": "array", "items": { "type": "string" } }
+					}
+				},
+				"files": {
+					"type": "object",
+					"description": "Files affected by this feature",
+					"properties": {
+						"create": { "type": "array", "items": { "type": "string" } },
+						"modify": { "type": "array", "items": { "type": "string" } },
+						"delete": { "type": "array", "items": { "type": "string" } }
+					}
+				},
+				"imagePaths": {
+					"type": "array",
+					"description": "Image assets for context (Automaker pattern)",
+					"items": {
+						"$ref": "#/$defs/featureAsset"
+					}
+				},
+				"textFilePaths": {
+					"type": "array",
+					"description": "Text file assets for context (Automaker pattern)",
+					"items": {
+						"$ref": "#/$defs/featureAsset"
+					}
+				},
+				"estimatedSize": {
+					"type": "string",
+					"enum": ["XS", "S", "M", "L", "XL"],
+					"description": "Estimated scope (XS=30min, S=1hr, M=2hr, L=4hr, XL=8hr)"
+				},
+				"status": {
+					"type": "string",
+					"enum": ["backlog", "pending", "in_progress", "waiting_approval", "verified", "failed"],
+					"description": "Feature status (NOMOS state machine)",
+					"default": "backlog"
+				},
+				"passes": {
+					"type": "boolean",
+					"description": "Feature completion flag (Effective Harnesses pattern)",
+					"default": false
+				},
+				"error": {
+					"type": "string",
+					"description": "Error message if status is failed (Automaker pattern)"
+				},
+				"summary": {
+					"type": "string",
+					"description": "Completion summary (Automaker pattern)"
+				},
+				"model": {
+					"type": "string",
+					"enum": ["opus", "sonnet", "haiku"],
+					"description": "AI model for this feature (Automaker pattern)",
+					"default": "sonnet"
+				},
+				"thinkingLevel": {
+					"type": "string",
+					"enum": ["none", "standard", "extended", "ultrathink"],
+					"description": "Thinking budget level (Automaker pattern)",
+					"default": "standard"
+				},
+				"planningMode": {
+					"type": "string",
+					"enum": ["skip", "lite", "spec", "full"],
+					"description": "Planning phase mode",
+					"default": "lite"
+				},
+				"requirePlanApproval": {
+					"type": "boolean",
+					"description": "Whether plan requires human approval (Automaker pattern)",
+					"default": false
+				},
+				"planSpec": {
+					"type": "object",
+					"description": "Plan specification details (Automaker pattern)",
+					"properties": {
+						"status": {
+							"type": "string",
+							"enum": [
+								"pending",
+								"generating",
+								"generated",
+								"approved",
+								"rejected"
+							]
+						},
+						"content": { "type": "string" },
+						"version": { "type": "integer" },
+						"createdAt": { "type": "string", "format": "date-time" },
+						"updatedAt": { "type": "string", "format": "date-time" },
+						"taskCount": { "type": "integer" },
+						"completedTasks": { "type": "integer" }
+					}
+				},
+				"branchName": {
+					"type": "string",
+					"description": "Git branch for this feature (Automaker pattern)",
+					"pattern": "^nomos/F[0-9]{3}$"
+				},
+				"skipTests": {
+					"type": "boolean",
+					"description": "Skip test execution for this feature (Automaker pattern)",
+					"default": false
+				},
+				"tags": {
+					"type": "array",
+					"description": "Feature tags for filtering",
+					"items": { "type": "string" }
+				},
+				"startedAt": {
+					"type": "string",
+					"format": "date-time",
+					"description": "When feature work started (Automaker pattern)"
+				},
+				"completedAt": {
+					"type": "string",
+					"format": "date-time",
+					"description": "When feature was completed"
+				},
+				"verifiedAt": {
+					"type": "string",
+					"format": "date-time",
+					"description": "When feature was verified"
+				},
+				"completedBy": {
+					"type": "string",
+					"description": "Agent or session that completed the feature"
+				},
+				"retries": {
+					"type": "integer",
+					"description": "Number of implementation attempts",
+					"default": 0
+				}
+			}
+		},
+		"descriptionHistoryEntry": {
+			"type": "object",
+			"description": "History entry for description changes (Automaker pattern)",
+			"required": ["timestamp", "source", "content"],
+			"properties": {
+				"timestamp": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"source": {
+					"type": "string",
+					"enum": ["initial", "enhance", "edit"]
+				},
+				"enhancementMode": {
+					"type": "string",
+					"enum": [
+						"improve",
+						"technical",
+						"simplify",
+						"acceptance",
+						"ux-reviewer"
+					]
+				},
+				"content": {
+					"type": "string"
+				}
+			}
+		},
+		"featureAsset": {
+			"type": "object",
+			"description": "Feature asset (image or text file) for context (Automaker pattern)",
+			"required": ["id", "path", "filename"],
+			"properties": {
+				"id": { "type": "string" },
+				"path": { "type": "string" },
+				"filename": { "type": "string" },
+				"mimeType": { "type": "string" },
+				"content": {
+					"type": "string",
+					"description": "For text files, the content"
+				}
+			}
+		}
+	}
+}

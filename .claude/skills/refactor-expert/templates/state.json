@@ -1,0 +1,26 @@
+{
+  "timestamp": "{timestamp}",
+  "refactor_type": "{refactor_type}",
+  "target": "{target}",
+  "replacement": "{replacement}",
+  "status": "initialized",
+  "auto_mode": false,
+  "dry_run": false,
+  "worktree_path": "{worktree_path}",
+  "output_dir": "{output_dir}",
+  "branch_name": "{branch_name}",
+  "risk_level": "pending",
+  "checkpoints": [],
+  "steps_completed": [],
+  "baseline": {
+    "tests_passed": 0,
+    "tests_failed": 0,
+    "type_errors": 0,
+    "lint_errors": 0,
+    "build_time_ms": 0,
+    "bundle_size_kb": 0
+  },
+  "results": null,
+  "merge_commit": null,
+  "errors": []
+}
