@@ -1,0 +1,119 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for NOMOS AI
+title: '[Feature]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a feature! Please fill out the form below to help us understand your request.
+
+        **Note:** NOMOS AI tracks features in `.nomos/features.json`. Your suggestion may become a tracked feature!
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Feature Area
+      description: Which area of NOMOS AI does this feature relate to?
+      options:
+        - Kanban Board (CAT-KAN)
+        - AI Agent (CAT-AGT)
+        - Auto-Mode (CAT-AUT)
+        - Git Integration (CAT-GIT)
+        - Terminal (CAT-TRM)
+        - GitHub Integration (CAT-GHB)
+        - Theme/UI (CAT-THM)
+        - Developer Experience (CAT-DXP)
+        - Security (CAT-SEC)
+        - Configuration (CAT-CFG)
+        - Notifications (CAT-NTF)
+        - Specification (CAT-SPC)
+        - Memory/Learning (CAT-MEM)
+        - Desktop/Tauri (CAT-DSK)
+        - Database (CAT-DBS)
+        - Testing (CAT-TST)
+        - Observability (CAT-OBS)
+        - Other
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to your workflow?
+      options:
+        - Nice to have
+        - Would improve my workflow
+        - Critical for my use case
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe the problem you're trying to solve.
+      placeholder: A clear and concise description of what the problem is. Ex. I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see implemented.
+      placeholder: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How would you know this feature is complete? List specific criteria.
+      placeholder: |
+        - [ ] User can...
+        - [ ] System should...
+        - [ ] When X happens, Y should occur...
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or workarounds you've considered.
+      placeholder: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Screenshots
+      description: If applicable, add mockups, wireframes, or screenshots to help illustrate your feature request.
+      placeholder: Drag and drop images here or paste image URLs
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, references, or examples about the feature request here.
+      placeholder: Any additional information that might be helpful...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to ensure this feature hasn't been requested already
+          required: true
+        - label: I have provided a clear description of the problem and proposed solution
+          required: true

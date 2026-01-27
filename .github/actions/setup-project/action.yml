@@ -1,0 +1,42 @@
+name: 'Setup Project'
+description: 'Common setup steps for CI workflows - Bun, dependencies, and builds'
+
+inputs:
+  bun-version:
+    description: 'Bun version to use'
+    required: false
+    default: 'latest'
+  install-deps:
+    description: 'Whether to install dependencies'
+    required: false
+    default: 'true'
+  build-packages:
+    description: 'Whether to build shared packages'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    - name: Cache Bun dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+
+    - name: Install dependencies
+      if: inputs.install-deps == 'true'
+      shell: bash
+      run: bun install --frozen-lockfile
+
+    - name: Build shared packages
+      if: inputs.build-packages == 'true'
+      shell: bash
+      run: bun run build:packages

@@ -64,9 +64,9 @@ updates:
       - "dependencies"
       - "automated"
 
-    # Reviewers
-    reviewers:
-      - "your-team"
+    # Reviewers (update with your team)
+    # reviewers:
+    #   - "your-team"
 
     # Ignore specific packages
     ignore:
@@ -96,17 +96,17 @@ updates:
           - "*"
 
   # ---------------------------------------------------------------------------
-  # Docker
+  # Cargo (Tauri)
   # ---------------------------------------------------------------------------
-  - package-ecosystem: "docker"
-    directory: "/docker"
+  - package-ecosystem: "cargo"
+    directory: "/apps/desktop/src-tauri"
     schedule:
       interval: "weekly"
       day: "monday"
 
     commit-message:
-      prefix: "chore(docker)"
+      prefix: "chore(tauri)"
 
     labels:
-      - "docker"
+      - "tauri"
       - "automated"
