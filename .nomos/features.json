@@ -203,11 +203,12 @@
         "Constants exported for status enums"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "verifiedAt": "2026-01-27T15:14:12Z"
     },
     {
       "id": "F003",

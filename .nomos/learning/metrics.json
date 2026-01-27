@@ -16,15 +16,32 @@
       "started_at": "2026-01-27T17:35:00Z",
       "verified_at": "2026-01-27T18:20:00Z",
       "notes": "Scaffold generated via better-t-stack CLI, minimal custom code"
+    },
+    "F002": {
+      "id": "F002",
+      "title": "Shared types package with branded types",
+      "category": "CAT-PRJ",
+      "phase": "phase-1",
+      "duration_minutes": 35,
+      "files_changed": 10,
+      "lines_added": 444,
+      "lines_removed": 1,
+      "commits": 1,
+      "retries": 0,
+      "risk_level": "LOW",
+      "outcome": "success",
+      "started_at": "2026-01-27T18:55:00Z",
+      "verified_at": "2026-01-27T19:30:00Z",
+      "notes": "New package @nomos-ai/types with branded IDs and status enums"
     }
   },
   "aggregates": {
-    "total_features": 1,
-    "avg_duration_minutes": 45,
-    "avg_files_changed": 102,
-    "avg_lines_added": 7615,
+    "total_features": 2,
+    "avg_duration_minutes": 40,
+    "avg_files_changed": 56,
+    "avg_lines_added": 4030,
     "success_rate": 1.0,
-    "total_commits": 4
+    "total_commits": 5
   },
   "thresholds": {
     "duration_warning": 60,
@@ -34,5 +51,5 @@
     "retries_warning": 2,
     "retries_critical": 5
   },
-  "last_updated": "2026-01-27T18:20:00Z"
+  "last_updated": "2026-01-27T19:30:00Z"
 }

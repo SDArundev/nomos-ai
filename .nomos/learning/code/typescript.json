@@ -8,12 +8,14 @@
       "subcategory": "monorepo",
       "framework": "turborepo",
       "problem": "Need consistent naming for internal packages",
-      "solution": "Use @{project-name}/{package-name} format (e.g., @F001/api, @F001/db)",
-      "codeAfter": "\"name\": \"@F001/api\"",
+      "solution": "Use @{project-name}/{package-name} format (e.g., @nomos-ai/api, @nomos-ai/db)",
+      "codeAfter": "\"name\": \"@nomos-ai/types\"",
       "learnedFrom": "F001",
       "severity": "LOW",
       "tags": ["naming", "packages", "workspace"],
-      "addedAt": "2026-01-27T18:20:00Z"
+      "addedAt": "2026-01-27T18:20:00Z",
+      "updatedAt": "2026-01-27T19:30:00Z",
+      "updatedFrom": "F002"
     },
     {
       "id": "TS-002",
@@ -23,7 +25,7 @@
       "problem": "Duplicating tsconfig settings across packages",
       "solution": "Create packages/config/tsconfig.base.json and extend it in each package",
       "codeBefore": "// Each package has full tsconfig",
-      "codeAfter": "{\n  \"extends\": \"@F001/config/tsconfig.base.json\"\n}",
+      "codeAfter": "{\n  \"extends\": \"@nomos-ai/config/tsconfig.base.json\"\n}",
       "learnedFrom": "F001",
       "severity": "MEDIUM",
       "tags": ["tsconfig", "shared-config", "DRY"],
@@ -36,11 +38,39 @@
       "framework": "bun",
       "problem": "Keeping dependency versions in sync across packages",
       "solution": "Use workspaces.catalog in root package.json, reference with \"catalog:\" in packages",
-      "codeAfter": "{\n  \"workspaces\": {\n    \"catalog\": {\n      \"zod\": \"^4.1.13\",\n      \"hono\": \"^4.8.2\"\n    }\n  }\n}\n\n// In package:\n\"dependencies\": {\n  \"zod\": \"catalog:\"\n}",
+      "codeAfter": "{\n  \"workspaces\": {\n    \"catalog\": {\n      \"zod\": \"^4.1.13\"\n    }\n  }\n}\n\n// In package:\n\"dependencies\": {\n  \"zod\": \"catalog:\"\n}",
       "learnedFrom": "F001",
       "severity": "MEDIUM",
       "tags": ["dependencies", "versioning", "bun"],
       "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-004",
+      "title": "Branded types with Zod for ID safety",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Structurally identical IDs (FeatureId, ProjectId) can be accidentally swapped",
+      "solution": "Use Zod .brand<>() to create nominal types that prevent mixing at compile time",
+      "codeAfter": "import { z } from 'zod';\n\nconst FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;\n\n// Now FeatureId and ProjectId are incompatible!",
+      "learnedFrom": "F002",
+      "severity": "HIGH",
+      "tags": ["branded-types", "nominal-typing", "type-safety", "zod"],
+      "addedAt": "2026-01-27T19:30:00Z",
+      "context7LibraryId": "/websites/zod_dev",
+      "context7Query": "branded types brand method"
+    },
+    {
+      "id": "TS-005",
+      "title": "Status enum pattern with const + Zod",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Need both TypeScript type safety and runtime validation for status values",
+      "solution": "Define as const object, derive type, create z.enum() schema",
+      "codeAfter": "const STATUS = {\n  ACTIVE: 'active',\n  DONE: 'done'\n} as const;\n\ntype Status = (typeof STATUS)[keyof typeof STATUS];\n\nconst StatusSchema = z.enum([STATUS.ACTIVE, STATUS.DONE]);",
+      "learnedFrom": "F002",
+      "severity": "MEDIUM",
+      "tags": ["enums", "const-assertion", "zod", "validation"],
+      "addedAt": "2026-01-27T19:30:00Z"
     }
   ],
   "pitfalls": [
@@ -62,7 +92,17 @@
       "codeExample": "runtimeEnv: (import.meta as any).env",
       "learnedFrom": "F001",
       "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-PIT-003",
+      "title": "Package scope mismatch during rebase",
+      "error": "@F001/config@workspace:* failed to resolve",
+      "cause": "When main branch renames packages (e.g., @F001/* to @nomos-ai/*), worktree code references old names",
+      "prevention": "After rebase, check for package name references in tsconfig.json extends and package.json dependencies",
+      "codeExample": "// Check after rebase:\n// - tsconfig.json extends\n// - package.json devDependencies",
+      "learnedFrom": "F002",
+      "addedAt": "2026-01-27T19:30:00Z"
     }
   ],
-  "lastUpdated": "2026-01-27T18:20:00Z"
+  "lastUpdated": "2026-01-27T19:30:00Z"
 }
