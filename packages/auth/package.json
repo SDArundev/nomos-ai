@@ -1,0 +1,24 @@
+{
+	"name": "@F001/auth",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"type": "module",
+	"scripts": {},
+	"devDependencies": {
+		"typescript": "catalog:",
+		"@F001/config": "workspace:*"
+	},
+	"dependencies": {
+		"dotenv": "catalog:",
+		"zod": "catalog:",
+		"@F001/env": "workspace:*",
+		"@F001/db": "workspace:*",
+		"better-auth": "catalog:"
+	}
+}

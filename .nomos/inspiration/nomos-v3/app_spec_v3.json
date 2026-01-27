@@ -1,287 +1,307 @@
 {
-  "$schema": "../schemas/app_spec.schema.json",
-  "meta": {
-    "name": "NOMOS",
-    "acronym": "Navigation, Orchestration, Memory, Observation, Shipping",
-    "version": "3.0.0",
-    "tagline": {
-      "en": "The autonomous framework that codes by its own rules.",
-      "fr": "Le cadre autonome qui code sous ses propres lois."
-    },
-    "description": "An autonomous AI development framework that enables developers to describe features on a Kanban board and watch AI agents implement them automatically. NOMOS transforms software development by letting developers become architects directing AI agents.",
-    "repository": "https://github.com/user/nomos",
-    "createdAt": "2026-01-27",
-    "updatedAt": "2026-01-27",
-    "inspiration": "Automaker v0.13.0+"
-  },
+	"$schema": "../schemas/app_spec.schema.json",
+	"meta": {
+		"name": "NOMOS",
+		"acronym": "Navigation, Orchestration, Memory, Observation, Shipping",
+		"version": "3.0.0",
+		"tagline": {
+			"en": "The autonomous framework that codes by its own rules.",
+			"fr": "Le cadre autonome qui code sous ses propres lois."
+		},
+		"description": "An autonomous AI development framework that enables developers to describe features on a Kanban board and watch AI agents implement them automatically. NOMOS transforms software development by letting developers become architects directing AI agents.",
+		"repository": "https://github.com/user/nomos",
+		"createdAt": "2026-01-27",
+		"updatedAt": "2026-01-27",
+		"inspiration": "Automaker v0.13.0+"
+	},
 
-  "vision": {
-    "mission": "Enable fully autonomous software development where AI agents reliably implement features from specification to production with human oversight only at strategic decision points.",
-    "goals": [
-      "Enable fully autonomous feature development by AI agents",
-      "Maintain code quality through automated quality gates",
-      "Learn from each feature to improve future development",
-      "Provide human oversight at strategic decision points only",
-      "Scale to multiple parallel agents working on different features",
-      "Persist context and memory across sessions for continuity",
-      "Support incremental progress with one feature per session",
-      "Isolate agent execution in containers for security (ADR-001)"
-    ],
-    "nonGoals": [
-      "Replace human judgment for architectural decisions",
-      "Operate without any human oversight",
-      "Support cloud deployment (local-first design)",
-      "Provide real-time collaboration features",
-      "Integrate with external project management tools"
-    ],
-    "successMetrics": [
-      {
-        "metric": "Feature completion rate",
-        "target": ">90% first-attempt success",
-        "measurement": "Features passing without retries / total features"
-      },
-      {
-        "metric": "Quality gate pass rate",
-        "target": ">95% on first submission",
-        "measurement": "Features passing quality gate / total submissions"
-      },
-      {
-        "metric": "Context recovery time",
-        "target": "<30 seconds",
-        "measurement": "Time from session start to productive work"
-      },
-      {
-        "metric": "Agent isolation security",
-        "target": "0 escapes",
-        "measurement": "No unauthorized file system access outside worktree"
-      }
-    ]
-  },
+	"vision": {
+		"mission": "Enable fully autonomous software development where AI agents reliably implement features from specification to production with human oversight only at strategic decision points.",
+		"goals": [
+			"Enable fully autonomous feature development by AI agents",
+			"Maintain code quality through automated quality gates",
+			"Learn from each feature to improve future development",
+			"Provide human oversight at strategic decision points only",
+			"Scale to multiple parallel agents working on different features",
+			"Persist context and memory across sessions for continuity",
+			"Support incremental progress with one feature per session",
+			"Isolate agent execution in containers for security (ADR-001)"
+		],
+		"nonGoals": [
+			"Replace human judgment for architectural decisions",
+			"Operate without any human oversight",
+			"Support cloud deployment (local-first design)",
+			"Provide real-time collaboration features",
+			"Integrate with external project management tools"
+		],
+		"successMetrics": [
+			{
+				"metric": "Feature completion rate",
+				"target": ">90% first-attempt success",
+				"measurement": "Features passing without retries / total features"
+			},
+			{
+				"metric": "Quality gate pass rate",
+				"target": ">95% on first submission",
+				"measurement": "Features passing quality gate / total submissions"
+			},
+			{
+				"metric": "Context recovery time",
+				"target": "<30 seconds",
+				"measurement": "Time from session start to productive work"
+			},
+			{
+				"metric": "Agent isolation security",
+				"target": "0 escapes",
+				"measurement": "No unauthorized file system access outside worktree"
+			}
+		]
+	},
 
-  "architecture": {
-    "type": "monorepo",
-    "runtime": "bun",
-    "buildSystem": "turborepo",
-    "stack": {
-      "frontend": [
-        "React 19",
-        "TanStack Router",
-        "TanStack Query",
-        "TanStack Form",
-        "Vite 6",
-        "Zustand",
-        "shadcn/ui",
-        "Tailwind CSS 4",
-        "Radix UI"
-      ],
-      "backend": [
-        "Bun 1.3+",
-        "Hono",
-        "tRPC",
-        "Drizzle ORM",
-        "SQLite",
-        "Zod",
-        "Pino"
-      ],
-      "ai": [
-        "Claude Agent SDK (@anthropic-ai/claude-agent-sdk)",
-        "Claude Opus 4 / Sonnet 4 / Haiku 3",
-        "MCP (Model Context Protocol)"
-      ],
-      "tools": [
-        "Turborepo",
-        "Biome",
-        "TypeScript 5.7+",
-        "Vitest",
-        "Playwright"
-      ],
-      "infrastructure": [
-        "Docker",
-        "Git worktrees",
-        "SQLite for state"
-      ]
-    },
-    "components": {
-      "web": {
-        "description": "React frontend for visual project management",
-        "language": "typescript",
-        "framework": "react-19",
-        "port": 3001,
-        "responsibilities": [
-          "Kanban board UI for feature management",
-          "Feature detail views and editing",
-          "Real-time updates via WebSocket",
-          "Agent session monitoring and streaming",
-          "Git diff viewer",
-          "Terminal integration"
-        ]
-      },
-      "server": {
-        "description": "Hono backend for API and WebSocket",
-        "language": "typescript",
-        "framework": "hono",
-        "port": 3008,
-        "responsibilities": [
-          "REST API for feature CRUD",
-          "tRPC routers for type-safe RPC",
-          "WebSocket for real-time streaming",
-          "Agent execution engine",
-          "Database operations via Drizzle",
-          "Git operations wrapper",
-          "Container orchestration (ADR-001)"
-        ]
-      },
-      "packages": {
-        "types": "Shared Zod schemas and TypeScript types",
-        "api": "tRPC routers and procedures",
-        "db": "Drizzle ORM schema, migrations, repositories",
-        "env": "Environment variable validation (@t3-oss/env-core)",
-        "config": "Shared build configuration (tsconfig, biome)"
-      }
-    }
-  },
+	"architecture": {
+		"type": "monorepo",
+		"runtime": "bun",
+		"buildSystem": "turborepo",
+		"stack": {
+			"frontend": [
+				"React 19",
+				"TanStack Router",
+				"TanStack Query",
+				"TanStack Form",
+				"Vite 6",
+				"Zustand",
+				"shadcn/ui",
+				"Tailwind CSS 4",
+				"Radix UI"
+			],
+			"backend": [
+				"Bun 1.3+",
+				"Hono",
+				"tRPC",
+				"Drizzle ORM",
+				"SQLite",
+				"Zod",
+				"Pino"
+			],
+			"ai": [
+				"Claude Agent SDK (@anthropic-ai/claude-agent-sdk)",
+				"Claude Opus 4 / Sonnet 4 / Haiku 3",
+				"MCP (Model Context Protocol)"
+			],
+			"tools": [
+				"Turborepo",
+				"Biome",
+				"TypeScript 5.7+",
+				"Vitest",
+				"Playwright"
+			],
+			"infrastructure": ["Docker", "Git worktrees", "SQLite for state"]
+		},
+		"components": {
+			"web": {
+				"description": "React frontend for visual project management",
+				"language": "typescript",
+				"framework": "react-19",
+				"port": 3001,
+				"responsibilities": [
+					"Kanban board UI for feature management",
+					"Feature detail views and editing",
+					"Real-time updates via WebSocket",
+					"Agent session monitoring and streaming",
+					"Git diff viewer",
+					"Terminal integration"
+				]
+			},
+			"server": {
+				"description": "Hono backend for API and WebSocket",
+				"language": "typescript",
+				"framework": "hono",
+				"port": 3008,
+				"responsibilities": [
+					"REST API for feature CRUD",
+					"tRPC routers for type-safe RPC",
+					"WebSocket for real-time streaming",
+					"Agent execution engine",
+					"Database operations via Drizzle",
+					"Git operations wrapper",
+					"Container orchestration (ADR-001)"
+				]
+			},
+			"packages": {
+				"types": "Shared Zod schemas and TypeScript types",
+				"api": "tRPC routers and procedures",
+				"db": "Drizzle ORM schema, migrations, repositories",
+				"env": "Environment variable validation (@t3-oss/env-core)",
+				"config": "Shared build configuration (tsconfig, biome)"
+			}
+		}
+	},
 
-  "phases": [
-    {
-      "id": "phase-1",
-      "name": "Structure & Security",
-      "description": "Core security, validation, and infrastructure",
-      "status": "in_progress",
-      "features": ["F163", "F096", "F098", "F164", "F165"],
-      "exitCriteria": [
-        "Feature ID validation enforced",
-        "Security headers on all responses",
-        "Structured logging with Pino",
-        "Authentication middleware active",
-        "Authorization layer functional"
-      ]
-    },
-    {
-      "id": "phase-2",
-      "name": "Agent Foundation",
-      "description": "Claude Agent SDK integration and execution engine",
-      "status": "planned",
-      "features": ["F061", "F085", "F062", "F086", "F087", "F088", "F089", "F090", "F091", "F063"],
-      "exitCriteria": [
-        "Claude Agent SDK integrated",
-        "Agent can execute in worktree",
-        "Real-time streaming working",
-        "Quality gates chain complete",
-        "Parallel execution supported"
-      ]
-    },
-    {
-      "id": "phase-3",
-      "name": "Container Isolation (ADR-001)",
-      "description": "Docker-based agent isolation for security",
-      "status": "planned",
-      "features": ["F173", "F174", "F175", "F176", "F177", "F178", "F179", "F180"],
-      "exitCriteria": [
-        "Agent containers spawn/cleanup correctly",
-        "Resource limits enforced",
-        "Network isolation working",
-        "Secret management secure"
-      ]
-    },
-    {
-      "id": "phase-4",
-      "name": "UI/UX Polish",
-      "description": "Terminal, themes, notifications, accessibility",
-      "status": "planned",
-      "features": ["F067", "F068", "F069", "F070", "F071", "F072"],
-      "exitCriteria": [
-        "Terminal integration complete",
-        "Theme system working",
-        "Keyboard shortcuts functional",
-        "WCAG AA compliance"
-      ]
-    }
-  ],
+	"phases": [
+		{
+			"id": "phase-1",
+			"name": "Structure & Security",
+			"description": "Core security, validation, and infrastructure",
+			"status": "in_progress",
+			"features": ["F163", "F096", "F098", "F164", "F165"],
+			"exitCriteria": [
+				"Feature ID validation enforced",
+				"Security headers on all responses",
+				"Structured logging with Pino",
+				"Authentication middleware active",
+				"Authorization layer functional"
+			]
+		},
+		{
+			"id": "phase-2",
+			"name": "Agent Foundation",
+			"description": "Claude Agent SDK integration and execution engine",
+			"status": "planned",
+			"features": [
+				"F061",
+				"F085",
+				"F062",
+				"F086",
+				"F087",
+				"F088",
+				"F089",
+				"F090",
+				"F091",
+				"F063"
+			],
+			"exitCriteria": [
+				"Claude Agent SDK integrated",
+				"Agent can execute in worktree",
+				"Real-time streaming working",
+				"Quality gates chain complete",
+				"Parallel execution supported"
+			]
+		},
+		{
+			"id": "phase-3",
+			"name": "Container Isolation (ADR-001)",
+			"description": "Docker-based agent isolation for security",
+			"status": "planned",
+			"features": [
+				"F173",
+				"F174",
+				"F175",
+				"F176",
+				"F177",
+				"F178",
+				"F179",
+				"F180"
+			],
+			"exitCriteria": [
+				"Agent containers spawn/cleanup correctly",
+				"Resource limits enforced",
+				"Network isolation working",
+				"Secret management secure"
+			]
+		},
+		{
+			"id": "phase-4",
+			"name": "UI/UX Polish",
+			"description": "Terminal, themes, notifications, accessibility",
+			"status": "planned",
+			"features": ["F067", "F068", "F069", "F070", "F071", "F072"],
+			"exitCriteria": [
+				"Terminal integration complete",
+				"Theme system working",
+				"Keyboard shortcuts functional",
+				"WCAG AA compliance"
+			]
+		}
+	],
 
-  "constraints": {
-    "technical": [
-      "Must work offline (no cloud dependencies for core)",
-      "Must run on macOS and Linux",
-      "Database must be SQLite (portable, no server)",
-      "Frontend must support modern browsers (Chrome, Firefox, Safari)",
-      "Must use Bun as primary runtime",
-      "All inputs validated with Zod schemas"
-    ],
-    "process": [
-      "All features must have specifications before implementation",
-      "Human approval required for merge to main",
-      "Security scan must pass before merge",
-      "Quality gate must pass before merge",
-      "One feature per agent session (incremental progress)"
-    ],
-    "security": [
-      "No secrets in code or configuration",
-      "Agent tools scoped to workspace only",
-      "Container isolation for agent execution (ADR-001)",
-      "All user input validated",
-      "Audit trail for all state changes"
-    ]
-  },
+	"constraints": {
+		"technical": [
+			"Must work offline (no cloud dependencies for core)",
+			"Must run on macOS and Linux",
+			"Database must be SQLite (portable, no server)",
+			"Frontend must support modern browsers (Chrome, Firefox, Safari)",
+			"Must use Bun as primary runtime",
+			"All inputs validated with Zod schemas"
+		],
+		"process": [
+			"All features must have specifications before implementation",
+			"Human approval required for merge to main",
+			"Security scan must pass before merge",
+			"Quality gate must pass before merge",
+			"One feature per agent session (incremental progress)"
+		],
+		"security": [
+			"No secrets in code or configuration",
+			"Agent tools scoped to workspace only",
+			"Container isolation for agent execution (ADR-001)",
+			"All user input validated",
+			"Audit trail for all state changes"
+		]
+	},
 
-  "quality": {
-    "gates": [
-      {
-        "name": "TypeScript",
-        "command": "bun run check-types",
-        "blocking": true,
-        "description": "TypeScript compilation check"
-      },
-      {
-        "name": "Lint",
-        "command": "bun run check",
-        "blocking": true,
-        "description": "Biome lint and format check"
-      },
-      {
-        "name": "Tests",
-        "command": "bun run test:ci",
-        "blocking": true,
-        "description": "Vitest test suite"
-      },
-      {
-        "name": "Security",
-        "command": "trivy fs --severity HIGH,CRITICAL --exit-code 1 .",
-        "blocking": true,
-        "description": "Vulnerability scan"
-      }
-    ],
-    "testing": {
-      "framework": "vitest",
-      "e2e": "playwright",
-      "coverage": 70,
-      "patterns": [
-        "Unit tests for business logic",
-        "Integration tests for API endpoints",
-        "E2E tests for critical paths"
-      ]
-    },
-    "codeStyle": {
-      "linter": "biome",
-      "formatter": "biome",
-      "rules": "biome.json"
-    }
-  },
+	"quality": {
+		"gates": [
+			{
+				"name": "TypeScript",
+				"command": "bun run check-types",
+				"blocking": true,
+				"description": "TypeScript compilation check"
+			},
+			{
+				"name": "Lint",
+				"command": "bun run check",
+				"blocking": true,
+				"description": "Biome lint and format check"
+			},
+			{
+				"name": "Tests",
+				"command": "bun run test:ci",
+				"blocking": true,
+				"description": "Vitest test suite"
+			},
+			{
+				"name": "Security",
+				"command": "trivy fs --severity HIGH,CRITICAL --exit-code 1 .",
+				"blocking": true,
+				"description": "Vulnerability scan"
+			}
+		],
+		"testing": {
+			"framework": "vitest",
+			"e2e": "playwright",
+			"coverage": 70,
+			"patterns": [
+				"Unit tests for business logic",
+				"Integration tests for API endpoints",
+				"E2E tests for critical paths"
+			]
+		},
+		"codeStyle": {
+			"linter": "biome",
+			"formatter": "biome",
+			"rules": "biome.json"
+		}
+	},
 
-  "workflow": {
-    "featureStates": ["backlog", "in_progress", "waiting_approval", "verified"],
-    "transitions": [
-      { "from": "backlog", "to": "in_progress", "trigger": "start" },
-      { "from": "in_progress", "to": "waiting_approval", "trigger": "complete" },
-      { "from": "in_progress", "to": "backlog", "trigger": "cancel" },
-      { "from": "waiting_approval", "to": "verified", "trigger": "verify" },
-      { "from": "waiting_approval", "to": "in_progress", "trigger": "reject" },
-      { "from": "waiting_approval", "to": "backlog", "trigger": "reset" },
-      { "from": "verified", "to": "backlog", "trigger": "reset" }
-    ],
-    "git": {
-      "branchNaming": "nomos/{feature-id}",
-      "commitFormat": "[NOMOS] {summary}",
-      "mainBranch": "main"
-    }
-  }
+	"workflow": {
+		"featureStates": ["backlog", "in_progress", "waiting_approval", "verified"],
+		"transitions": [
+			{ "from": "backlog", "to": "in_progress", "trigger": "start" },
+			{
+				"from": "in_progress",
+				"to": "waiting_approval",
+				"trigger": "complete"
+			},
+			{ "from": "in_progress", "to": "backlog", "trigger": "cancel" },
+			{ "from": "waiting_approval", "to": "verified", "trigger": "verify" },
+			{ "from": "waiting_approval", "to": "in_progress", "trigger": "reject" },
+			{ "from": "waiting_approval", "to": "backlog", "trigger": "reset" },
+			{ "from": "verified", "to": "backlog", "trigger": "reset" }
+		],
+		"git": {
+			"branchNaming": "nomos/{feature-id}",
+			"commitFormat": "[NOMOS] {summary}",
+			"mainBranch": "main"
+		}
+	}
 }
