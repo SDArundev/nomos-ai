@@ -1,0 +1,29 @@
+{
+	"name": "@F001/api",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"type": "module",
+	"scripts": {},
+	"devDependencies": {
+		"typescript": "catalog:",
+		"@F001/config": "workspace:*",
+		"hono": "catalog:"
+	},
+	"dependencies": {
+		"dotenv": "catalog:",
+		"zod": "catalog:",
+		"@F001/env": "workspace:*",
+		"@F001/auth": "workspace:*",
+		"@F001/db": "workspace:*",
+		"@orpc/server": "catalog:",
+		"@orpc/client": "catalog:",
+		"@orpc/openapi": "catalog:",
+		"@orpc/zod": "catalog:"
+	}
+}

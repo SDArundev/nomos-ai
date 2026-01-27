@@ -6,8 +6,8 @@
  *   bun scripts/validate.ts <skill-directory>
  */
 
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 
 const ALLOWED_PROPERTIES = new Set([

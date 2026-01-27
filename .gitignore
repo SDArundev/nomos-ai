@@ -6,7 +6,6 @@ node_modules
 # Build outputs
 dist
 build
-out
 *.tsbuildinfo
 
 # Environment variables
@@ -48,34 +47,12 @@ coverage
 *.tgz
 .cache
 tmp
+temp
 
-# Playwright MCP
-.playwright-mcp/
-
-# Serena
-.serena/
-
-# Local SQLite database
+# NOMOS runtime
+local.db
 *.db
-*.db-shm
-*.db-wal
-
-# NOMOS runtime (regenerated)
-.nomos/state.json
-.nomos/worktrees/
+.nomos/ports.json
 .nomos/output/
-.nomos/sessions/
-.nomos/locks/
-.nomos/memory/
-.nomos/parallel/
-.nomos/reviews/
-.nomos/shipping/
-.nomos/screenshots/
-.nomos/verify/
-.nomos/learning/
-.nomos/speed-audit/
-.nomos/enhancements/
-.nomos/*.db
-
-# Tauri
-src-tauri/target/
+.nomos/worktrees/
+.ruler/

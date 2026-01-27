@@ -85,7 +85,13 @@
 		"summary": {
 			"type": "object",
 			"description": "Feature statistics",
-			"required": ["totalFeatures", "byCategory", "byPhase", "byStatus", "byPasses"],
+			"required": [
+				"totalFeatures",
+				"byCategory",
+				"byPhase",
+				"byStatus",
+				"byPasses"
+			],
 			"properties": {
 				"totalFeatures": { "type": "integer" },
 				"byCategory": {
@@ -249,7 +255,14 @@
 				},
 				"status": {
 					"type": "string",
-					"enum": ["backlog", "pending", "in_progress", "waiting_approval", "verified", "failed"],
+					"enum": [
+						"backlog",
+						"pending",
+						"in_progress",
+						"waiting_approval",
+						"verified",
+						"failed"
+					],
 					"description": "Feature status (NOMOS state machine)",
 					"default": "backlog"
 				},

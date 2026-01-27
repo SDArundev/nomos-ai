@@ -10,8 +10,8 @@
  *   bun scripts/init-skill.ts my-api-helper --path .claude/skills
  */
 
-import { chmodSync, existsSync, mkdirSync, writeFileSync } from "fs";
-import { join, resolve } from "path";
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 const SKILL_TEMPLATE = `---
 name: {skill_name}
@@ -185,7 +185,7 @@ function initSkill(skillName: string, basePath: string): string | null {
 	console.log(
 		"2. Customize or delete example files in scripts/, references/, assets/",
 	);
-	console.log("3. Run validator: bun scripts/validate.ts " + skillDir);
+	console.log(`3. Run validator: bun scripts/validate.ts ${skillDir}`);
 
 	return skillDir;
 }

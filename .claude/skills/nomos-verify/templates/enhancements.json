@@ -1,52 +1,50 @@
 {
-  "version": "1.0.0",
-  "description": "Enhancement backlog generated from verification. Nice-to-have improvements discovered during feature verification.",
-  "last_updated": "{timestamp}",
-  "priority_legend": {
-    "P1": "Critical - Security hardening, data integrity",
-    "P2": "High - Performance, reliability improvements",
-    "P3": "Medium - Developer experience, maintainability",
-    "P4": "Low - Nice-to-have, polish",
-    "P5": "Future - Ideas for later consideration"
-  },
-  "category_legend": {
-    "security": "Security hardening beyond requirements",
-    "performance": "Speed, efficiency, resource optimization",
-    "resilience": "Error recovery, graceful degradation, retry logic",
-    "observability": "Logging, metrics, tracing, debugging",
-    "ux": "User/developer experience improvements",
-    "testing": "Test coverage, edge cases, integration tests",
-    "documentation": "API docs, examples, inline comments",
-    "architecture": "Code structure, patterns, extensibility"
-  },
-  "enhancements": [
-    {
-      "id": "ENH-TEMPLATE",
-      "feature": "FXXX",
-      "priority": "P3",
-      "category": "performance",
-      "title": "Example enhancement title",
-      "description": "What should be improved",
-      "rationale": "Why this would be valuable",
-      "effort": "medium",
-      "impact": "high",
-      "suggested_ac": [
-        "Specific acceptance criteria if implemented"
-      ],
-      "related_notes": ["NOTE-XXX"],
-      "discovered": "{timestamp}",
-      "status": "proposed"
-    }
-  ],
-  "summary": {
-    "total": 0,
-    "by_priority": {
-      "P1": 0,
-      "P2": 0,
-      "P3": 0,
-      "P4": 0,
-      "P5": 0
-    },
-    "by_category": {}
-  }
+	"version": "1.0.0",
+	"description": "Enhancement backlog generated from verification. Nice-to-have improvements discovered during feature verification.",
+	"last_updated": "{timestamp}",
+	"priority_legend": {
+		"P1": "Critical - Security hardening, data integrity",
+		"P2": "High - Performance, reliability improvements",
+		"P3": "Medium - Developer experience, maintainability",
+		"P4": "Low - Nice-to-have, polish",
+		"P5": "Future - Ideas for later consideration"
+	},
+	"category_legend": {
+		"security": "Security hardening beyond requirements",
+		"performance": "Speed, efficiency, resource optimization",
+		"resilience": "Error recovery, graceful degradation, retry logic",
+		"observability": "Logging, metrics, tracing, debugging",
+		"ux": "User/developer experience improvements",
+		"testing": "Test coverage, edge cases, integration tests",
+		"documentation": "API docs, examples, inline comments",
+		"architecture": "Code structure, patterns, extensibility"
+	},
+	"enhancements": [
+		{
+			"id": "ENH-TEMPLATE",
+			"feature": "FXXX",
+			"priority": "P3",
+			"category": "performance",
+			"title": "Example enhancement title",
+			"description": "What should be improved",
+			"rationale": "Why this would be valuable",
+			"effort": "medium",
+			"impact": "high",
+			"suggested_ac": ["Specific acceptance criteria if implemented"],
+			"related_notes": ["NOTE-XXX"],
+			"discovered": "{timestamp}",
+			"status": "proposed"
+		}
+	],
+	"summary": {
+		"total": 0,
+		"by_priority": {
+			"P1": 0,
+			"P2": 0,
+			"P3": 0,
+			"P4": 0,
+			"P5": 0
+		},
+		"by_category": {}
+	}
 }

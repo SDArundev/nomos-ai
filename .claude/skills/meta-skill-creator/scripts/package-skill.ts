@@ -10,8 +10,14 @@
  *   bun scripts/package-skill.ts ~/.claude/skills/my-skill ./dist
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "fs";
-import { basename, join, relative, resolve } from "path";
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	statSync,
+} from "node:fs";
+import { basename, join, relative, resolve } from "node:path";
 import { validateSkill } from "./validate";
 
 async function getAllFiles(dir: string): Promise<string[]> {
@@ -91,11 +97,11 @@ async function packageSkill(
 
 		// Use Bun's native zip writer
 		const zipFile = Bun.file(skillFilename);
-		const writer = zipFile.writer();
+		const _writer = zipFile.writer();
 
 		// Create a simple zip manually or use a library
 		// For now, use the 'archiver' pattern with Bun.spawn
-		const { spawn } = await import("child_process");
+		const { spawn } = await import("node:child_process");
 
 		// Create zip using system zip command (cross-platform approach)
 		const parentDir = resolve(resolvedPath, "..");
