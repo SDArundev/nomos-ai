@@ -166,7 +166,9 @@
       "description": "Initialize monorepo structure with Turborepo for build orchestration. Setup apps/web, apps/server, apps/desktop, packages/types, packages/db directories with proper tsconfig paths.",
       "phase": "phase-1",
       "priority": 1,
-      "requirements": ["REQ-PM-001"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
       "dependencies": [],
       "acceptanceCriteria": [
         "turbo.json configured with build, dev, check pipelines",
@@ -175,8 +177,8 @@
         "bun run dev starts all apps concurrently"
       ],
       "estimatedSize": "M",
-      "status": "in_progress",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite"
@@ -188,8 +190,12 @@
       "description": "Create packages/types with branded types for FeatureId, ProjectId, SessionId using Zod. Export type inference utilities and shared constants.",
       "phase": "phase-1",
       "priority": 2,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F001"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F001"
+      ],
       "acceptanceCriteria": [
         "Branded types prevent mixing IDs at compile time",
         "Zod schemas validate runtime data",
@@ -210,8 +216,12 @@
       "description": "Define Feature Zod schema matching feature.schema.json. Include all fields: id, title, category, description, status, passes, acceptanceCriteria, dependencies.",
       "phase": "phase-1",
       "priority": 3,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F002"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F002"
+      ],
       "acceptanceCriteria": [
         "Schema validates all required fields",
         "Status enum matches state machine",
@@ -232,8 +242,12 @@
       "description": "Define Project Zod schema for multi-project support. Include name, path, settings, createdAt, updatedAt fields with proper validation.",
       "phase": "phase-1",
       "priority": 4,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F002"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F002"
+      ],
       "acceptanceCriteria": [
         "Schema validates project structure",
         "Path validation ensures valid directory",
@@ -254,8 +268,12 @@
       "description": "Define Session Zod schema for tracking agent execution sessions. Include sessionId, featureId, status, startedAt, completedAt, output fields.",
       "phase": "phase-1",
       "priority": 5,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F002"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F002"
+      ],
       "acceptanceCriteria": [
         "Schema validates session lifecycle",
         "Status tracks pending/running/completed/failed",
@@ -276,8 +294,12 @@
       "description": "Setup packages/db with Drizzle ORM and SQLite (libSQL). Configure drizzle.config.ts, create initial schema file, setup migration system.",
       "phase": "phase-1",
       "priority": 6,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F001"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F001"
+      ],
       "acceptanceCriteria": [
         "Drizzle configured with libSQL driver",
         "Migration folder structure created",
@@ -298,8 +320,12 @@
       "description": "Create Drizzle schema for projects table with id, name, path, settings (JSON), createdAt, updatedAt columns. Add indexes for name lookup.",
       "phase": "phase-1",
       "priority": 7,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F006"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F006"
+      ],
       "acceptanceCriteria": [
         "Table created with all columns",
         "Primary key on id",
@@ -320,8 +346,13 @@
       "description": "Create Drizzle schema for features table mirroring feature.schema.json. Include all fields with proper SQLite types, foreign key to projects.",
       "phase": "phase-1",
       "priority": 8,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F006", "F007"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F006",
+        "F007"
+      ],
       "acceptanceCriteria": [
         "All feature fields mapped to columns",
         "Foreign key to projects table",
@@ -342,8 +373,13 @@
       "description": "Create Drizzle schema for sessions table tracking agent executions. Include foreign keys to features and projects, output storage.",
       "phase": "phase-1",
       "priority": 9,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F006", "F008"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F006",
+        "F008"
+      ],
       "acceptanceCriteria": [
         "Session lifecycle columns present",
         "Foreign key to features table",
@@ -364,8 +400,12 @@
       "description": "Create Drizzle schema for learnings table storing patterns extracted from feature implementations. Include category, pattern, antiPattern, context fields.",
       "phase": "phase-1",
       "priority": 10,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F006"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F006"
+      ],
       "acceptanceCriteria": [
         "Learnings stored with metadata",
         "Category for filtering patterns",
@@ -386,8 +426,15 @@
       "description": "Generate and run initial migrations for all tables. Setup migration runner in server startup, handle schema versioning.",
       "phase": "phase-1",
       "priority": 11,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F007", "F008", "F009", "F010"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F007",
+        "F008",
+        "F009",
+        "F010"
+      ],
       "acceptanceCriteria": [
         "Migrations generated successfully",
         "Migrations run on server start",
@@ -408,8 +455,13 @@
       "description": "Implement ProjectRepository with CRUD operations using Drizzle. Include findAll, findById, create, update, delete methods with proper typing.",
       "phase": "phase-1",
       "priority": 12,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F007", "F011"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F007",
+        "F011"
+      ],
       "acceptanceCriteria": [
         "All CRUD methods implemented",
         "Type-safe return values",
@@ -430,8 +482,13 @@
       "description": "Implement FeatureRepository with CRUD and query operations. Include findByProject, findByStatus, updateStatus, bulk operations.",
       "phase": "phase-1",
       "priority": 13,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F008", "F011"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F008",
+        "F011"
+      ],
       "acceptanceCriteria": [
         "CRUD methods implemented",
         "Query by project and status",
@@ -452,8 +509,13 @@
       "description": "Implement SessionRepository for agent session tracking. Include create, update, findByFeature, findActive methods.",
       "phase": "phase-1",
       "priority": 14,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F009", "F011"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F009",
+        "F011"
+      ],
       "acceptanceCriteria": [
         "Session CRUD implemented",
         "Active session query works",
@@ -474,8 +536,12 @@
       "description": "Setup apps/server with Hono framework and oRPC for type-safe APIs. Configure middleware stack, CORS, error handling.",
       "phase": "phase-1",
       "priority": 15,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F001"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F001"
+      ],
       "acceptanceCriteria": [
         "Hono server starts on configured port",
         "oRPC router configured",
@@ -496,8 +562,12 @@
       "description": "Implement /health endpoint returning server status, database connection, and version info. Used by Tauri to verify backend is running.",
       "phase": "phase-1",
       "priority": 16,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "GET /health returns 200",
         "Response includes version",
@@ -518,8 +588,14 @@
       "description": "Implement oRPC router for project CRUD operations. Include list, get, create, update, delete procedures with Zod validation.",
       "phase": "phase-1",
       "priority": 17,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015", "F012", "F004"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015",
+        "F012",
+        "F004"
+      ],
       "acceptanceCriteria": [
         "All CRUD procedures implemented",
         "Input validated with Zod",
@@ -540,8 +616,14 @@
       "description": "Implement oRPC router for feature operations. Include list, get, create, update, delete, updateStatus, bulkUpdate procedures.",
       "phase": "phase-1",
       "priority": 18,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F015", "F013", "F003"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F015",
+        "F013",
+        "F003"
+      ],
       "acceptanceCriteria": [
         "All feature procedures work",
         "Status transitions validated",
@@ -562,8 +644,14 @@
       "description": "Implement oRPC router for session operations. Include create, get, list, updateStatus procedures for agent session tracking.",
       "phase": "phase-1",
       "priority": 19,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F015", "F014", "F005"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F015",
+        "F014",
+        "F005"
+      ],
       "acceptanceCriteria": [
         "Session CRUD procedures work",
         "Active session retrieval",
@@ -584,8 +672,12 @@
       "description": "Setup apps/web with React 19, Vite 6, TanStack Router. Configure routes for dashboard, project, feature detail pages.",
       "phase": "phase-1",
       "priority": 20,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F001"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F001"
+      ],
       "acceptanceCriteria": [
         "Vite dev server starts",
         "TanStack Router configured",
@@ -606,8 +698,12 @@
       "description": "Configure Tailwind CSS 4 with shadcn/ui component library. Setup theme tokens, dark mode support, component directory structure.",
       "phase": "phase-1",
       "priority": 21,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F020"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F020"
+      ],
       "acceptanceCriteria": [
         "Tailwind classes working",
         "shadcn/ui components available",
@@ -628,8 +724,12 @@
       "description": "Setup Zustand store for application state. Create slices for projects, features, sessions, UI state with proper typing.",
       "phase": "phase-1",
       "priority": 22,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F020"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F020"
+      ],
       "acceptanceCriteria": [
         "Store created with slices",
         "Actions type-safe",
@@ -650,8 +750,14 @@
       "description": "Configure TanStack Query with oRPC client. Setup query keys, default options, error handling, optimistic updates.",
       "phase": "phase-1",
       "priority": 23,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F020", "F017", "F018"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F020",
+        "F017",
+        "F018"
+      ],
       "acceptanceCriteria": [
         "Query client configured",
         "oRPC hooks generated",
@@ -672,8 +778,12 @@
       "description": "Create main app layout with collapsible sidebar, header, and content area. Include project selector, navigation links, user menu.",
       "phase": "phase-1",
       "priority": 24,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Sidebar collapses/expands",
         "Navigation links work",
@@ -694,8 +804,13 @@
       "description": "Create Kanban board with columns for each status (backlog, in_progress, waiting_approval, verified). Use dnd-kit for drag-drop.",
       "phase": "phase-1",
       "priority": 25,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F021", "F023"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F021",
+        "F023"
+      ],
       "acceptanceCriteria": [
         "Columns render by status",
         "Features display as cards",
@@ -716,8 +831,12 @@
       "description": "Create feature card showing id, title, priority badge, size indicator, dependency count. Compact view for Kanban column.",
       "phase": "phase-1",
       "priority": 26,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Card shows key info",
         "Priority color-coded",
@@ -738,8 +857,13 @@
       "description": "Create slide-out panel for feature details. Show all fields, acceptance criteria checklist, dependencies graph, action buttons.",
       "phase": "phase-1",
       "priority": 27,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F021", "F023"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F021",
+        "F023"
+      ],
       "acceptanceCriteria": [
         "Panel slides from right",
         "All fields displayed",
@@ -760,8 +884,13 @@
       "description": "Create form for adding/editing features using TanStack Form. Validate with Zod schema, handle acceptance criteria array.",
       "phase": "phase-1",
       "priority": 28,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F021", "F003"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F021",
+        "F003"
+      ],
       "acceptanceCriteria": [
         "Form validates input",
         "Create saves to DB",
@@ -782,8 +911,12 @@
       "description": "Create column header showing status name, feature count, optional actions menu. Include collapse/expand toggle.",
       "phase": "phase-1",
       "priority": 29,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F025"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F025"
+      ],
       "acceptanceCriteria": [
         "Count updates on change",
         "Actions menu works",
@@ -804,8 +937,12 @@
       "description": "Add filter bar above Kanban with search, category filter, phase filter, priority filter. Persist filter state.",
       "phase": "phase-1",
       "priority": 30,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F025"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F025"
+      ],
       "acceptanceCriteria": [
         "Search filters by title",
         "Category dropdown works",
@@ -826,8 +963,12 @@
       "description": "Setup @anthropic-ai/claude-agent-sdk in server. Configure API client, model selection, tool permissions, environment variables.",
       "phase": "phase-2",
       "priority": 31,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "SDK imported and configured",
         "API key loaded from env",
@@ -848,8 +989,13 @@
       "description": "Implement AgentService.createSession() to initialize Claude agent with feature context, system prompt, and tool configuration.",
       "phase": "phase-2",
       "priority": 32,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031", "F014"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031",
+        "F014"
+      ],
       "acceptanceCriteria": [
         "Session created in DB",
         "Agent initialized with context",
@@ -870,8 +1016,12 @@
       "description": "Implement agent execution with streaming output. Capture text, tool calls, tool results, and thinking tokens in real-time.",
       "phase": "phase-2",
       "priority": 33,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F032"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F032"
+      ],
       "acceptanceCriteria": [
         "Agent runs in worktree",
         "Output streams in real-time",
@@ -892,8 +1042,12 @@
       "description": "Setup WebSocket server in Hono for real-time event streaming. Handle connections, authentication, message routing.",
       "phase": "phase-2",
       "priority": 34,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "WebSocket endpoint available",
         "Connections authenticated",
@@ -914,8 +1068,13 @@
       "description": "Stream agent output to connected clients via WebSocket. Emit events for text chunks, tool calls, completion, errors.",
       "phase": "phase-2",
       "priority": 35,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F033", "F034"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F033",
+        "F034"
+      ],
       "acceptanceCriteria": [
         "Output streams to clients",
         "Events typed correctly",
@@ -936,8 +1095,13 @@
       "description": "Create React component to display streaming agent output. Show markdown formatted text, collapsible tool calls, thinking indicator.",
       "phase": "phase-2",
       "priority": 36,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F021", "F035"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F021",
+        "F035"
+      ],
       "acceptanceCriteria": [
         "Markdown renders correctly",
         "Tool calls collapsible",
@@ -958,8 +1122,12 @@
       "description": "Create component to display tool calls with name, input, output, duration. Color-code by tool type, show file diffs.",
       "phase": "phase-2",
       "priority": 37,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F036"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F036"
+      ],
       "acceptanceCriteria": [
         "Tool name displayed",
         "Input/output collapsible",
@@ -980,8 +1148,12 @@
       "description": "Show extended thinking tokens in collapsible section. Display token count, thinking time, summary extraction.",
       "phase": "phase-2",
       "priority": 38,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F036"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F036"
+      ],
       "acceptanceCriteria": [
         "Thinking section collapsible",
         "Token count displayed",
@@ -1002,8 +1174,13 @@
       "description": "Add button to feature detail to start agent execution. Show confirmation dialog with options for model, thinking level, planning mode.",
       "phase": "phase-2",
       "priority": 39,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F027", "F032"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F027",
+        "F032"
+      ],
       "acceptanceCriteria": [
         "Button visible on detail",
         "Confirmation shows options",
@@ -1024,8 +1201,12 @@
       "description": "Add ability to stop running agent execution. Send cancel signal, cleanup resources, update session status.",
       "phase": "phase-2",
       "priority": 40,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Stop button visible during run",
         "Agent receives cancel",
@@ -1046,8 +1227,12 @@
       "description": "Implement GitService.createWorktree() to create isolated worktree for feature. Handle branch naming, path creation, cleanup.",
       "phase": "phase-2",
       "priority": 41,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "Worktree created at .nomos/worktrees/{id}",
         "Branch named nomos/{id}",
@@ -1068,8 +1253,12 @@
       "description": "Implement GitService.deleteWorktree() to cleanup after feature merge. Remove worktree directory, prune branches.",
       "phase": "phase-2",
       "priority": 42,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Worktree directory removed",
         "Git worktree pruned",
@@ -1090,8 +1279,12 @@
       "description": "Implement GitService.commit() with conventional commit format. Include feature ID, title, acceptance criteria summary.",
       "phase": "phase-2",
       "priority": 43,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Commit format: feat({id}): {title}",
         "Body includes AC summary",
@@ -1112,8 +1305,13 @@
       "description": "Implement GitService.merge() to merge feature branch to main. Use --no-ff strategy, handle conflicts, update feature status.",
       "phase": "phase-2",
       "priority": 44,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041", "F043"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041",
+        "F043"
+      ],
       "acceptanceCriteria": [
         "Merge uses --no-ff",
         "Conflicts detected and reported",
@@ -1134,8 +1332,12 @@
       "description": "Create component to display git diffs with syntax highlighting. Show file changes, additions, deletions, line numbers.",
       "phase": "phase-2",
       "priority": 45,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Diffs syntax highlighted",
         "Additions green, deletions red",
@@ -1156,8 +1358,13 @@
       "description": "Create component showing worktree git status. Display staged, unstaged, untracked files with actions.",
       "phase": "phase-2",
       "priority": 46,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F021", "F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F021",
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Status grouped by type",
         "File icons by extension",
@@ -1178,8 +1385,12 @@
       "description": "Implement quality gate that runs tsc --noEmit in worktree. Capture errors, parse output, report pass/fail.",
       "phase": "phase-2",
       "priority": 47,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "tsc runs in worktree",
         "Errors captured and parsed",
@@ -1200,8 +1411,12 @@
       "description": "Implement quality gate that runs biome check in worktree. Capture lint errors, format issues, report results.",
       "phase": "phase-2",
       "priority": 48,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Biome runs in worktree",
         "Lint errors captured",
@@ -1222,8 +1437,12 @@
       "description": "Implement quality gate that runs vitest in worktree. Capture test results, coverage, failures with stack traces.",
       "phase": "phase-2",
       "priority": 49,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Vitest runs in worktree",
         "Results parsed correctly",
@@ -1244,8 +1463,12 @@
       "description": "Implement quality gate that runs production build. Verify build succeeds, check bundle size, report warnings.",
       "phase": "phase-2",
       "priority": 50,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Build runs successfully",
         "Bundle size reported",
@@ -1266,8 +1489,15 @@
       "description": "Orchestrate quality gates in sequence: TypeScript, Lint, Test, Build. Stop on first failure, aggregate results.",
       "phase": "phase-2",
       "priority": 51,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F047", "F048", "F049", "F050"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F047",
+        "F048",
+        "F049",
+        "F050"
+      ],
       "acceptanceCriteria": [
         "Gates run in order",
         "Stops on failure",
@@ -1288,8 +1518,12 @@
       "description": "Create component showing quality gate results with pass/fail status, duration, error details for each gate.",
       "phase": "phase-2",
       "priority": 52,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F051"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F051"
+      ],
       "acceptanceCriteria": [
         "Each gate shown with status",
         "Duration displayed",
@@ -1310,8 +1544,12 @@
       "description": "Add auto-mode toggle to header. Show running/paused status, current feature, queue count indicator.",
       "phase": "phase-3",
       "priority": 53,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F024"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F024"
+      ],
       "acceptanceCriteria": [
         "Toggle enables/disables auto-mode",
         "Status clearly shown",
@@ -1332,8 +1570,13 @@
       "description": "Implement core auto-mode loop: pick next feature, execute agent, run pipeline, update status, repeat.",
       "phase": "phase-3",
       "priority": 54,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F033", "F051"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F033",
+        "F051"
+      ],
       "acceptanceCriteria": [
         "Loop picks next pending feature",
         "Executes agent session",
@@ -1354,8 +1597,12 @@
       "description": "Implement feature queue for auto-mode. Sort by priority, respect dependencies, allow manual reordering.",
       "phase": "phase-3",
       "priority": 55,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F013"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F013"
+      ],
       "acceptanceCriteria": [
         "Queue sorted by priority",
         "Dependencies respected",
@@ -1376,8 +1623,12 @@
       "description": "Track consecutive failures in auto-mode. Pause after 3 failures, emit alert, require manual intervention.",
       "phase": "phase-3",
       "priority": 56,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F054"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F054"
+      ],
       "acceptanceCriteria": [
         "Failures counted",
         "Pauses after 3 consecutive",
@@ -1398,8 +1649,12 @@
       "description": "Allow resuming auto-mode after pause. Show failure summary, allow skipping failed feature or retrying.",
       "phase": "phase-3",
       "priority": 57,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F056"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F056"
+      ],
       "acceptanceCriteria": [
         "Resume button shown when paused",
         "Failure summary displayed",
@@ -1420,8 +1675,12 @@
       "description": "Configure maximum concurrent feature executions. Default to 1, allow configuration up to 3 for parallel agents.",
       "phase": "phase-3",
       "priority": 58,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F054"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F054"
+      ],
       "acceptanceCriteria": [
         "Concurrency configurable",
         "Default is 1",
@@ -1442,8 +1701,12 @@
       "description": "Create queue panel showing upcoming features, current execution, completed in session. Allow drag reorder.",
       "phase": "phase-3",
       "priority": 59,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F055"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F055"
+      ],
       "acceptanceCriteria": [
         "Queue list displayed",
         "Current feature highlighted",
@@ -1464,8 +1727,12 @@
       "description": "Persist auto-mode state to database. Recover queue and progress after server restart or crash.",
       "phase": "phase-3",
       "priority": 60,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F054"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F054"
+      ],
       "acceptanceCriteria": [
         "State saved periodically",
         "Recovery on restart",
@@ -1486,8 +1753,13 @@
       "description": "Setup better-auth for session authentication. Configure providers, session storage, cookie settings.",
       "phase": "phase-1",
       "priority": 61,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015", "F006"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015",
+        "F006"
+      ],
       "acceptanceCriteria": [
         "better-auth configured",
         "Session storage in SQLite",
@@ -1508,8 +1780,13 @@
       "description": "Create login page with email/password form. Handle errors, loading state, redirect after success.",
       "phase": "phase-1",
       "priority": 62,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F061", "F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F061",
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Form validates input",
         "Error messages shown",
@@ -1530,8 +1807,13 @@
       "description": "Implement route protection in TanStack Router. Redirect unauthenticated users to login, preserve return URL.",
       "phase": "phase-1",
       "priority": 63,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F061", "F020"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F061",
+        "F020"
+      ],
       "acceptanceCriteria": [
         "Protected routes check auth",
         "Redirect to login if needed",
@@ -1552,8 +1834,13 @@
       "description": "Implement Hono middleware to validate session on API requests. Return 401 for unauthenticated requests.",
       "phase": "phase-1",
       "priority": 64,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F061", "F015"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F061",
+        "F015"
+      ],
       "acceptanceCriteria": [
         "Session validated on requests",
         "401 for invalid sessions",
@@ -1574,8 +1861,12 @@
       "description": "Validate all file operations stay within worktree boundaries. Block path traversal attempts, log violations.",
       "phase": "phase-2",
       "priority": 65,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Paths validated against worktree",
         "Traversal blocked",
@@ -1596,8 +1887,12 @@
       "description": "Store Anthropic API key securely. Use system keychain on desktop, encrypted storage on web.",
       "phase": "phase-2",
       "priority": 66,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031"
+      ],
       "acceptanceCriteria": [
         "Key not in plain text",
         "Keychain integration on desktop",
@@ -1618,8 +1913,13 @@
       "description": "Validate all API inputs with Zod schemas. Reject malformed requests, sanitize strings, limit sizes.",
       "phase": "phase-1",
       "priority": 67,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015", "F002"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015",
+        "F002"
+      ],
       "acceptanceCriteria": [
         "All inputs validated",
         "Zod errors formatted",
@@ -1640,8 +1940,12 @@
       "description": "Add security headers to all responses: CSP, X-Frame-Options, X-Content-Type-Options, etc.",
       "phase": "phase-1",
       "priority": 68,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "CSP configured",
         "Frame options set",
@@ -1662,8 +1966,12 @@
       "description": "Implement SettingsService for persisting user preferences. Store in database, provide defaults, validate values.",
       "phase": "phase-1",
       "priority": 69,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F006"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F006"
+      ],
       "acceptanceCriteria": [
         "Settings stored in DB",
         "Defaults provided",
@@ -1684,8 +1992,13 @@
       "description": "Create settings page with sections for general, AI, git, appearance preferences. Save on change.",
       "phase": "phase-1",
       "priority": 70,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F069", "F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F069",
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Settings grouped by section",
         "Forms save on change",
@@ -1706,8 +2019,13 @@
       "description": "Allow selecting default Claude model: opus, sonnet, haiku. Store preference, apply to new sessions.",
       "phase": "phase-2",
       "priority": 71,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F069", "F031"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F069",
+        "F031"
+      ],
       "acceptanceCriteria": [
         "Model dropdown in settings",
         "Default applied to sessions",
@@ -1728,8 +2046,13 @@
       "description": "Configure default thinking budget level: none, standard, extended, ultrathink. Show token estimates.",
       "phase": "phase-2",
       "priority": 72,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F069", "F031"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F069",
+        "F031"
+      ],
       "acceptanceCriteria": [
         "Thinking level dropdown",
         "Token estimates shown",
@@ -1750,8 +2073,12 @@
       "description": "Configure default planning mode: skip, lite, spec, full. Explain differences in UI.",
       "phase": "phase-2",
       "priority": 73,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F069"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Planning mode dropdown",
         "Mode descriptions shown",
@@ -1772,8 +2099,13 @@
       "description": "Configure auto-mode behavior: concurrency, failure threshold, pause conditions, queue behavior.",
       "phase": "phase-3",
       "priority": 74,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F069", "F054"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F069",
+        "F054"
+      ],
       "acceptanceCriteria": [
         "Concurrency configurable",
         "Failure threshold adjustable",
@@ -1794,8 +2126,12 @@
       "description": "Implement toast notifications for user feedback. Support info, success, warning, error types with auto-dismiss.",
       "phase": "phase-1",
       "priority": 75,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Toast component created",
         "Types styled differently",
@@ -1816,8 +2152,13 @@
       "description": "Show toast when feature status changes. Include feature ID, title, new status, link to detail.",
       "phase": "phase-2",
       "priority": 76,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F075", "F035"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F075",
+        "F035"
+      ],
       "acceptanceCriteria": [
         "Toast on status change",
         "Feature info displayed",
@@ -1838,8 +2179,13 @@
       "description": "Show notifications for auto-mode events: started, paused, feature completed, failure detected.",
       "phase": "phase-3",
       "priority": 77,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F075", "F054"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F075",
+        "F054"
+      ],
       "acceptanceCriteria": [
         "Start/pause notifications",
         "Completion notifications",
@@ -1860,8 +2206,12 @@
       "description": "Store and display event history. Show recent events in sidebar, allow filtering by type.",
       "phase": "phase-2",
       "priority": 78,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F034"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F034"
+      ],
       "acceptanceCriteria": [
         "Events stored in memory",
         "History panel available",
@@ -1882,8 +2232,13 @@
       "description": "Implement service to extract patterns from completed features. Analyze success/failure, identify reusable patterns.",
       "phase": "phase-3",
       "priority": 79,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F010", "F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F010",
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Patterns extracted from sessions",
         "Success patterns identified",
@@ -1904,8 +2259,13 @@
       "description": "Inject relevant learnings into agent prompts. Match patterns by category, feature type, similar context.",
       "phase": "phase-3",
       "priority": 80,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F079", "F032"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F079",
+        "F032"
+      ],
       "acceptanceCriteria": [
         "Learnings matched to feature",
         "Injected in system prompt",
@@ -1926,8 +2286,12 @@
       "description": "Load project CLAUDE.md and inject into agent context. Parse sections, respect hierarchy, merge with global.",
       "phase": "phase-2",
       "priority": 81,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F032"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F032"
+      ],
       "acceptanceCriteria": [
         "CLAUDE.md loaded from project",
         "Sections parsed correctly",
@@ -1948,8 +2312,12 @@
       "description": "Create UI to browse and manage extracted learnings. Filter by category, search, edit, delete.",
       "phase": "phase-3",
       "priority": 82,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F079"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F079"
+      ],
       "acceptanceCriteria": [
         "Learnings listed",
         "Filter by category",
@@ -1970,8 +2338,13 @@
       "description": "Visualize feature dependencies as directed graph. Show blocking/blocked relationships, highlight cycles.",
       "phase": "phase-1",
       "priority": 83,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F021", "F013"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F021",
+        "F013"
+      ],
       "acceptanceCriteria": [
         "Graph renders dependencies",
         "Nodes clickable",
@@ -1992,8 +2365,12 @@
       "description": "Ensure features with unverified dependencies don't start. Check recursively, report blockers.",
       "phase": "phase-3",
       "priority": 84,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F055"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F055"
+      ],
       "acceptanceCriteria": [
         "Dependencies checked before start",
         "Blocked features skipped",
@@ -2014,8 +2391,12 @@
       "description": "Detect and prevent circular dependencies when editing features. Show error with cycle path.",
       "phase": "phase-1",
       "priority": 85,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F013"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F013"
+      ],
       "acceptanceCriteria": [
         "Cycles detected on save",
         "Error shows cycle path",
@@ -2036,8 +2417,12 @@
       "description": "Initialize Tauri app wrapping web frontend. Configure window, icons, build settings for macOS/Linux.",
       "phase": "phase-4",
       "priority": 86,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F020"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F020"
+      ],
       "acceptanceCriteria": [
         "Tauri project initialized",
         "Window configured",
@@ -2058,8 +2443,13 @@
       "description": "Spawn backend server as sidecar process from Tauri. Handle startup, shutdown, health checks.",
       "phase": "phase-4",
       "priority": 87,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F086", "F016"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F086",
+        "F016"
+      ],
       "acceptanceCriteria": [
         "Server spawned on app start",
         "Health check before UI",
@@ -2080,8 +2470,12 @@
       "description": "Add system tray icon with context menu. Show auto-mode status, quick actions, quit option.",
       "phase": "phase-4",
       "priority": 88,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F086"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F086"
+      ],
       "acceptanceCriteria": [
         "Tray icon visible",
         "Context menu works",
@@ -2102,8 +2496,13 @@
       "description": "Send native OS notifications for important events. Feature completed, auto-mode paused, errors.",
       "phase": "phase-4",
       "priority": 89,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F086", "F077"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F086",
+        "F077"
+      ],
       "acceptanceCriteria": [
         "Native notifications sent",
         "Click opens app",
@@ -2124,8 +2523,12 @@
       "description": "Configure Tauri file system permissions. Allow access to project directories, restrict system files.",
       "phase": "phase-4",
       "priority": 90,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F086"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F086"
+      ],
       "acceptanceCriteria": [
         "Permissions configured",
         "Project dirs accessible",
@@ -2146,8 +2549,12 @@
       "description": "Implement PTY management service using node-pty. Create sessions, handle input/output, manage lifecycle.",
       "phase": "phase-4",
       "priority": 91,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "PTY sessions created",
         "Input forwarded",
@@ -2168,8 +2575,13 @@
       "description": "Create WebSocket endpoint for terminal I/O. Handle connections, message routing, session binding.",
       "phase": "phase-4",
       "priority": 92,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F091", "F034"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F091",
+        "F034"
+      ],
       "acceptanceCriteria": [
         "WebSocket endpoint works",
         "Sessions bound to connections",
@@ -2190,8 +2602,13 @@
       "description": "Create terminal component using xterm.js. Connect to WebSocket, handle input, render output.",
       "phase": "phase-4",
       "priority": 93,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F092", "F021"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F092",
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Terminal renders output",
         "Input sent to server",
@@ -2212,8 +2629,12 @@
       "description": "Allow splitting terminal into multiple panes. Horizontal and vertical splits, drag resize.",
       "phase": "phase-4",
       "priority": 94,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F093"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F093"
+      ],
       "acceptanceCriteria": [
         "Split horizontal works",
         "Split vertical works",
@@ -2234,8 +2655,14 @@
       "description": "Open terminal sessions in feature worktree directory. Auto-cd on session start.",
       "phase": "phase-4",
       "priority": 95,
-      "requirements": ["REQ-AG-001", "REQ-GT-001"],
-      "dependencies": ["F091", "F041"],
+      "requirements": [
+        "REQ-AG-001",
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F091",
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Session starts in worktree",
         "Directory verified",
@@ -2256,8 +2683,13 @@
       "description": "Implement theme toggle between dark and light modes. Persist preference, respect system setting.",
       "phase": "phase-4",
       "priority": 96,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F021", "F069"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F021",
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Toggle in header",
         "Theme persists",
@@ -2278,8 +2710,12 @@
       "description": "Allow customizing accent colors. Provide presets, allow custom hex input, preview changes.",
       "phase": "phase-4",
       "priority": 97,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F096"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F096"
+      ],
       "acceptanceCriteria": [
         "Color presets available",
         "Custom hex input",
@@ -2300,8 +2736,12 @@
       "description": "Allow selecting UI font family. Provide system fonts, popular coding fonts, custom input.",
       "phase": "phase-4",
       "priority": 98,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F069"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Font dropdown works",
         "Preview shown",
@@ -2322,8 +2762,12 @@
       "description": "Allow adjusting base font size. Slider or input, live preview, persist setting.",
       "phase": "phase-4",
       "priority": 99,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F069"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Size slider works",
         "Live preview",
@@ -2344,8 +2788,13 @@
       "description": "Persist UI layout state: sidebar width, panel positions, collapsed sections. Restore on load.",
       "phase": "phase-4",
       "priority": 100,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F024", "F069"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F024",
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Layout saved on change",
         "Restored on load",
@@ -2366,8 +2815,12 @@
       "description": "Implement global keyboard shortcuts for common actions. Use hotkeys library, allow customization.",
       "phase": "phase-4",
       "priority": 101,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Shortcuts work globally",
         "Customizable in settings",
@@ -2388,8 +2841,12 @@
       "description": "Implement command palette (Cmd+K) for quick actions. Search commands, recent actions, navigate.",
       "phase": "phase-4",
       "priority": 102,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F101"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F101"
+      ],
       "acceptanceCriteria": [
         "Cmd+K opens palette",
         "Fuzzy search works",
@@ -2410,8 +2867,12 @@
       "description": "Add global feature search with Cmd+P. Search by ID, title, category. Navigate to result.",
       "phase": "phase-4",
       "priority": 103,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F102"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F102"
+      ],
       "acceptanceCriteria": [
         "Cmd+P opens search",
         "Search by multiple fields",
@@ -2432,8 +2893,12 @@
       "description": "Add breadcrumbs showing current location. Project > Phase > Feature with clickable links.",
       "phase": "phase-4",
       "priority": 104,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F024"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F024"
+      ],
       "acceptanceCriteria": [
         "Breadcrumbs show path",
         "Links navigate correctly",
@@ -2454,8 +2919,13 @@
       "description": "Track recently viewed features. Show in sidebar, persist across sessions, limit to 10.",
       "phase": "phase-4",
       "priority": 105,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F024", "F069"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F024",
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Recents tracked",
         "Shown in sidebar",
@@ -2476,8 +2946,12 @@
       "description": "Configure Pino logger for backend. Structured JSON logs, log levels, request logging middleware.",
       "phase": "phase-1",
       "priority": 106,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "Pino configured",
         "Log levels work",
@@ -2498,8 +2972,13 @@
       "description": "Log agent sessions with structured data. Include tokens used, duration, tool calls, outcome.",
       "phase": "phase-2",
       "priority": 107,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F106", "F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F106",
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Sessions logged",
         "Token usage tracked",
@@ -2520,8 +2999,13 @@
       "description": "Add debug mode toggle showing verbose information. Extra logging, raw API responses, timing.",
       "phase": "phase-2",
       "priority": 108,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F106", "F069"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F106",
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Debug toggle in settings",
         "Extra logging enabled",
@@ -2542,8 +3026,12 @@
       "description": "Create dashboard showing agent session metrics. Total runs, success rate, average duration, tokens.",
       "phase": "phase-3",
       "priority": 109,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F107"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F107"
+      ],
       "acceptanceCriteria": [
         "Metrics displayed",
         "Time range filter",
@@ -2564,8 +3052,12 @@
       "description": "Track and display token usage per session, feature, project. Show costs if API pricing known.",
       "phase": "phase-2",
       "priority": 110,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Tokens tracked per session",
         "Aggregated by feature",
@@ -2586,8 +3078,12 @@
       "description": "Create GitHub PR from merged feature. Include feature title, description, acceptance criteria.",
       "phase": "phase-3",
       "priority": 111,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F044"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F044"
+      ],
       "acceptanceCriteria": [
         "PR created via API",
         "Title from feature",
@@ -2608,8 +3104,12 @@
       "description": "Generate PR description from template. Include summary, test plan, acceptance checklist.",
       "phase": "phase-3",
       "priority": 112,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F111"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F111"
+      ],
       "acceptanceCriteria": [
         "Template used for PR",
         "Summary section",
@@ -2630,8 +3130,12 @@
       "description": "Link features to GitHub issues. Auto-close issue on merge, sync status bidirectionally.",
       "phase": "phase-3",
       "priority": 113,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F111"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F111"
+      ],
       "acceptanceCriteria": [
         "Issue linked to feature",
         "Auto-close on merge",
@@ -2652,8 +3156,12 @@
       "description": "Display GitHub Actions workflow status for feature branches. Show pending, success, failure.",
       "phase": "phase-3",
       "priority": 114,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Workflow status fetched",
         "Displayed on feature",
@@ -2674,8 +3182,12 @@
       "description": "Create rich editor for feature specifications. Markdown support, template insertion, preview.",
       "phase": "phase-2",
       "priority": 115,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F027"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F027"
+      ],
       "acceptanceCriteria": [
         "Markdown editor works",
         "Templates available",
@@ -2696,8 +3208,12 @@
       "description": "Provide templates for acceptance criteria. GIVEN-WHEN-THEN format, common patterns.",
       "phase": "phase-2",
       "priority": 116,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F028"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F028"
+      ],
       "acceptanceCriteria": [
         "Templates available",
         "Insert with click",
@@ -2718,8 +3234,13 @@
       "description": "Use AI to enhance feature descriptions. Suggest improvements, add technical details, expand scope.",
       "phase": "phase-3",
       "priority": 117,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031", "F115"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031",
+        "F115"
+      ],
       "acceptanceCriteria": [
         "Enhance button works",
         "Suggestions shown",
@@ -2740,8 +3261,12 @@
       "description": "Generate implementation plan document from feature spec. Include tasks, file changes, testing.",
       "phase": "phase-2",
       "priority": 118,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031"
+      ],
       "acceptanceCriteria": [
         "Plan generated from spec",
         "Tasks identified",
@@ -2762,8 +3287,12 @@
       "description": "Require human approval for generated plans. Show diff from previous, approve/reject buttons.",
       "phase": "phase-2",
       "priority": 119,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F118"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F118"
+      ],
       "acceptanceCriteria": [
         "Approval required setting",
         "Plan diff shown",
@@ -2784,8 +3313,12 @@
       "description": "Generate unit test file templates from feature spec. Include test cases from acceptance criteria.",
       "phase": "phase-2",
       "priority": 120,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F049"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F049"
+      ],
       "acceptanceCriteria": [
         "Test files generated",
         "Cases from AC",
@@ -2806,8 +3339,12 @@
       "description": "Display test coverage reports in UI. Show percentages, highlight uncovered lines, trend over time.",
       "phase": "phase-2",
       "priority": 121,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F049"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F049"
+      ],
       "acceptanceCriteria": [
         "Coverage displayed",
         "Uncovered highlighted",
@@ -2828,8 +3365,12 @@
       "description": "Configure Vitest for monorepo. Setup workspaces, coverage, reporters, watch mode.",
       "phase": "phase-1",
       "priority": 122,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F001"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F001"
+      ],
       "acceptanceCriteria": [
         "Vitest configured",
         "Workspaces work",
@@ -2850,8 +3391,12 @@
       "description": "Configure Playwright for E2E testing. Setup config, example test, CI integration.",
       "phase": "phase-2",
       "priority": 123,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F020"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F020"
+      ],
       "acceptanceCriteria": [
         "Playwright configured",
         "Example test runs",
@@ -2872,8 +3417,12 @@
       "description": "Configure Biome for linting and formatting. Setup rules, ignore patterns, editor integration.",
       "phase": "phase-1",
       "priority": 124,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F001"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F001"
+      ],
       "acceptanceCriteria": [
         "Biome configured",
         "Rules customized",
@@ -2894,8 +3443,12 @@
       "description": "Setup Husky for git hooks. Pre-commit runs lint-staged, commit-msg validates format.",
       "phase": "phase-1",
       "priority": 125,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F124"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F124"
+      ],
       "acceptanceCriteria": [
         "Husky installed",
         "Pre-commit runs lint",
@@ -2916,8 +3469,13 @@
       "description": "Import features from JSON or CSV file. Validate against schema, merge or replace options.",
       "phase": "phase-1",
       "priority": 126,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F013", "F003"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F013",
+        "F003"
+      ],
       "acceptanceCriteria": [
         "JSON import works",
         "CSV import works",
@@ -2938,8 +3496,12 @@
       "description": "Export features to JSON or CSV. Filter by status, phase, category before export.",
       "phase": "phase-1",
       "priority": 127,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F013"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F013"
+      ],
       "acceptanceCriteria": [
         "JSON export works",
         "CSV export works",
@@ -2960,8 +3522,12 @@
       "description": "Duplicate existing feature with new ID. Copy all fields, reset status to backlog.",
       "phase": "phase-1",
       "priority": 128,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F028"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F028"
+      ],
       "acceptanceCriteria": [
         "Duplicate action works",
         "New ID assigned",
@@ -2982,8 +3548,12 @@
       "description": "Select multiple features and update status. Show confirmation with count, validate transitions.",
       "phase": "phase-1",
       "priority": 129,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F025"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F025"
+      ],
       "acceptanceCriteria": [
         "Multi-select works",
         "Bulk action available",
@@ -3004,8 +3574,12 @@
       "description": "Archive completed or cancelled features. Hide from main view, accessible in archive section.",
       "phase": "phase-1",
       "priority": 130,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F013"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F013"
+      ],
       "acceptanceCriteria": [
         "Archive action works",
         "Hidden from Kanban",
@@ -3026,8 +3600,13 @@
       "description": "Implement Read tool for agent to read files in worktree. Validate path, return content.",
       "phase": "phase-2",
       "priority": 131,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031", "F065"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031",
+        "F065"
+      ],
       "acceptanceCriteria": [
         "Read tool available",
         "Path validated",
@@ -3048,8 +3627,12 @@
       "description": "Implement Write tool for agent to create/overwrite files. Validate path, create directories.",
       "phase": "phase-2",
       "priority": 132,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F131"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F131"
+      ],
       "acceptanceCriteria": [
         "Write tool available",
         "Creates directories",
@@ -3070,8 +3653,12 @@
       "description": "Implement Edit tool for precise string replacements. Match exact strings, report if not found.",
       "phase": "phase-2",
       "priority": 133,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F131"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F131"
+      ],
       "acceptanceCriteria": [
         "Edit tool available",
         "Exact match required",
@@ -3092,8 +3679,13 @@
       "description": "Implement Bash tool for running commands. Sandbox to worktree, timeout, capture output.",
       "phase": "phase-2",
       "priority": 134,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031", "F065"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031",
+        "F065"
+      ],
       "acceptanceCriteria": [
         "Bash tool available",
         "Runs in worktree",
@@ -3114,8 +3706,12 @@
       "description": "Implement Glob tool for file pattern matching. Search in worktree, return matching paths.",
       "phase": "phase-2",
       "priority": 135,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F131"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F131"
+      ],
       "acceptanceCriteria": [
         "Glob patterns work",
         "Returns file paths",
@@ -3136,8 +3732,12 @@
       "description": "Implement Grep tool for content search. Regex support, context lines, file filtering.",
       "phase": "phase-2",
       "priority": 136,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F131"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F131"
+      ],
       "acceptanceCriteria": [
         "Grep patterns work",
         "Context lines included",
@@ -3158,8 +3758,13 @@
       "description": "Build system prompt from feature spec, project context, learnings. Assemble sections in order.",
       "phase": "phase-2",
       "priority": 137,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F032", "F081"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F032",
+        "F081"
+      ],
       "acceptanceCriteria": [
         "Prompt assembled correctly",
         "Feature spec included",
@@ -3180,8 +3785,12 @@
       "description": "Implement retry logic for agent failures. Exponential backoff, max retries, error classification.",
       "phase": "phase-2",
       "priority": 138,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Retries on transient errors",
         "Backoff increases",
@@ -3202,8 +3811,12 @@
       "description": "Save checkpoints during agent execution. Allow resume from checkpoint after failure.",
       "phase": "phase-3",
       "priority": 139,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Checkpoints saved periodically",
         "Resume from checkpoint works",
@@ -3224,8 +3837,12 @@
       "description": "Support MCP servers for external tools. Load from config, expose to agent, handle responses.",
       "phase": "phase-3",
       "priority": 140,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031"
+      ],
       "acceptanceCriteria": [
         "MCP servers loaded",
         "Tools available to agent",
@@ -3246,8 +3863,13 @@
       "description": "Create guided wizard for new projects. Select directory, configure settings, import features.",
       "phase": "phase-1",
       "priority": 141,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F012", "F070"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F012",
+        "F070"
+      ],
       "acceptanceCriteria": [
         "Wizard flow works",
         "Directory picker",
@@ -3268,8 +3890,13 @@
       "description": "Allow switching between projects. Update context, refresh features, maintain state.",
       "phase": "phase-1",
       "priority": 142,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F024", "F012"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F024",
+        "F012"
+      ],
       "acceptanceCriteria": [
         "Project selector works",
         "Context updates",
@@ -3290,8 +3917,13 @@
       "description": "Create project-specific settings page. Override global defaults, configure paths.",
       "phase": "phase-1",
       "priority": 143,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F070", "F012"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F070",
+        "F012"
+      ],
       "acceptanceCriteria": [
         "Project settings page",
         "Override globals",
@@ -3312,8 +3944,12 @@
       "description": "Show project statistics: feature count by status, completion rate, recent activity.",
       "phase": "phase-1",
       "priority": 144,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F013"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F013"
+      ],
       "acceptanceCriteria": [
         "Stats displayed",
         "Counts by status",
@@ -3334,8 +3970,12 @@
       "description": "Display and manage git branches for project. Show feature branches, allow delete, switch.",
       "phase": "phase-2",
       "priority": 145,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Branches listed",
         "Feature branches identified",
@@ -3356,8 +3996,12 @@
       "description": "Display commit history for feature branch. Show messages, authors, dates, diffs.",
       "phase": "phase-2",
       "priority": 146,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F045"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F045"
+      ],
       "acceptanceCriteria": [
         "Commits listed",
         "Click shows diff",
@@ -3378,8 +4022,13 @@
       "description": "Display merge conflicts with side-by-side view. Allow manual resolution, accept ours/theirs.",
       "phase": "phase-2",
       "priority": 147,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F044", "F045"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F044",
+        "F045"
+      ],
       "acceptanceCriteria": [
         "Conflicts displayed",
         "Side-by-side view",
@@ -3400,8 +4049,12 @@
       "description": "Manage git stashes from UI. Create, apply, drop stashes for worktrees.",
       "phase": "phase-2",
       "priority": 148,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Stashes listed",
         "Create stash works",
@@ -3422,8 +4075,13 @@
       "description": "Show worktree status in feature card. Indicate active, stale, or missing worktree.",
       "phase": "phase-2",
       "priority": 149,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041", "F026"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041",
+        "F026"
+      ],
       "acceptanceCriteria": [
         "Status shown on card",
         "Active indicated",
@@ -3444,8 +4102,13 @@
       "description": "Automatically cleanup worktrees for verified features after configurable period.",
       "phase": "phase-3",
       "priority": 150,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F042", "F069"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F042",
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Cleanup runs periodically",
         "Period configurable",
@@ -3466,8 +4129,12 @@
       "description": "Configure terminal scrollback buffer size. Limit memory usage, allow search in history.",
       "phase": "phase-4",
       "priority": 151,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F093"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F093"
+      ],
       "acceptanceCriteria": [
         "Buffer size configurable",
         "Memory limited",
@@ -3488,8 +4155,12 @@
       "description": "Support multiple terminal tabs. Add, close, rename tabs, persist across sessions.",
       "phase": "phase-4",
       "priority": 152,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F093"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F093"
+      ],
       "acceptanceCriteria": [
         "Tabs can be added",
         "Tabs closable",
@@ -3510,8 +4181,13 @@
       "description": "Configure terminal font family and size separately from UI. Monospace fonts only.",
       "phase": "phase-4",
       "priority": 153,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F093", "F069"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F093",
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Font family selector",
         "Size adjustable",
@@ -3532,8 +4208,13 @@
       "description": "Support multiple terminal color schemes. Provide presets, allow custom colors.",
       "phase": "phase-4",
       "priority": 154,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F093", "F096"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F093",
+        "F096"
+      ],
       "acceptanceCriteria": [
         "Scheme presets available",
         "Custom colors work",
@@ -3554,8 +4235,12 @@
       "description": "Enable copy/paste in terminal. Selection highlighting, right-click menu, keyboard shortcuts.",
       "phase": "phase-4",
       "priority": 155,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F093"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F093"
+      ],
       "acceptanceCriteria": [
         "Selection works",
         "Copy with Cmd+C",
@@ -3576,8 +4261,12 @@
       "description": "Show phase completion progress. Progress bar, feature counts, phase timeline.",
       "phase": "phase-1",
       "priority": 156,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F025"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F025"
+      ],
       "acceptanceCriteria": [
         "Progress bar per phase",
         "Counts displayed",
@@ -3598,8 +4287,12 @@
       "description": "Alternative view grouping features by category instead of status. Collapsible sections.",
       "phase": "phase-1",
       "priority": 157,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F025"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F025"
+      ],
       "acceptanceCriteria": [
         "Category view available",
         "Sections collapsible",
@@ -3620,8 +4313,12 @@
       "description": "Create table view as alternative to Kanban. Sortable columns, inline editing, bulk select.",
       "phase": "phase-1",
       "priority": 158,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F023"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F023"
+      ],
       "acceptanceCriteria": [
         "Table renders features",
         "Columns sortable",
@@ -3642,8 +4339,12 @@
       "description": "Display priority with colored badges. Critical=red, high=orange, medium=yellow, low=gray.",
       "phase": "phase-1",
       "priority": 159,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F026"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F026"
+      ],
       "acceptanceCriteria": [
         "Badges color-coded",
         "Visible on cards",
@@ -3664,8 +4365,12 @@
       "description": "Show estimated size on cards. XS/S/M/L/XL with visual indicator, filter by size.",
       "phase": "phase-1",
       "priority": 160,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F026"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F026"
+      ],
       "acceptanceCriteria": [
         "Size shown on cards",
         "Visual indicator",
@@ -3686,8 +4391,12 @@
       "description": "Support custom tags on features. Create, assign, filter by tags, color coding.",
       "phase": "phase-1",
       "priority": 161,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F028"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F028"
+      ],
       "acceptanceCriteria": [
         "Tags can be created",
         "Assigned to features",
@@ -3708,8 +4417,12 @@
       "description": "Display AC as interactive checklist. Check off items, show progress, persist state.",
       "phase": "phase-1",
       "priority": 162,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F027"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F027"
+      ],
       "acceptanceCriteria": [
         "Checklist rendered",
         "Items checkable",
@@ -3730,8 +4443,12 @@
       "description": "Show timeline of feature activity. Status changes, sessions, comments with timestamps.",
       "phase": "phase-2",
       "priority": 163,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F027"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F027"
+      ],
       "acceptanceCriteria": [
         "Timeline displayed",
         "Events listed",
@@ -3752,8 +4469,12 @@
       "description": "Add comments to features. Markdown support, timestamps, edit/delete own comments.",
       "phase": "phase-2",
       "priority": 164,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F027"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F027"
+      ],
       "acceptanceCriteria": [
         "Comments can be added",
         "Markdown rendered",
@@ -3774,8 +4495,13 @@
       "description": "Update Kanban board in real-time via WebSocket. Reflect status changes, new features.",
       "phase": "phase-2",
       "priority": 165,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F025", "F034"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F025",
+        "F034"
+      ],
       "acceptanceCriteria": [
         "Updates appear instantly",
         "No refresh needed",
@@ -3796,8 +4522,13 @@
       "description": "Persist agent session output to database. Allow viewing historical sessions.",
       "phase": "phase-2",
       "priority": 166,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F009", "F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F009",
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Output stored in DB",
         "Historical sessions viewable",
@@ -3818,8 +4549,12 @@
       "description": "Replay historical sessions with timeline. Step through tool calls, see output progression.",
       "phase": "phase-3",
       "priority": 167,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F166"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F166"
+      ],
       "acceptanceCriteria": [
         "Replay controls work",
         "Timeline navigation",
@@ -3840,8 +4575,12 @@
       "description": "Allow adding follow-up instructions after agent pauses. Continue session with new context.",
       "phase": "phase-2",
       "priority": 168,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F033"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F033"
+      ],
       "acceptanceCriteria": [
         "Input field shown when paused",
         "Instructions sent to agent",
@@ -3862,8 +4601,13 @@
       "description": "Override default model for specific features. Show recommendation based on complexity.",
       "phase": "phase-2",
       "priority": 169,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F027", "F071"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F027",
+        "F071"
+      ],
       "acceptanceCriteria": [
         "Model selector on feature",
         "Overrides default",
@@ -3884,8 +4628,13 @@
       "description": "Override thinking level for specific features. Show recommendation based on complexity.",
       "phase": "phase-2",
       "priority": 170,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F027", "F072"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F027",
+        "F072"
+      ],
       "acceptanceCriteria": [
         "Thinking selector on feature",
         "Overrides default",
@@ -3906,8 +4655,12 @@
       "description": "Show statistics for completed sessions. Duration, tokens, tool calls, success rate.",
       "phase": "phase-2",
       "priority": 171,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F166"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F166"
+      ],
       "acceptanceCriteria": [
         "Stats per session",
         "Aggregate stats",
@@ -3928,8 +4681,12 @@
       "description": "Track API costs based on token usage. Set budget alerts, show spending over time.",
       "phase": "phase-3",
       "priority": 172,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F110"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F110"
+      ],
       "acceptanceCriteria": [
         "Costs calculated",
         "Budget configurable",
@@ -3950,8 +4707,12 @@
       "description": "Implement automatic database backups. Schedule, retention policy, restore capability.",
       "phase": "phase-3",
       "priority": 173,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F006"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F006"
+      ],
       "acceptanceCriteria": [
         "Backups created automatically",
         "Schedule configurable",
@@ -3972,8 +4733,12 @@
       "description": "Export all project data to portable format. Import into new instance, handle conflicts.",
       "phase": "phase-3",
       "priority": 174,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F006"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F006"
+      ],
       "acceptanceCriteria": [
         "Full export works",
         "Format documented",
@@ -3994,8 +4759,12 @@
       "description": "Create audit log table tracking all state changes. Who, what, when, before/after values.",
       "phase": "phase-1",
       "priority": 175,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F006"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F006"
+      ],
       "acceptanceCriteria": [
         "Changes logged",
         "User tracked",
@@ -4016,8 +4785,12 @@
       "description": "Create UI to view audit logs. Filter by entity, action, date range, user.",
       "phase": "phase-2",
       "priority": 176,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F175"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F175"
+      ],
       "acceptanceCriteria": [
         "Logs displayed",
         "Filters work",
@@ -4038,8 +4811,12 @@
       "description": "Implement error boundaries around major UI sections. Show friendly errors, allow retry.",
       "phase": "phase-1",
       "priority": 177,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F020"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F020"
+      ],
       "acceptanceCriteria": [
         "Boundaries catch errors",
         "Friendly message shown",
@@ -4060,8 +4837,12 @@
       "description": "Create skeleton loaders for all major components. Smooth content appearance.",
       "phase": "phase-1",
       "priority": 178,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Skeletons for cards",
         "Skeletons for panels",
@@ -4082,8 +4863,12 @@
       "description": "Add helpful empty states with illustrations. Guide users to create first item.",
       "phase": "phase-1",
       "priority": 179,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Empty states for lists",
         "Illustrations added",
@@ -4104,8 +4889,12 @@
       "description": "Standardize confirmation dialogs for destructive actions. Consistent styling, clear actions.",
       "phase": "phase-1",
       "priority": 180,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Dialog component created",
         "Destructive styled red",
@@ -4126,8 +4915,12 @@
       "description": "Implement consistent tooltips. Delay on hover, keyboard accessible, positioning.",
       "phase": "phase-1",
       "priority": 181,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Tooltips work",
         "Delay configurable",
@@ -4148,8 +4941,12 @@
       "description": "Ensure visible focus indicators on all interactive elements. WCAG compliant styling.",
       "phase": "phase-1",
       "priority": 182,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F021"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F021"
+      ],
       "acceptanceCriteria": [
         "Focus visible on all elements",
         "High contrast",
@@ -4170,8 +4967,12 @@
       "description": "Add ARIA live regions for important updates. Announce status changes, errors, completions.",
       "phase": "phase-2",
       "priority": 183,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F075"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F075"
+      ],
       "acceptanceCriteria": [
         "Live regions implemented",
         "Status changes announced",
@@ -4192,8 +4993,12 @@
       "description": "Auto-collapse sidebar on smaller screens. Overlay mode on mobile, persist preference.",
       "phase": "phase-4",
       "priority": 184,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F024"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F024"
+      ],
       "acceptanceCriteria": [
         "Auto-collapse on resize",
         "Overlay on mobile",
@@ -4214,8 +5019,12 @@
       "description": "Add resize handles to resizable panels. Drag to resize, double-click to reset.",
       "phase": "phase-4",
       "priority": 185,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F024"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F024"
+      ],
       "acceptanceCriteria": [
         "Handles visible on hover",
         "Drag resizes panel",
@@ -4236,8 +5045,12 @@
       "description": "Allow editing extracted learning patterns. Correct mistakes, add context, delete irrelevant.",
       "phase": "phase-3",
       "priority": 186,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F082"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F082"
+      ],
       "acceptanceCriteria": [
         "Patterns editable",
         "Context addable",
@@ -4258,8 +5071,12 @@
       "description": "Score learning relevance for features. Use category, tags, description similarity.",
       "phase": "phase-3",
       "priority": 187,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F080"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F080"
+      ],
       "acceptanceCriteria": [
         "Relevance computed",
         "Scoring explainable",
@@ -4280,8 +5097,12 @@
       "description": "Flag patterns that led to failures as anti-patterns. Warn when similar context detected.",
       "phase": "phase-3",
       "priority": 188,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F079"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F079"
+      ],
       "acceptanceCriteria": [
         "Anti-patterns flagged",
         "Warning in planning",
@@ -4302,8 +5123,12 @@
       "description": "Show which features implement which requirements. Matrix view, coverage indicators.",
       "phase": "phase-2",
       "priority": 189,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F013"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F013"
+      ],
       "acceptanceCriteria": [
         "Matrix displayed",
         "Linkage visible",
@@ -4324,8 +5149,13 @@
       "description": "Track files created/modified by feature. Show in detail panel, link to diff.",
       "phase": "phase-2",
       "priority": 190,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F027", "F043"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F027",
+        "F043"
+      ],
       "acceptanceCriteria": [
         "Files listed on feature",
         "Created/modified indicated",
@@ -4346,8 +5176,12 @@
       "description": "Handle WebSocket disconnections gracefully. Auto-reconnect, show status, queue messages.",
       "phase": "phase-2",
       "priority": 191,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F034"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F034"
+      ],
       "acceptanceCriteria": [
         "Auto-reconnect works",
         "Status indicator shown",
@@ -4368,8 +5202,12 @@
       "description": "Implement rate limiting on API endpoints. Configurable limits, return proper headers.",
       "phase": "phase-1",
       "priority": 192,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "Limits enforced",
         "429 returned on excess",
@@ -4390,8 +5228,12 @@
       "description": "Implement API versioning strategy. Version in URL, deprecation headers, docs.",
       "phase": "phase-1",
       "priority": 193,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "Version in URL path",
         "Deprecation warnings",
@@ -4412,8 +5254,12 @@
       "description": "Generate OpenAPI spec from oRPC routes. Serve Swagger UI, export spec file.",
       "phase": "phase-2",
       "priority": 194,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F015"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
       "acceptanceCriteria": [
         "OpenAPI spec generated",
         "Swagger UI served",
@@ -4434,8 +5280,12 @@
       "description": "Implement auto-update for desktop app. Check on startup, prompt user, apply update.",
       "phase": "phase-4",
       "priority": 195,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F086"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F086"
+      ],
       "acceptanceCriteria": [
         "Update check on start",
         "User prompted",
@@ -4456,8 +5306,12 @@
       "description": "Support deep links to open specific features. nomos://project/feature format.",
       "phase": "phase-4",
       "priority": 196,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F086"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F086"
+      ],
       "acceptanceCriteria": [
         "Protocol registered",
         "Links open app",
@@ -4478,8 +5332,12 @@
       "description": "Implement crash reporting for desktop app. Capture stack traces, send reports (opt-in).",
       "phase": "phase-4",
       "priority": 197,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F086"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F086"
+      ],
       "acceptanceCriteria": [
         "Crashes captured",
         "Stack traces included",
@@ -4500,8 +5358,12 @@
       "description": "Estimate feature complexity from description. Suggest size, model, thinking level.",
       "phase": "phase-3",
       "priority": 198,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F031"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031"
+      ],
       "acceptanceCriteria": [
         "Complexity estimated",
         "Size suggested",
@@ -4522,8 +5384,13 @@
       "description": "Execute multiple features in a single batch. Queue selected, run sequentially or parallel.",
       "phase": "phase-3",
       "priority": 199,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F054", "F129"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F054",
+        "F129"
+      ],
       "acceptanceCriteria": [
         "Batch selection works",
         "Queue created",
@@ -4544,8 +5411,12 @@
       "description": "Track feature completion velocity. Features per day/week, trend analysis, projections.",
       "phase": "phase-3",
       "priority": 200,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F109"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F109"
+      ],
       "acceptanceCriteria": [
         "Velocity calculated",
         "Trends visualized",
@@ -4566,8 +5437,12 @@
       "description": "Handle session timeouts gracefully. Warning before expiry, refresh option, auto-logout.",
       "phase": "phase-1",
       "priority": 201,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F061"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F061"
+      ],
       "acceptanceCriteria": [
         "Warning shown before expiry",
         "Refresh extends session",
@@ -4588,8 +5463,12 @@
       "description": "Implement logout with session cleanup. Clear local data, redirect to login.",
       "phase": "phase-1",
       "priority": 202,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F061"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F061"
+      ],
       "acceptanceCriteria": [
         "Logout button works",
         "Session cleared",
@@ -4610,8 +5489,12 @@
       "description": "Allow users to change password. Verify current, validate new, enforce requirements.",
       "phase": "phase-1",
       "priority": 203,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F061"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F061"
+      ],
       "acceptanceCriteria": [
         "Change form works",
         "Current password verified",
@@ -4632,8 +5515,12 @@
       "description": "Allow editing user profile. Display name, preferences, avatar upload.",
       "phase": "phase-1",
       "priority": 204,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F070"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F070"
+      ],
       "acceptanceCriteria": [
         "Profile editable",
         "Avatar upload works",
@@ -4654,8 +5541,12 @@
       "description": "Create guided tour for new users. Highlight key features, step-by-step walkthrough.",
       "phase": "phase-4",
       "priority": 205,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F024"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F024"
+      ],
       "acceptanceCriteria": [
         "Tour shows on first login",
         "Steps highlight UI",
@@ -4676,8 +5567,12 @@
       "description": "Integrate help documentation into app. Context-sensitive help, search, keyboard shortcut ref.",
       "phase": "phase-4",
       "priority": 206,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F102"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F102"
+      ],
       "acceptanceCriteria": [
         "Help accessible from UI",
         "Context-sensitive",
@@ -4698,8 +5593,12 @@
       "description": "Create feature templates for common patterns. Apply on creation, customize templates.",
       "phase": "phase-2",
       "priority": 207,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F028"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F028"
+      ],
       "acceptanceCriteria": [
         "Templates defined",
         "Apply on create",
@@ -4720,8 +5619,12 @@
       "description": "Add quick action buttons on feature cards. Start, approve, archive without opening detail.",
       "phase": "phase-1",
       "priority": 208,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F026"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F026"
+      ],
       "acceptanceCriteria": [
         "Actions on hover",
         "Confirmation where needed",
@@ -4742,8 +5645,12 @@
       "description": "Set work-in-progress limits per column. Visual warning when exceeded, configurable.",
       "phase": "phase-2",
       "priority": 209,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F025"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F025"
+      ],
       "acceptanceCriteria": [
         "WIP limits configurable",
         "Warning on exceed",
@@ -4764,8 +5671,12 @@
       "description": "Track time spent on features. Auto-track from sessions, manual entry, reports.",
       "phase": "phase-3",
       "priority": 210,
-      "requirements": ["REQ-KB-001"],
-      "dependencies": ["F166"],
+      "requirements": [
+        "REQ-KB-001"
+      ],
+      "dependencies": [
+        "F166"
+      ],
       "acceptanceCriteria": [
         "Time auto-tracked",
         "Manual entry allowed",
@@ -4786,8 +5697,12 @@
       "description": "Auto-stash uncommitted changes when switching features. Restore when returning.",
       "phase": "phase-2",
       "priority": 211,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F148"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F148"
+      ],
       "acceptanceCriteria": [
         "Auto-stash on switch",
         "Prompt user",
@@ -4808,8 +5723,12 @@
       "description": "Display disk usage for worktrees. Total and per-worktree, cleanup suggestions.",
       "phase": "phase-3",
       "priority": 212,
-      "requirements": ["REQ-GT-001"],
-      "dependencies": ["F041"],
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
       "acceptanceCriteria": [
         "Disk usage shown",
         "Per-worktree breakdown",
@@ -4830,8 +5749,13 @@
       "description": "Configure which notifications to receive. Per-type toggles, sound settings.",
       "phase": "phase-4",
       "priority": 213,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F075", "F069"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F075",
+        "F069"
+      ],
       "acceptanceCriteria": [
         "Per-type toggles",
         "Sound configurable",
@@ -4852,8 +5776,12 @@
       "description": "Clear all notifications at once. Mark all as read, clear history options.",
       "phase": "phase-4",
       "priority": 214,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F078"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F078"
+      ],
       "acceptanceCriteria": [
         "Clear all button",
         "Mark all read",
@@ -4874,8 +5802,12 @@
       "description": "Optimize slow database queries. Add indexes, query analysis, caching.",
       "phase": "phase-3",
       "priority": 215,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F011"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F011"
+      ],
       "acceptanceCriteria": [
         "Slow queries identified",
         "Indexes added",
@@ -4896,8 +5828,12 @@
       "description": "Display test results in UI. Pass/fail summary, failure details, re-run options.",
       "phase": "phase-2",
       "priority": 216,
-      "requirements": ["REQ-AG-001"],
-      "dependencies": ["F049"],
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F049"
+      ],
       "acceptanceCriteria": [
         "Summary displayed",
         "Details expandable",
@@ -4918,8 +5854,12 @@
       "description": "Record user actions as Playwright tests. Generate test code, edit recording.",
       "phase": "phase-4",
       "priority": 217,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F123"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F123"
+      ],
       "acceptanceCriteria": [
         "Recording starts/stops",
         "Actions captured",
@@ -4940,8 +5880,12 @@
       "description": "Monitor app performance metrics. API latency, render times, memory usage.",
       "phase": "phase-4",
       "priority": 218,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F106"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F106"
+      ],
       "acceptanceCriteria": [
         "Metrics collected",
         "Dashboard available",
@@ -4962,8 +5906,12 @@
       "description": "Display burndown chart for project/phase. Track progress against target, trend line.",
       "phase": "phase-3",
       "priority": 219,
-      "requirements": ["REQ-AM-001"],
-      "dependencies": ["F144"],
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F144"
+      ],
       "acceptanceCriteria": [
         "Chart renders",
         "Progress tracked",
@@ -4984,8 +5932,14 @@
       "description": "Aggregate project health indicators. Completion rate, velocity, quality gates, learning growth.",
       "phase": "phase-3",
       "priority": 220,
-      "requirements": ["REQ-PM-001"],
-      "dependencies": ["F144", "F109", "F200"],
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F144",
+        "F109",
+        "F200"
+      ],
       "acceptanceCriteria": [
         "Health score calculated",
         "Indicators displayed",
