@@ -134,11 +134,18 @@ Task: {task_description}
 
 **Available Agent Types:**
 
-| Agent | Use When |
-|-------|----------|
-| `explore-codebase` | Need to find existing patterns, related files, utilities |
-| `explore-docs` | Unfamiliar library API, need current syntax, complex feature |
-| `websearch` | Need common approaches, best practices, gotchas |
+| Agent | Use When | Tool |
+|-------|----------|------|
+| `explore-codebase` | Need to find existing patterns, related files, utilities | Grep, Glob, Read |
+| `explore-docs` | Unfamiliar library API, need current syntax, complex feature | **Context7 MCP (MANDATORY)** |
+| `websearch` | Need common approaches, best practices, gotchas | WebSearch |
+
+<critical>
+**Documentation Research Rule:**
+- **Library/Framework docs** → `explore-docs` with Context7 (NEVER web search)
+- **General approaches/patterns** → `websearch` is acceptable
+- **Specific API/syntax** → Context7 ONLY
+</critical>
 
 **Decision Matrix:**
 
@@ -172,6 +179,17 @@ DO NOT suggest implementations.
 ```
 
 **`explore-docs`** - Use ONLY when you need specific library knowledge:
+
+<critical>
+**MANDATORY: Context7 MCP for ALL Technical Documentation**
+
+NEVER use web search or WebFetch for library documentation.
+ALWAYS use Context7 MCP via the `explore-docs` agent.
+
+Context7 provides up-to-date, accurate documentation for frameworks and libraries.
+Web search returns outdated blog posts and hallucinated code.
+</critical>
+
 ```
 Research {library_name} documentation for: {specific_question}
 
@@ -179,6 +197,8 @@ Find:
 1. Current API for {specific_feature}
 2. Code examples
 3. Configuration needed
+
+MUST USE: Context7 MCP (mcp__context7__resolve-library-id → mcp__context7__query-docs)
 ```
 
 **`websearch`** - Use for approaches and gotchas:

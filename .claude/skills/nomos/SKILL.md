@@ -238,8 +238,15 @@ The analyze phase (step-02) uses **adaptive agent launching**:
 
 **Available agents:**
 - `explore-codebase` - Find existing patterns, files, utilities (step-02)
-- `explore-docs` - Research library docs via Context7 MCP (step-02)
-- `websearch` - Find approaches, best practices, gotchas (step-02)
+- `explore-docs` - Research library docs via **Context7 MCP** (step-02) ← **MANDATORY for all library docs**
+- `websearch` - Find approaches, best practices, gotchas (step-02) ← General patterns only, NOT library docs
+
+<critical>
+**DOCUMENTATION RESEARCH RULE:**
+- Library/framework documentation → **Context7 MCP ONLY** (via `explore-docs`)
+- General approaches, patterns → WebSearch is acceptable
+- NEVER use WebSearch for specific API syntax or library usage
+</critical>
 - `qa-smoke-tester` - Runtime smoke test, start app & verify (step-04a)
 - `qa-functional-tester` - Test acceptance criteria in running app (step-05a)
 - `security-reviewer` - OWASP security review (step-06)

@@ -81,6 +81,32 @@ Recommended approach for quality.
 
 ## Context7 MCP Integration
 
+<critical>
+### MANDATORY RULE: Context7 for ALL Technical Documentation
+
+**NEVER use web search for library/framework documentation.**
+**ALWAYS use Context7 MCP.**
+
+| Need | Tool | Reason |
+|------|------|--------|
+| Library API docs | Context7 | Accurate, up-to-date, structured |
+| Framework syntax | Context7 | Version-specific, verified |
+| Package usage | Context7 | Official examples |
+| General patterns | WebSearch | OK for approaches, not syntax |
+| Blog posts/tutorials | WebSearch | OK for ideas, verify with Context7 |
+
+Web search returns:
+- Outdated blog posts
+- Hallucinated code examples
+- Deprecated APIs
+- Version mismatches
+
+Context7 returns:
+- Current official documentation
+- Verified code examples
+- Version-aware information
+</critical>
+
 ### Purpose
 
 Use Context7 to verify patterns against latest documentation before applying. Libraries and APIs evolve - patterns can become outdated.
