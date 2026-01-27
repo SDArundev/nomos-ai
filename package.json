@@ -39,7 +39,8 @@
 	"dependencies": {
 		"dotenv": "catalog:",
 		"zod": "catalog:",
-		"@nomos-ai/env": "workspace:*"
+"@nomos-ai/env": "workspace:*",
+		"@nomos-ai/types": "workspace:*"
 	},
 	"devDependencies": {
 		"typescript": "catalog:",
