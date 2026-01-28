@@ -50,15 +50,32 @@
       "started_at": "2026-01-27T15:17:56Z",
       "verified_at": "2026-01-27T15:34:57Z",
       "notes": "FeatureSchema with enums, patterns, and comprehensive tests"
+    },
+    "F004": {
+      "id": "F004",
+      "title": "Project Zod schema with validation",
+      "category": "CAT-PRJ",
+      "phase": "phase-1",
+      "duration_minutes": 41,
+      "files_changed": 4,
+      "lines_added": 324,
+      "lines_removed": 1,
+      "commits": 1,
+      "retries": 0,
+      "risk_level": "LOW",
+      "outcome": "success",
+      "started_at": "2026-01-28T15:34:57Z",
+      "verified_at": "2026-01-28T16:16:02Z",
+      "notes": "ProjectSchema with settings transform pattern for nested defaults"
     }
   },
   "aggregates": {
-    "total_features": 3,
-    "avg_duration_minutes": 32,
-    "avg_files_changed": 40,
-    "avg_lines_added": 2995,
+    "total_features": 4,
+    "avg_duration_minutes": 35,
+    "avg_files_changed": 31,
+    "avg_lines_added": 2328,
     "success_rate": 1.0,
-    "total_commits": 6
+    "total_commits": 7
   },
   "thresholds": {
     "duration_warning": 60,

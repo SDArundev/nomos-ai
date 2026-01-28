@@ -98,6 +98,22 @@
       "severity": "MEDIUM",
       "tags": ["zod", "defaults", "optional", "anti-pattern"],
       "addedAt": "2026-01-27T15:35:00Z"
+    },
+    {
+      "id": "TS-008",
+      "title": "Nested schema defaults with transform",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Using .default({}) on nested schema doesn't propagate inner field defaults when parent is undefined",
+      "solution": "Use .optional().transform() to explicitly merge with defaults",
+      "codeBefore": "settings: SettingsSchema.default({}) // Returns {} not {theme:'system'}",
+      "codeAfter": "settings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en',\n  autoSaveInterval: s?.autoSaveInterval ?? 30\n}))",
+      "learnedFrom": "F004",
+      "severity": "HIGH",
+      "tags": ["zod", "defaults", "nested-objects", "transform"],
+      "addedAt": "2026-01-28T16:20:00Z",
+      "context7LibraryId": "/websites/zod_dev",
+      "context7Query": "default transform nested object"
     }
   ],
   "pitfalls": [
@@ -131,5 +147,5 @@
       "addedAt": "2026-01-27T19:30:00Z"
     }
   ],
-  "lastUpdated": "2026-01-27T15:35:00Z"
+  "lastUpdated": "2026-01-28T16:20:00Z"
 }

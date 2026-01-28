@@ -50,8 +50,8 @@
       "name": "ZOD_BRANDED_TYPES",
       "description": "Use Zod's .brand<>() for compile-time type safety on primitive IDs",
       "category": "typescript",
-      "evidence_count": 2,
-      "last_seen": "F003",
+      "evidence_count": 3,
+      "last_seen": "F004",
       "applies_to": ["CAT-PRJ", "types", "validation"],
       "recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
       "codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;"
@@ -88,7 +88,19 @@
       "applies_to": ["CAT-PRJ", "types", "validation"],
       "recommendation": "When using .default(value), do NOT chain .optional() - it's redundant and creates semantic confusion",
       "codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()"
+    },
+    {
+      "id": "PAT-009",
+      "name": "NESTED_DEFAULTS_TRANSFORM",
+      "description": "Use .optional().transform() to properly apply nested schema defaults when parent field is undefined",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F004",
+      "applies_to": ["CAT-PRJ", "types", "validation"],
+      "recommendation": "When a nested object schema has field defaults that should apply when the parent is omitted or empty, use .optional().transform() instead of .default({})",
+      "codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
+      "gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply"
     }
   ],
-  "last_updated": "2026-01-27T15:35:00Z"
+  "last_updated": "2026-01-28T16:20:00Z"
 }

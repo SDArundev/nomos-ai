@@ -258,11 +258,13 @@
         "Timestamps validated as ISO strings"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-28T15:34:57Z",
+      "verifiedAt": "2026-01-28T16:16:02Z"
     },
     {
       "id": "F005",
