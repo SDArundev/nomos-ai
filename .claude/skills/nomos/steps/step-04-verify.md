@@ -1,0 +1,419 @@
+---
+name: step-04-verify
+description: "Parallel verification: static checks + runtime testing + code review"
+prev_step: steps/step-03-execute.md
+next_step: steps/step-05-merge.md
+---
+
+# Step 4: Verify (3 Parallel Tracks)
+
+## MANDATORY EXECUTION RULES:
+
+- NEVER skip any verification track
+- NEVER claim checks pass when they don't
+- NEVER proceed with ANY track failing
+- ALWAYS launch all 3 tracks in PARALLEL (single message)
+- ALWAYS fix failures before proceeding
+- YOU ARE A VERIFIER with an adversarial mindset
+- FORBIDDEN to proceed with known failures
+
+## MODE: 3 PARALLEL TRACKS
+
+This step merges the old validate + smoke + QA + review + test steps into 3 parallel verification tracks.
+
+```
+Track A: STATIC CHECKS (no server needed)
+  → typecheck + lint + unit tests
+
+Track B: RUNTIME VERIFY (server needed ONCE)
+  → start servers → smoke test → QA test → stop servers
+
+Track C: CODE REVIEW (no server needed)
+  → security + quality + coverage agents
+```
+
+**Gate:** ALL 3 tracks must pass. Failed track can be retried individually (up to 2x).
+
+---
+
+<available_state>
+From previous steps:
+
+| Variable | Description |
+|----------|-------------|
+| `{feature_id}` | Feature identifier |
+| `{feature_title}` | Feature title |
+| `{acceptance_criteria}` | Success criteria |
+| `{auto_mode}` | Skip confirmations |
+| `{test_mode}` | Include test creation |
+| `{worktree_path}` | Path to worktree |
+| `{output_dir}` | Path to output directory |
+| `{server_port}` | Allocated server port |
+| `{web_port}` | Allocated web port |
+| Files modified | From step-03 execution |
+</available_state>
+
+---
+
+## EXECUTION SEQUENCE:
+
+### 1. Prepare Verification Context
+
+Gather the list of modified files from step-03:
+
+```bash
+cd {worktree_path}
+git diff --name-only HEAD~1 2>/dev/null || git diff --name-only main
+```
+
+Read worktree ports:
+```bash
+PORTS_JSON=$(cat {worktree_path}/.nomos/ports.json)
+SERVER_PORT=$(echo "$PORTS_JSON" | jq -r '.SERVER_PORT')
+WEB_PORT=$(echo "$PORTS_JSON" | jq -r '.WEB_PORT')
+```
+
+### 2. Launch ALL 3 Tracks in PARALLEL
+
+<critical>
+Launch ALL 3 tracks in a SINGLE message. They run concurrently.
+Track B starts servers, the other two don't need them.
+</critical>
+
+---
+
+#### TRACK A: Static Checks (no server needed)
+
+```
+Task agent: general-purpose
+Prompt: |
+  ## Track A: Static Verification for {feature_id}
+
+  Working directory: {worktree_path}
+
+  Run these checks IN ORDER. Fix issues before proceeding to next check.
+
+  ### 1. TypeScript Check
+  ```bash
+  cd {worktree_path}
+  bun run check-types
+  ```
+  MUST PASS. If fails: read errors, fix types, re-run.
+
+  ### 2. Lint/Format (Biome)
+  ```bash
+  cd {worktree_path}
+  bun run check
+  ```
+  MUST PASS. If fails: fix remaining issues, re-run.
+
+  ### 3. Unit Tests
+  ```bash
+  cd {worktree_path}
+  bun run test:ci
+  ```
+  MUST PASS. If fails: identify root cause (code bug vs test bug), fix, re-run.
+
+  ### 4. Test Creation (if test_mode = {test_mode})
+  IF test_mode is true:
+  - Analyze existing test patterns (read 2-3 similar test files)
+  - Create tests for new functionality
+  - Map tests to acceptance criteria
+  - Run tests to verify they pass
+
+  ### Report Format:
+  ```
+  TRACK_A_RESULT: PASS or FAIL
+  typecheck: PASS/FAIL
+  lint: PASS/FAIL
+  tests: PASS/FAIL (X/Y passing)
+  new_tests_created: {count} (if test_mode)
+  errors_fixed: {count}
+  ```
+```
+
+---
+
+#### TRACK B: Runtime Verification (server needed ONCE)
+
+```
+Task agent: qa-functional-tester
+Model: sonnet
+Prompt: |
+  ## Track B: Runtime Verification for {feature_id}: {feature_title}
+
+  Working directory: {worktree_path}
+  Server port: {server_port} (or $SERVER_PORT from ports.json)
+  Web port: {web_port} (or $WEB_PORT from ports.json)
+
+  ### Phase 1: Start Application (ONCE)
+  ```bash
+  cd {worktree_path}
+
+  PORTS_JSON=$(cat .nomos/ports.json)
+  SERVER_PORT=$(echo "$PORTS_JSON" | jq -r '.SERVER_PORT')
+  WEB_PORT=$(echo "$PORTS_JSON" | jq -r '.WEB_PORT')
+
+  SERVER_LOG="/tmp/nomos-server-{feature_id}.log"
+  WEB_LOG="/tmp/nomos-web-{feature_id}.log"
+
+  bun run dev:server > "$SERVER_LOG" 2>&1 &
+  SERVER_PID=$!
+
+  VITE_PORT=$WEB_PORT bun run dev:web > "$WEB_LOG" 2>&1 &
+  WEB_PID=$!
+
+  # Wait for startup (max 30s each)
+  for i in {1..30}; do
+    curl -s "http://localhost:$SERVER_PORT/health" > /dev/null && break
+    sleep 1
+  done
+  for i in {1..30}; do
+    curl -s "http://localhost:$WEB_PORT" > /dev/null && break
+    sleep 1
+  done
+  ```
+
+  ### Phase 2: Smoke Test
+  - Health check: GET http://localhost:$SERVER_PORT/health → expect 200
+  - Frontend check: GET http://localhost:$WEB_PORT → expect HTML
+  - Check server logs for errors: grep -i "error|exception" "$SERVER_LOG"
+
+  ### Phase 3: Functional QA (Acceptance Criteria)
+
+  Test EACH acceptance criterion:
+  {acceptance_criteria}
+
+  For each AC:
+  1. Navigate to relevant page/endpoint
+  2. Perform required actions
+  3. Verify expected outcome
+  4. Capture evidence (screenshot or API response)
+  5. Record PASS or FAIL
+
+  For UI criteria: Use Playwright MCP
+  For API criteria: Use curl
+
+  ### Phase 4: Stop Servers (MANDATORY)
+  ```bash
+  kill $SERVER_PID 2>/dev/null || true
+  kill $WEB_PID 2>/dev/null || true
+  lsof -ti:$SERVER_PORT | xargs kill -9 2>/dev/null || true
+  lsof -ti:$WEB_PORT | xargs kill -9 2>/dev/null || true
+  ```
+
+  Verify stopped:
+  ```bash
+  sleep 1
+  curl -s "http://localhost:$SERVER_PORT" > /dev/null 2>&1 && echo "WARNING: Server still running!" || echo "Server stopped"
+  curl -s "http://localhost:$WEB_PORT" > /dev/null 2>&1 && echo "WARNING: Web still running!" || echo "Web stopped"
+  ```
+
+  ### Report Format:
+  ```
+  TRACK_B_RESULT: PASS or FAIL
+  server_startup: PASS/FAIL
+  web_startup: PASS/FAIL
+  smoke_test: PASS/FAIL
+  ac_results:
+    AC1: PASS/FAIL - {evidence}
+    AC2: PASS/FAIL - {evidence}
+  servers_stopped: true/false
+  runtime_errors: {count}
+  ```
+```
+
+---
+
+#### TRACK C: Code Review (no server needed)
+
+<critical>
+Launch ALL review sub-agents in a SINGLE message.
+</critical>
+
+```
+Task agent: general-purpose
+Prompt: |
+  ## Track C: Code Review for {feature_id}
+
+  Launch these 3 review agents IN PARALLEL (single message):
+
+  ### Agent 1: Security Review
+  Task agent: security-reviewer
+  ```
+  Review for OWASP Top 10 vulnerabilities:
+  - Injection flaws (SQL, command, XSS)
+  - Auth/authz issues
+  - Data exposure and secrets
+  - Security misconfiguration
+
+  Files to review: {modified files list}
+  Working directory: {worktree_path}
+  ```
+
+  ### Agent 2: Code Quality Review
+  Task agent: code-quality-reviewer
+  ```
+  Review for code quality issues:
+  - Pattern violations
+  - Code duplication
+  - Complexity issues
+  - Maintainability problems
+  - Naming consistency
+
+  Files to review: {modified files list}
+  Working directory: {worktree_path}
+  ```
+
+  ### Agent 3: Test Coverage Analysis
+  Task agent: test-coverage-analyzer
+  ```
+  Analyze test coverage:
+  - What's tested vs untested
+  - Missing edge cases
+  - Acceptance criteria coverage gaps
+
+  Files to review: {modified files list}
+  Working directory: {worktree_path}
+  ```
+
+  ### Classify All Findings
+
+  For each finding:
+  - Severity: CRITICAL / HIGH / MEDIUM / LOW
+  - Validity: Real / Noise / Uncertain
+
+  ### Report Format:
+  ```
+  TRACK_C_RESULT: PASS or FAIL
+  findings_count: {total}
+  critical: {count}
+  high: {count}
+  medium: {count}
+  low: {count}
+  blocking_issues: {count}
+  ```
+```
+
+---
+
+### 3. Collect Results and Gate Check
+
+After all 3 tracks complete:
+
+```markdown
+## Verification Results
+
+| Track | Status | Details |
+|-------|--------|---------|
+| A: Static | PASS/FAIL | typecheck, lint, tests |
+| B: Runtime | PASS/FAIL | smoke, QA ({n}/{m} AC passed) |
+| C: Review | PASS/FAIL | {n} findings ({m} blocking) |
+
+**Gate:** {PASS/FAIL}
+```
+
+### 4. Handle Failures
+
+**If ANY track fails:**
+
+1. Identify which track(s) failed
+2. Fix the issues
+3. **Retry ONLY the failed track** (up to 2x)
+4. Do NOT re-run passing tracks
+
+**If all retries exhausted:**
+
+```yaml
+questions:
+  - header: "Verify Failed"
+    question: "Verification failed after retries. How to proceed?"
+    options:
+      - label: "Return to step-03 to fix (Recommended)"
+        description: "Go back to implementation to address issues"
+      - label: "Continue with known issues"
+        description: "Proceed despite failures (document as known issues)"
+      - label: "Review failures in detail"
+        description: "Show me the full failure details"
+    multiSelect: false
+```
+
+### 5. Update Feature State
+
+**If gate PASSES:**
+
+```bash
+bash .claude/skills/nomos/scripts/nomos.sh state complete {feature_id}
+```
+
+This transitions: `in_progress → waiting_approval`
+
+### 6. Save Output
+
+Write unified verification report to `{output_dir}/04-verify.md`:
+
+```markdown
+# Verification Report: {feature_id}
+
+## Track A: Static Checks
+- TypeScript: PASS
+- Lint: PASS
+- Tests: {X}/{Y} passing
+- New tests created: {count}
+
+## Track B: Runtime Verification
+- Server startup: PASS (port {server_port})
+- Web startup: PASS (port {web_port})
+- Smoke test: PASS
+- Acceptance Criteria:
+  - AC1: PASS - {evidence}
+  - AC2: PASS - {evidence}
+- Servers stopped: YES
+
+## Track C: Code Review
+- Security: {n} findings
+- Quality: {n} findings
+- Coverage: {gaps}
+
+### Findings Table
+| ID | Severity | Category | Location | Issue | Validity |
+|----|----------|----------|----------|-------|----------|
+| F1 | CRITICAL | Security | auth.ts:42 | SQL injection | Real |
+
+## Gate: PASS
+**Timestamp:** {ISO}
+```
+
+---
+
+## SUCCESS METRICS:
+
+- All 3 tracks launched in PARALLEL (single message)
+- Track A: typecheck + lint + tests all pass
+- Track B: servers started ONCE, smoke + QA pass, servers stopped
+- Track C: no blocking findings (CRITICAL/HIGH real issues)
+- Gate check completed
+- Feature state updated to waiting_approval
+- Output saved
+- Servers confirmed stopped
+
+## FAILURE MODES:
+
+- Launching tracks sequentially (MUST be parallel)
+- Starting servers in Track A or C (only Track B)
+- Not stopping servers in Track B
+- Claiming pass without actual verification
+- Not retrying failed tracks before giving up
+- Skipping any track for any feature type
+- Not fixing blocking findings before proceeding
+
+---
+
+## NEXT STEP:
+
+After gate passes, load `./step-05-merge.md`
+
+<critical>
+ALL 3 tracks must pass. No exceptions. Failed tracks get up to 2 retries individually.
+Servers are started ONCE in Track B and stopped before Track B completes.
+</critical>

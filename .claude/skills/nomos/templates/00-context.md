@@ -50,14 +50,10 @@
 
 | Step | Status | Timestamp |
 |------|--------|-----------|
-| 00-init | ⏸ Pending | |
-| 01-context | ⏸ Pending | |
-| 02-analyze | ⏸ Pending | |
-| 03-plan | ⏸ Pending | |
-| 04-execute | ⏸ Pending | |
-| 05-validate | ⏸ Pending | |
-| 06-review | ⏸ Pending | |
-| 07-test | {{test_status}} | |
-| 08-merge | ⏸ Pending | |
-| 09-learn | ⏸ Pending | |
-| 10-ship | {{pr_status}} | |
+| 00-init | Pending | |
+| 01-context | Pending | |
+| 02-plan | Pending | |
+| 03-execute | Pending | |
+| 04-verify | Pending | |
+| 05-merge | Pending | |
+| 06-finish | Pending | |

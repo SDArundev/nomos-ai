@@ -83,7 +83,7 @@ allowed-tools:
 ---
 
 <objective>
-Execute systematic feature development workflows using the NOMOS methodology. This skill uses progressive step loading, git worktrees for isolation, and a self-learning system to improve over time.
+Execute systematic feature development workflows using the NOMOS v2 methodology. This skill uses progressive step loading, parallel verification, git worktrees for isolation, and a self-learning system to improve over time.
 </objective>
 
 <quick_start>
@@ -127,9 +127,9 @@ See `<parameters>` for complete flag list.
 | `-r` | `--resume` | Resume mode: continue from a previous feature |
 | `-pr` | `--pull-request` | PR mode: create pull request at end |
 | `-i` | `--interactive` | Interactive mode: configure flags via AskUserQuestion |
-| `-p` | `--plan` | Plan only: stop after step 03 |
-| `-v` | `--verify` | Verify only: run step 06 review only |
-| `-l` | `--learn` | Learn only: run step 09 learning extraction |
+| `-p` | `--plan` | Plan only: stop after step 02 |
+| `-v` | `--verify` | Verify only: run step 04 verify only |
+| `-l` | `--learn` | Learn only: run step 06 learning extraction |
 | `-s` | `--status` | Status: show project status and exit |
 | `-c` | `--cleanup` | Cleanup: remove worktree after merge |
 
@@ -166,7 +166,7 @@ See `<parameters>` for complete flag list.
 # Plan only (stop after planning)
 /nomos -p F016
 
-# Verify only (run review step)
+# Verify only (run verify step)
 /nomos -v F016
 
 # Learn from history
@@ -183,21 +183,17 @@ See `<parameters>` for complete flag list.
 </parameters>
 
 <output_structure>
-**All outputs saved to `.nomos/output/{feature_id}/`:**
+**All outputs saved to `.nomos/output/{feature_id}/` (7 files):**
 
 ```
 .nomos/output/F016/
-├── 00-context.md      # Config, feature spec, timestamp
-├── 01-context.md      # Loaded learnings and patterns
-├── 02-analyze.md      # Analysis findings
-├── 03-plan.md         # Implementation plan
-├── 04-execute.md      # Execution log
-├── 05-validate.md     # Validation results
-├── 06-review.md       # Review findings
-├── 07-test.md         # Test creation (if -t)
-├── 08-merge.md        # Merge log
-├── 09-learn.md        # Learning extraction
-└── 10-ship.md         # PR creation (if -pr)
+├── 00-context.md      # Config, feature spec, progress (7 rows)
+├── 01-context.md      # Learnings + codebase + research (merged)
+├── 02-plan.md         # Implementation plan
+├── 03-execute.md      # Execution log
+├── 04-verify.md       # Static + runtime + review (unified)
+├── 05-merge.md        # Merge log
+└── 06-finish.md       # Learning extraction + ship
 ```
 
 **Worktree location:** `.nomos/worktrees/{feature_id}/`
@@ -217,24 +213,28 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 </resume_workflow>
 
 <workflow>
+**NOMOS v2 Pipeline (7 steps):**
+
+```
+00-init → 01-context → 02-plan → 03-execute → 04-verify → 05-merge → 06-finish
+           (parallel)                           (parallel)              (parallel)
+           3 agents                             3 tracks               2 tracks
+```
+
 **Standard flow:**
-1. Parse flags and feature ID
+1. Parse flags, interactive config (if -i), and feature ID
 2. If `-r`: Execute resume workflow
 3. If `-s`: Show status and exit
 4. If `-l`: Run learning extraction only
 5. Create/verify worktree at `.nomos/worktrees/{feature_id}`
-6. Load step-01-context.md → load learnings, patterns, memory
-7. Load step-02-analyze.md → gather codebase context
-8. Load step-03-plan.md → create implementation strategy
-9. If `-p`: Stop here (plan only mode)
-10. Load step-04-execute.md → implement in worktree
-11. Load step-05-validate.md → run checks
-12. Load step-06-review.md → quality gate
-13. If `-v`: Stop here (verify only mode)
-14. If `-t`: Load step-07-test.md → create and run tests
-15. Load step-08-merge.md → merge worktree to main
-16. Load step-09-learn.md → extract patterns
-17. If `-pr`: Load step-10-ship.md → create pull request
+6. Load step-01-context.md → **3 parallel agents**: load-learnings, explore-codebase, research-docs
+7. Load step-02-plan.md → create implementation strategy
+8. If `-p`: Stop here (plan only mode)
+9. Load step-03-execute.md → implement in worktree
+10. Load step-04-verify.md → **3 parallel tracks**: static-checks, runtime-verify, code-review
+11. If `-v`: Stop here (verify only mode)
+12. Load step-05-merge.md → rebase, validate, merge
+13. Load step-06-finish.md → **2 parallel tracks**: extract-learnings, ship-feature (if -pr)
 </workflow>
 
 <state_variables>
@@ -250,7 +250,7 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 | `{test_mode}` | boolean | Include test steps |
 | `{pr_mode}` | boolean | Create pull request at end |
 | `{plan_only}` | boolean | Stop after planning |
-| `{verify_only}` | boolean | Run review step only |
+| `{verify_only}` | boolean | Run verify step only |
 | `{learn_only}` | boolean | Run learning extraction only |
 | `{interactive_mode}` | boolean | Configure flags interactively |
 | `{resume_mode}` | boolean | Resume from previous state |
@@ -269,6 +269,7 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 Step 00 handles:
 
 - Flag parsing
+- Interactive configuration (if -i, absorbed from old step-00i)
 - Feature validation from features.json
 - Resume mode detection
 - Worktree creation/verification
@@ -282,24 +283,51 @@ After initialization, step-00 loads step-01-context.md.
 <step_files>
 **Progressive loading - only load current step:**
 
-| Step | File | Purpose |
-|------|------|---------|
-| 00 | `steps/step-00-init.md` | Parse flags, setup worktree, initialize state |
-| 00i | `steps/step-00i-interactive.md` | Interactive flag configuration |
-| 01 | `steps/step-01-context.md` | Load learnings, patterns, memory (NOMOS-unique) |
-| 02 | `steps/step-02-analyze.md` | Smart context gathering with parallel agents |
-| 03 | `steps/step-03-plan.md` | File-by-file implementation strategy |
-| 04 | `steps/step-04-execute.md` | Task-driven implementation in worktree |
-| 04a | `steps/step-04a-smoke.md` | **Runtime smoke test** - start app, verify it runs |
-| 05 | `steps/step-05-validate.md` | TypeScript, lint, tests validation |
-| 05a | `steps/step-05a-qa.md` | **Functional QA** - test acceptance criteria in running app |
-| 06 | `steps/step-06-review.md` | Quality gate with constitutional checks |
-| 07 | `steps/step-07-test.md` | Test creation and execution (if -t) |
-| 08 | `steps/step-08-merge.md` | Merge worktree to main (NOMOS-unique) |
-| 09 | `steps/step-09-learn.md` | Pattern extraction and retrospect (NOMOS-unique) |
-| 10 | `steps/step-10-ship.md` | PR creation (if -pr) |
+| Step | File | Mode | Purpose |
+|------|------|------|---------|
+| 00 | `steps/step-00-init.md` | sequential | Parse flags, interactive config, setup worktree |
+| 01 | `steps/step-01-context.md` | **3 parallel agents** | Load learnings + explore codebase + research docs |
+| 02 | `steps/step-02-plan.md` | sequential | File-by-file implementation strategy |
+| 03 | `steps/step-03-execute.md` | sequential | Task-driven implementation in worktree |
+| 04 | `steps/step-04-verify.md` | **3 parallel tracks** | Static checks + runtime verify + code review |
+| 05 | `steps/step-05-merge.md` | sequential | Rebase, validate, merge to main |
+| 06 | `steps/step-06-finish.md` | **2 parallel tracks** | Extract learnings + ship (PR) |
 
 </step_files>
+
+<parallel_execution>
+
+## Parallel Execution Architecture
+
+### Step 01: Context (3 parallel agents)
+| Agent | Purpose | Always? |
+|-------|---------|---------|
+| load-learnings | Patterns, metrics, risk, code knowledge | Yes |
+| explore-codebase | Find files, patterns, utilities | Yes |
+| research-docs | Library docs via Context7 MCP | If unfamiliar libs |
+
+### Step 04: Verify (3 parallel tracks)
+| Track | Purpose | Server needed? |
+|-------|---------|----------------|
+| A: Static | typecheck + lint + unit tests | No |
+| B: Runtime | start servers ONCE → smoke → QA → stop | Yes |
+| C: Review | security + quality + coverage agents | No |
+
+**Gate:** ALL tracks must pass. Failed track retried individually (up to 2x).
+
+### Step 06: Finish (2 parallel tracks)
+| Track | Purpose | Always? |
+|-------|---------|---------|
+| A: Learnings | metrics, patterns, retrospective | Yes |
+| B: Ship | push + create PR | If -pr flag |
+
+### Rules
+- Always launch parallel agents/tracks in a SINGLE message
+- Never start servers except in Track B of step-04
+- Servers started ONCE and stopped within the same track
+- Failed tracks retried individually, not all tracks
+
+</parallel_execution>
 
 <execution_rules>
 
@@ -308,7 +336,7 @@ After initialization, step-00 loads step-01-context.md.
 - **Persist state variables** across all steps
 - **Follow next_step directive** at end of each step
 - **Save outputs** to `.nomos/output/{feature_id}/`
-- **Use parallel agents** for independent exploration tasks
+- **Use parallel agents** for independent tasks (steps 01, 04, 06)
 
 <critical>
 **FILE WRITING RULE:**
@@ -318,14 +346,35 @@ After initialization, step-00 loads step-01-context.md.
 - This applies to: .env files, output markdown files, JSON files, all file creation
 </critical>
 
-## Smart Agent Strategy in Analyze Phase
+## Unified Script
 
-The analyze phase (step-02) uses **adaptive agent launching**:
+All script operations use `scripts/nomos.sh` with subcommands:
+
+```bash
+# Feature state management
+bash .claude/skills/nomos/scripts/nomos.sh state <action> <feature_id>
+# Actions: start, claim, complete, verify, reset, preverify, get, next
+
+# Port management
+bash .claude/skills/nomos/scripts/nomos.sh ports allocate <feature_id>
+bash .claude/skills/nomos/scripts/nomos.sh ports release <feature_id>
+bash .claude/skills/nomos/scripts/nomos.sh ports cleanup
+
+# Template initialization
+bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
+```
+
+## Smart Agent Strategy
 
 **Available agents:**
-- `explore-codebase` - Find existing patterns, files, utilities (step-02)
-- `explore-docs` - Research library docs via **Context7 MCP** (step-02) ← **MANDATORY for all library docs**
-- `websearch` - Find approaches, best practices, gotchas (step-02) ← General patterns only, NOT library docs
+- `explore-codebase` - Find existing patterns, files, utilities (step-01)
+- `explore-docs` - Research library docs via **Context7 MCP** (step-01)
+- `websearch` - Find approaches, best practices, gotchas (step-01)
+- `qa-smoke-tester` - Runtime smoke test (step-04 Track B)
+- `qa-functional-tester` - Test acceptance criteria in running app (step-04 Track B)
+- `security-reviewer` - OWASP security review (step-04 Track C)
+- `code-quality-reviewer` - Code quality & patterns review (step-04 Track C)
+- `test-coverage-analyzer` - Test coverage gap analysis (step-04 Track C)
 
 <critical>
 **DOCUMENTATION RESEARCH RULE:**
@@ -333,13 +382,8 @@ The analyze phase (step-02) uses **adaptive agent launching**:
 - General approaches, patterns → WebSearch is acceptable
 - NEVER use WebSearch for specific API syntax or library usage
 </critical>
-- `qa-smoke-tester` - Runtime smoke test, start app & verify (step-04a)
-- `qa-functional-tester` - Test acceptance criteria in running app (step-05a)
-- `security-reviewer` - OWASP security review (step-06)
-- `code-quality-reviewer` - Code quality & patterns review (step-06)
-- `test-coverage-analyzer` - Test coverage gap analysis (step-06/07)
 
-**Launch 1-10 agents based on task complexity:**
+**Launch agents based on task complexity:**
 
 | Complexity | Agents | When |
 |------------|--------|------|
@@ -368,6 +412,7 @@ The analyze phase (step-02) uses **adaptive agent launching**:
 - Patterns extracted from successful features
 - Anti-patterns recorded from failures
 - Metrics tracked: duration, files changed, retries
+- Code-level patterns categorized and enhanced with Context7
 - Learnings injected into planning phase
 
 ### 4. Quality Gates (Constitutional)
@@ -388,7 +433,7 @@ The analyze phase (step-02) uses **adaptive agent launching**:
 
 - Each step loaded progressively
 - All validation checks passing
-- Outputs saved to `.nomos/output/{feature_id}/`
+- Outputs saved to `.nomos/output/{feature_id}/` (7 files)
 - Tests passing if `{test_mode}` enabled
 - Feature merged and state updated
 - Learnings extracted
@@ -415,9 +460,9 @@ NOMOS has its **own git operations** that must NOT be replaced by generic git sk
 
 **Rules:**
 
-- **During NOMOS workflow (steps 00-10):** Use NOMOS git operations only
+- **During NOMOS workflow (steps 00-06):** Use NOMOS git operations only
 - **Outside NOMOS workflow:** Git skills can be used for ad-hoc commits
-- **git-create-pr:** Compatible with step-10-ship but NOMOS has richer context
+- **git-create-pr:** Compatible with step-06-finish but NOMOS has richer context
 - **git-merge:** NOT compatible - different strategies
 
 **Rationale:** NOMOS needs feature traceability, state machine updates, and worktree isolation that generic git skills don't provide.

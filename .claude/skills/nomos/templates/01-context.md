@@ -1,4 +1,4 @@
-# Context Loading: {{feature_id}}
+# Context: {{feature_id}}
 
 **Started:** {{timestamp}}
 **Feature:** {{feature_title}}
@@ -36,17 +36,23 @@ _Anti-patterns loaded from .nomos/learning/antipatterns.json_
 
 ---
 
+## Codebase Context
+
+_Findings from codebase exploration_
+
+---
+
+## Documentation Insights
+
+_Research results from Context7 MCP (if applicable)_
+
+---
+
 ## Dependencies
 
 | Dependency | Status |
 |------------|--------|
 | TBD | TBD |
-
----
-
-## Relevant Decisions
-
-_Decisions loaded from .nomos/decisions/_
 
 ---
 

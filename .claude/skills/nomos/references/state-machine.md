@@ -9,19 +9,19 @@ Features progress through a defined state machine tracked in `.nomos/features.js
 ## States
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│   pending ──────► in_progress ──────► waiting_approval     │
-│      │                │                      │              │
-│      │                │                      ▼              │
-│      │                │               ┌─────────────┐       │
-│      │                │               │  verified   │       │
-│      │                │               └─────────────┘       │
-│      │                │                      │              │
-│      └────────────────┴──────────────────────┘              │
-│                    (reset)                                  │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
++---------------------------------------------------------+
+|                                                         |
+|   pending -------> in_progress -------> waiting_approval|
+|      |                |                      |          |
+|      |                |                      v          |
+|      |                |               +------------+    |
+|      |                |               |  verified  |    |
+|      |                |               +------------+    |
+|      |                |                      |          |
+|      +----------------+----------------------+          |
+|                    (reset)                              |
+|                                                         |
++---------------------------------------------------------+
 ```
 
 ### State Definitions
@@ -62,19 +62,19 @@ Features progress through a defined state machine tracked in `.nomos/features.js
 
 ### complete: in_progress → waiting_approval
 
-**Trigger:** Feature passes all quality gates in step-06
+**Trigger:** Feature passes all quality gates in step-04-verify
 
 **Actions:**
 1. Set `status` to `waiting_approval`
 2. Set `completedAt` to current timestamp
 
 **Guards:**
-- All quality gates must pass
+- All quality gates must pass (3 verification tracks)
 - Implementation must match acceptance criteria
 
 ### verify: waiting_approval → verified
 
-**Trigger:** `/nomos -v F016` passes review or automatic in step-08
+**Trigger:** Step-05-merge completes successfully
 
 **Actions:**
 1. Merge worktree to main
@@ -103,14 +103,14 @@ Features progress through a defined state machine tracked in `.nomos/features.js
 
 ### preverify: pending → verified (Pre-Implemented)
 
-**Trigger:** Step-02-analyze detects feature already implemented
+**Trigger:** Step-01-context detects feature already implemented
 
 **Actions:**
 1. Set `status` to `verified`
 2. Set `passes` to `true`
 3. Set `preImplemented` to `true`
 4. Set `verifiedAt` to current timestamp
-5. Skip to step-09-learn
+5. Skip to step-06-finish (learning extraction)
 
 **Guards:**
 - All acceptance criteria must be met by existing code
@@ -207,16 +207,16 @@ jq -r '.state.history[] | select(.feature == "F016")' .nomos/features.json
 
 | From | To | Valid? |
 |------|----|--------|
-| pending | in_progress | ✓ |
-| pending | waiting_approval | ✗ |
-| pending | verified | ✗ |
-| in_progress | pending | ✓ (reset) |
-| in_progress | waiting_approval | ✓ |
-| in_progress | verified | ✗ |
-| waiting_approval | pending | ✓ (reset) |
-| waiting_approval | in_progress | ✗ |
-| waiting_approval | verified | ✓ |
-| verified | any | ✗ (terminal) |
+| pending | in_progress | Yes |
+| pending | waiting_approval | No |
+| pending | verified | Only preverify |
+| in_progress | pending | Yes (reset) |
+| in_progress | waiting_approval | Yes |
+| in_progress | verified | No |
+| waiting_approval | pending | Yes (reset) |
+| waiting_approval | in_progress | No |
+| waiting_approval | verified | Yes |
+| verified | any | No (terminal) |
 
 ### Validation Function
 
@@ -238,14 +238,26 @@ validate_transition() {
 
 ---
 
-## NOMOS Step to State Mapping
+## NOMOS v2 Step to State Mapping
 
 | Step | State Transition |
 |------|------------------|
 | step-00-init | pending → in_progress |
-| step-01 to step-05 | (remains in_progress) |
-| step-06-review | in_progress → waiting_approval |
-| step-07-test | (remains waiting_approval) |
-| step-08-merge | waiting_approval → verified |
-| step-09-learn | (post-verification) |
-| step-10-ship | (post-verification) |
+| step-01-context | (remains in_progress) |
+| step-02-plan | (remains in_progress) |
+| step-03-execute | (remains in_progress) |
+| step-04-verify | in_progress → waiting_approval |
+| step-05-merge | waiting_approval → verified |
+| step-06-finish | (post-verification) |
+
+---
+
+## Script Interface
+
+All state operations use the unified script:
+
+```bash
+bash .claude/skills/nomos/scripts/nomos.sh state <action> <feature_id>
+```
+
+Actions: `start`, `claim`, `complete`, `verify`, `reset`, `preverify`, `get`, `next`

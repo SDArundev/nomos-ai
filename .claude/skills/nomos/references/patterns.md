@@ -62,7 +62,7 @@ Patterns are extracted from successful feature implementations and injected into
 
 ## Pattern Injection
 
-Patterns are injected into the planning phase (step-03-plan) as:
+Patterns are injected into the planning phase (step-02-plan) as:
 
 ```markdown
 ## Learned Patterns to Apply

@@ -11,7 +11,7 @@ Quality gates that MUST pass before a feature can be verified.
 **Rule:** Every feature MUST have a plan before implementation.
 
 **Check:**
-- Plan file exists at `.nomos/output/{feature_id}/03-plan.md`
+- Plan file exists at `.nomos/output/{feature_id}/02-plan.md`
 - Plan contains file-by-file breakdown
 - All acceptance criteria are mapped to plan items
 
@@ -152,9 +152,15 @@ bun run check
 
 ---
 
-## Enforcement
+## Enforcement in v2 Pipeline
 
-Quality gates are enforced in:
-- **step-05-validate.md** - Quick checks (CQ-001, CQ-002)
-- **step-06-review.md** - Full quality gate (all checks)
-- **step-08-merge.md** - Final validation before merge
+Quality gates are enforced in the **step-04-verify** parallel tracks:
+
+| Track | Gates Enforced |
+|-------|---------------|
+| **Track A: Static** | CQ-001 (TypeScript), CQ-002 (Linting), ART-002 (Tests) |
+| **Track B: Runtime** | BV-001 (Browser), ART-008 (AC verification) |
+| **Track C: Review** | SEC-001 (Secrets), SEC-002 (XSS), SEC-003 (Env), CQ-003 (Debug), CQ-004 (TODO) |
+
+**Pre-verification (step-02):** ART-001 (Plan exists)
+**Final validation (step-05):** CI-001 (post-rebase check before merge)

@@ -1,39 +1,32 @@
 ---
 name: step-01-context
-description: Load learnings, patterns, and memory from NOMOS learning system
+description: "Parallel context gathering: load learnings + explore codebase + research docs"
 prev_step: steps/step-00-init.md
-next_step: steps/step-02-analyze.md
+next_step: steps/step-02-plan.md
 ---
 
-# Step 1: Load Context (NOMOS-Unique)
+# Step 1: Context (Parallel Gathering)
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## MANDATORY EXECUTION RULES:
 
-- 🛑 NEVER skip loading learnings if they exist
-- 🛑 NEVER proceed without checking dependencies
-- ✅ ALWAYS load patterns relevant to this feature's phase
-- ✅ ALWAYS calculate risk assessment
-- 📋 YOU ARE A CONTEXT LOADER, not an implementer
-- 💬 FOCUS on gathering learned knowledge
-- 🚫 FORBIDDEN to start any implementation
+- NEVER plan or design solutions - that's step 2
+- NEVER create tasks or implementation plans
+- ALWAYS focus on discovering WHAT EXISTS and loading learned knowledge
+- ALWAYS report findings with file paths and line numbers
+- YOU ARE AN EXPLORER AND LEARNER, not a planner
+- FORBIDDEN to suggest implementations or approaches
 
-## EXECUTION PROTOCOLS:
+## MODE: 3 PARALLEL AGENTS
 
-- 🎯 Load learned patterns and anti-patterns
-- 💾 Save loaded context to output file
-- 📖 Calculate risk based on historical metrics
-- 🚫 FORBIDDEN to proceed with blocked dependencies
+This step merges the old context-loading (learnings) and analyze (codebase exploration) into a single parallel phase.
 
-## CONTEXT BOUNDARIES:
+Launch **up to 3 agents simultaneously** depending on task complexity:
 
-- Variables from step-00-init are available
-- Feature spec is loaded from features.json
-- Learning files may or may not exist
-- This step enriches context before analysis
-
-## YOUR TASK:
-
-Load all relevant learned patterns, anti-patterns, metrics, and memory to enrich the implementation context.
+| Agent | Purpose | Always? |
+|-------|---------|---------|
+| **load-learnings** | Load patterns, metrics, risk assessment, code knowledge | Yes |
+| **explore-codebase** | Find existing patterns, files, utilities related to feature | Yes |
+| **research-docs** | Research library docs via Context7 MCP | Only if unfamiliar libraries |
 
 ---
 
@@ -55,280 +48,220 @@ From step-00-init:
 
 ## EXECUTION SEQUENCE:
 
-### 1. Initialize Output
+### 1. Analyze Task Complexity (THINK FIRST)
 
-Append to `{output_dir}/01-context.md`:
+```
+Task: {feature_description}
+
+1. SCOPE: How many areas of the codebase are affected?
+   - Single file/function → Low
+   - Multiple related files → Medium
+   - Cross-cutting concerns → High
+
+2. LIBRARIES: Which external libraries are involved?
+   - None or well-known basics → Skip docs agent
+   - Unfamiliar library or specific API → Need docs agent
+   - Multiple libraries interacting → Need multiple doc queries
+
+3. UNCERTAINTY: What am I unsure about?
+   - Clear requirements, known approach → 2 agents
+   - Unclear approach, unfamiliar territory → 3 agents
+```
+
+### 2. Launch Parallel Agents (SINGLE MESSAGE)
+
+<critical>
+Launch ALL agents in ONE message for parallel execution.
+</critical>
+
+**Agent 1: load-learnings** (ALWAYS launch)
+
+```
+Task agent: general-purpose
+Prompt: |
+  Load NOMOS learnings for feature {feature_id}: {feature_title}
+
+  1. Load patterns from .nomos/learning/patterns.json (if exists)
+     - Filter by relevance to this feature's phase and category
+  2. Load anti-patterns from .nomos/learning/antipatterns.json (if exists)
+  3. Load metrics from .nomos/learning/metrics.json (if exists)
+     - Calculate thresholds from historical data
+  4. Load code knowledge from .nomos/learning/code/ (if exists)
+     - Detect relevant categories from feature description
+     - Load matching category files (database.json, typescript.json, etc.)
+     - Filter by severity (always include CRITICAL and HIGH)
+  5. Check dependencies from features.json
+     - Verify all dependencies are verified
+  6. Calculate risk assessment:
+     - Phase success rate < 80% → +1 RISK
+     - Many dependencies → +1 RISK
+     - Unfamiliar technology → +1 RISK
+     - Large scope (many AC) → +1 RISK
+     - 0-1 factors: LOW, 2-3: MEDIUM, 4+: HIGH
+
+  Report:
+  - Patterns to apply
+  - Anti-patterns to avoid
+  - Historical thresholds
+  - Code-level patterns (with severity)
+  - Risk level (LOW/MEDIUM/HIGH)
+  - Dependency status
+```
+
+**Agent 2: explore-codebase** (ALWAYS launch)
+
+```
+Task agent: explore-codebase
+Prompt: |
+  Explore codebase for feature {feature_id}: {feature_title}
+  Description: {feature_description}
+
+  Find:
+  1. Files with paths and line numbers related to this feature
+  2. Patterns used for similar features
+  3. Relevant utilities and shared code
+  4. Test patterns in use
+  5. Configuration and schema files involved
+
+  Check if feature is ALREADY IMPLEMENTED:
+  - Compare acceptance criteria against findings
+  - Report status per criterion: Met / Not met with evidence
+
+  DO NOT suggest implementations. Report what EXISTS.
+```
+
+**Agent 3: research-docs** (CONDITIONAL - only if unfamiliar libraries)
+
+<critical>
+**Documentation Research Rule:**
+- Library/Framework docs → Context7 MCP ONLY (via `explore-docs` agent)
+- General approaches/patterns → WebSearch is acceptable
+- Specific API/syntax → Context7 ONLY
+- NEVER use WebSearch for specific library docs
+</critical>
+
+```
+Task agent: explore-docs
+Prompt: |
+  Research documentation for: {specific_library_or_framework}
+  Context: Implementing {feature_title}
+
+  MUST USE: Context7 MCP
+  1. mcp__context7__resolve-library-id for {library}
+  2. mcp__context7__query-docs for specific API questions
+
+  Find:
+  1. Current API for {specific_feature}
+  2. Code examples
+  3. Configuration needed
+  4. Common pitfalls
+```
+
+### 3. Pre-Implementation Check (CRITICAL)
+
+After agents return, check if feature is ALREADY IMPLEMENTED:
 
 ```markdown
-# Context Loading: {feature_id}
+## Pre-Implementation Check
 
-**Started:** {timestamp}
-**Feature:** {feature_title}
-
----
+| Acceptance Criterion | Status | Evidence |
+|---------------------|--------|----------|
+| AC1: {criterion} | Met / Not met | {file:line or "not found"} |
+| AC2: {criterion} | Met / Not met | {file:line or "not found"} |
 ```
 
-### 2. Load Learned Patterns
-
-**If `.nomos/learning/patterns.json` exists:**
-
-Read and extract patterns relevant to this feature:
-- Filter by phase (if feature has phase assignment)
-- Filter by category (UI, API, Database, etc.)
-- Note success indicators (ZERO_RETRIES, SMALL_CHANGESET, etc.)
-
-```markdown
-## Learned Patterns
-
-| Pattern | Success Rate | Applies To |
-|---------|--------------|------------|
-| {pattern_name} | {rate}% | {description} |
-```
-
-**If file doesn't exist:** Note "No learned patterns available yet."
-
-### 3. Load Anti-Patterns
-
-**If `.nomos/learning/antipatterns.json` exists:**
-
-Read and extract warnings:
-- Filter by relevance to this feature type
-- Note failure indicators (HIGH_RETRIES, LARGE_CHANGESET, etc.)
-
-```markdown
-## Anti-Patterns to Avoid
-
-| Anti-Pattern | Risk | Mitigation |
-|--------------|------|------------|
-| {antipattern_name} | {severity} | {how_to_avoid} |
-```
-
-**If file doesn't exist:** Note "No anti-patterns recorded yet."
-
-### 4. Load Historical Metrics
-
-**If `.nomos/learning/metrics.json` exists:**
-
-Calculate thresholds from historical data:
-- Average duration for similar features
-- Average files changed
-- Phase-specific success rate
-- Typical retry count
-
-```markdown
-## Historical Metrics
-
-| Metric | Average | Threshold |
-|--------|---------|-----------|
-| Duration | {avg} min | {avg * 1.5} min |
-| Files Changed | {avg} | {avg * 1.5} |
-| Retries | {avg} | {avg + 1} |
-```
-
-**If file doesn't exist:** Use default thresholds.
-
-### 5. Calculate Risk Assessment
-
-Based on feature complexity and historical data:
-
-```
-RISK FACTORS:
-1. Phase success rate < 80% → +1 RISK
-2. Many dependencies → +1 RISK
-3. Unfamiliar technology → +1 RISK
-4. Large scope (many AC) → +1 RISK
-5. Previous failures on similar → +1 RISK
-
-RISK LEVELS:
-- 0-1 factors: LOW
-- 2-3 factors: MEDIUM
-- 4+ factors: HIGH
-```
-
-Set `{risk_level}` accordingly.
-
-```markdown
-## Risk Assessment
-
-**Risk Level:** {risk_level}
-
-**Factors:**
-- [ ] Factor 1: {status}
-- [ ] Factor 2: {status}
-```
-
-### 6. Check Dependencies
-
-Read features.json and check if all dependencies are verified:
+**IF ALL acceptance criteria are ALREADY MET:**
 
 ```bash
-# Extract dependencies for this feature
-jq '.features[] | select(.id == "{feature_id}") | .dependencies' .nomos/features.json
+bash .claude/skills/nomos/scripts/nomos.sh state preverify {feature_id}
 ```
 
-**If dependencies not verified:**
-- List incomplete dependencies
-- If `{auto_mode}` = false: Ask user to proceed or wait
-- If `{auto_mode}` = true: WARN and proceed
+Then:
+1. Document what exists and where
+2. Skip to step-06-finish.md (extract patterns from existing implementation)
+3. Do NOT proceed to planning/execution
+
+### 4. Synthesize All Results
+
+Combine all agent results into a unified context document:
 
 ```markdown
-## Dependencies
+## Context Summary: {feature_id}
 
-| Dependency | Status |
-|------------|--------|
-| {dep_id} | ✓ Verified / ⏸ Pending |
-```
-
-### 7. Load Code Knowledge Base (MANDATORY)
-
-**Load code-level patterns from `.nomos/learning/code/`:**
-
-1. **Detect relevant categories** from feature description:
-   - Keywords like "database", "drizzle", "sqlite" → `database.json`
-   - Keywords like "auth", "validation", "xss" → `security.json`
-   - Keywords like "react", "component", "hook" → `react.json`
-   - Keywords like "api", "endpoint", "rest" → `api.json`
-   - Keywords like "types", "schema", "zod" → `typescript.json`
-
-2. **Load matching category files**:
-   ```bash
-   # Example: Feature involves database and API
-   categories=("database" "api")
-   for cat in "${categories[@]}"; do
-     cat ".nomos/learning/code/${cat}.json"
-   done
-   ```
-
-3. **Filter by severity** (always include CRITICAL and HIGH):
-   ```
-   patterns.filter(p =>
-     p.severity === 'CRITICAL' ||
-     p.severity === 'HIGH' ||
-     p.tags.some(t => featureTags.includes(t))
-   )
-   ```
-
-4. **Verify CRITICAL patterns with Context7** (MANDATORY):
-   ```
-   For each CRITICAL pattern with context7LibraryId:
-     → Use mcp__context7__query-docs
-     → libraryId: pattern.context7LibraryId
-     → query: pattern.context7Query
-     → Check if pattern is still accurate
-     → Note verification status
-   ```
-
-**Log:**
-```markdown
-## Code Patterns (from .nomos/learning/code/)
-
-### Database Patterns
-| ID | Title | Severity | Context7 Verified |
-|----|-------|----------|-------------------|
-| DB-001 | Sync Transactions | CRITICAL | ✓ 2026-01-25 |
-| DB-003 | Connection Lifecycle | HIGH | - |
-
-### Pitfalls to Avoid
-| ID | Title | Error Pattern |
-|----|-------|---------------|
-| PIT-DB-001 | Transaction API Mismatch | "is not a function" |
-
-### Best Practices
-- BP-DB-001: Use Repository Pattern
-```
-
-### 8. Load Relevant Decisions
-
-**If `.nomos/memory/decisions/` exists:**
-
-Scan for decisions related to:
-- This feature's phase
-- Similar features
-- Technical areas involved
-
-```markdown
-## Relevant Decisions
-
-| Decision | Date | Summary |
-|----------|------|---------|
-| {title} | {date} | {one_line_summary} |
-```
-
-### 9. Generate Context Summary
-
-Combine all loaded information:
-
-```markdown
-## Context Summary
-
-**Feature:** {feature_title}
+### Learnings Applied
 **Risk Level:** {risk_level}
+**Patterns to Apply:** {list}
+**Anti-Patterns to Avoid:** {list}
+**Thresholds:** Duration: {n} min, Files: {n}
 
-**Patterns to Apply:**
+### Codebase Context
+**Related Files:** {count} files found
+| File | Contains |
+|------|----------|
+| `src/path/file.ts` | Existing implementation |
+
+### Patterns Observed
 - {pattern_1}
 - {pattern_2}
 
-**Anti-Patterns to Avoid:**
-- {antipattern_1}
-- {antipattern_2}
+### Utilities Available
+- {utility_1}
+- {utility_2}
 
-**Thresholds:**
-- Target duration: {threshold} min
-- Target files: {threshold}
+### Documentation Insights (if researched)
+- {library}: {key_finding}
 
-**Dependencies:** {status}
-
-→ Proceeding to analysis...
+### Dependencies
+| Dependency | Status |
+|------------|--------|
+| {dep_id} | Verified / Pending |
 ```
 
-### 9. Complete Output
+### 5. Save Output
 
-Append to `{output_dir}/01-context.md`:
+Write combined findings to `{output_dir}/01-context.md`
 
-```markdown
----
-## Step Complete
-**Status:** ✓ Complete
-**Risk Level:** {risk_level}
-**Patterns Loaded:** {count}
-**Next:** step-02-analyze.md
-**Timestamp:** {ISO timestamp}
+### 6. Proceed
+
+<critical>
+Do NOT ask for user confirmation - always proceed directly to step-02-plan.
+</critical>
+
+```
+→ Proceeding to planning phase...
 ```
 
 ---
 
 ## SUCCESS METRICS:
 
-✅ Patterns loaded (if available)
-✅ Anti-patterns loaded (if available)
-✅ Metrics loaded and thresholds calculated
-✅ Risk assessment completed
-✅ Dependencies checked
-✅ Relevant decisions noted
-✅ Context summary generated
-✅ Output saved
+- Learnings loaded (patterns, anti-patterns, metrics)
+- Code knowledge loaded and filtered by severity
+- Risk assessment completed
+- Related files identified with paths and line numbers
+- Existing patterns documented
+- Pre-implementation check completed
+- All agents launched in PARALLEL (single message)
+- Right NUMBER of agents launched based on complexity
+- Context summary generated
+- Output saved
 
 ## FAILURE MODES:
 
-❌ Skipping learning files without checking
-❌ Not calculating risk assessment
-❌ Proceeding with blocked dependencies (without warning)
-❌ Not setting {learned_patterns} variable
-❌ **CRITICAL**: Starting implementation in this step
-
-## CONTEXT PROTOCOLS:
-
-- Learning files are optional but valuable
-- Always calculate risk even with no history
-- Dependencies can block but user can override
-- Set {learned_patterns} for injection in planning
+- Starting to plan or design (that's step 2!)
+- Launching agents sequentially instead of parallel
+- Launching too many agents for a simple task
+- Skipping learning files without checking
+- Not calculating risk assessment
+- Not checking if feature is already implemented
+- Blocking workflow with unnecessary confirmation prompts
 
 ---
 
 ## NEXT STEP:
 
-After context summary, proceed directly to `./step-02-analyze.md`
+Always proceed directly to `./step-02-plan.md`
 
 <critical>
-Remember: This step is ONLY about loading context - no analysis or planning yet!
+This step is ONLY about gathering context - save all planning for step-02!
 </critical>

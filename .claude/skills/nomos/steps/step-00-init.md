@@ -1,6 +1,6 @@
 ---
 name: step-00-init
-description: Initialize NOMOS workflow - parse flags, load feature, setup worktree
+description: Initialize NOMOS workflow - parse flags, load feature, setup worktree, interactive config
 next_step: steps/step-01-context.md
 ---
 
@@ -11,18 +11,36 @@ next_step: steps/step-01-context.md
 
 You MUST follow these steps IN ORDER. Do NOT skip ahead.
 
-1. Parse flags → 2. Get feature ID → 3. Validate feature → 4. Create WORKTREE → 5. Create output → 6. Update state → 7. Proceed
+1. Parse flags → 2. Interactive config (if -i) → 3. Get feature ID → 4. Validate feature → 5. Create WORKTREE → 6. Create output → 7. Update state → 8. Proceed
 
 **STOP AND CHECK:** Before ANY bash command, verify you are on the correct step.
 </critical>
 
 ## EXECUTION RULES:
 
-- 🛑 NEVER create output directory before worktree exists
-- 🛑 NEVER skip feature validation
-- ✅ ALWAYS create worktree FIRST, then output directory
-- ✅ ALWAYS use features.json as single source of truth
-- 📋 Status values: `pending` (not started), `in_progress`, `waiting_approval`, `verified`
+- NEVER create output directory before worktree exists
+- NEVER skip feature validation
+- NEVER run commands from inside the worktree (except bun install/build)
+- ALWAYS run commands from PROJECT ROOT (use absolute paths)
+- ALWAYS create worktree FIRST, then output directory
+- ALWAYS use features.json as single source of truth
+- Status values: `pending` (not started), `in_progress`, `waiting_approval`, `verified`
+
+## PROJECT ROOT:
+
+**All commands must run from project root unless explicitly noted.**
+```bash
+PROJECT_ROOT=$(pwd)
+```
+
+---
+
+## PRE-STEP: Cleanup Orphaned Processes
+
+**Always run at start of any feature run to prevent port conflicts:**
+```bash
+bash .claude/skills/nomos/scripts/nomos.sh ports cleanup
+```
 
 ---
 
@@ -60,11 +78,65 @@ Non-flag argument → {feature_id}
 
 ---
 
+## STEP 1b: Interactive Configuration (if -i)
+
+**IF {interactive_mode} = true:**
+
+Present current config and allow the user to toggle flags.
+
+**Display current configuration:**
+```
+**Current NOMOS Configuration for {feature_id}:**
+
+| Flag | Status | Description |
+|------|--------|-------------|
+| Auto (`-a`) | {auto_mode ? "ON" : "OFF"} | Skip confirmations |
+| Test (`-t`) | {test_mode ? "ON" : "OFF"} | Include test steps |
+| PR (`-pr`) | {pr_mode ? "ON" : "OFF"} | Create pull request |
+| Plan only (`-p`) | {plan_only ? "ON" : "OFF"} | Stop after planning |
+| Verify only (`-v`) | {verify_only ? "ON" : "OFF"} | Review step only |
+```
+
+**Ask for Primary Flags** using AskUserQuestion with multiSelect:
+```yaml
+questions:
+  - header: "Configure"
+    question: "Select flags to TOGGLE (selected flags will flip their state):"
+    options:
+      - label: "Auto mode (-a)"
+        description: "Skip confirmations, full pipeline"
+      - label: "Test mode (-t)"
+        description: "Include test creation and running"
+      - label: "PR mode (-pr)"
+        description: "Create pull request at end"
+      - label: "Done - proceed with current"
+        description: "No changes, proceed with workflow"
+    multiSelect: true
+```
+
+**Ask for Scope:**
+```yaml
+questions:
+  - header: "Scope"
+    question: "What scope for this run?"
+    options:
+      - label: "Full pipeline (Recommended)"
+        description: "Run all steps from context to merge/ship"
+      - label: "Plan only (-p)"
+        description: "Stop after step 02 (planning)"
+      - label: "Verify only (-v)"
+        description: "Run only step 04 (verify)"
+    multiSelect: false
+```
+
+**Apply changes and show final configuration.**
+
+---
+
 ## STEP 2: Handle Special Modes
 
 **IF `-s` or `--status`:**
 ```bash
-# Show status and EXIT
 cat .nomos/features.json | jq '{
   total: .features | length,
   completed: [.features[] | select(.passes == true)] | length,
@@ -73,13 +145,12 @@ cat .nomos/features.json | jq '{
   pre_implemented: [.features[] | select(.preImplemented == true)] | length
 }'
 
-# Show next features to implement (passes == false)
 cat .nomos/features.json | jq -r '.features[] | select(.passes == false) | "\(.id): \(.title)"' | head -5
 ```
 → EXIT after showing status
 
 **IF `-l` without feature_id:**
-→ Load step-09-learn.md directly
+→ Load step-06-finish.md directly (learning extraction track)
 → EXIT after learning
 
 ---
@@ -88,12 +159,10 @@ cat .nomos/features.json | jq -r '.features[] | select(.passes == false) | "\(.i
 
 **IF {feature_id} is provided:**
 ```bash
-# Try to claim the feature atomically (prevents two agents on same feature)
-CLAIM_RESULT=$(bash .claude/skills/nomos/scripts/feature-state.sh claim {feature_id})
+CLAIM_RESULT=$(bash .claude/skills/nomos/scripts/nomos.sh state claim {feature_id})
 
 if [[ "$CLAIM_RESULT" == "ALREADY_CLAIMED" ]]; then
-    echo "⚠️ Feature {feature_id} is already being worked on by another agent"
-    echo "Tip: Run without feature ID to auto-select next available feature"
+    echo "Feature {feature_id} is already being worked on by another agent"
     exit 1
 fi
 ```
@@ -101,9 +170,7 @@ fi
 
 **IF {feature_id} is NOT provided AND {auto_mode} = true:**
 ```bash
-# ATOMIC auto-select: Claims next available feature to prevent race conditions
-# This uses flock to ensure only one agent claims each feature
-NEXT_FEATURE=$(bash .claude/skills/nomos/scripts/feature-state.sh next)
+NEXT_FEATURE=$(bash .claude/skills/nomos/scripts/nomos.sh state next)
 
 if [[ "$NEXT_FEATURE" == "NONE" ]]; then
     echo "No features available to work on"
@@ -113,8 +180,7 @@ fi
 echo "Auto-selected and claimed: $NEXT_FEATURE"
 ```
 → Set {feature_id} = $NEXT_FEATURE
-→ **Note: Feature is already marked in_progress by the atomic claim**
-→ Skip STEP 7 (state already updated), proceed to STEP 4
+→ Skip STEP 7 (state already updated)
 
 **IF {feature_id} is NOT provided AND {auto_mode} = false:**
 → Ask user which feature to work on (show list where passes == false)
@@ -146,7 +212,7 @@ cat .nomos/features.json | jq -e --arg id "{feature_id}" '.features[] | select(.
 **Validate status:**
 ```
 IF {feature_status} == "verified":
-  → ERROR: "Feature already verified. Cannot work on it."
+  → ERROR: "Feature already verified."
   → HALT
 
 IF {feature_status} == "waiting_approval" AND NOT {verify_only}:
@@ -181,14 +247,13 @@ git worktree add .nomos/worktrees/{feature_id} -b nomos/{feature_id}
 
 **Allocate ports for parallel execution:**
 ```bash
-# Get unique ports (prevents conflicts with other agents)
-PORTS_JSON=$(bash .claude/skills/nomos/scripts/allocate-ports.sh {feature_id})
+PORTS_JSON=$(bash .claude/skills/nomos/scripts/nomos.sh ports allocate {feature_id})
 SERVER_PORT=$(echo "$PORTS_JSON" | jq -r '.SERVER_PORT')
 WEB_PORT=$(echo "$PORTS_JSON" | jq -r '.WEB_PORT')
 echo "Ports: SERVER=$SERVER_PORT, WEB=$WEB_PORT"
 ```
 
-**Get absolute path to worktree for DATABASE_URL:**
+**Get absolute path to worktree:**
 ```bash
 WORKTREE_ROOT=$(cd .nomos/worktrees/{feature_id} && pwd)
 ```
@@ -213,14 +278,14 @@ VITE_SERVER_URL=http://localhost:{server_port}
 VITE_PORT={web_port}
 ```
 
-**Copy database if exists (for seeded data):**
+**Copy database if exists:**
 ```bash
 if [[ -f .nomos/nomos.db ]]; then
     cp .nomos/nomos.db .nomos/worktrees/{feature_id}/.nomos/nomos.db
 fi
 ```
 
-**Save port info for later steps (use Write tool):**
+**Save port info (use Write tool):**
 ```bash
 mkdir -p .nomos/worktrees/{feature_id}/.nomos
 ```
@@ -233,19 +298,12 @@ Content:
 ### 5b. Install Dependencies
 
 ```bash
-cd .nomos/worktrees/{feature_id} && bun install
+(cd .nomos/worktrees/{feature_id} && bun install)
 ```
-
-This ensures:
-- Each worktree is fully isolated with its own .env files
-- Each worktree has unique ports for parallel execution
-- Database is copied for seeded data
-- Parallel agents can work on different features without conflicts
 
 **If exists (resume mode):**
 ```bash
-cd .nomos/worktrees/{feature_id} && git status
-# Read existing port allocation
+git -C .nomos/worktrees/{feature_id} status
 PORTS_JSON=$(cat .nomos/worktrees/{feature_id}/.nomos/ports.json)
 SERVER_PORT=$(echo "$PORTS_JSON" | jq -r '.SERVER_PORT')
 WEB_PORT=$(echo "$PORTS_JSON" | jq -r '.WEB_PORT')
@@ -262,14 +320,17 @@ WEB_PORT=$(echo "$PORTS_JSON" | jq -r '.WEB_PORT')
 
 ## STEP 6: Create Output Structure (AFTER worktree!)
 
-**Now create output directory:**
+<critical>
+**MUST RUN FROM PROJECT ROOT**
+</critical>
+
 ```bash
 mkdir -p .nomos/output/{feature_id}
 ```
 
-**Run template setup:**
+**Run template setup (from project root):**
 ```bash
-bash .claude/skills/nomos/scripts/init.sh \
+bash .claude/skills/nomos/scripts/nomos.sh init \
   "{feature_id}" \
   "{feature_title}" \
   "{feature_description}" \
@@ -294,12 +355,10 @@ bash .claude/skills/nomos/scripts/init.sh \
 
 ## STEP 7: Update Feature State
 
-**Note: Skip this step if feature was claimed via atomic selection (auto_mode with no feature_id) or explicit claim.**
+**Note: Skip if feature was claimed via atomic selection.**
 
-**If not already claimed, update features.json:**
 ```bash
-# Only needed if feature wasn't claimed in STEP 3
-bash .claude/skills/nomos/scripts/feature-state.sh start {feature_id}
+bash .claude/skills/nomos/scripts/nomos.sh state start {feature_id}
 ```
 
 ---
@@ -308,7 +367,7 @@ bash .claude/skills/nomos/scripts/feature-state.sh start {feature_id}
 
 **Show compact summary:**
 ```
-✓ NOMOS: {feature_id} - {feature_title}
+NOMOS: {feature_id} - {feature_title}
 
 | Variable | Value |
 |----------|-------|
@@ -331,10 +390,10 @@ IF {resume_mode} AND {resume_from_step}:
   → Load {resume_from_step}
 
 IF {verify_only}:
-  → Load step-06-review.md
+  → Load step-04-verify.md
 
 IF {learn_only}:
-  → Load step-09-learn.md
+  → Load step-06-finish.md
 
 ELSE:
   → Load step-01-context.md
@@ -344,7 +403,6 @@ ELSE:
 
 ## SUCCESS CHECKLIST:
 
-Before proceeding, verify:
 - [ ] Feature ID obtained (provided or auto-selected)
 - [ ] Feature validated from features.json
 - [ ] Worktree created at .nomos/worktrees/{feature_id}
@@ -360,10 +418,11 @@ Before proceeding, verify:
 
 ## FAILURE MODES:
 
-❌ Creating output before worktree
-❌ Not validating feature exists
-❌ Proceeding without feature ID
-❌ **NOT copying .env files to worktree** (server won't start)
-❌ **NOT setting unique ports** (parallel execution will conflict)
-❌ Verbose output or explanations
-❌ Asking unnecessary confirmations in auto mode
+- Creating output before worktree
+- Not validating feature exists
+- Proceeding without feature ID
+- NOT copying .env files to worktree (server won't start)
+- NOT setting unique ports (parallel execution will conflict)
+- Running commands from inside worktree
+- Verbose output or explanations
+- Asking unnecessary confirmations in auto mode
