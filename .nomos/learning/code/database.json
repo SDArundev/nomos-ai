@@ -150,6 +150,45 @@
 			"severity": "LOW",
 			"tags": ["drizzle-orm", "typescript", "null-safety", "returning"],
 			"addedAt": "2026-01-29T00:20:00Z"
+		},
+		{
+			"id": "DB-012",
+			"title": "Query by foreign key for entity filtering",
+			"subcategory": "patterns",
+			"framework": "drizzle-orm",
+			"problem": "Need to filter entities by foreign key (e.g., features by project, features by status)",
+			"solution": "Use eq() with the foreign key column. Dedicate a named method per query for API clarity.",
+			"codeAfter": "async findByProject(projectId: string): Promise<FeatureSelect[]> {\n  return db.select().from(feature).where(eq(feature.projectId, projectId));\n},\nasync findByStatus(status: string): Promise<FeatureSelect[]> {\n  return db.select().from(feature).where(eq(feature.status, status));\n}",
+			"learnedFrom": "F013",
+			"severity": "LOW",
+			"tags": ["drizzle-orm", "repository", "query", "filter", "patterns"],
+			"addedAt": "2026-01-29T01:00:00Z"
+		},
+		{
+			"id": "DB-013",
+			"title": "Bulk operations with inArray + returning",
+			"subcategory": "patterns",
+			"framework": "drizzle-orm",
+			"problem": "Need to update multiple rows by ID in a single query and return the updated rows",
+			"solution": "Use inArray() from drizzle-orm with .returning() for bulk updates. Guard with empty array check.",
+			"codeAfter": "async bulkUpdateStatus(ids: string[], status: string): Promise<FeatureSelect[]> {\n  if (ids.length === 0) return [];\n  return db\n    .update(feature)\n    .set({ status })\n    .where(inArray(feature.id, ids))\n    .returning();\n}",
+			"learnedFrom": "F013",
+			"severity": "MEDIUM",
+			"tags": ["drizzle-orm", "bulk", "inArray", "returning", "patterns"],
+			"addedAt": "2026-01-29T01:00:00Z"
+		},
+		{
+			"id": "DB-014",
+			"title": "JSON column dependency resolution with two queries",
+			"subcategory": "patterns",
+			"framework": "drizzle-orm",
+			"problem": "A feature stores dependency IDs in a JSON text column. Need to resolve those IDs to full entity records.",
+			"solution": "Two-step query: 1) Fetch parent to read JSON column, 2) Use inArray() on the parsed IDs to batch-fetch dependencies.",
+			"codeAfter": "async findDependencies(id: string): Promise<FeatureSelect[]> {\n  const parent = await this.findById(id);\n  if (!parent) throw new Error(`Feature not found: ${id}`);\n  const deps = parent.dependencies ?? [];\n  if (deps.length === 0) return [];\n  return db.select().from(feature).where(inArray(feature.id, deps));\n}",
+			"learnedFrom": "F013",
+			"severity": "MEDIUM",
+			"tags": ["drizzle-orm", "json-column", "dependencies", "batch-fetch", "patterns"],
+			"addedAt": "2026-01-29T01:00:00Z"
 		}
 	],
 	"pitfalls": [
@@ -163,5 +202,5 @@
 			"addedAt": "2026-01-28T16:53:00Z"
 		}
 	],
-	"lastUpdated": "2026-01-29T00:20:00Z"
+	"lastUpdated": "2026-01-29T01:00:00Z"
 }

@@ -1,7 +1,29 @@
 {
 	"version": 1,
 	"description": "File-to-purpose mapping for instant codebase navigation. Updated after each feature.",
-	"lastUpdated": null,
-	"lastUpdatedBy": null,
-	"files": {}
+	"lastUpdated": "2026-01-29T01:00:00Z",
+	"lastUpdatedBy": "F013",
+	"files": {
+		"packages/db/src/repositories/feature.ts": {
+			"purpose": "FeatureRepository with CRUD, query by project/status, bulk status update, dependency resolution, and transaction support",
+			"layer": "server",
+			"exports": ["featureRepository"],
+			"imports_from": ["packages/db/src/index.ts", "packages/db/src/schema/features.ts"],
+			"lastTouchedBy": "F013"
+		},
+		"packages/db/src/repositories/index.ts": {
+			"purpose": "Barrel export for all repository modules",
+			"layer": "server",
+			"exports": ["featureRepository", "projectRepository"],
+			"imports_from": ["packages/db/src/repositories/feature.ts", "packages/db/src/repositories/project.ts"],
+			"lastTouchedBy": "F013"
+		},
+		"packages/db/src/index.ts": {
+			"purpose": "Database client initialization (libSQL/Drizzle) and barrel export for db, migrations, and repositories",
+			"layer": "server",
+			"exports": ["db", "runMigrations", "featureRepository", "projectRepository"],
+			"imports_from": ["packages/env/server", "packages/db/src/schema/index.ts", "packages/db/src/migrate.ts", "packages/db/src/repositories/index.ts"],
+			"lastTouchedBy": "F013"
+		}
+	}
 }

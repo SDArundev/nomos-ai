@@ -400,12 +400,11 @@
         "Index on status and featureId"
       ],
       "estimatedSize": "S",
-      "status": "in_progress",
+      "status": "pending",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite",
-      "startedAt": "2026-01-28T17:19:06Z"
+      "planningMode": "lite"
     },
     {
       "id": "F010",
@@ -427,7 +426,7 @@
         "Timestamp for recency"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
+      "status": "pending",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -512,11 +511,12 @@
         "Dependency resolution query"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "verifiedAt": "2026-01-28T20:58:32Z"
     },
     {
       "id": "F014",
