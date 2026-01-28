@@ -62,6 +62,12 @@ export {
 	UserIdSchema,
 } from "./ids";
 export {
+	type Project,
+	ProjectSchema,
+	type ProjectSettings,
+	ProjectSettingsSchema,
+} from "./project";
+export {
 	FEATURE_STATUS,
 	type FeatureStatus,
 	FeatureStatusSchema,
