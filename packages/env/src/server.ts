@@ -15,7 +15,7 @@ export const env = createEnv({
 				{
 					message:
 						'DATABASE_URL must start with "file:" for SQLite, "libsql://" for Turso, or "http" for remote',
-				}
+				},
 			),
 		BETTER_AUTH_SECRET: z.string().min(32),
 		BETTER_AUTH_URL: z.url(),

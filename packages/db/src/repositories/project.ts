@@ -43,10 +43,7 @@ export const projectRepository = {
 	},
 
 	async delete(id: string): Promise<ProjectSelect> {
-		const rows = await db
-			.delete(project)
-			.where(eq(project.id, id))
-			.returning();
+		const rows = await db.delete(project).where(eq(project.id, id)).returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error(`Project not found: ${id}`);

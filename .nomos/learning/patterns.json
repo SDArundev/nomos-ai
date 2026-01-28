@@ -1,118 +1,118 @@
 {
-  "patterns": [
-    {
-      "id": "PAT-001",
-      "name": "CLI_SCAFFOLD_FIRST",
-      "description": "Use established CLI scaffolds (better-t-stack, create-next-app, etc.) for initial project setup rather than manual configuration",
-      "category": "project-setup",
-      "evidence_count": 1,
-      "last_seen": "F001",
-      "applies_to": ["CAT-PRJ", "phase-1"],
-      "recommendation": "For new monorepo setup, use 'bun create better-t-stack@latest' with appropriate flags",
-      "flags_used": "--database sqlite --orm drizzle --auth --frontend tanstack-router --addons turborepo biome husky --backend hono --runtime bun --api orpc",
-      "time_saved_estimate": "2-4 hours"
-    },
-    {
-      "id": "PAT-002",
-      "name": "ROUTE_TREE_GENERATION",
-      "description": "TanStack Router requires route tree generation before TypeScript will pass",
-      "category": "typescript",
-      "evidence_count": 1,
-      "last_seen": "F001",
-      "applies_to": ["CAT-PRJ", "frontend"],
-      "recommendation": "Run 'vite build' or 'vite dev' once to generate routeTree.gen.ts before running type checks",
-      "gotcha": "TypeScript check will fail with 'Cannot find module ./routeTree.gen' until first build"
-    },
-    {
-      "id": "PAT-003",
-      "name": "WORKTREE_ENV_ISOLATION",
-      "description": "Git worktrees need separate .env files with absolute paths for DATABASE_URL",
-      "category": "git-workflow",
-      "evidence_count": 4,
-      "last_seen": "F006",
-      "applies_to": ["CAT-GIT", "all-phases"],
-      "recommendation": "Create .env files in worktree during step-00-init with: 1) file: prefix for SQLite URLs, 2) absolute paths using $(pwd) to avoid CWD issues",
-      "gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
-      "codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env"
-    },
-    {
-      "id": "PAT-004",
-      "name": "BIOME_AUTO_FIX",
-      "description": "Biome can auto-fix most formatting and lint issues",
-      "category": "code-quality",
-      "evidence_count": 1,
-      "last_seen": "F001",
-      "applies_to": ["all"],
-      "recommendation": "Use 'bunx biome check . --write --unsafe' for comprehensive auto-fixes",
-      "files_fixed": 70
-    },
-    {
-      "id": "PAT-005",
-      "name": "ZOD_BRANDED_TYPES",
-      "description": "Use Zod's .brand<>() for compile-time type safety on primitive IDs",
-      "category": "typescript",
-      "evidence_count": 3,
-      "last_seen": "F004",
-      "applies_to": ["CAT-PRJ", "types", "validation"],
-      "recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
-      "codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;"
-    },
-    {
-      "id": "PAT-006",
-      "name": "STATUS_ENUM_PATTERN",
-      "description": "Define status constants as 'as const' objects with derived types and Zod schemas",
-      "category": "typescript",
-      "evidence_count": 2,
-      "last_seen": "F003",
-      "applies_to": ["CAT-PRJ", "types", "validation"],
-      "recommendation": "Use const objects for status values, derive type with keyof typeof, create z.enum() for validation",
-      "codeExample": "const STATUS = { ACTIVE: 'active' } as const;\ntype Status = (typeof STATUS)[keyof typeof STATUS];\nconst StatusSchema = z.enum([STATUS.ACTIVE]);"
-    },
-    {
-      "id": "PAT-007",
-      "name": "REGEX_BRANDED_PATTERN",
-      "description": "Combine .regex() with .brand<>() for pattern-validated IDs that are also nominally typed",
-      "category": "typescript",
-      "evidence_count": 1,
-      "last_seen": "F003",
-      "applies_to": ["CAT-PRJ", "types", "validation"],
-      "recommendation": "For IDs with specific formats (F001, CAT-XXX), add .regex() before .brand() for runtime validation",
-      "codeExample": "const FeatureIdSchema = z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>();"
-    },
-    {
-      "id": "PAT-008",
-      "name": "ZOD_DEFAULT_NOT_OPTIONAL",
-      "description": "Use .default() alone without .optional() - default already handles undefined",
-      "category": "typescript",
-      "evidence_count": 1,
-      "last_seen": "F003",
-      "applies_to": ["CAT-PRJ", "types", "validation"],
-      "recommendation": "When using .default(value), do NOT chain .optional() - it's redundant and creates semantic confusion",
-      "codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()"
-    },
-    {
-      "id": "PAT-009",
-      "name": "NESTED_DEFAULTS_TRANSFORM",
-      "description": "Use .optional().transform() to properly apply nested schema defaults when parent field is undefined",
-      "category": "typescript",
-      "evidence_count": 1,
-      "last_seen": "F004",
-      "applies_to": ["CAT-PRJ", "types", "validation"],
-      "recommendation": "When a nested object schema has field defaults that should apply when the parent is omitted or empty, use .optional().transform() instead of .default({})",
-      "codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
-      "gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply"
-    },
-    {
-      "id": "PAT-010",
-      "name": "SCHEMA_COMPOSITION_PATTERN",
-      "description": "Compose schemas by importing existing ID schemas rather than redefining",
-      "category": "typescript",
-      "evidence_count": 1,
-      "last_seen": "F005",
-      "applies_to": ["CAT-PRJ", "types", "validation"],
-      "recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
-      "codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});"
-    }
-  ],
-  "last_updated": "2026-01-28T21:00:00Z"
+	"patterns": [
+		{
+			"id": "PAT-001",
+			"name": "CLI_SCAFFOLD_FIRST",
+			"description": "Use established CLI scaffolds (better-t-stack, create-next-app, etc.) for initial project setup rather than manual configuration",
+			"category": "project-setup",
+			"evidence_count": 1,
+			"last_seen": "F001",
+			"applies_to": ["CAT-PRJ", "phase-1"],
+			"recommendation": "For new monorepo setup, use 'bun create better-t-stack@latest' with appropriate flags",
+			"flags_used": "--database sqlite --orm drizzle --auth --frontend tanstack-router --addons turborepo biome husky --backend hono --runtime bun --api orpc",
+			"time_saved_estimate": "2-4 hours"
+		},
+		{
+			"id": "PAT-002",
+			"name": "ROUTE_TREE_GENERATION",
+			"description": "TanStack Router requires route tree generation before TypeScript will pass",
+			"category": "typescript",
+			"evidence_count": 1,
+			"last_seen": "F001",
+			"applies_to": ["CAT-PRJ", "frontend"],
+			"recommendation": "Run 'vite build' or 'vite dev' once to generate routeTree.gen.ts before running type checks",
+			"gotcha": "TypeScript check will fail with 'Cannot find module ./routeTree.gen' until first build"
+		},
+		{
+			"id": "PAT-003",
+			"name": "WORKTREE_ENV_ISOLATION",
+			"description": "Git worktrees need separate .env files with absolute paths for DATABASE_URL",
+			"category": "git-workflow",
+			"evidence_count": 4,
+			"last_seen": "F006",
+			"applies_to": ["CAT-GIT", "all-phases"],
+			"recommendation": "Create .env files in worktree during step-00-init with: 1) file: prefix for SQLite URLs, 2) absolute paths using $(pwd) to avoid CWD issues",
+			"gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
+			"codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env"
+		},
+		{
+			"id": "PAT-004",
+			"name": "BIOME_AUTO_FIX",
+			"description": "Biome can auto-fix most formatting and lint issues",
+			"category": "code-quality",
+			"evidence_count": 1,
+			"last_seen": "F001",
+			"applies_to": ["all"],
+			"recommendation": "Use 'bunx biome check . --write --unsafe' for comprehensive auto-fixes",
+			"files_fixed": 70
+		},
+		{
+			"id": "PAT-005",
+			"name": "ZOD_BRANDED_TYPES",
+			"description": "Use Zod's .brand<>() for compile-time type safety on primitive IDs",
+			"category": "typescript",
+			"evidence_count": 3,
+			"last_seen": "F004",
+			"applies_to": ["CAT-PRJ", "types", "validation"],
+			"recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
+			"codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;"
+		},
+		{
+			"id": "PAT-006",
+			"name": "STATUS_ENUM_PATTERN",
+			"description": "Define status constants as 'as const' objects with derived types and Zod schemas",
+			"category": "typescript",
+			"evidence_count": 2,
+			"last_seen": "F003",
+			"applies_to": ["CAT-PRJ", "types", "validation"],
+			"recommendation": "Use const objects for status values, derive type with keyof typeof, create z.enum() for validation",
+			"codeExample": "const STATUS = { ACTIVE: 'active' } as const;\ntype Status = (typeof STATUS)[keyof typeof STATUS];\nconst StatusSchema = z.enum([STATUS.ACTIVE]);"
+		},
+		{
+			"id": "PAT-007",
+			"name": "REGEX_BRANDED_PATTERN",
+			"description": "Combine .regex() with .brand<>() for pattern-validated IDs that are also nominally typed",
+			"category": "typescript",
+			"evidence_count": 1,
+			"last_seen": "F003",
+			"applies_to": ["CAT-PRJ", "types", "validation"],
+			"recommendation": "For IDs with specific formats (F001, CAT-XXX), add .regex() before .brand() for runtime validation",
+			"codeExample": "const FeatureIdSchema = z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>();"
+		},
+		{
+			"id": "PAT-008",
+			"name": "ZOD_DEFAULT_NOT_OPTIONAL",
+			"description": "Use .default() alone without .optional() - default already handles undefined",
+			"category": "typescript",
+			"evidence_count": 1,
+			"last_seen": "F003",
+			"applies_to": ["CAT-PRJ", "types", "validation"],
+			"recommendation": "When using .default(value), do NOT chain .optional() - it's redundant and creates semantic confusion",
+			"codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()"
+		},
+		{
+			"id": "PAT-009",
+			"name": "NESTED_DEFAULTS_TRANSFORM",
+			"description": "Use .optional().transform() to properly apply nested schema defaults when parent field is undefined",
+			"category": "typescript",
+			"evidence_count": 1,
+			"last_seen": "F004",
+			"applies_to": ["CAT-PRJ", "types", "validation"],
+			"recommendation": "When a nested object schema has field defaults that should apply when the parent is omitted or empty, use .optional().transform() instead of .default({})",
+			"codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
+			"gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply"
+		},
+		{
+			"id": "PAT-010",
+			"name": "SCHEMA_COMPOSITION_PATTERN",
+			"description": "Compose schemas by importing existing ID schemas rather than redefining",
+			"category": "typescript",
+			"evidence_count": 1,
+			"last_seen": "F005",
+			"applies_to": ["CAT-PRJ", "types", "validation"],
+			"recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
+			"codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});"
+		}
+	],
+	"last_updated": "2026-01-28T21:00:00Z"
 }
