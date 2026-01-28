@@ -400,11 +400,14 @@
         "Index on status and featureId"
       ],
       "estimatedSize": "S",
-      "status": "pending",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "completedAt": "2026-01-28T21:08:39Z",
+      "preImplemented": true,
+      "verifiedAt": "2026-01-28T21:08:39Z"
     },
     {
       "id": "F010",
@@ -426,11 +429,14 @@
         "Timestamp for recency"
       ],
       "estimatedSize": "S",
-      "status": "pending",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "completedAt": "2026-01-28T21:08:42Z",
+      "preImplemented": true,
+      "verifiedAt": "2026-01-28T21:08:42Z"
     },
     {
       "id": "F011",
@@ -455,11 +461,14 @@
         "Rollback capability exists"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "completedAt": "2026-01-28T21:08:45Z",
+      "preImplemented": true,
+      "verifiedAt": "2026-01-28T21:08:45Z"
     },
     {
       "id": "F012",
