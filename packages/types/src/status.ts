@@ -49,11 +49,13 @@ export const ProjectStatusSchema = z.enum([
 ]);
 
 /**
- * Session status values
+ * Session status values for agent execution sessions:
+ * pending → running → completed
+ * (failed is a terminal state for sessions that error)
  */
 export const SESSION_STATUS = {
-	ACTIVE: "active",
-	PAUSED: "paused",
+	PENDING: "pending",
+	RUNNING: "running",
 	COMPLETED: "completed",
 	FAILED: "failed",
 } as const;
@@ -64,8 +66,8 @@ export type SessionStatus =
 
 /** Zod schema for validating session status values */
 export const SessionStatusSchema = z.enum([
-	SESSION_STATUS.ACTIVE,
-	SESSION_STATUS.PAUSED,
+	SESSION_STATUS.PENDING,
+	SESSION_STATUS.RUNNING,
 	SESSION_STATUS.COMPLETED,
 	SESSION_STATUS.FAILED,
 ]);
