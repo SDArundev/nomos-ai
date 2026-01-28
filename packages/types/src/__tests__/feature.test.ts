@@ -499,7 +499,13 @@ describe("PlanSpecSchema", () => {
 	});
 
 	it("accepts all valid plan statuses", () => {
-		const statuses = ["pending", "generating", "generated", "approved", "rejected"];
+		const statuses = [
+			"pending",
+			"generating",
+			"generated",
+			"approved",
+			"rejected",
+		];
 		for (const status of statuses) {
 			const result = PlanSpecSchema.safeParse({ status });
 			expect(result.success).toBe(true);
