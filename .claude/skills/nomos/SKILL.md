@@ -2,6 +2,84 @@
 name: nomos
 description: NOMOS autonomous feature development - systematic implementation from backlog to production using worktrees, learnings, and quality gates. Use when implementing features tracked in features.json.
 argument-hint: "[-a] [-t] [-pr] [-i] [-r <feature-id>] <feature-id>"
+allowed-tools:
+  # File operations (core)
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+
+  # Research & documentation
+  - WebSearch
+  - WebFetch
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
+
+  # Task agents (all NOMOS subagents)
+  - Task(*)
+
+  # Browser testing (Playwright MCP)
+  - mcp__playwright__*
+  - mcp__plugin_playwright_playwright__*
+
+  # Git operations
+  - Bash(git *)
+  - Bash(gh *)
+
+  # Build tools
+  - Bash(bun *)
+  - Bash(bunx *)
+  - Bash(npm *)
+  - Bash(npx *)
+  - Bash(node *)
+  - Bash(turbo *)
+  - Bash(biome *)
+  - Bash(tsc *)
+
+  # File system operations
+  - Bash(ls *)
+  - Bash(mkdir *)
+  - Bash(cp *)
+  - Bash(mv *)
+  - Bash(rm *)
+  - Bash(cat *)
+  - Bash(touch *)
+  - Bash(tree *)
+  - Bash(find *)
+  - Bash(chmod *)
+  - Bash(echo *)
+  - Bash(pwd)
+
+  # Search & text processing
+  - Bash(grep *)
+  - Bash(rg *)
+  - Bash(fd *)
+  - Bash(jq *)
+  - Bash(head *)
+  - Bash(tail *)
+  - Bash(wc *)
+  - Bash(sort *)
+  - Bash(uniq *)
+  - Bash(diff *)
+  - Bash(sed *)
+  - Bash(awk *)
+  - Bash(xargs *)
+
+  # Database & utilities
+  - Bash(sqlite3 *)
+  - Bash(curl *)
+  - Bash(timeout *)
+  - Bash(gtimeout *)
+  - Bash(lsof *)
+  - Bash(pkill *)
+  - Bash(kill *)
+
+  # Shell constructs
+  - Bash(for *)
+  - Bash(while *)
+  - Bash(bash *)
+  - Bash(sh *)
 ---
 
 <objective>

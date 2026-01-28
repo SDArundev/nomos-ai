@@ -55,4 +55,8 @@ local.db
 .nomos/ports.json
 .nomos/output/
 .nomos/worktrees/
+.nomos/locks/
 .ruler/
+
+# Claude Code local settings (personal overrides)
+.claude/settings.local.json
