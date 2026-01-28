@@ -32,7 +32,7 @@ Track C: CODE REVIEW (no server needed)
   → security + quality + coverage agents
 ```
 
-**Gate:** ALL 3 tracks must pass. Failed track can be retried individually (up to 2x).
+**Gate:** ALL 3 tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 3 cycles per track).
 
 ---
 
@@ -313,21 +313,67 @@ After all 3 tracks complete:
 **Gate:** {PASS/FAIL}
 ```
 
-### 4. Handle Failures
+### 4. Handle Failures (Classification-Based)
 
-**If ANY track fails:**
+**If ANY track fails, CLASSIFY the failure first:**
 
-1. Identify which track(s) failed
-2. Fix the issues
-3. **Retry ONLY the failed track** (up to 2x)
-4. Do NOT re-run passing tracks
+| Type | Signature | Fix Strategy | Retry Scope |
+|------|-----------|-------------|-------------|
+| `TYPE_ERROR` | TS errors (TS2xxx) | Fix types, add missing imports | Track A only |
+| `LINT_ERROR` | Biome errors | Auto-fix with `bunx biome check . --write` | Track A only |
+| `TEST_FAILURE` | Assertion failed, expect() | Fix test or code logic | Track A only |
+| `BUILD_ERROR` | Module not found, resolve error | Fix imports, check dependencies | Track A only |
+| `SERVER_CRASH` | Port in use, EADDRINUSE, startup fail | Release/realloc ports | Track B only |
+| `RUNTIME_ERROR` | 500 status, unhandled exception | Fix API logic, error handling | Track B only |
+| `AC_NOT_MET` | AC check returns FAIL | Implement missing functionality | Track B only |
+| `SECURITY_FINDING` | CRITICAL/HIGH vulnerability | Fix vulnerability | Track C only |
+| `QUALITY_ISSUE` | Blocking code quality finding | Refactor affected code | Track C only |
 
-**If all retries exhausted:**
+**Failure handling sequence (Verify→Fix→Re-verify Loop):**
+
+```
+Track fails → CLASSIFY failure → Launch FIX agent → Re-verify ONLY failed track
+Max 3 cycles per track → escalate to user
+```
+
+1. **Classify** each failure using the signature column
+2. **Launch FIX agent** — a scoped Task (general-purpose) that fixes ONLY the specific failure:
+   ```
+   Task agent: general-purpose
+   Prompt: |
+     ## Fix: {failure_type} in Track {track}
+
+     Working directory: {worktree_path}
+     Failure: {failure_signature}
+     Error output: {error_details}
+
+     Fix ONLY this specific issue:
+     - Strategy: {fix_strategy_from_table}
+     - Do NOT modify unrelated code
+     - Verify your fix compiles/works before reporting
+
+     Report:
+     - Files changed: {list}
+     - Fix applied: {description}
+   ```
+3. **Re-verify ONLY the failed track** (not all tracks)
+4. If still fails → back to step 1 (max 3 cycles per track)
+5. Do NOT re-run passing tracks
+
+```markdown
+## Failure Log
+
+| # | Type | Track | Signature | Fix Applied | Retry |
+|---|------|-------|-----------|-------------|-------|
+| 1 | TYPE_ERROR | A | TS2345: Argument of type... | Added missing type cast | Cycle 1/3 |
+```
+
+**If all fix cycles exhausted (3 per track):**
 
 ```yaml
 questions:
   - header: "Verify Failed"
-    question: "Verification failed after retries. How to proceed?"
+    question: "Verification failed after classified retries. How to proceed?"
     options:
       - label: "Return to step-03 to fix (Recommended)"
         description: "Go back to implementation to address issues"
@@ -403,9 +449,30 @@ Write unified verification report to `{output_dir}/04-verify.md`:
 - Starting servers in Track A or C (only Track B)
 - Not stopping servers in Track B
 - Claiming pass without actual verification
+- Not classifying failures before retrying
+- Retrying without a targeted fix (blind retry)
 - Not retrying failed tracks before giving up
 - Skipping any track for any feature type
 - Not fixing blocking findings before proceeding
+
+---
+
+## CONTEXT COMPACTION (for step-05 handoff):
+
+Before proceeding, add a compact transfer summary at the TOP of `{output_dir}/04-verify.md`:
+
+```markdown
+## Compact Context → Step 05
+
+- **Gate Result:** PASS / FAIL
+- **Track A (Static):** PASS — typecheck, lint, {n} tests
+- **Track B (Runtime):** PASS — {n}/{m} ACs met
+- **Track C (Review):** PASS — {n} findings ({m} blocking)
+- **Fix Cycles Used:** {n} total across all tracks
+- **Blocking Issues:** {count} — {brief list or "none"}
+```
+
+This compact summary allows step-05 to proceed with merge confidence.
 
 ---
 
@@ -414,6 +481,6 @@ Write unified verification report to `{output_dir}/04-verify.md`:
 After gate passes, load `./step-05-merge.md`
 
 <critical>
-ALL 3 tracks must pass. No exceptions. Failed tracks get up to 2 retries individually.
+ALL 3 tracks must pass. No exceptions. Failed tracks use classify→fix→re-verify (up to 3 cycles).
 Servers are started ONCE in Track B and stopped before Track B completes.
 </critical>

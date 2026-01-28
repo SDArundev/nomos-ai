@@ -101,9 +101,35 @@ Prompt: |
 
   - .nomos/learning/metrics.json → Add feature metrics, recalculate aggregates
   - .nomos/learning/patterns.json → Add/update patterns with evidence_count
+    - For each pattern applied in this feature, recalculate quality scores:
+      * Add {feature_id} to `features_applied`
+      * If feature succeeded: add to `features_succeeded`
+      * Recalculate: `success_rate = features_succeeded.length / features_applied.length`
+      * Recalculate: `confidence = min(1.0, (evidence_count / 5) * success_rate)`
   - .nomos/learning/antipatterns.json → Add/update anti-patterns
 
-  ### 5. Extract Code Patterns
+  ### 5. Update Codebase Map
+
+  Read `.nomos/learning/code/codebase-map.json` (create if missing).
+  For each file changed in this feature, add/update an entry:
+  ```json
+  {
+    "files": {
+      "src/path/file.ts": {
+        "purpose": "Brief description of what this file does",
+        "layer": "server|web|shared|config|test",
+        "exports": ["functionName", "TypeName"],
+        "imports_from": ["src/other/file.ts"],
+        "lastTouchedBy": "{feature_id}"
+      }
+    }
+  }
+  ```
+  - MERGE with existing entries (don't overwrite untouched files)
+  - Update `lastUpdated` and `lastUpdatedBy` in root
+  - Only include key exports (public API), not internal helpers
+
+  ### 6. Extract Code Patterns
 
   Analyze the diff for code-level learnings:
   - Bug fixes → potential pitfalls
@@ -118,7 +144,7 @@ Prompt: |
   - mcp__context7__query-docs
   - Add context7Query and context7LibraryId to pattern
 
-  ### 6. Generate Retrospective
+  ### 7. Generate Retrospective
 
   ```markdown
   ## Retrospective: {feature_id}
@@ -143,6 +169,7 @@ Prompt: |
   patterns_extracted: {count}
   antipatterns_extracted: {count}
   code_patterns_added: {count}
+  codebase_map_entries_updated: {count}
   files_updated: {list}
   ```
 ```

@@ -10,7 +10,12 @@
 			"applies_to": ["CAT-PRJ", "phase-1"],
 			"recommendation": "For new monorepo setup, use 'bun create better-t-stack@latest' with appropriate flags",
 			"flags_used": "--database sqlite --orm drizzle --auth --frontend tanstack-router --addons turborepo biome husky --backend hono --runtime bun --api orpc",
-			"time_saved_estimate": "2-4 hours"
+			"time_saved_estimate": "2-4 hours",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F001"],
+			"features_succeeded": ["F001"]
 		},
 		{
 			"id": "PAT-002",
@@ -21,7 +26,12 @@
 			"last_seen": "F001",
 			"applies_to": ["CAT-PRJ", "frontend"],
 			"recommendation": "Run 'vite build' or 'vite dev' once to generate routeTree.gen.ts before running type checks",
-			"gotcha": "TypeScript check will fail with 'Cannot find module ./routeTree.gen' until first build"
+			"gotcha": "TypeScript check will fail with 'Cannot find module ./routeTree.gen' until first build",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "HIGH",
+			"features_applied": ["F001"],
+			"features_succeeded": ["F001"]
 		},
 		{
 			"id": "PAT-003",
@@ -33,7 +43,12 @@
 			"applies_to": ["CAT-GIT", "all-phases"],
 			"recommendation": "Create .env files in worktree during step-00-init with: 1) file: prefix for SQLite URLs, 2) absolute paths using $(pwd) to avoid CWD issues",
 			"gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
-			"codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env"
+			"codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env",
+			"confidence": 0.8,
+			"success_rate": 1.0,
+			"risk_if_ignored": "HIGH",
+			"features_applied": ["F001", "F003", "F005", "F006"],
+			"features_succeeded": ["F001", "F003", "F005", "F006"]
 		},
 		{
 			"id": "PAT-004",
@@ -44,7 +59,12 @@
 			"last_seen": "F001",
 			"applies_to": ["all"],
 			"recommendation": "Use 'bunx biome check . --write --unsafe' for comprehensive auto-fixes",
-			"files_fixed": 70
+			"files_fixed": 70,
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F001"],
+			"features_succeeded": ["F001"]
 		},
 		{
 			"id": "PAT-005",
@@ -55,7 +75,12 @@
 			"last_seen": "F004",
 			"applies_to": ["CAT-PRJ", "types", "validation"],
 			"recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
-			"codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;"
+			"codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;",
+			"confidence": 0.6,
+			"success_rate": 1.0,
+			"risk_if_ignored": "MEDIUM",
+			"features_applied": ["F003", "F004", "F005"],
+			"features_succeeded": ["F003", "F004", "F005"]
 		},
 		{
 			"id": "PAT-006",
@@ -66,7 +91,12 @@
 			"last_seen": "F003",
 			"applies_to": ["CAT-PRJ", "types", "validation"],
 			"recommendation": "Use const objects for status values, derive type with keyof typeof, create z.enum() for validation",
-			"codeExample": "const STATUS = { ACTIVE: 'active' } as const;\ntype Status = (typeof STATUS)[keyof typeof STATUS];\nconst StatusSchema = z.enum([STATUS.ACTIVE]);"
+			"codeExample": "const STATUS = { ACTIVE: 'active' } as const;\ntype Status = (typeof STATUS)[keyof typeof STATUS];\nconst StatusSchema = z.enum([STATUS.ACTIVE]);",
+			"confidence": 0.4,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F003", "F004"],
+			"features_succeeded": ["F003", "F004"]
 		},
 		{
 			"id": "PAT-007",
@@ -77,7 +107,12 @@
 			"last_seen": "F003",
 			"applies_to": ["CAT-PRJ", "types", "validation"],
 			"recommendation": "For IDs with specific formats (F001, CAT-XXX), add .regex() before .brand() for runtime validation",
-			"codeExample": "const FeatureIdSchema = z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>();"
+			"codeExample": "const FeatureIdSchema = z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>();",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F003"],
+			"features_succeeded": ["F003"]
 		},
 		{
 			"id": "PAT-008",
@@ -88,7 +123,12 @@
 			"last_seen": "F003",
 			"applies_to": ["CAT-PRJ", "types", "validation"],
 			"recommendation": "When using .default(value), do NOT chain .optional() - it's redundant and creates semantic confusion",
-			"codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()"
+			"codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F003"],
+			"features_succeeded": ["F003"]
 		},
 		{
 			"id": "PAT-009",
@@ -100,7 +140,12 @@
 			"applies_to": ["CAT-PRJ", "types", "validation"],
 			"recommendation": "When a nested object schema has field defaults that should apply when the parent is omitted or empty, use .optional().transform() instead of .default({})",
 			"codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
-			"gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply"
+			"gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "MEDIUM",
+			"features_applied": ["F004"],
+			"features_succeeded": ["F004"]
 		},
 		{
 			"id": "PAT-010",
@@ -111,9 +156,13 @@
 			"last_seen": "F005",
 			"applies_to": ["CAT-PRJ", "types", "validation"],
 			"recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
-			"codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});"
-		}
-		,
+			"codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F005"],
+			"features_succeeded": ["F005"]
+		},
 		{
 			"id": "PAT-011",
 			"name": "GOOD_PLANNING",
@@ -123,7 +172,12 @@
 			"last_seen": "F012",
 			"applies_to": ["all", "all-phases"],
 			"recommendation": "Define 3-5 concrete acceptance criteria per feature. Each should be independently verifiable.",
-			"time_saved_estimate": "15-30 minutes per feature (avoids retry loops)"
+			"time_saved_estimate": "15-30 minutes per feature (avoids retry loops)",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "MEDIUM",
+			"features_applied": ["F012"],
+			"features_succeeded": ["F012"]
 		},
 		{
 			"id": "PAT-012",
@@ -134,7 +188,12 @@
 			"last_seen": "F012",
 			"applies_to": ["all", "all-phases"],
 			"recommendation": "Target S-sized features that touch 3-5 files maximum. Split larger features.",
-			"metric": "F012 completed in 12 minutes with 3 files changed, 0 retries"
+			"metric": "F012 completed in 12 minutes with 3 files changed, 0 retries",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "MEDIUM",
+			"features_applied": ["F012"],
+			"features_succeeded": ["F012"]
 		},
 		{
 			"id": "PAT-013",
@@ -145,7 +204,12 @@
 			"last_seen": "F012",
 			"applies_to": ["CAT-DBS", "all-phases"],
 			"recommendation": "For repository layers, follow the standard CRUD pattern: findAll, findById, create, update, delete with typed returns and error handling",
-			"codeExample": "const repo = {\n  async findById(id: string): Promise<T | null> {\n    const rows = await db.select().from(table).where(eq(table.id, id));\n    return rows[0] ?? null;\n  }\n};"
+			"codeExample": "const repo = {\n  async findById(id: string): Promise<T | null> {\n    const rows = await db.select().from(table).where(eq(table.id, id));\n    return rows[0] ?? null;\n  }\n};",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F012"],
+			"features_succeeded": ["F012"]
 		},
 		{
 			"id": "PAT-014",
@@ -156,7 +220,12 @@
 			"last_seen": "F012",
 			"applies_to": ["CAT-DBS", "types"],
 			"recommendation": "Derive repository types from schema rather than manually defining interfaces",
-			"codeExample": "type ProjectSelect = typeof project.$inferSelect;\ntype ProjectInsert = typeof project.$inferInsert;"
+			"codeExample": "type ProjectSelect = typeof project.$inferSelect;\ntype ProjectInsert = typeof project.$inferInsert;",
+			"confidence": 0.2,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F012"],
+			"features_succeeded": ["F012"]
 		}
 	],
 	"last_updated": "2026-01-29T00:20:00Z"

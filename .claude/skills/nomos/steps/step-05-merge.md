@@ -55,17 +55,56 @@ git add -A
 git commit -m "chore({feature_id}): final changes before merge"
 ```
 
-### 2. Update from Main
+### 1b. Pre-merge Conflict Detection
+
+Before rebasing, check for potential conflicts:
 
 ```bash
 cd {worktree_path}
 git fetch origin main
+
+# Files changed in this feature
+FEATURE_FILES=$(git diff --name-only main...HEAD)
+
+# Files changed on main since branch point
+MAIN_FILES=$(git diff --name-only HEAD...origin/main)
+
+# Find overlap
+CONFLICTING_FILES=$(comm -12 <(echo "$FEATURE_FILES" | sort) <(echo "$MAIN_FILES" | sort))
+```
+
+**If overlapping files found, classify each conflict:**
+
+| Pattern | Type | Auto-Resolvable? |
+|---------|------|-------------------|
+| Both sides add imports | Import dedup | Yes — merge both, deduplicate |
+| Both sides append to array/object | Append-only | Yes — include both additions |
+| Both sides add schema fields | Schema addition | Yes — merge fields |
+| Same line edited differently | Same-line edit | No — pause for resolution |
+| File deleted on one side | Delete conflict | No — pause for resolution |
+
+```markdown
+## Conflict Prediction
+
+| File | Conflict Type | Resolution |
+|------|--------------|------------|
+| `src/path/file.ts` | Import dedup | Auto-resolve |
+| `src/path/schema.ts` | Same-line edit | Manual needed |
+```
+
+**If all conflicts auto-resolvable:** Proceed with rebase (conflicts will be resolved during rebase).
+**If any non-resolvable conflicts:** Warn before rebase, prepare resolution strategy.
+
+### 2. Update from Main
+
+```bash
+cd {worktree_path}
 git rebase origin/main
 ```
 
 **If conflicts occur:**
-- In `{auto_mode}`: Attempt auto-resolution for simple conflicts
-- Otherwise: List conflicts and ask user for guidance
+- In `{auto_mode}`: Apply auto-resolution for classified patterns, attempt merge for others
+- Otherwise: List conflicts with classification and ask user for guidance
 
 ### 3. Final Validation
 
@@ -81,6 +120,22 @@ bun run test:ci
 - HALT merge
 - Report failures
 - Return to step-03 for fixes
+
+### 3b. Post-Rebase Quality Re-check
+
+**If conflicts were resolved during rebase (auto or manual):**
+
+Re-run static checks to ensure conflict resolution didn't break anything:
+
+```bash
+cd {worktree_path}
+bun run check-types && bun run check
+```
+
+**If post-rebase checks fail:**
+- Fix issues introduced by conflict resolution
+- Commit fixes: `git add -A && git commit -m "fix({feature_id}): post-rebase conflict resolution"`
+- Re-run checks
 
 ### 4. Merge to Main
 
@@ -150,9 +205,15 @@ Write merge log to `{output_dir}/05-merge.md`:
 **Uncommitted changes:** {yes/no}
 **Action taken:** {committed/none}
 
+## Conflict Detection
+**Overlapping files:** {count}
+**Auto-resolvable:** {count}
+**Manual required:** {count}
+
 ## Rebase Status
 **Conflicts:** {none/list}
 **Resolution:** {auto/manual/user-assisted}
+**Post-rebase re-check:** PASS/SKIP (skip if no conflicts)
 
 ## Post-Rebase Validation
 | Check | Status |

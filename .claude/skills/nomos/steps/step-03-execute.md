@@ -200,6 +200,25 @@ Write execution log to `{output_dir}/03-execute.md`
 
 ---
 
+## CONTEXT COMPACTION (for step-04 handoff):
+
+Before proceeding, add a compact transfer summary at the TOP of `{output_dir}/03-execute.md`:
+
+```markdown
+## Compact Context → Step 04
+
+- **Files Modified:** {list of files changed with one-line summary each}
+- **New Files Created:** {list}
+- **Lines Changed:** +{added} / -{removed}
+- **Issues Encountered:** {count} — {brief list or "none"}
+- **Skills Invoked:** {list of skill names used}
+- **Quick Verify:** typecheck {PASS/FAIL} | lint {PASS/FAIL}
+```
+
+This compact summary allows step-04 to scope verification without re-reading the full execution log.
+
+---
+
 ## NEXT STEP:
 
 After implementation complete, load `./step-04-verify.md`

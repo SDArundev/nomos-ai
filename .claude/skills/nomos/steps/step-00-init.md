@@ -57,6 +57,7 @@ bash .claude/skills/nomos/scripts/nomos.sh ports cleanup
 {interactive_mode} = false
 {resume_mode}      = false
 {cleanup_mode}     = false
+{from_step}        = null
 {feature_id}       = null
 ```
 
@@ -71,6 +72,8 @@ bash .claude/skills/nomos/scripts/nomos.sh ports cleanup
 -i or --interactive    → {interactive_mode} = true
 -r or --resume         → {resume_mode} = true
 -c or --cleanup        → {cleanup_mode} = true
+-f N or --from-step N  → {from_step} = N (0-6)
+-n N or --parallel N   → RESERVED (not yet implemented, see SKILL.md parallel_features_design)
 -s or --status         → SHOW STATUS AND EXIT
 
 Non-flag argument → {feature_id}
@@ -221,6 +224,45 @@ IF {feature_status} == "waiting_approval" AND NOT {verify_only}:
 IF {feature_status} == "in_progress" AND NOT {resume_mode}:
   → Ask: "Feature already in progress. Resume (-r) or start fresh?"
 ```
+
+---
+
+## STEP 4b: Dependency Visualization
+
+Query features.json for the dependency chain of this feature:
+
+```bash
+# Direct dependencies
+jq -r --arg id "{feature_id}" '.features[] | select(.id == $id) | .dependencies[]?' .nomos/features.json
+
+# For each dependency, get status
+jq -r --arg id "{feature_id}" '
+  (.features[] | select(.id == $id) | .dependencies // []) as $deps |
+  .features[] | select(.id == ($deps[])) | "\(.id): \(.status) (passes: \(.passes))"
+' .nomos/features.json
+```
+
+**Display dependency tree:**
+
+```markdown
+## Dependencies for {feature_id}
+
+### Depends On (must be verified)
+| Feature | Title | Status | Verified? |
+|---------|-------|--------|-----------|
+| {dep_id} | {dep_title} | {status} | {passes} |
+
+### Blocks (reverse lookup — features waiting on this one)
+| Feature | Title | Status |
+|---------|-------|--------|
+| {blocked_id} | {blocked_title} | {status} |
+```
+
+**Validation:**
+- All direct dependencies MUST have `passes: true`
+- If any dependency is NOT verified: WARN
+  - In `{auto_mode}`: Continue with warning
+  - Otherwise: Ask user if they want to proceed despite unverified dependency
 
 ---
 
@@ -386,6 +428,15 @@ NOMOS: {feature_id} - {feature_title}
 
 **Then IMMEDIATELY load next step:**
 ```
+IF {from_step} is set (0-6):
+  → Validate prerequisites:
+    1. Output dir exists: .nomos/output/{feature_id}/
+    2. Worktree exists: .nomos/worktrees/{feature_id}/
+    3. For from_step > 0: output file for previous step exists
+       (e.g., from_step=3 requires 02-plan.md to exist)
+  → If prerequisites met: Load step-{from_step:02d}-*.md directly
+  → If prerequisites missing: WARN and ask user to confirm or start from beginning
+
 IF {resume_mode} AND {resume_from_step}:
   → Load {resume_from_step}
 

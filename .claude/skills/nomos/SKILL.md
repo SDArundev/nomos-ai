@@ -132,6 +132,8 @@ See `<parameters>` for complete flag list.
 | `-l` | `--learn` | Learn only: run step 06 learning extraction |
 | `-s` | `--status` | Status: show project status and exit |
 | `-c` | `--cleanup` | Cleanup: remove worktree after merge |
+| `-f N` | `--from-step N` | Resume from step N (0-6), loading state from existing outputs |
+| `-n N` | `--parallel N` | Run N features in parallel (each in separate worktree) — **design only, not yet implemented** |
 
 **Disable flags (turn OFF):**
 | Short | Long | Description |
@@ -174,6 +176,12 @@ See `<parameters>` for complete flag list.
 
 # Check status
 /nomos -s
+
+# Resume from specific step (e.g., re-run verify)
+/nomos -f 4 F016
+
+# Resume from planning (skip context)
+/nomos -f 2 F016
 
 # Interactive flag config
 /nomos -i F016
@@ -255,6 +263,7 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 | `{interactive_mode}` | boolean | Configure flags interactively |
 | `{resume_mode}` | boolean | Resume from previous state |
 | `{cleanup_mode}` | boolean | Remove worktree after merge |
+| `{from_step}` | number\|null | Resume from this step (0-6), null if full run |
 | `{worktree_path}` | string | Path to feature worktree |
 | `{output_dir}` | string | Path to output directory |
 | `{learned_patterns}` | list | Patterns loaded from learning system |
@@ -313,7 +322,7 @@ After initialization, step-00 loads step-01-context.md.
 | B: Runtime | start servers ONCE → smoke → QA → stop | Yes |
 | C: Review | security + quality + coverage agents | No |
 
-**Gate:** ALL tracks must pass. Failed track retried individually (up to 2x).
+**Gate:** ALL tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 3 cycles).
 
 ### Step 06: Finish (2 parallel tracks)
 | Track | Purpose | Always? |
@@ -393,6 +402,39 @@ bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
 | Major | 6-10 | Multiple systems, many unknowns |
 
 </execution_rules>
+
+<parallel_features_design>
+
+## Parallel Features Design (--parallel N)
+
+**Status:** Design only — not yet implemented.
+
+**Concept:** Run N features simultaneously, each in its own worktree with unique ports.
+
+```
+/nomos -n 3        # Run next 3 available features in parallel
+/nomos -n 2 -a     # Run 2 features autonomously in parallel
+```
+
+**Architecture:**
+1. Orchestrator selects N features (using `state next` N times)
+2. Each feature gets its own worktree + unique ports (already supported)
+3. Features run the full pipeline independently
+4. Learning extraction happens AFTER ALL features complete (not per-feature)
+5. Orchestrator tracks progress and reports aggregate status
+
+**Port allocation:** Already handled — each feature gets `base + (feature_num * 10)`.
+
+**Merge order:** Features merge in dependency order. If F002 depends on F001, F001 merges first.
+
+**Learning aggregation:** Patterns from all N features collected, then deduplicated and scored together.
+
+**Limitations:**
+- Each feature runs in a separate Claude Code session (not parallel within one session)
+- Database conflicts possible if features modify same tables
+- Max N = 4 (practical limit for port ranges and system resources)
+
+</parallel_features_design>
 
 <nomos_unique>
 

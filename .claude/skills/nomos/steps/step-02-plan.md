@@ -136,15 +136,77 @@ questions:
 - Risk 1: [potential issue and mitigation]
 ```
 
-### 4. Verify Plan Completeness
+### 4. Plan Critique (4 Structured Checks)
 
-Checklist:
-- [ ] All files identified - nothing missing
-- [ ] Logical order - dependencies handled first
-- [ ] Clear actions - every step specific and actionable
-- [ ] Test coverage - all paths have test strategy
-- [ ] In scope - no scope creep
-- [ ] AC mapped - every criterion has implementation
+Run these 4 checks against the plan. ALL must pass.
+
+#### Check 1: AC Coverage
+Every acceptance criterion MUST map to ≥1 file change.
+
+```markdown
+| AC | Mapped To | Status |
+|----|-----------|--------|
+| AC1: {criterion} | `file.ts` change | COVERED / MISSING |
+| AC2: {criterion} | `file.ts` change | COVERED / MISSING |
+```
+
+**FAIL if:** Any AC has no mapped file change.
+
+#### Check 2: File Existence
+Every referenced file must exist OR be explicitly marked `(NEW FILE)`.
+
+```markdown
+| File | Status |
+|------|--------|
+| `src/path/file.ts` | EXISTS / NEW / MISSING |
+```
+
+**FAIL if:** A file is referenced that doesn't exist and isn't marked NEW.
+
+#### Check 3: Scope Boundary
+No unexplained out-of-scope files. Every file change must trace back to an AC or prerequisite.
+
+```markdown
+| File | Justification |
+|------|--------------|
+| `src/path/file.ts` | AC1 - implements X |
+| `src/path/shared.ts` | Prerequisite - shared utility needed by AC2 |
+```
+
+**FAIL if:** A file change has no clear justification.
+
+#### Check 4: Complexity Match
+File count should match feature size expectations.
+
+| Size | Expected Files | Expected New Files |
+|------|---------------|-------------------|
+| S (1-2 AC) | 1-5 | 0-2 |
+| M (3-4 AC) | 3-8 | 1-3 |
+| L (5+ AC) | 5-15 | 2-6 |
+
+**WARN if:** File count is >50% above expected range.
+
+---
+
+**Critique Result:**
+
+```markdown
+## Plan Critique Result
+
+| Check | Status | Details |
+|-------|--------|---------|
+| AC Coverage | PASS/FAIL | {n}/{m} ACs covered |
+| File Existence | PASS/FAIL | {n} missing |
+| Scope Boundary | PASS/FAIL | {n} unexplained |
+| Complexity Match | PASS/WARN/FAIL | {size}: {n} files |
+
+**Overall:** PASS / FAIL
+```
+
+**IF critique FAILS:**
+1. Revise the plan to address failures
+2. Re-run critique (1 retry max)
+3. If still fails: proceed with documented gaps
 
 ### 5. Present Plan for Approval
 

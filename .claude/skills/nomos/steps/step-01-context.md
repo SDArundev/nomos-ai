@@ -83,6 +83,11 @@ Prompt: |
 
   1. Load patterns from .nomos/learning/patterns.json (if exists)
      - Filter by relevance to this feature's phase and category
+     - Apply confidence-based filtering:
+       * confidence ≥ 0.7 → ALWAYS include
+       * confidence ≥ 0.3 → include IF relevant to this feature
+       * confidence < 0.3 → SKIP unless risk_if_ignored == "HIGH"
+     - Sort included patterns by confidence (highest first)
   2. Load anti-patterns from .nomos/learning/antipatterns.json (if exists)
   3. Load metrics from .nomos/learning/metrics.json (if exists)
      - Calculate thresholds from historical data
@@ -116,7 +121,13 @@ Prompt: |
   Explore codebase for feature {feature_id}: {feature_title}
   Description: {feature_description}
 
-  Find:
+  ### Step 0: Load Codebase Map (FIRST)
+  Read `.nomos/learning/code/codebase-map.json` if it exists.
+  - If map has entries: use it to instantly locate relevant files by purpose/layer/exports
+  - Then explore ONLY for files NOT already in the map
+  - If map is empty or missing: fall back to full exploration (no error)
+
+  ### Step 1: Find Related Files
   1. Files with paths and line numbers related to this feature
   2. Patterns used for similar features
   3. Relevant utilities and shared code
@@ -255,6 +266,26 @@ Do NOT ask for user confirmation - always proceed directly to step-02-plan.
 - Not calculating risk assessment
 - Not checking if feature is already implemented
 - Blocking workflow with unnecessary confirmation prompts
+
+---
+
+## CONTEXT COMPACTION (for step-02 handoff):
+
+Before proceeding, compact the full context into a transfer summary at the TOP of `{output_dir}/01-context.md`:
+
+```markdown
+## Compact Context → Step 02
+
+- **Risk Level:** {LOW/MEDIUM/HIGH}
+- **Key Patterns:** {top 3 patterns to apply, one-line each}
+- **Anti-Patterns:** {top 2 to avoid, one-line each}
+- **Key Files:** {up to 10 most relevant files with one-line purpose}
+- **Dependencies:** {dep status: all verified / {n} pending}
+- **Thresholds:** Duration: {n} min | Files: {n} max
+- **Pre-Implementation:** {all met (skip to finish) / {n}/{m} met}
+```
+
+This compact summary allows step-02 to start immediately without re-reading the full context.
 
 ---
 

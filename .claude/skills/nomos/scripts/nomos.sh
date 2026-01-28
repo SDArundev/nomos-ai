@@ -503,6 +503,16 @@ cmd_init() {
 }
 
 # ============================================================================
+# FUTURE: parallel subcommand (design only, not yet implemented)
+# Usage: nomos.sh parallel <N>
+# - Selects N features using "state next" N times
+# - Launches each in separate worktree with unique ports
+# - Tracks progress and reports aggregate status
+# - Merges in dependency order
+# - Extracts learnings after ALL complete
+# ============================================================================
+
+# ============================================================================
 # MAIN: Route to subcommand
 # ============================================================================
 
