@@ -67,6 +67,7 @@ export {
 	type ProjectSettings,
 	ProjectSettingsSchema,
 } from "./project";
+export { type Session, SessionSchema } from "./session";
 export {
 	FEATURE_STATUS,
 	type FeatureStatus,

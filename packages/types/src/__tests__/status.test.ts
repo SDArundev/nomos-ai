@@ -105,8 +105,8 @@ describe("Status Enum Schemas", () => {
 	describe("SessionStatusSchema", () => {
 		it("accepts all valid statuses", () => {
 			const statuses = [
-				SESSION_STATUS.ACTIVE,
-				SESSION_STATUS.PAUSED,
+				SESSION_STATUS.PENDING,
+				SESSION_STATUS.RUNNING,
 				SESSION_STATUS.COMPLETED,
 				SESSION_STATUS.FAILED,
 			];
@@ -119,6 +119,11 @@ describe("Status Enum Schemas", () => {
 		it("rejects invalid statuses", () => {
 			const result = SessionStatusSchema.safeParse("stopped");
 			expect(result.success).toBe(false);
+		});
+
+		it("rejects old status values", () => {
+			expect(SessionStatusSchema.safeParse("active").success).toBe(false);
+			expect(SessionStatusSchema.safeParse("paused").success).toBe(false);
 		});
 	});
 
@@ -150,7 +155,7 @@ describe("Status Enum Schemas", () => {
 
 		it("has exactly 4 session statuses", () => {
 			const statuses = Object.values(SESSION_STATUS);
-			expect(statuses).toEqual(["active", "paused", "completed", "failed"]);
+			expect(statuses).toEqual(["pending", "running", "completed", "failed"]);
 		});
 	});
 });
