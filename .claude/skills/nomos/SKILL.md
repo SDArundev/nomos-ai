@@ -265,7 +265,7 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 | `{cleanup_mode}` | boolean | Remove worktree after merge |
 | `{from_step}` | number\|null | Resume from this step (0-6), null if full run |
 | `{worktree_path}` | string | Path to feature worktree |
-| `{output_dir}` | string | Path to output directory |
+| `{output_dir}` | string | **ABSOLUTE** path to output directory (project root, NOT worktree) |
 | `{learned_patterns}` | list | Patterns loaded from learning system |
 | `{risk_level}` | string | LOW/MEDIUM/HIGH from context analysis |
 | `{phase_models}` | object | Per-phase model defaults: `{ planning: "opus", coding: "sonnet", qa_review: "sonnet", learning: "haiku" }` |
@@ -354,6 +354,12 @@ After initialization, step-00 loads step-01-context.md.
 - NEVER use `cat >`, `cat >>`, or heredocs (`<< EOF`) for file creation
 - `cat` is ONLY for reading files, not writing
 - This applies to: .env files, output markdown files, JSON files, all file creation
+
+**OUTPUT PATH RULE:**
+- `{output_dir}` is ALWAYS an **ABSOLUTE** path at the project root (e.g., `/Users/.../nomos-ai/.nomos/output/F016`)
+- NEVER construct a relative `.nomos/output/` path — it will resolve inside the worktree when the agent has `cd`'d there
+- Output files written inside the worktree are LOST when the worktree is cleaned up after merge
+- Code changes go in `{worktree_path}`. Pipeline logs go in `{output_dir}`. These are DIFFERENT locations.
 </critical>
 
 ## Unified Script

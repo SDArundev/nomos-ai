@@ -41,8 +41,13 @@ From step-00-init:
 | `{acceptance_criteria}` | Success criteria |
 | `{auto_mode}` | Skip confirmations |
 | `{worktree_path}` | Path to worktree |
-| `{output_dir}` | Path to output directory |
+| `{output_dir}` | **ABSOLUTE** path to output directory (at project root, NOT worktree) |
 </available_state>
+
+<critical>
+**OUTPUT PATH RULE:** `{output_dir}` is an ABSOLUTE path at the project root (e.g., `/Users/.../nomos-ai/.nomos/output/F016`).
+When writing output files, ALWAYS use this absolute path. NEVER construct a relative `.nomos/output/` path — it will resolve inside the worktree and files will be lost after merge/cleanup.
+</critical>
 
 ---
 

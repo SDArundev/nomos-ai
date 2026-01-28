@@ -33,7 +33,7 @@ From previous steps:
 | `{feature_title}` | Feature title |
 | `{auto_mode}` | Skip confirmations |
 | `{worktree_path}` | Path to worktree |
-| `{output_dir}` | Path to output directory |
+| `{output_dir}` | **ABSOLUTE** path to output directory (at project root, NOT worktree) |
 | Implementation plan | File-by-file changes from step-02 |
 | Patterns | How to implement from step-01 |
 </available_state>

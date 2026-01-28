@@ -370,7 +370,10 @@ WEB_PORT=$(echo "$PORTS_JSON" | jq -r '.WEB_PORT')
 ## STEP 6: Create Output Structure (AFTER worktree!)
 
 <critical>
-**MUST RUN FROM PROJECT ROOT**
+**MUST RUN FROM PROJECT ROOT — NOT FROM WORKTREE**
+
+Output files live at the **project root**, never inside the worktree.
+The worktree is for code changes only. Output is for logging the pipeline.
 </critical>
 
 ```bash
@@ -395,10 +398,22 @@ bash .claude/skills/nomos/scripts/nomos.sh init \
   "{interactive_mode}"
 ```
 
-**Set variable:**
+**Set variable (MUST be absolute path):**
+```bash
+PROJECT_ROOT=$(pwd)
 ```
-{output_dir} = .nomos/output/{feature_id}
 ```
+{output_dir} = {PROJECT_ROOT}/.nomos/output/{feature_id}
+```
+
+<critical>
+**{output_dir} MUST be an ABSOLUTE path** (e.g., `/Users/.../nomos-ai/.nomos/output/F016`).
+NEVER set it as a relative path like `.nomos/output/F016`.
+
+If the agent later `cd`s into the worktree, a relative output_dir would resolve to
+`.nomos/worktrees/F016/.nomos/output/F016/` — WRONG location. Output files would be
+lost when the worktree is cleaned up.
+</critical>
 
 ---
 
@@ -428,7 +443,7 @@ NOMOS: {feature_id} - {feature_title}
 | pr_mode | {pr_mode} |
 | cleanup_mode | {cleanup_mode} |
 | worktree_path | {worktree_path} |
-| output_dir | {output_dir} |
+| output_dir | {output_dir} (ABSOLUTE path) |
 
 → Loading context...
 ```

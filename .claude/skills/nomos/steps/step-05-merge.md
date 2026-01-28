@@ -33,7 +33,7 @@ From previous steps:
 | `{auto_mode}` | Skip confirmations |
 | `{cleanup_mode}` | Remove worktree after merge |
 | `{worktree_path}` | Path to worktree (.nomos/worktrees/{feature_id}) |
-| `{output_dir}` | Path to output directory |
+| `{output_dir}` | **ABSOLUTE** path to output directory (at project root, NOT worktree) |
 | `{acceptance_criteria}` | AC summary for commit message |
 </available_state>
 
@@ -242,8 +242,13 @@ bash .claude/skills/nomos/scripts/nomos.sh ports release {feature_id}
 
 ```bash
 cd {project_root}
-git worktree remove {worktree_path}
-git branch -d nomos/{feature_id}
+git worktree remove {worktree_path} --force 2>/dev/null || true
+git branch -d nomos/{feature_id} 2>/dev/null || true
+```
+
+**Verify cleanup succeeded:**
+```bash
+ls -d {worktree_path} 2>/dev/null && echo "WARNING: worktree directory still exists — removing manually" && rm -rf {worktree_path} || echo "Worktree removed"
 ```
 
 **If `{cleanup_mode}` = false AND `{auto_mode}` = false:**
@@ -260,10 +265,19 @@ questions:
     multiSelect: false
 ```
 
+If user chooses "Remove worktree", run the same cleanup commands above.
+
 **If `{cleanup_mode}` = false AND `{auto_mode}` = true:**
 → Keep worktree (default)
 
 ### 7. Save Output
+
+<critical>
+**Write to `{output_dir}/05-merge.md` using the ABSOLUTE output_dir path.**
+At this point in the workflow you have been `cd`-ing into `{worktree_path}` and `{project_root}`.
+The `{output_dir}` is an absolute path at the project root — use it directly.
+Do NOT construct a relative path. Do NOT skip this step.
+</critical>
 
 Write merge log to `{output_dir}/05-merge.md`:
 

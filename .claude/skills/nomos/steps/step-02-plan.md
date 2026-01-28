@@ -34,7 +34,7 @@ From previous steps:
 | `{acceptance_criteria}` | Success criteria |
 | `{auto_mode}` | Skip confirmations |
 | `{worktree_path}` | Path to worktree |
-| `{output_dir}` | Path to output directory |
+| `{output_dir}` | **ABSOLUTE** path to output directory (at project root, NOT worktree) |
 | `{risk_level}` | Risk from step-01 |
 | `{learned_patterns}` | Patterns from step-01 |
 | Context findings | Files, patterns, utilities from step-01 |

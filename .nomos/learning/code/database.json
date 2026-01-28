@@ -189,6 +189,21 @@
 			"severity": "MEDIUM",
 			"tags": ["drizzle-orm", "json-column", "dependencies", "batch-fetch", "patterns"],
 			"addedAt": "2026-01-29T01:00:00Z"
+		},
+		{
+			"id": "DB-015",
+			"title": "SQL text append with null safety using CASE WHEN",
+			"subcategory": "patterns",
+			"framework": "drizzle-orm",
+			"problem": "Need to append text to a potentially NULL column in a database with newline separation, handling the first append differently",
+			"solution": "Use SQL CASE WHEN to check if column IS NULL. If null, set directly to new_text. If not null, concatenate with || and char(10) for newline.",
+			"codeAfter": "async appendOutput(id: string, text: string): Promise<AgentSessionSelect> {\\n  const rows = await db\\n    .update(agentSession)\\n    .set({\\n      output: sql`CASE WHEN ${agentSession.output} IS NULL THEN ${text} ELSE ${agentSession.output} || char(10) || ${text} END`,\\n    })\\n    .where(eq(agentSession.id, id))\\n    .returning();\\n  const row = rows[0];\\n  if (!row) throw new Error(`Session not found: ${id}`);\\n  return row;\\n}",
+			"learnedFrom": "F014",
+			"severity": "MEDIUM",
+			"tags": ["drizzle-orm", "sqlite", "sql-template", "null-safety", "text-concatenation", "patterns"],
+			"addedAt": "2026-01-29T02:02:10Z",
+			"context7LibraryId": "/websites/orm_drizzle_team",
+			"context7Query": "drizzle sqlite null-safe text concatenation sql template"
 		}
 	],
 	"pitfalls": [
@@ -202,5 +217,5 @@
 			"addedAt": "2026-01-28T16:53:00Z"
 		}
 	],
-	"lastUpdated": "2026-01-29T01:00:00Z"
+	"lastUpdated": "2026-01-29T02:02:10Z"
 }

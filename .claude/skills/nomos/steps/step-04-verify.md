@@ -47,7 +47,7 @@ From previous steps:
 | `{auto_mode}` | Skip confirmations |
 | `{test_mode}` | Include test creation |
 | `{worktree_path}` | Path to worktree |
-| `{output_dir}` | Path to output directory |
+| `{output_dir}` | **ABSOLUTE** path to output directory (at project root, NOT worktree) |
 | `{server_port}` | Allocated server port |
 | `{web_port}` | Allocated web port |
 | Files modified | From step-03 execution |

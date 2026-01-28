@@ -39,7 +39,7 @@ From previous steps:
 | `{feature_title}` | Feature title |
 | `{auto_mode}` | Skip confirmations |
 | `{pr_mode}` | Create pull request at end |
-| `{output_dir}` | Path to output directory |
+| `{output_dir}` | **ABSOLUTE** path to output directory (at project root, NOT worktree) |
 | `{learned_patterns}` | Patterns that were applied |
 | `{risk_level}` | Risk assessment from step-01 |
 </available_state>
