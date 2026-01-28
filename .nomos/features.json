@@ -483,12 +483,13 @@
         "Transaction support"
       ],
       "estimatedSize": "S",
-      "status": "waiting_approval",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
-      "completedAt": "2026-01-28T20:15:19Z"
+      "completedAt": "2026-01-28T20:15:19Z",
+      "verifiedAt": "2026-01-28T20:17:26Z"
     },
     {
       "id": "F013",

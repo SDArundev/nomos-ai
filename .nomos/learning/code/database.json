@@ -111,6 +111,46 @@
 			"tags": ["drizzle-orm", "sqlite", "foreign-key", "cascade", "schema"],
 			"addedAt": "2026-01-28T17:40:00Z"
 		}
+		,
+		{
+			"id": "DB-009",
+			"title": "Drizzle repository pattern with typed CRUD",
+			"subcategory": "patterns",
+			"framework": "drizzle-orm",
+			"problem": "Need a reusable, type-safe repository layer for database entities",
+			"solution": "Use $inferSelect/$inferInsert for type derivation, Omit<> for create/update constraints, undefined narrowing for .returning() results",
+			"codeAfter": "type ProjectSelect = typeof project.$inferSelect;\ntype ProjectInsert = typeof project.$inferInsert;\n\nexport const projectRepository = {\n  async findById(id: string): Promise<ProjectSelect | null> {\n    const rows = await db.select().from(project).where(eq(project.id, id));\n    return rows[0] ?? null;\n  },\n  async create(data: Omit<ProjectInsert, 'createdAt' | 'updatedAt'>): Promise<ProjectSelect> {\n    const rows = await db.insert(project).values(data).returning();\n    const row = rows[0];\n    if (!row) throw new Error('Failed to create project');\n    return row;\n  }\n};",
+			"learnedFrom": "F012",
+			"severity": "MEDIUM",
+			"tags": ["drizzle-orm", "repository", "crud", "typescript", "patterns"],
+			"addedAt": "2026-01-29T00:20:00Z"
+		},
+		{
+			"id": "DB-010",
+			"title": "Drizzle transaction type extraction",
+			"subcategory": "patterns",
+			"framework": "drizzle-orm",
+			"problem": "Need to pass transaction object to repository methods but Drizzle doesn't export a simple Transaction type",
+			"solution": "Use nested Parameters<> utility type to extract the transaction type from db.transaction",
+			"codeAfter": "async withTransaction<T>(\n  fn: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<T>\n): Promise<T> {\n  return db.transaction(fn);\n}",
+			"learnedFrom": "F012",
+			"severity": "MEDIUM",
+			"tags": ["drizzle-orm", "transaction", "typescript", "utility-types"],
+			"addedAt": "2026-01-29T00:20:00Z"
+		},
+		{
+			"id": "DB-011",
+			"title": "Undefined narrowing for .returning() results",
+			"subcategory": "patterns",
+			"framework": "drizzle-orm",
+			"problem": ".returning() returns an array where rows[0] can be undefined, but TypeScript doesn't narrow this automatically",
+			"solution": "Extract rows[0] into a variable, check for undefined, throw descriptive error",
+			"codeAfter": "const rows = await db.insert(table).values(data).returning();\nconst row = rows[0];\nif (!row) {\n  throw new Error('Failed to create record');\n}\nreturn row;",
+			"learnedFrom": "F012",
+			"severity": "LOW",
+			"tags": ["drizzle-orm", "typescript", "null-safety", "returning"],
+			"addedAt": "2026-01-29T00:20:00Z"
+		}
 	],
 	"pitfalls": [
 		{
@@ -123,5 +163,5 @@
 			"addedAt": "2026-01-28T16:53:00Z"
 		}
 	],
-	"lastUpdated": "2026-01-28T17:40:30Z"
+	"lastUpdated": "2026-01-29T00:20:00Z"
 }

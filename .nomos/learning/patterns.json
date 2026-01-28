@@ -113,6 +113,51 @@
 			"recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
 			"codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});"
 		}
+		,
+		{
+			"id": "PAT-011",
+			"name": "GOOD_PLANNING",
+			"description": "Clear feature scope with specific acceptance criteria leads to zero-retry implementations",
+			"category": "process",
+			"evidence_count": 1,
+			"last_seen": "F012",
+			"applies_to": ["all", "all-phases"],
+			"recommendation": "Define 3-5 concrete acceptance criteria per feature. Each should be independently verifiable.",
+			"time_saved_estimate": "15-30 minutes per feature (avoids retry loops)"
+		},
+		{
+			"id": "PAT-012",
+			"name": "FOCUSED_SCOPE",
+			"description": "Features that change 3 or fewer core files are completed faster and with fewer issues",
+			"category": "process",
+			"evidence_count": 1,
+			"last_seen": "F012",
+			"applies_to": ["all", "all-phases"],
+			"recommendation": "Target S-sized features that touch 3-5 files maximum. Split larger features.",
+			"metric": "F012 completed in 12 minutes with 3 files changed, 0 retries"
+		},
+		{
+			"id": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"description": "Reusing well-known patterns (standard Drizzle CRUD) reduces implementation time and errors",
+			"category": "database",
+			"evidence_count": 1,
+			"last_seen": "F012",
+			"applies_to": ["CAT-DBS", "all-phases"],
+			"recommendation": "For repository layers, follow the standard CRUD pattern: findAll, findById, create, update, delete with typed returns and error handling",
+			"codeExample": "const repo = {\n  async findById(id: string): Promise<T | null> {\n    const rows = await db.select().from(table).where(eq(table.id, id));\n    return rows[0] ?? null;\n  }\n};"
+		},
+		{
+			"id": "PAT-014",
+			"name": "DRIZZLE_TYPE_INFERENCE",
+			"description": "Use Drizzle's $inferSelect/$inferInsert for automatic type derivation from schema",
+			"category": "database",
+			"evidence_count": 1,
+			"last_seen": "F012",
+			"applies_to": ["CAT-DBS", "types"],
+			"recommendation": "Derive repository types from schema rather than manually defining interfaces",
+			"codeExample": "type ProjectSelect = typeof project.$inferSelect;\ntype ProjectInsert = typeof project.$inferInsert;"
+		}
 	],
-	"last_updated": "2026-01-28T21:00:00Z"
+	"last_updated": "2026-01-29T00:20:00Z"
 }

@@ -62,6 +62,19 @@
 			"lesson": "Env loading in monorepos must handle multiple execution contexts (root, package dir, worktree)",
 			"fix_applied": "drizzle.config.ts now tries multiple paths and validates DATABASE_URL format"
 		}
+		,
+		{
+			"id": "ANTI-006",
+			"name": "BIOME_BEFORE_COMMIT",
+			"description": "Not running Biome format check before committing leads to extra chore commits",
+			"category": "code-quality",
+			"evidence_count": 1,
+			"last_seen": "F012",
+			"severity": "LOW",
+			"prevention": "Run 'bunx biome check . --write --unsafe' before committing feature code, or integrate into pre-commit hook",
+			"what_went_wrong": "14 Biome formatting fixes needed after initial commit, requiring a separate chore commit",
+			"lesson": "Always format before the first commit to keep commit history clean (1 feat commit instead of feat + chore)"
+		}
 	],
-	"last_updated": "2026-01-28T21:00:00Z"
+	"last_updated": "2026-01-29T00:20:00Z"
 }

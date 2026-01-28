@@ -169,15 +169,32 @@
 			"started_at": "2026-01-28T17:23:44Z",
 			"verified_at": "2026-01-28T17:40:23Z",
 			"notes": "Learning schema with JSON context, FK to features, indexes on category for filtering"
+		},
+		"F012": {
+			"id": "F012",
+			"title": "Repository pattern for projects",
+			"category": "CAT-DBS",
+			"phase": "phase-1",
+			"duration_minutes": 12,
+			"files_changed": 3,
+			"lines_added": 61,
+			"lines_removed": 0,
+			"commits": 3,
+			"retries": 0,
+			"risk_level": "MEDIUM",
+			"outcome": "success",
+			"started_at": "2026-01-28T20:05:37Z",
+			"verified_at": "2026-01-28T20:17:26Z",
+			"notes": "Drizzle repository pattern with typed CRUD, transaction support, undefined narrowing for .returning()"
 		}
 	},
 	"aggregates": {
-		"total_features": 10,
-		"avg_duration_minutes": 23,
-		"avg_files_changed": 14,
-		"avg_lines_added": 1053,
+		"total_features": 11,
+		"avg_duration_minutes": 22,
+		"avg_files_changed": 13,
+		"avg_lines_added": 963,
 		"success_rate": 1.0,
-		"total_commits": 13
+		"total_commits": 16
 	},
 	"thresholds": {
 		"duration_warning": 60,
@@ -187,5 +204,5 @@
 		"retries_warning": 2,
 		"retries_critical": 5
 	},
-	"last_updated": "2026-01-28T17:32:00Z"
+	"last_updated": "2026-01-29T00:20:00Z"
 }
