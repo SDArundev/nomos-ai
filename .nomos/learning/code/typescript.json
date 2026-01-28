@@ -147,5 +147,15 @@
       "addedAt": "2026-01-27T19:30:00Z"
     }
   ],
-  "lastUpdated": "2026-01-28T16:20:00Z"
+  "bestPractices": [
+    {
+      "id": "BP-TS-001",
+      "title": "Schema composition via imports",
+      "description": "Compose schemas by importing existing ID schemas rather than duplicating definitions",
+      "pattern": "import { ExistingIdSchema } from './ids'; // Then use in new schemas",
+      "learnedFrom": "F005",
+      "addedAt": "2026-01-28T16:40:00Z"
+    }
+  ],
+  "lastUpdated": "2026-01-28T16:40:00Z"
 }

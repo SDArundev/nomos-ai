@@ -100,7 +100,18 @@
       "recommendation": "When a nested object schema has field defaults that should apply when the parent is omitted or empty, use .optional().transform() instead of .default({})",
       "codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
       "gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply"
+    },
+    {
+      "id": "PAT-010",
+      "name": "SCHEMA_COMPOSITION_PATTERN",
+      "description": "Compose schemas by importing existing ID schemas rather than redefining",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F005",
+      "applies_to": ["CAT-PRJ", "types", "validation"],
+      "recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
+      "codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});"
     }
   ],
-  "last_updated": "2026-01-28T16:20:00Z"
+  "last_updated": "2026-01-28T16:40:00Z"
 }
