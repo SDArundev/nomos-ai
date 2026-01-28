@@ -97,6 +97,19 @@
       "severity": "MEDIUM",
       "tags": ["drizzle-orm", "sqlite", "index", "performance", "schema"],
       "addedAt": "2026-01-28T17:26:00Z"
+    },
+    {
+      "id": "DB-008",
+      "title": "Set null FK for preserving data on parent deletion",
+      "subcategory": "schema",
+      "framework": "drizzle-orm",
+      "problem": "Default cascade delete removes child records when parent is deleted, but sometimes child records have independent value",
+      "solution": "Use onDelete: 'set null' when child records should be preserved as orphans (e.g., learnings are valuable even if source feature is deleted)",
+      "codeAfter": "featureId: text('feature_id').references(() => feature.id, {\n  onDelete: 'set null',\n})",
+      "learnedFrom": "F010",
+      "severity": "LOW",
+      "tags": ["drizzle-orm", "sqlite", "foreign-key", "cascade", "schema"],
+      "addedAt": "2026-01-28T17:40:00Z"
     }
   ],
   "pitfalls": [
@@ -110,5 +123,5 @@
       "addedAt": "2026-01-28T16:53:00Z"
     }
   ],
-  "lastUpdated": "2026-01-28T17:26:30Z"
+  "lastUpdated": "2026-01-28T17:40:30Z"
 }
