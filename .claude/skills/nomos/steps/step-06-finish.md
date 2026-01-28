@@ -61,6 +61,7 @@ If pr_mode is false, only launch Track A.
 
 ```
 Task agent: general-purpose
+Model: {phase_models.learning}
 Prompt: |
   ## Track A: Learning Extraction for {feature_id}: {feature_title}
 
@@ -162,6 +163,38 @@ Prompt: |
   - {recommendation}
   ```
 
+  ### 8. Write Session Insight
+
+  Write a cross-feature insight file to `.nomos/learning/insights/{feature_id}.json`:
+
+  ```bash
+  mkdir -p .nomos/learning/insights
+  ```
+
+  Extract from execution log, verify report, and retrospective:
+
+  ```json
+  {
+    "session_number": {next_session_number},
+    "feature_id": "{feature_id}",
+    "category": "{feature_category}",
+    "phase": "{feature_phase}",
+    "dependencies": {feature_dependencies},
+    "discoveries": ["specific technical discoveries made during implementation"],
+    "what_worked": ["approaches and patterns that succeeded"],
+    "what_failed": ["approaches attempted but abandoned or reworked"],
+    "recommendations_for_next": ["actionable advice for features in same category/phase"]
+  }
+  ```
+
+  - `session_number`: Count existing insight files + 1
+  - `discoveries`: Extract from execution log (03-execute.md) — novel solutions, helper functions found, gotchas
+  - `what_worked`: Extract from retrospective "What Went Well" section
+  - `what_failed`: Extract from retrospective "What Could Improve" and failure log
+  - `recommendations_for_next`: Synthesize from all sections — concrete next-feature advice
+
+  Write using **Write tool** (never cat/heredoc).
+
   ### Report Format:
   ```
   TRACK_A_RESULT: COMPLETE
@@ -170,6 +203,8 @@ Prompt: |
   antipatterns_extracted: {count}
   code_patterns_added: {count}
   codebase_map_entries_updated: {count}
+  insight_written: true
+  insight_file: .nomos/learning/insights/{feature_id}.json
   files_updated: {list}
   ```
 ```

@@ -42,6 +42,27 @@ From previous steps:
 
 ## EXECUTION SEQUENCE:
 
+### 0. Check for Existing Checkpoint
+
+**IF `{from_step}` == 3 AND checkpoint file exists:**
+
+```bash
+ls {output_dir}/03-checkpoint.json 2>/dev/null && echo "FOUND" || echo "NOT_FOUND"
+```
+
+If found:
+1. Read `{output_dir}/03-checkpoint.json`
+2. Load `completed_tasks` list — these tasks are already done
+3. Skip completed tasks when creating task list (step 1 below)
+4. Log resume state:
+   ```
+   CHECKPOINT RESUME: {completed_count}/{total_count} tasks already done
+   Skipping: {list of completed task subjects}
+   Resuming from: {first pending task subject}
+   ```
+
+If not found: Proceed normally (fresh execution).
+
 ### 1. Create Tasks from Plan
 
 Convert each file change from the plan into tasks using **TaskCreate**:
@@ -125,6 +146,35 @@ TaskUpdate(taskId: "id", status: "completed")
 - Added error handling for expired tokens
 **Timestamp:** {ISO}
 ```
+
+**3.6 Write Checkpoint**
+
+After EVERY task completion, write checkpoint to `{output_dir}/03-checkpoint.json`:
+
+```json
+{
+  "feature_id": "{feature_id}",
+  "timestamp": "{ISO}",
+  "completed_tasks": [
+    {
+      "id": "{task_id}",
+      "subject": "Implement handler.ts changes",
+      "completed_at": "{ISO}",
+      "files_changed": ["src/auth/handler.ts"]
+    }
+  ],
+  "pending_tasks": [
+    {
+      "id": "{task_id}",
+      "subject": "Implement types.ts changes"
+    }
+  ],
+  "last_completed_file": "src/auth/handler.ts",
+  "progress_pct": 50
+}
+```
+
+Write using **Write tool** after each task (not just at end). This enables resume from any point.
 
 ### 4. Handle Blockers
 

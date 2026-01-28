@@ -97,6 +97,19 @@ Prompt: |
      - Filter by severity (always include CRITICAL and HIGH)
   5. Check dependencies from features.json
      - Verify all dependencies are verified
+  5b. Load session insights from `.nomos/learning/insights/`
+     - List all insight JSON files in the directory
+     - Score relevance for each insight:
+       * +3 if insight's feature is a direct dependency of {feature_id}
+       * +2 if insight's category matches this feature's category
+       * +1 if insight's phase matches this feature's phase
+     - Sort by relevance score (highest first)
+     - Load top 3 insights
+     - From each loaded insight, inject into context:
+       * `discoveries` → things to look for / reuse
+       * `what_worked` → approaches to follow
+       * `what_failed` → approaches to avoid
+       * `recommendations_for_next` → direct guidance
   6. Calculate risk assessment:
      - Phase success rate < 80% → +1 RISK
      - Many dependencies → +1 RISK
@@ -109,6 +122,7 @@ Prompt: |
   - Anti-patterns to avoid
   - Historical thresholds
   - Code-level patterns (with severity)
+  - Session insights (top 3 relevant: discoveries, what_worked, what_failed, recommendations)
   - Risk level (LOW/MEDIUM/HIGH)
   - Dependency status
 ```
@@ -218,6 +232,11 @@ Combine all agent results into a unified context document:
 ### Utilities Available
 - {utility_1}
 - {utility_2}
+
+### Session Insights (cross-feature memory)
+| Source Feature | Relevance | Key Takeaway |
+|---------------|-----------|--------------|
+| {insight_feature_id} | {score} | {top recommendation} |
 
 ### Documentation Insights (if researched)
 - {library}: {key_finding}

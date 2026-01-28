@@ -32,7 +32,7 @@ Track C: CODE REVIEW (no server needed)
   → security + quality + coverage agents
 ```
 
-**Gate:** ALL 3 tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 3 cycles per track).
+**Gate:** ALL 3 tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 5 cycles per track). Recurring issue detection: if same signature appears 3+ times → stop early even before cycle 5.
 
 ---
 
@@ -225,22 +225,33 @@ Prompt: |
 
 ---
 
-#### TRACK C: Code Review (no server needed)
+#### TRACK C: Code Review (no server needed) — 3-Phase Structure
 
 <critical>
-Launch ALL review sub-agents in a SINGLE message.
+Track C uses 3 phases: read-only review → conditional fix → conditional re-review.
+Phase 1 agents are READ-ONLY. They MUST NOT modify any files.
 </critical>
+
+##### Phase 1: Read-Only Review
+
+Launch ALL 3 review agents in a SINGLE message. Each agent is explicitly read-only.
 
 ```
 Task agent: general-purpose
+Model: {phase_models.qa_review}
 Prompt: |
-  ## Track C: Code Review for {feature_id}
+  ## Track C Phase 1: Read-Only Code Review for {feature_id}
 
   Launch these 3 review agents IN PARALLEL (single message):
 
   ### Agent 1: Security Review
   Task agent: security-reviewer
   ```
+  <critical>
+  You are READ-ONLY. You MUST NOT use Write, Edit, or any tool that modifies files.
+  Your job is to REPORT findings only.
+  </critical>
+
   Review for OWASP Top 10 vulnerabilities:
   - Injection flaws (SQL, command, XSS)
   - Auth/authz issues
@@ -249,11 +260,20 @@ Prompt: |
 
   Files to review: {modified files list}
   Working directory: {worktree_path}
+
+  For each finding, classify:
+  - Severity: CRITICAL / HIGH / MEDIUM / LOW
+  - Validity: Real / Noise / Uncertain
   ```
 
   ### Agent 2: Code Quality Review
   Task agent: code-quality-reviewer
   ```
+  <critical>
+  You are READ-ONLY. You MUST NOT use Write, Edit, or any tool that modifies files.
+  Your job is to REPORT findings only.
+  </critical>
+
   Review for code quality issues:
   - Pattern violations
   - Code duplication
@@ -263,11 +283,20 @@ Prompt: |
 
   Files to review: {modified files list}
   Working directory: {worktree_path}
+
+  For each finding, classify:
+  - Severity: CRITICAL / HIGH / MEDIUM / LOW
+  - Validity: Real / Noise / Uncertain
   ```
 
   ### Agent 3: Test Coverage Analysis
   Task agent: test-coverage-analyzer
   ```
+  <critical>
+  You are READ-ONLY. You MUST NOT use Write, Edit, or any tool that modifies files.
+  Your job is to REPORT findings only.
+  </critical>
+
   Analyze test coverage:
   - What's tested vs untested
   - Missing edge cases
@@ -275,25 +304,110 @@ Prompt: |
 
   Files to review: {modified files list}
   Working directory: {worktree_path}
-  ```
 
-  ### Classify All Findings
-
-  For each finding:
+  For each finding, classify:
   - Severity: CRITICAL / HIGH / MEDIUM / LOW
   - Validity: Real / Noise / Uncertain
-
-  ### Report Format:
   ```
-  TRACK_C_RESULT: PASS or FAIL
-  findings_count: {total}
+
+  ### Collect and Classify All Findings
+
+  Aggregate findings from all 3 agents:
+  - Severity: CRITICAL / HIGH / MEDIUM / LOW
+  - Validity: Real / Noise / Uncertain
+  - Blocking: CRITICAL or HIGH + Real
+
+  ### Phase 1 Report Format:
+  ```
+  PHASE_1_RESULT: PASS or FAIL
+  phase1_findings: {total count}
+  phase1_blocking: {count of CRITICAL/HIGH + Real findings}
   critical: {count}
   high: {count}
   medium: {count}
   low: {count}
-  blocking_issues: {count}
   ```
 ```
+
+##### Phase 2: Fix (CONDITIONAL — only if Phase 1 found blocking issues)
+
+**IF `phase1_blocking` == 0:** Skip Phase 2 and Phase 3. Track C PASSES.
+
+**IF `phase1_blocking` > 0:** Launch a separate fix agent WITH write access:
+
+```
+Task agent: general-purpose
+Prompt: |
+  ## Track C Phase 2: Fix Blocking Review Findings for {feature_id}
+
+  Working directory: {worktree_path}
+
+  Phase 1 review found {phase1_blocking} blocking issues.
+  Fix ONLY the following reported issues:
+
+  {list of CRITICAL/HIGH + Real findings with file, line, description}
+
+  For each finding:
+  1. Read the affected file
+  2. Apply the minimal fix
+  3. Do NOT modify unrelated code
+
+  After all fixes:
+  ```bash
+  cd {worktree_path}
+  bun run check-types
+  ```
+
+  Report:
+  - phase2_fixes_applied: {count}
+  - files_changed: {list}
+  - typecheck_after_fix: PASS/FAIL
+```
+
+##### Phase 3: Re-Review (CONDITIONAL — only if Phase 2 executed)
+
+**IF Phase 2 did not execute:** Skip Phase 3.
+
+**IF Phase 2 executed:** Re-launch ONLY the affected review agents (read-only) to verify fixes:
+
+```
+Task agent: general-purpose
+Model: {phase_models.qa_review}
+Prompt: |
+  ## Track C Phase 3: Re-Review Fixed Findings for {feature_id}
+
+  <critical>
+  You are READ-ONLY. You MUST NOT use Write, Edit, or any tool that modifies files.
+  </critical>
+
+  Working directory: {worktree_path}
+
+  Phase 2 fixed {phase2_fixes_applied} blocking issues.
+  Check ONLY the specific findings that were fixed:
+
+  {list of fixed findings with file, line, original issue}
+
+  For each:
+  - Verify the fix addresses the original finding
+  - Check the fix didn't introduce new issues
+
+  Report:
+  - phase3_verified: {count of successfully verified fixes}
+  - remaining_blocking: {count of findings still not resolved}
+```
+
+##### Track C Final Report
+
+```
+TRACK_C_RESULT: PASS or FAIL
+phase1_findings: {total}
+phase1_blocking: {count}
+phase2_fixes_applied: {count or "skipped"}
+phase3_verified: {count or "skipped"}
+remaining_blocking: {count}
+```
+
+**Track C PASSES** if `remaining_blocking` == 0 (or `phase1_blocking` was 0).
 
 ---
 
@@ -308,7 +422,7 @@ After all 3 tracks complete:
 |-------|--------|---------|
 | A: Static | PASS/FAIL | typecheck, lint, tests |
 | B: Runtime | PASS/FAIL | smoke, QA ({n}/{m} AC passed) |
-| C: Review | PASS/FAIL | {n} findings ({m} blocking) |
+| C: Review | PASS/FAIL | Phase 1: {n} findings ({m} blocking) → Phase 2: {fixes} applied → Phase 3: {remaining} blocking |
 
 **Gate:** {PASS/FAIL}
 ```
@@ -333,10 +447,59 @@ After all 3 tracks complete:
 
 ```
 Track fails → CLASSIFY failure → Launch FIX agent → Re-verify ONLY failed track
-Max 3 cycles per track → escalate to user
+Max 5 cycles per track → escalate to user
 ```
 
 1. **Classify** each failure using the signature column
+
+1b. **Track Issue Signatures** — For each failure, compute a signature:
+   ```
+   signature = "{failure_type}:{file_path}:{error_code}"
+   ```
+   Maintain `{issue_tracker}` dict across cycles:
+   ```json
+   {
+     "signatures": {
+       "TYPE_ERROR:src/auth.ts:TS2345": {
+         "count": 2,
+         "first_seen_cycle": 1,
+         "last_fix_attempted": "Added type cast"
+       }
+     }
+   }
+   ```
+   Increment count for each occurrence. Record last fix attempted.
+
+1c. **Check for Recurring Issues** — For each failure signature:
+   - IF same signature appears **3+ times**: stop retrying that issue, add to `escalation_log`
+   - IF **ALL remaining failures** are recurring (3+ occurrences) → escalate to user:
+     ```yaml
+     questions:
+       - header: "Recurring"
+         question: "These issues keep recurring after {cycle} fix cycles. How to proceed?"
+         options:
+           - label: "Provide guidance (Recommended)"
+             description: "Write guidance to .nomos/output/{feature_id}/HUMAN_FEEDBACK.md"
+           - label: "Skip these issues"
+             description: "Continue with known recurring issues documented"
+           - label: "Abort feature"
+             description: "Stop this feature run entirely"
+         multiSelect: false
+     ```
+   - Write escalation report to `{output_dir}/04-escalation-{track}.md`
+
+1d. **Check for Human Feedback** — Before launching fix agent:
+   ```bash
+   ls {output_dir}/HUMAN_FEEDBACK.md 2>/dev/null && echo "FOUND" || echo "NOT_FOUND"
+   ```
+   - IF found: Read contents of `.nomos/output/{feature_id}/HUMAN_FEEDBACK.md`
+   - Rename to `HUMAN_FEEDBACK.processed.md` after reading:
+     ```bash
+     mv {output_dir}/HUMAN_FEEDBACK.md {output_dir}/HUMAN_FEEDBACK.processed.md
+     ```
+   - Inject contents into fix agent prompt inside `<human_guidance>` tags
+   - This enables mid-loop human intervention during autonomous runs
+
 2. **Launch FIX agent** — a scoped Task (general-purpose) that fixes ONLY the specific failure:
    ```
    Task agent: general-purpose
@@ -347,17 +510,25 @@ Max 3 cycles per track → escalate to user
      Failure: {failure_signature}
      Error output: {error_details}
 
+     {IF HUMAN_FEEDBACK was found:}
+     <human_guidance>
+     {contents of HUMAN_FEEDBACK.md}
+     </human_guidance>
+     {END IF}
+
      Fix ONLY this specific issue:
      - Strategy: {fix_strategy_from_table}
+     - If human guidance is provided, prioritize it over default strategy
      - Do NOT modify unrelated code
      - Verify your fix compiles/works before reporting
 
      Report:
      - Files changed: {list}
      - Fix applied: {description}
+     - Human guidance applied: {yes/no}
    ```
 3. **Re-verify ONLY the failed track** (not all tracks)
-4. If still fails → back to step 1 (max 3 cycles per track)
+4. If still fails → back to step 1 (max 5 cycles per track)
 5. Do NOT re-run passing tracks
 
 ```markdown
@@ -365,10 +536,16 @@ Max 3 cycles per track → escalate to user
 
 | # | Type | Track | Signature | Fix Applied | Retry |
 |---|------|-------|-----------|-------------|-------|
-| 1 | TYPE_ERROR | A | TS2345: Argument of type... | Added missing type cast | Cycle 1/3 |
+| 1 | TYPE_ERROR | A | TS2345: Argument of type... | Added missing type cast | Cycle 1/5 |
+
+### Escalation Log (recurring issues)
+
+| Signature | Occurrences | First Seen | Last Fix Attempted | Status |
+|-----------|-------------|------------|-------------------|--------|
+| {signature} | {count} | Cycle {n} | {description} | Escalated / Skipped |
 ```
 
-**If all fix cycles exhausted (3 per track):**
+**If all fix cycles exhausted (5 per track) OR all remaining issues are recurring:**
 
 ```yaml
 questions:
@@ -481,6 +658,7 @@ This compact summary allows step-05 to proceed with merge confidence.
 After gate passes, load `./step-05-merge.md`
 
 <critical>
-ALL 3 tracks must pass. No exceptions. Failed tracks use classify→fix→re-verify (up to 3 cycles).
+ALL 3 tracks must pass. No exceptions. Failed tracks use classify→fix→re-verify (up to 5 cycles).
+Recurring issues (3+ occurrences) are escalated, not retried.
 Servers are started ONCE in Track B and stopped before Track B completes.
 </critical>

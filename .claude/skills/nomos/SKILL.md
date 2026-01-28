@@ -268,6 +268,7 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 | `{output_dir}` | string | Path to output directory |
 | `{learned_patterns}` | list | Patterns loaded from learning system |
 | `{risk_level}` | string | LOW/MEDIUM/HIGH from context analysis |
+| `{phase_models}` | object | Per-phase model defaults: `{ planning: "opus", coding: "sonnet", qa_review: "sonnet", learning: "haiku" }` |
 
 </state_variables>
 
@@ -322,7 +323,7 @@ After initialization, step-00 loads step-01-context.md.
 | B: Runtime | start servers ONCE → smoke → QA → stop | Yes |
 | C: Review | security + quality + coverage agents | No |
 
-**Gate:** ALL tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 3 cycles).
+**Gate:** ALL tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 5 cycles). Track C uses 3-phase structure: read-only review → conditional fix → conditional re-review.
 
 ### Step 06: Finish (2 parallel tracks)
 | Track | Purpose | Always? |

@@ -95,6 +95,79 @@ CONFLICTING_FILES=$(comm -12 <(echo "$FEATURE_FILES" | sort) <(echo "$MAIN_FILES
 **If all conflicts auto-resolvable:** Proceed with rebase (conflicts will be resolved during rebase).
 **If any non-resolvable conflicts:** Warn before rebase, prepare resolution strategy.
 
+### 1c. Apply Deterministic Merge Strategies
+
+For each conflicting file, classify and apply the matching strategy:
+
+#### ImportStrategy (both branches added imports)
+
+1. Parse all import statements into `{source, specifiers[]}` tuples
+2. Merge specifiers for the same source (union of both sides)
+3. Deduplicate identical specifiers
+4. Sort imports:
+   - External packages first (no `./` or `../` prefix)
+   - Then relative imports (`./ ` and `../`)
+   - Alphabetically within each group
+5. Write merged import block
+
+**Example:**
+```
+// Ours:   import { a, b } from "lib"
+// Theirs: import { b, c } from "lib"
+// Result: import { a, b, c } from "lib"
+```
+
+#### AppendStrategy (both branches appended to same array/object/block)
+
+1. Detect the append point — last common line between both sides
+2. Concatenate both additions (ours first, theirs second) after the common line
+3. Verify no duplicate keys (for objects) or duplicate entries (for arrays)
+4. If duplicates found: keep the first occurrence, remove the second
+
+**Example:**
+```
+// Ours added:   { id: "route-a", path: "/a" }
+// Theirs added: { id: "route-b", path: "/b" }
+// Result: both entries appended in order
+```
+
+#### OrderingStrategy (both branches modified barrel exports in index.ts)
+
+1. Collect all `export` statements from both sides
+2. Deduplicate — same export from same source = keep one
+3. Sort alphabetically by source path
+4. Write sorted export block
+
+**Example:**
+```
+// Result: exports sorted alphabetically by source
+export { auth } from "./auth"
+export { db } from "./db"
+export { users } from "./users"
+```
+
+#### Application Flow
+
+```
+For each conflicting file:
+  1. Classify conflict type (imports / append / barrel exports / other)
+  2. IF matching strategy exists → apply strategy → log result
+  3. IF no matching strategy → mark for manual resolution
+  4. Log all resolutions to merge report
+```
+
+```markdown
+## Deterministic Merge Resolutions
+
+| File | Strategy | Action | Result |
+|------|----------|--------|--------|
+| `src/path/file.ts` | ImportStrategy | Merged 3 specifiers | AUTO-RESOLVED |
+| `src/index.ts` | OrderingStrategy | Sorted 5 exports | AUTO-RESOLVED |
+| `src/config.ts` | None | Manual resolution needed | MANUAL |
+```
+
+**After all strategies applied:** Always run post-rebase quality re-check (section 3b below).
+
 ### 2. Update from Main
 
 ```bash

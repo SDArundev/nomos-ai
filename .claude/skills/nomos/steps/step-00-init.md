@@ -59,6 +59,7 @@ bash .claude/skills/nomos/scripts/nomos.sh ports cleanup
 {cleanup_mode}     = false
 {from_step}        = null
 {feature_id}       = null
+{phase_models}     = { planning: "opus", coding: "sonnet", qa_review: "sonnet", learning: "haiku" }
 ```
 
 **Parse user input:**
@@ -210,6 +211,12 @@ cat .nomos/features.json | jq -e --arg id "{feature_id}" '.features[] | select(.
 {feature_dependencies} = .dependencies
 {acceptance_criteria} = .acceptanceCriteria
 {feature_status}      = .status
+```
+
+**Override phase_models from feature (if set):**
+```
+IF feature has a "model" field:
+  → {phase_models}.coding = feature.model
 ```
 
 **Validate status:**
@@ -434,6 +441,14 @@ IF {from_step} is set (0-6):
     2. Worktree exists: .nomos/worktrees/{feature_id}/
     3. For from_step > 0: output file for previous step exists
        (e.g., from_step=3 requires 02-plan.md to exist)
+    4. For from_step == 3: Check if checkpoint exists
+       ```bash
+       ls .nomos/output/{feature_id}/03-checkpoint.json 2>/dev/null
+       ```
+       If checkpoint found: Log resume state
+       ```
+       CHECKPOINT FOUND: Resuming step-03 with {completed}/{total} tasks done
+       ```
   → If prerequisites met: Load step-{from_step:02d}-*.md directly
   → If prerequisites missing: WARN and ask user to confirm or start from beginning
 
