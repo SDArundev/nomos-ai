@@ -188,27 +188,29 @@ WEB_PORT=$(echo "$PORTS_JSON" | jq -r '.WEB_PORT')
 echo "Ports: SERVER=$SERVER_PORT, WEB=$WEB_PORT"
 ```
 
-**Create apps/server/.env in worktree:**
+**Get absolute path to worktree for DATABASE_URL:**
 ```bash
-# Get absolute path to worktree for DATABASE_URL (avoids CWD issues)
 WORKTREE_ROOT=$(cd .nomos/worktrees/{feature_id} && pwd)
-
-cat > .nomos/worktrees/{feature_id}/apps/server/.env << EOF
-BETTER_AUTH_SECRET=XobgAnPBVBGRcImkNlOJgNygcJyNnkQF
-BETTER_AUTH_URL=http://localhost:${SERVER_PORT}
-CORS_ORIGIN=http://localhost:${WEB_PORT}
-DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db
-PORT=${SERVER_PORT}
-NODE_ENV=development
-EOF
 ```
 
-**Create apps/web/.env in worktree:**
-```bash
-cat > .nomos/worktrees/{feature_id}/apps/web/.env << EOF
-VITE_SERVER_URL=http://localhost:${SERVER_PORT}
-VITE_PORT=${WEB_PORT}
-EOF
+**Create apps/server/.env in worktree (use Write tool):**
+```
+File: .nomos/worktrees/{feature_id}/apps/server/.env
+Content:
+BETTER_AUTH_SECRET=XobgAnPBVBGRcImkNlOJgNygcJyNnkQF
+BETTER_AUTH_URL=http://localhost:{server_port}
+CORS_ORIGIN=http://localhost:{web_port}
+DATABASE_URL=file:{worktree_root}/.nomos/nomos.db
+PORT={server_port}
+NODE_ENV=development
+```
+
+**Create apps/web/.env in worktree (use Write tool):**
+```
+File: .nomos/worktrees/{feature_id}/apps/web/.env
+Content:
+VITE_SERVER_URL=http://localhost:{server_port}
+VITE_PORT={web_port}
 ```
 
 **Copy database if exists (for seeded data):**
@@ -218,12 +220,14 @@ if [[ -f .nomos/nomos.db ]]; then
 fi
 ```
 
-**Save port info for later steps:**
+**Save port info for later steps (use Write tool):**
 ```bash
 mkdir -p .nomos/worktrees/{feature_id}/.nomos
-cat > .nomos/worktrees/{feature_id}/.nomos/ports.json << EOF
-{"SERVER_PORT": ${SERVER_PORT}, "WEB_PORT": ${WEB_PORT}}
-EOF
+```
+```
+File: .nomos/worktrees/{feature_id}/.nomos/ports.json
+Content:
+{"SERVER_PORT": {server_port}, "WEB_PORT": {web_port}}
 ```
 
 ### 5b. Install Dependencies

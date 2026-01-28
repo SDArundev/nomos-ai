@@ -310,6 +310,14 @@ After initialization, step-00 loads step-01-context.md.
 - **Save outputs** to `.nomos/output/{feature_id}/`
 - **Use parallel agents** for independent exploration tasks
 
+<critical>
+**FILE WRITING RULE:**
+- ALWAYS use the **Write tool** for creating/writing files
+- NEVER use `cat >`, `cat >>`, or heredocs (`<< EOF`) for file creation
+- `cat` is ONLY for reading files, not writing
+- This applies to: .env files, output markdown files, JSON files, all file creation
+</critical>
+
 ## Smart Agent Strategy in Analyze Phase
 
 The analyze phase (step-02) uses **adaptive agent launching**:
