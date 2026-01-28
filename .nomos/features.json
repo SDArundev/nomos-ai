@@ -548,11 +548,13 @@
         "Duration calculation"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-28T21:42:42Z",
+      "completedAt": "2026-01-28T22:00:05Z"
     },
     {
       "id": "F015",

@@ -10,4 +10,8 @@ const client = createClient({
 export const db = drizzle({ client, schema });
 
 export { runMigrations } from "./migrate";
-export { featureRepository, projectRepository } from "./repositories";
+export {
+	featureRepository,
+	projectRepository,
+	sessionRepository,
+} from "./repositories";
