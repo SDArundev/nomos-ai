@@ -1,6 +1,7 @@
 import { createContext } from "@nomos-ai/api/context";
 import { appRouter } from "@nomos-ai/api/routers/index";
 import { auth } from "@nomos-ai/auth";
+import { runMigrations } from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -10,6 +11,14 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+
+// Run database migrations on startup
+try {
+	await runMigrations();
+} catch (error) {
+	console.error("Failed to run database migrations:", error);
+	process.exit(1);
+}
 
 const app = new Hono();
 
