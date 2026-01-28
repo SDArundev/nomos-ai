@@ -84,15 +84,66 @@
       "started_at": "2026-01-28T16:20:31Z",
       "verified_at": "2026-01-28T16:34:40Z",
       "notes": "SessionSchema with branded IDs, status enum, and comprehensive tests"
+    },
+    "F006": {
+      "id": "F006",
+      "title": "Database package with Drizzle ORM",
+      "category": "CAT-DBS",
+      "phase": "phase-1",
+      "duration_minutes": 19,
+      "files_changed": 4,
+      "lines_added": 486,
+      "lines_removed": 0,
+      "commits": 1,
+      "retries": 0,
+      "risk_level": "LOW",
+      "outcome": "success",
+      "started_at": "2026-01-28T16:24:08Z",
+      "verified_at": "2026-01-28T16:42:54Z",
+      "notes": "Generated migrations for auth schema, added schema tests"
+    },
+    "F007": {
+      "id": "F007",
+      "title": "Projects table schema",
+      "category": "CAT-DBS",
+      "phase": "phase-1",
+      "duration_minutes": 12,
+      "files_changed": 3,
+      "lines_added": 66,
+      "lines_removed": 0,
+      "commits": 1,
+      "retries": 0,
+      "risk_level": "LOW",
+      "outcome": "success",
+      "started_at": "2026-01-28T16:50:36Z",
+      "verified_at": "2026-01-28T17:02:00Z",
+      "notes": "Clean schema following auth.ts patterns exactly, all tests pass"
+    },
+    "F008": {
+      "id": "F008",
+      "title": "Features table schema",
+      "category": "CAT-DBS",
+      "phase": "phase-1",
+      "duration_minutes": 17,
+      "files_changed": 3,
+      "lines_added": 184,
+      "lines_removed": 0,
+      "commits": 1,
+      "retries": 0,
+      "risk_level": "LOW",
+      "outcome": "success",
+      "started_at": "2026-01-28T17:09:19Z",
+      "verified_at": "2026-01-28T17:26:00Z",
+      "notes": "38 columns mapped, FK to projects, indexes on status/phase/projectId"
     }
   },
   "aggregates": {
-    "total_features": 5,
-    "avg_duration_minutes": 30,
-    "avg_files_changed": 26,
-    "avg_lines_added": 1919,
+    "total_features": 8,
+    "avg_duration_minutes": 25,
+    "avg_files_changed": 17,
+    "avg_lines_added": 1292,
     "success_rate": 1.0,
-    "total_commits": 8
+    "total_commits": 11
   },
   "thresholds": {
     "duration_warning": 60,
@@ -102,5 +153,5 @@
     "retries_warning": 2,
     "retries_critical": 5
   },
-  "last_updated": "2026-01-28T16:40:00Z"
+  "last_updated": "2026-01-28T17:26:30Z"
 }

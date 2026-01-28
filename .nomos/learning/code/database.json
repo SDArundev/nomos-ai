@@ -1,0 +1,114 @@
+{
+  "category": "database",
+  "description": "Database patterns and pitfalls for Drizzle ORM with SQLite/libSQL",
+  "patterns": [
+    {
+      "id": "DB-001",
+      "title": "Drizzle config relative path for DATABASE_URL",
+      "subcategory": "configuration",
+      "framework": "drizzle-kit",
+      "problem": "drizzle.config.ts runs from packages/db/, but DATABASE_URL is relative to project root or apps/server",
+      "solution": "Use file: prefix with absolute path in .env, or configure dotenv to load from correct location",
+      "codeBefore": "DATABASE_URL=.nomos/nomos.db",
+      "codeAfter": "DATABASE_URL=file:/absolute/path/to/.nomos/data/nomos.db",
+      "learnedFrom": "F006",
+      "severity": "HIGH",
+      "tags": ["drizzle-kit", "sqlite", "path-resolution", "env-vars"],
+      "addedAt": "2026-01-28T16:53:00Z",
+      "context7LibraryId": "/websites/orm_drizzle_team",
+      "context7Query": "drizzle config sqlite file path"
+    },
+    {
+      "id": "DB-002",
+      "title": "Turso dialect for local SQLite with cloud option",
+      "subcategory": "configuration",
+      "framework": "drizzle-orm",
+      "problem": "Need local SQLite development with option for Turso cloud in production",
+      "solution": "Use dialect: 'turso' which supports both local file: URLs and Turso cloud connections",
+      "codeAfter": "export default defineConfig({\n  dialect: 'turso',\n  dbCredentials: {\n    url: process.env.DATABASE_URL || '',\n  },\n});",
+      "learnedFrom": "F006",
+      "severity": "MEDIUM",
+      "tags": ["drizzle-kit", "turso", "sqlite", "dialect"],
+      "addedAt": "2026-01-28T16:53:00Z"
+    },
+    {
+      "id": "DB-003",
+      "title": "Schema tests without database connection",
+      "subcategory": "testing",
+      "framework": "drizzle-orm",
+      "problem": "Testing database package exports requires DATABASE_URL which isn't available in CI/test env",
+      "solution": "Test schema exports and column definitions only - avoid importing db client in unit tests",
+      "codeAfter": "describe('Schema', () => {\n  it('exports user table', async () => {\n    const { user } = await import('../schema');\n    expect(user.id).toBeDefined();\n  });\n});",
+      "learnedFrom": "F006",
+      "severity": "MEDIUM",
+      "tags": ["testing", "schema", "bun-test", "env-vars"],
+      "addedAt": "2026-01-28T16:53:00Z"
+    },
+    {
+      "id": "DB-004",
+      "title": "JSON column with text mode for flexible settings",
+      "subcategory": "schema",
+      "framework": "drizzle-orm",
+      "problem": "Need to store flexible key-value settings in SQLite without strict schema",
+      "solution": "Use text column with mode: 'json' and $type<> for TypeScript inference",
+      "codeAfter": "settings: text('settings', { mode: 'json' })\n  .$type<Record<string, unknown>>()\n  .default({})\n  .notNull()",
+      "learnedFrom": "F007",
+      "severity": "MEDIUM",
+      "tags": ["drizzle-orm", "sqlite", "json", "schema"],
+      "addedAt": "2026-01-28T17:02:00Z",
+      "context7LibraryId": "/websites/orm_drizzle_team",
+      "context7Query": "drizzle sqlite json column text mode"
+    },
+    {
+      "id": "DB-005",
+      "title": "Follow existing schema file patterns exactly",
+      "subcategory": "patterns",
+      "framework": "drizzle-orm",
+      "problem": "New schema files can diverge from project conventions causing inconsistencies",
+      "solution": "Copy import style, timestamp patterns, index naming from existing schema files (e.g., auth.ts)",
+      "codeAfter": "// Match existing patterns:\n// - Imports: { relations, sql } from 'drizzle-orm'\n// - Timestamps: integer('created_at', { mode: 'timestamp_ms' })\n// - Index naming: tablename_column_idx",
+      "learnedFrom": "F007",
+      "severity": "LOW",
+      "tags": ["drizzle-orm", "patterns", "consistency", "schema"],
+      "addedAt": "2026-01-28T17:02:00Z"
+    },
+    {
+      "id": "DB-006",
+      "title": "Complex JSON column typing with nested objects",
+      "subcategory": "schema",
+      "framework": "drizzle-orm",
+      "problem": "Storing nested JSON objects (arrays of objects, nested properties) requires proper TypeScript typing",
+      "solution": "Use $type<> with full interface definition for complex JSON structures",
+      "codeAfter": "descriptionHistory: text('description_history', { mode: 'json' }).$type<\n  Array<{\n    timestamp: string;\n    source: string;\n    enhancementMode?: string;\n    content: string;\n  }>\n>()",
+      "learnedFrom": "F008",
+      "severity": "MEDIUM",
+      "tags": ["drizzle-orm", "sqlite", "json", "typescript", "schema"],
+      "addedAt": "2026-01-28T17:26:00Z"
+    },
+    {
+      "id": "DB-007",
+      "title": "Index strategy for state machine columns",
+      "subcategory": "performance",
+      "framework": "drizzle-orm",
+      "problem": "Tables with status columns are frequently filtered by status (state machine queries)",
+      "solution": "Create indexes on status columns and any other columns used for grouping/filtering",
+      "codeAfter": "(table) => [\n  index('feature_status_idx').on(table.status),\n  index('feature_phase_idx').on(table.phase),\n  index('feature_project_id_idx').on(table.projectId),\n]",
+      "learnedFrom": "F008",
+      "severity": "MEDIUM",
+      "tags": ["drizzle-orm", "sqlite", "index", "performance", "schema"],
+      "addedAt": "2026-01-28T17:26:00Z"
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "DB-PIT-001",
+      "title": "drizzle-kit migrate fails with relative path",
+      "error": "ConnectionFailed(\"Unable to open connection to local database .nomos/nomos.db: 14\")",
+      "cause": "Relative DATABASE_URL path is resolved from packages/db/, not project root",
+      "prevention": "Use absolute paths or file: prefix with full path for SQLite databases",
+      "learnedFrom": "F006",
+      "addedAt": "2026-01-28T16:53:00Z"
+    }
+  ],
+  "lastUpdated": "2026-01-28T17:26:30Z"
+}

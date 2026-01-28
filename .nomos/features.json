@@ -286,11 +286,13 @@
         "Timestamps track duration"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-28T16:20:31Z",
+      "verifiedAt": "2026-01-28T16:34:40Z"
     },
     {
       "id": "F006",
@@ -312,11 +314,13 @@
         "Database file persists in .nomos/data/"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-28T16:24:08Z",
+      "verifiedAt": "2026-01-28T16:42:54Z"
     },
     {
       "id": "F007",
@@ -338,11 +342,13 @@
         "JSON column for flexible settings"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-28T16:50:36Z",
+      "verifiedAt": "2026-01-28T17:06:45Z"
     },
     {
       "id": "F008",
@@ -365,11 +371,13 @@
         "Index on phase for grouping"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-28T17:09:19Z",
+      "verifiedAt": "2026-01-28T17:18:25Z"
     },
     {
       "id": "F009",
@@ -392,11 +400,12 @@
         "Index on status and featureId"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
+      "status": "in_progress",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-28T17:19:06Z"
     },
     {
       "id": "F010",
