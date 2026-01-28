@@ -190,12 +190,16 @@ echo "Ports: SERVER=$SERVER_PORT, WEB=$WEB_PORT"
 
 **Create apps/server/.env in worktree:**
 ```bash
+# Get absolute path to worktree for DATABASE_URL (avoids CWD issues)
+WORKTREE_ROOT=$(cd .nomos/worktrees/{feature_id} && pwd)
+
 cat > .nomos/worktrees/{feature_id}/apps/server/.env << EOF
 BETTER_AUTH_SECRET=XobgAnPBVBGRcImkNlOJgNygcJyNnkQF
 BETTER_AUTH_URL=http://localhost:${SERVER_PORT}
 CORS_ORIGIN=http://localhost:${WEB_PORT}
-DATABASE_URL=.nomos/nomos.db
+DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db
 PORT=${SERVER_PORT}
+NODE_ENV=development
 EOF
 ```
 

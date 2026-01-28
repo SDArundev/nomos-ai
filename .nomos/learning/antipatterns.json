@@ -35,7 +35,33 @@
       "prevention": "When cleanup_mode=false AND auto_mode=false, MUST use AskUserQuestion for cleanup decision",
       "what_went_wrong": "Worktree left behind without asking user preference",
       "lesson": "Follow step-08-merge.md cleanup protocol exactly"
+    },
+    {
+      "id": "ANTI-004",
+      "name": "RELATIVE_DATABASE_URL",
+      "description": "Using relative path without file: prefix in DATABASE_URL causes CWD-dependent failures",
+      "category": "configuration",
+      "evidence_count": 3,
+      "last_seen": "F006",
+      "severity": "CRITICAL",
+      "prevention": "Always use absolute paths with file: prefix in DATABASE_URL: file:/absolute/path/to/db.sqlite",
+      "what_went_wrong": "DATABASE_URL=.nomos/nomos.db missing file: prefix and using relative path. @libsql/client requires file: prefix. Relative paths resolve from CWD which varies in monorepo.",
+      "lesson": "In worktree .env setup: 1) Use WORKTREE_ROOT=$(pwd) to get absolute path, 2) Use file:${WORKTREE_ROOT}/.nomos/nomos.db format",
+      "fix_applied": "step-00-init.md now uses absolute paths with file: prefix"
+    },
+    {
+      "id": "ANTI-005",
+      "name": "DUAL_ENV_LOADING",
+      "description": "drizzle.config.ts and packages/env load .env from different locations causing mismatches",
+      "category": "configuration",
+      "evidence_count": 2,
+      "last_seen": "F006",
+      "severity": "HIGH",
+      "prevention": "drizzle.config.ts now tries multiple paths: CWD, apps/server, packages/db relative. Validation added for DATABASE_URL format.",
+      "what_went_wrong": "drizzle.config.ts hardcoded ../../apps/server/.env while packages/env loaded from CWD",
+      "lesson": "Env loading in monorepos must handle multiple execution contexts (root, package dir, worktree)",
+      "fix_applied": "drizzle.config.ts now tries multiple paths and validates DATABASE_URL format"
     }
   ],
-  "last_updated": "2026-01-27T18:20:00Z"
+  "last_updated": "2026-01-28T21:00:00Z"
 }

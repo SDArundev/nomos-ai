@@ -26,13 +26,14 @@
     {
       "id": "PAT-003",
       "name": "WORKTREE_ENV_ISOLATION",
-      "description": "Git worktrees need separate .env files since they are gitignored",
+      "description": "Git worktrees need separate .env files with absolute paths for DATABASE_URL",
       "category": "git-workflow",
-      "evidence_count": 1,
-      "last_seen": "F001",
+      "evidence_count": 4,
+      "last_seen": "F006",
       "applies_to": ["CAT-GIT", "all-phases"],
-      "recommendation": "Always copy/create .env files in worktree during step-00-init",
-      "gotcha": "Server won't start without .env in worktree"
+      "recommendation": "Create .env files in worktree during step-00-init with: 1) file: prefix for SQLite URLs, 2) absolute paths using $(pwd) to avoid CWD issues",
+      "gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
+      "codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env"
     },
     {
       "id": "PAT-004",
@@ -113,5 +114,5 @@
       "codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});"
     }
   ],
-  "last_updated": "2026-01-28T16:40:00Z"
+  "last_updated": "2026-01-28T21:00:00Z"
 }
