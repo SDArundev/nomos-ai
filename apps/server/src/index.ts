@@ -1,7 +1,7 @@
 import { createContext } from "@nomos-ai/api/context";
 import { appRouter } from "@nomos-ai/api/routers/index";
 import { auth } from "@nomos-ai/auth";
-import { runMigrations } from "@nomos-ai/db";
+import { db, runMigrations, sql } from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -83,6 +83,32 @@ app.use("/*", async (c, next) => {
 
 app.get("/", (c) => {
 	return c.text("OK");
+});
+
+app.get("/health", async (c) => {
+	let database = "connected";
+	try {
+		await db.run(sql`SELECT 1`);
+	} catch {
+		database = "disconnected";
+		return c.json(
+			{
+				status: "unhealthy",
+				version: "1.0.0",
+				database,
+				uptime: process.uptime(),
+				timestamp: new Date().toISOString(),
+			},
+			503,
+		);
+	}
+	return c.json({
+		status: "healthy",
+		version: "1.0.0",
+		database,
+		uptime: process.uptime(),
+		timestamp: new Date().toISOString(),
+	});
 });
 
 app.notFound((c) => {

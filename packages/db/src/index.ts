@@ -9,6 +9,7 @@ const client = createClient({
 
 export const db = drizzle({ client, schema });
 
+export { sql } from "drizzle-orm";
 export { runMigrations } from "./migrate";
 export {
 	featureRepository,
