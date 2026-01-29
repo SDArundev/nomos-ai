@@ -10,6 +10,7 @@ import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 
 // Run database migrations on startup
@@ -84,4 +85,21 @@ app.get("/", (c) => {
 	return c.text("OK");
 });
 
-export default app;
+app.notFound((c) => {
+	return c.json({ error: "Not Found" }, 404);
+});
+
+app.onError((err, c) => {
+	if (err instanceof HTTPException) {
+		return err.getResponse();
+	}
+	console.error("Unhandled error:", err);
+	return c.json({ error: "Internal Server Error" }, 500);
+});
+
+console.log(`Server running on port ${env.PORT}`);
+
+export default {
+	port: env.PORT,
+	fetch: app.fetch,
+};
