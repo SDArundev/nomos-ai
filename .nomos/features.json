@@ -605,11 +605,14 @@
         "Response time under 100ms"
       ],
       "estimatedSize": "XS",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "none",
-      "planningMode": "skip"
+      "planningMode": "skip",
+      "startedAt": "2026-01-29T14:24:49Z",
+      "completedAt": "2026-01-29T14:37:21Z",
+      "verifiedAt": "2026-01-29T15:41:48Z"
     },
     {
       "id": "F017",
@@ -633,11 +636,13 @@
         "Errors return proper codes"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-29T14:28:16Z",
+      "verifiedAt": "2026-01-29T14:47:03Z"
     },
     {
       "id": "F018",
@@ -661,11 +666,14 @@
         "Filtering by status/phase"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-29T14:44:42Z",
+      "completedAt": "2026-01-29T15:07:26Z",
+      "verifiedAt": "2026-01-29T15:13:11Z"
     },
     {
       "id": "F019",
@@ -689,12 +697,13 @@
         "Duration tracking"
       ],
       "estimatedSize": "M",
-      "status": "waiting_approval",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
-      "completedAt": "2026-01-29T16:39:49Z"
+      "startedAt": "2026-01-29T15:43:30Z",
+      "verifiedAt": "2026-01-29T16:41:47Z"
     },
     {
       "id": "F020",
@@ -716,11 +725,14 @@
         "Type-safe route params"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-29T16:48:54Z",
+      "completedAt": "2026-01-29T17:07:41Z",
+      "verifiedAt": "2026-01-29T17:09:30Z"
     },
     {
       "id": "F021",
@@ -742,11 +754,13 @@
         "Theme tokens defined"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "preImplemented": true,
+      "verifiedAt": "2026-01-29T17:19:59Z"
     },
     {
       "id": "F022",

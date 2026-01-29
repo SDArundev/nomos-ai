@@ -1,8 +1,8 @@
 {
 	"version": 1,
 	"description": "Server-side code patterns and architectural best practices",
-	"lastUpdated": "2026-01-29T14:18:49Z",
-	"lastUpdatedBy": "F015",
+	"lastUpdated": "2026-01-29T14:47:03Z",
+	"lastUpdatedBy": "F017",
 	"patterns": [
 		{
 			"id": "SRV-001",
@@ -68,12 +68,52 @@
 			"notes": "Custom refine message tells developers exactly what formats are valid. Prevents silent failures from malformed DATABASE_URL.",
 			"applies_to": ["packages/env/src/server.ts"],
 			"file": "packages/env/src/server.ts:7-19"
+		},
+		{
+			"id": "SRV-006",
+			"name": "oRPC_PROTECTED_PROCEDURE_BASE",
+			"description": "Base protected procedure for oRPC routers. Wraps handlers with auth context requirement and type safety",
+			"category": "api-routing",
+			"first_seen": "F015",
+			"last_seen": "F017",
+			"confidence": 0.9,
+			"codeExample": "export const protectedProcedure = publicProcedure.use(({ next, context }) => {\n  if (!context.session?.user) {\n    throw new ORPCError('UNAUTHORIZED', {\n      message: 'Authentication required',\n    });\n  }\n  return next({ context });\n});",
+			"notes": "Must be imported from packages/api/src/index.ts. Checks session.user exists before allowing handler execution. Throws ORPCError UNAUTHORIZED if missing.",
+			"applies_to": ["packages/api/src", "all-routers"],
+			"file": "packages/api/src/index.ts"
+		},
+		{
+			"id": "SRV-007",
+			"name": "oRPC_CRUD_ROUTER",
+			"description": "Standard oRPC CRUD router pattern with list, get, create, update, delete procedures. Each procedure uses protectedProcedure, Zod input validation, repository integration, and ORPCError for error handling.",
+			"category": "api-routing",
+			"first_seen": "F017",
+			"last_seen": "F017",
+			"confidence": 0.7,
+			"codeExample": "const createProjectInput = z.object({\n  name: z.string().min(1, 'name required').max(100),\n  path: z.string().min(1).refine((p) => p.startsWith('/') || /^[A-Za-z]:/.test(p), { message: 'absolute path required' }),\n  settings: SettingsSchema.optional(),\n});\n\nexport const projectRouter = {\n  list: protectedProcedure.handler(async () => projectRepository.findAll()),\n  \n  get: protectedProcedure\n    .input(z.object({ id: ProjectIdSchema }))\n    .handler(async ({ input }) => {\n      const project = await projectRepository.findById(input.id);\n      if (!project) throw new ORPCError('NOT_FOUND', { message: `Project not found: ${input.id}` });\n      return project;\n    }),\n  \n  create: protectedProcedure\n    .input(createProjectInput)\n    .handler(async ({ input }) => {\n      try {\n        return await projectRepository.create({\n          id: crypto.randomUUID(),\n          name: input.name,\n          path: input.path,\n          settings: input.settings as Record<string, unknown> | undefined,\n        });\n      } catch (error) {\n        throw new ORPCError('BAD_REQUEST', {\n          message: error instanceof Error ? error.message : 'Failed to create project',\n        });\n      }\n    }),\n  \n  update: protectedProcedure\n    .input(z.object({ id: ProjectIdSchema, data: UpdateProjectInput }))\n    .handler(async ({ input }) => {\n      try {\n        const updateData: Record<string, unknown> = {};\n        if (input.data.name !== undefined) updateData.name = input.data.name;\n        if (input.data.path !== undefined) updateData.path = input.data.path;\n        if (input.data.settings !== undefined) updateData.settings = input.data.settings;\n        return await projectRepository.update(input.id, updateData);\n      } catch (error) {\n        if (error instanceof Error && error.message.includes('not found')) {\n          throw new ORPCError('NOT_FOUND', { message: error.message });\n        }\n        throw new ORPCError('BAD_REQUEST', {\n          message: error instanceof Error ? error.message : 'Failed to update project',\n        });\n      }\n    }),\n  \n  delete: protectedProcedure\n    .input(z.object({ id: ProjectIdSchema }))\n    .handler(async ({ input }) => {\n      try {\n        return await projectRepository.delete(input.id);\n      } catch (error) {\n        if (error instanceof Error && error.message.includes('not found')) {\n          throw new ORPCError('NOT_FOUND', { message: error.message });\n        }\n        throw new ORPCError('BAD_REQUEST', {\n          message: error instanceof Error ? error.message : 'Failed to delete project',\n        });\n      }\n    }),\n};",
+			"keyPoints": [
+				"Define all input schemas at the top of the file (createInput, updateInput, etc.)",
+				"Always use protectedProcedure as base to require authentication",
+				"Generate IDs in create handler: id: crypto.randomUUID()",
+				"Type cast Zod objects to Record<string, unknown> when passing to Drizzle: settings: input.settings as Record<string, unknown> | undefined",
+				"Use branded ID schemas for type safety (ProjectIdSchema, FeatureIdSchema, etc.)",
+				"Error handling: wrap handlers in try-catch, detect NOT_FOUND by error message content, use BAD_REQUEST for other errors",
+				"Update handlers: build updateData object conditionally, only include fields that changed",
+				"All handlers should have descriptive error messages with context (e.g., `Project not found: ${id}`)"
+			],
+			"testCoverage": "36 tests per CRUD router: repository operations (findAll, findById, create, update, delete), input validation (string length, path format, enum values, numeric ranges), error handling (NOT_FOUND, BAD_REQUEST codes), partial updates, defaults application, authentication context verification",
+			"notes": "Router must be exported as named export and integrated into packages/api/src/routers/index.ts under appRouter. Example: export const appRouter = { projects: projectRouter, ... };",
+			"applies_to": ["packages/api/src/routers", "domain-routers"],
+			"file": "packages/api/src/routers/project.ts",
+			"features_applied": ["F017"],
+			"features_succeeded": ["F017"]
 		}
 	],
 	"architectural_notes": {
 		"migration_setup": "Run migrations on startup (top of index.ts) but exit with error code 1 if they fail - don't silently proceed",
 		"middleware_order": "1) logger(), 2) cors(), 3) auth handler, 4) rpc/api handlers, 5) health check, then notFound/onError",
 		"handler_export": "Export apiHandler and rpcHandler separately so they can be imported by test suite or reused elsewhere",
-		"port_binding": "NEVER use app.listen() - always export default { port, fetch } for Bun compatibility"
+		"port_binding": "NEVER use app.listen() - always export default { port, fetch } for Bun compatibility",
+		"router_pattern": "For each domain entity (Project, Feature, Session), create router/<entity>.ts with CRUD procedures. Import and nest under appRouter in routers/index.ts. Export both router object and AppRouter type for client-side type generation."
 	}
 }

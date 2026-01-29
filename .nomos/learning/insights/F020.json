@@ -1,0 +1,255 @@
+{
+	"feature": {
+		"id": "F020",
+		"title": "React app with TanStack Router",
+		"category": "CAT-FE",
+		"phase": "phase-1",
+		"size": "M",
+		"started_at": "2026-01-29T16:48:54Z",
+		"completed_at": "2026-01-29T17:07:41Z",
+		"verified_at": "2026-01-29T17:09:30Z",
+		"duration_minutes": 21,
+		"files_changed": 5,
+		"lines_added": 412,
+		"commits": 2,
+		"retries": 0,
+		"risk_level": "LOW",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "Vite dev server starts",
+			"status": "verified",
+			"details": "React app with Vite configured, dev server starts successfully"
+		},
+		{
+			"criterion": "TanStack Router configured",
+			"status": "verified",
+			"details": "Routes auto-generated via vite build, routeTree.gen.ts updated with new routes"
+		},
+		{
+			"criterion": "Routes render correctly",
+			"status": "verified",
+			"details": "3 new routes added: /projects/ (index), /projects/$projectId (detail), /features/$featureId (detail) - all render without errors"
+		},
+		{
+			"criterion": "Type-safe route params",
+			"status": "verified",
+			"details": "Route.useParams() returns typed params, Link to routes uses params prop with branded IDs"
+		}
+	],
+	"dependencies": {
+		"required": ["F001", "F017", "F018"],
+		"reasons": {
+			"F001": "Provides React + TanStack Router scaffold with Vite, authentication setup, UI components (Card, Skeleton, Button)",
+			"F017": "Projects oRPC router needed for /projects list and detail queries",
+			"F018": "Features oRPC router needed for feature detail queries and filtering by projectId"
+		}
+	},
+	"discoveries": [
+		{
+			"discovery": "vite build must be run to regenerate routeTree.gen.ts after adding new route files",
+			"context": "F020 added 3 new route files (.tsx), but TypeScript compilation failed until 'vite build' was run to generate updated routeTree.gen.ts",
+			"lesson": "TanStack Router file-based routing requires explicit build step to scan route directory and generate type definitions. Cannot skip this step.",
+			"root_cause": "Route file-based routing needs code generation; vite build triggers TanStack Router plugin which scans /routes/ directory",
+			"prevention": "After adding .tsx files to apps/web/src/routes/, always run 'vite build' before type-checking. Add to feature checklist: 'Run vite build to regenerate routeTree.gen.ts'"
+		},
+		{
+			"discovery": "Client-side feature filtering works when API lacks projectId filtering",
+			"context": "Features oRPC router list() procedure doesn't accept projectId filter (only status/phase). F020 routes filter in-memory: allFeatures.data?.filter((f) => f.projectId === projectId)",
+			"lesson": "Frontend can compensate for incomplete backend API by filtering client-side. Useful for MVP, but indicates missing API feature.",
+			"trade_off": "Client-side filtering works for small datasets (<1000 features), but wastes bandwidth. Recommendation: add projectId filter to feature list API in next feature.",
+			"code_pattern": "const features = allFeatures.data?.filter((f) => f.projectId === projectId);",
+			"prevention": "Document API gaps when discovered. Add to feature spec for next feature: 'features.list() should accept optional projectId filter'"
+		},
+		{
+			"discovery": "Biome noArrayIndexKey lint error with Array.from + map skeleton pattern",
+			"context": "F020 tried to create skeleton loaders with Array.from(Array(3)).map((_, i) => <Skeleton key={i}/>). Biome flagged noArrayIndexKey violation (array indexes not reliable for keys).",
+			"lesson": "Biome's noArrayIndexKey rule applies to dynamically generated elements. Static skeleton patterns should use explicit elements instead of .map().",
+			"solution_applied": "Replaced Array.from() pattern with inline Skeleton elements: <Skeleton/><Skeleton/><Skeleton/>",
+			"code_pattern_bad": "// Causes noArrayIndexKey lint error:\n{Array.from(Array(3)).map((_, i) => <Skeleton key={i} className=\"h-24 w-full\" />)}",
+			"code_pattern_good": "// Biome-compliant skeleton pattern:\n<div className=\"grid gap-4\">\n  <Skeleton className=\"h-24 w-full rounded-lg\" />\n  <Skeleton className=\"h-24 w-full rounded-lg\" />\n  <Skeleton className=\"h-24 w-full rounded-lg\" />\n</div>",
+			"prevention": "For skeleton/placeholder patterns with fixed count, inline elements. For dynamic lists, use proper key strategy."
+		},
+		{
+			"discovery": "beforeLoad auth guard pattern protects routes effectively",
+			"context": "All 3 new routes use beforeLoad hook with authClient.getSession() check. Redirects unauthenticated users to /login with throw: true.",
+			"lesson": "TanStack Router's beforeLoad is ideal place for auth checks. Runs before component mounts, can throw redirect.",
+			"code_pattern": "export const Route = createFileRoute('/projects/')({ \n  component: ProjectsIndex,\n  beforeLoad: async () => {\n    const session = await authClient.getSession();\n    if (!session.data) redirect({ to: '/login', throw: true });\n  },\n});",
+			"prevention": "Use beforeLoad for all protected routes. Prevents component render for unauthenticated users. Cleaner than permission checks inside component."
+		},
+		{
+			"discovery": "oRPC query pattern with queryOptions() enables type-safe data fetching",
+			"context": "F020 uses useQuery(orpc.projects.list.queryOptions()) and useQuery(orpc.features.get.queryOptions({input: {...}})). Query options generated from oRPC schema at build time.",
+			"lesson": "TanStack Query's queryOptions() pattern provides autocomplete and type safety for query keys and fetching logic. Coupled with oRPC types.",
+			"code_pattern": "const projects = useQuery(orpc.projects.list.queryOptions());\nconst feature = useQuery(orpc.features.get.queryOptions({input: {id: featureId}}));",
+			"benefit": "1) Type-safe input validation, 2) Automatic query key derivation, 3) Cached queries by default, 4) Consistent error handling",
+			"prevention": "Always use .queryOptions() pattern from oRPC client. Never construct query keys manually in frontend."
+		}
+	],
+	"patterns_applied": [
+		{
+			"pattern": "PAT-002",
+			"name": "ROUTE_TREE_GENERATION",
+			"how_used": "Added 3 new route files, ran 'vite build' to regenerate routeTree.gen.ts with type definitions for new routes",
+			"benefit": "Type-safe route params and links. Route tree auto-updated without manual type definitions."
+		},
+		{
+			"pattern": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"how_used": "Copied existing route patterns from F001 scaffold (projects.index.tsx from dashboard.tsx, projects.$projectId.tsx from login.tsx structure, features.$featureId.tsx as new pattern but following established beforeLoad auth guard)",
+			"benefit": "21-minute implementation. Consistent auth patterns, component structure, data fetching approach across all routes."
+		}
+	],
+	"what_worked": [
+		"beforeLoad auth guard pattern prevents unauthenticated access at route level before component render",
+		"useQuery with queryOptions() from oRPC provides type-safe data fetching from server routers",
+		"TanStack Router params validation via Route.useParams() returns typed params",
+		"Skeleton loaders provide good UX for data loading states",
+		"Card components with status color indicators (statusColors object) provide visual feedback",
+		"Client-side feature filtering works well for MVP (filters allFeatures by projectId)",
+		"Link components with params prop enable type-safe navigation",
+		"All 4 acceptance criteria met on first implementation (no retries needed)"
+	],
+	"what_failed": [],
+	"what_could_improve": [
+		"Feature list API should accept optional projectId filter to avoid client-side filtering",
+		"Session list API should be queried on project detail page to show agent execution status",
+		"Routes could show feature creator/owner information if added to Feature schema",
+		"Feature detail page could show related sessions (agent executions) if API updated",
+		"Project/feature list pages could have search/filter controls",
+		"Status indicator dots could use <Badge> component instead of plain divs for consistency",
+		"Route params could be validated with Zod before use (currently relies on query to fail if not found)"
+	],
+	"recommendations": [
+		{
+			"recommendation": "Add projectId filter to features.list() oRPC router",
+			"rationale": "Currently client filters allFeatures by projectId. Server-side filtering would reduce bandwidth and enable server-side pagination.",
+			"action": "Enhance F018 featureRouter.list() input schema to accept optional projectId, filter in handler before returning"
+		},
+		{
+			"recommendation": "Add sessions display to project detail page",
+			"rationale": "Users should see agent session history and output for features in a project",
+			"action": "Query sessions API in /projects/$projectId route, display recent sessions with status badges and elapsed time"
+		},
+		{
+			"recommendation": "Extract statusColors object to shared theme/colors module",
+			"rationale": "Both /projects/$projectId and /features/$featureId define same statusColors. Frontend codebase will have many pages with status indicators.",
+			"action": "Create apps/web/src/lib/colors.ts with status color constants, import in all pages that need them"
+		},
+		{
+			"recommendation": "Use <Badge> component for status indicators instead of plain divs",
+			"rationale": "UI consistency. Badge component should have status variants (backlog, pending, in_progress, etc.)",
+			"action": "Add status variant to Badge component, replace statusColors pattern with <Badge variant={feature.status} />"
+		},
+		{
+			"recommendation": "Add Zod param validation to routes for extra safety",
+			"rationale": "Route params like projectId, featureId are typed but not validated. Invalid IDs reach component before query fails.",
+			"action": "Add route.validateParams() with Zod schemas or validate in beforeLoad before rendering component"
+		}
+	],
+	"metrics": {
+		"test_count": 0,
+		"test_pass_rate": null,
+		"build_errors": 0,
+		"type_errors": 0,
+		"lint_errors_before": 1,
+		"lint_errors_after": 0,
+		"component_count": 3,
+		"routes_added": 3,
+		"files_created": [
+			"apps/web/src/routes/projects.index.tsx",
+			"apps/web/src/routes/projects.$projectId.tsx",
+			"apps/web/src/routes/features.$featureId.tsx"
+		],
+		"files_modified": [
+			"apps/web/src/components/header.tsx",
+			"apps/web/src/routeTree.gen.ts"
+		]
+	},
+	"next_features_enabled": [
+		{
+			"feature": "Project create/edit pages",
+			"dependency": "Can now use /projects route as navigation hub, add /projects/create and /projects/$projectId/edit routes",
+			"template": "apps/web/src/routes/projects.$projectId.tsx - use same beforeLoad and component structure"
+		},
+		{
+			"feature": "Feature create/edit pages",
+			"dependency": "Can now use /features route and /features/$featureId as detail page, add edit routes",
+			"template": "apps/web/src/routes/features.$featureId.tsx - extend with form components for create/edit"
+		},
+		{
+			"feature": "Session detail page",
+			"dependency": "Can add /sessions/$sessionId route, display agent output, status timeline, enriched with session duration from getDuration() API",
+			"endpoint": "Uses sessions.get, sessions.getDuration, sessions.appendOutput from F019 router"
+		},
+		{
+			"feature": "Dashboard with analytics",
+			"dependency": "Can aggregate data from projects.list(), features.list(status), sessions.listActive() to show overview",
+			"endpoints": "orpc.projects.list, orpc.features.list, orpc.sessions.listActive"
+		}
+	],
+	"learning_contribution": {
+		"new_patterns": [],
+		"pattern_enhancements": [
+			"PAT-002 (ROUTE_TREE_GENERATION): F020 demonstrates vite build requirement for TanStack Router, adds to pattern documentation",
+			"PAT-013 (PATTERN_REUSE): F020 shows pattern reuse for frontend route structure (beforeLoad, component layout, data fetching pattern)"
+		],
+		"documentation": "Enhanced .nomos/learning/patterns.json with F020 evidence for PAT-002 (vite build step required) and PAT-013 (route pattern reuse)",
+		"codebase_map": "Added 3 route entries (projects.index, projects.$projectId, features.$featureId) documenting components, data sources, auth patterns, and navigation structure",
+		"metrics": "Added F020 to .nomos/learning/metrics.json showing 21-minute duration, 5 files changed, 412 lines added, 2 commits, zero retries"
+	},
+	"efficiency_analysis": {
+		"implementation_speed": "21 minutes (for 3 routes with TanStack Router setup)",
+		"why_this_duration": [
+			"Pattern reuse from F001 scaffold - existing auth/component structure",
+			"TanStack Router file-based routing - no manual routing config needed",
+			"oRPC integration - type-safe queries from server routers",
+			"UI components from scaffold - Card, Skeleton, Button ready to use",
+			"Mostly copying existing patterns, minimal new code"
+		],
+		"comparison_to_baseline": "Average feature (19 features): 19.4 min. F020: 21 min. Very close to average despite being first web routes. Shows good pattern reuse efficiency.",
+		"pattern_reuse_value": "Estimated 10+ minutes of UI design time eliminated by reusing existing components. Auth guard pattern copied from F001."
+	},
+	"code_quality_notes": {
+		"type_safety": "Full type safety: Route.useParams() typed, oRPC queries typed, no 'any' types",
+		"component_structure": "Clear separation: beforeLoad for auth, component for rendering, data fetching in component hooks",
+		"error_handling": "Routes handle loading, error (not found), and success states for all data queries",
+		"accessibility": "Links use semantic HTML, status indicators use visual + text (color + emoji), good color contrast",
+		"responsive_design": "Grid layouts use Tailwind classes, responsive container width (max-w-4xl), mobile-friendly spacing"
+	},
+	"architectural_insights": {
+		"route_organization": "File-based routing (projects.index, projects.$projectId, features.$featureId) is clear and discoverable. One file per route.",
+		"data_fetching": "useQuery pattern consistent with React Query conventions. Type-safe queries from oRPC routers.",
+		"auth_pattern": "beforeLoad hook is ideal place for auth checks. Prevents render, redirects cleanly.",
+		"component_design": "Presentational components (route pages) are thin wrappers around data queries and UI components. Good separation from business logic.",
+		"api_integration": "Frontend queries backend via oRPC client (generated from server routers). Type-safe end-to-end."
+	},
+	"frontend_patterns_discovered": [
+		{
+			"pattern": "WEB-001",
+			"name": "FILE_BASED_ROUTING_WITH_AUTH",
+			"description": "TanStack Router file-based routes with beforeLoad auth guard",
+			"code_example": "export const Route = createFileRoute('/protected-route')({component: Page,beforeLoad: async () => {const session = await authClient.getSession(); if (!session.data) redirect({ to: '/login', throw: true });}});"
+		},
+		{
+			"pattern": "WEB-002",
+			"name": "TYPE_SAFE_ROUTE_PARAMS",
+			"description": "Use Route.useParams() for type-safe route parameters",
+			"code_example": "const { projectId } = Route.useParams();"
+		},
+		{
+			"pattern": "WEB-003",
+			"name": "oRPC_QUERY_OPTIONS",
+			"description": "Use .queryOptions() from oRPC client for type-safe TanStack Query integration",
+			"code_example": "const data = useQuery(orpc.projects.get.queryOptions({input: {id: projectId}}));"
+		},
+		{
+			"pattern": "WEB-004",
+			"name": "SKELETON_LOADING_STATE",
+			"description": "Use Skeleton component for loading states, avoid Array.from with map (violates noArrayIndexKey lint rule)",
+			"code_example": "Inline skeleton elements instead of dynamically mapping"
+		}
+	],
+	"session_number": 7
+}
