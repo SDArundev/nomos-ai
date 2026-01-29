@@ -782,12 +782,12 @@
         "DevTools integration"
       ],
       "estimatedSize": "M",
-      "status": "in_progress",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
-      "startedAt": "2026-01-29T17:27:33Z"
+      "completedAt": "2026-01-29T17:43:46Z"
     },
     {
       "id": "F023",

@@ -132,7 +132,10 @@
 			"update_logic": 3,
 			"authentication": 2
 		},
-		"files_created": ["packages/api/src/routers/project.ts", "packages/api/src/routers/__tests__/project.test.ts"],
+		"files_created": [
+			"packages/api/src/routers/project.ts",
+			"packages/api/src/routers/__tests__/project.test.ts"
+		],
 		"files_modified": ["packages/api/src/routers/index.ts"]
 	},
 	"next_features_enabled": [

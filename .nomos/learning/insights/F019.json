@@ -165,9 +165,7 @@
 			"packages/api/src/routers/session.ts",
 			"packages/api/src/routers/__tests__/session.test.ts"
 		],
-		"files_modified": [
-			"packages/api/src/routers/index.ts"
-		]
+		"files_modified": ["packages/api/src/routers/index.ts"]
 	},
 	"next_features_enabled": [
 		{
