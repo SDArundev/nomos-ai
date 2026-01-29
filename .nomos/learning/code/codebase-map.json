@@ -8,7 +8,10 @@
 			"purpose": "FeatureRepository with CRUD, query by project/status/phase, bulk status update, dependency resolution, and transaction support",
 			"layer": "server",
 			"exports": ["featureRepository"],
-			"imports_from": ["packages/db/src/index.ts", "packages/db/src/schema/features.ts"],
+			"imports_from": [
+				"packages/db/src/index.ts",
+				"packages/db/src/schema/features.ts"
+			],
 			"lastTouchedBy": "F018",
 			"methods": {
 				"findAll": "Get all features",
@@ -28,28 +31,64 @@
 			"purpose": "SessionRepository with CRUD, findActive, findByFeature, appendOutput (SQL CASE WHEN), calculateDuration helper, and withTransaction support",
 			"layer": "server",
 			"exports": ["sessionRepository"],
-			"imports_from": ["packages/db/src/index.ts", "packages/db/src/schema/sessions.ts"],
+			"imports_from": [
+				"packages/db/src/index.ts",
+				"packages/db/src/schema/sessions.ts"
+			],
 			"lastTouchedBy": "F014"
 		},
 		"packages/db/src/repositories/index.ts": {
 			"purpose": "Barrel export for all repository modules",
 			"layer": "server",
-			"exports": ["featureRepository", "projectRepository", "sessionRepository"],
-			"imports_from": ["packages/db/src/repositories/feature.ts", "packages/db/src/repositories/project.ts", "packages/db/src/repositories/session.ts"],
+			"exports": [
+				"featureRepository",
+				"projectRepository",
+				"sessionRepository"
+			],
+			"imports_from": [
+				"packages/db/src/repositories/feature.ts",
+				"packages/db/src/repositories/project.ts",
+				"packages/db/src/repositories/session.ts"
+			],
 			"lastTouchedBy": "F014"
 		},
 		"packages/db/src/index.ts": {
 			"purpose": "Database client initialization (libSQL/Drizzle) and barrel export for db, migrations, repositories, and sql primitive from drizzle-orm. Enables clean server imports like: import { db, sql } from '@nomos-ai/db'",
 			"layer": "server",
-			"exports": ["db", "sql", "runMigrations", "featureRepository", "projectRepository", "sessionRepository"],
-			"imports_from": ["packages/env/server", "packages/db/src/schema/index.ts", "packages/db/src/migrate.ts", "packages/db/src/repositories/index.ts", "drizzle-orm"],
+			"exports": [
+				"db",
+				"sql",
+				"runMigrations",
+				"featureRepository",
+				"projectRepository",
+				"sessionRepository"
+			],
+			"imports_from": [
+				"packages/env/server",
+				"packages/db/src/schema/index.ts",
+				"packages/db/src/migrate.ts",
+				"packages/db/src/repositories/index.ts",
+				"drizzle-orm"
+			],
 			"lastTouchedBy": "F016"
 		},
 		"apps/server/src/index.ts": {
 			"purpose": "Main Hono server entry with oRPC routing, CORS middleware, error handlers (app.onError, app.notFound), root health check GET /, and health endpoint GET /health with database connectivity check returning 200 or 503",
 			"layer": "server",
 			"exports": ["apiHandler", "rpcHandler", "default (Bun serve config)"],
-			"imports_from": ["@nomos-ai/api/context", "@nomos-ai/api/routers/index", "@nomos-ai/auth", "@nomos-ai/db", "@nomos-ai/env/server", "@orpc/openapi/fetch", "@orpc/server/fetch", "hono", "hono/cors", "hono/logger", "hono/http-exception"],
+			"imports_from": [
+				"@nomos-ai/api/context",
+				"@nomos-ai/api/routers/index",
+				"@nomos-ai/auth",
+				"@nomos-ai/db",
+				"@nomos-ai/env/server",
+				"@orpc/openapi/fetch",
+				"@orpc/server/fetch",
+				"hono",
+				"hono/cors",
+				"hono/logger",
+				"hono/http-exception"
+			],
 			"lastTouchedBy": "F016",
 			"keyRoutes": {
 				"GET /": "Root health check returning 'OK' text",
@@ -84,7 +123,13 @@
 			"purpose": "Project CRUD oRPC router with list, get, create, update, delete procedures. Each uses protectedProcedure, Zod input validation, repository integration, and ORPCError for error handling. Settings field uses type cast from Zod object to Record<string, unknown> for Drizzle compatibility.",
 			"layer": "shared",
 			"exports": ["projectRouter"],
-			"imports_from": ["@nomos-ai/db", "@nomos-ai/types", "@orpc/server", "zod", "packages/api/src/index"],
+			"imports_from": [
+				"@nomos-ai/db",
+				"@nomos-ai/types",
+				"@orpc/server",
+				"zod",
+				"packages/api/src/index"
+			],
 			"lastTouchedBy": "F017",
 			"procedures": {
 				"list": "Get all projects (no input)",
@@ -104,7 +149,13 @@
 			"purpose": "Feature CRUD oRPC router with 7 procedures (list, get, create, update, delete, updateStatus, bulkUpdateStatus). Includes VALID_TRANSITIONS state machine for status change validation. Each procedure uses protectedProcedure, Zod input validation, repository integration, and ORPCError for error handling.",
 			"layer": "shared",
 			"exports": ["featureRouter"],
-			"imports_from": ["@nomos-ai/db", "@nomos-ai/types", "@orpc/server", "zod", "packages/api/src/index"],
+			"imports_from": [
+				"@nomos-ai/db",
+				"@nomos-ai/types",
+				"@orpc/server",
+				"zod",
+				"packages/api/src/index"
+			],
 			"lastTouchedBy": "F018",
 			"procedures": {
 				"list": "List all features or filter by status/phase (no input returns all)",
@@ -127,7 +178,12 @@
 			"purpose": "App router aggregation with all procedures. Exports appRouter (router object), AppRouter (type), and AppRouterClient (client type for type-safe frontend calls)",
 			"layer": "shared",
 			"exports": ["appRouter", "AppRouter", "AppRouterClient"],
-			"imports_from": ["@orpc/server", "packages/api/src/routers/project", "packages/api/src/routers/feature", "packages/api/src/routers/session"],
+			"imports_from": [
+				"@orpc/server",
+				"packages/api/src/routers/project",
+				"packages/api/src/routers/feature",
+				"packages/api/src/routers/session"
+			],
 			"lastTouchedBy": "F019",
 			"procedures": {
 				"healthCheck": "publicProcedure returning 'OK' string",
@@ -141,7 +197,13 @@
 			"purpose": "Session CRUD oRPC router with 9 procedures (list, get, create, update, delete, listActive, updateStatus, appendOutput, getDuration). Includes VALID_TRANSITIONS state machine for session status validation (pending→running→completed|failed). Entity-specific operations for streaming output and duration calculation.",
 			"layer": "shared",
 			"exports": ["sessionRouter"],
-			"imports_from": ["@nomos-ai/db", "@nomos-ai/types", "@orpc/server", "zod", "packages/api/src/index"],
+			"imports_from": [
+				"@nomos-ai/db",
+				"@nomos-ai/types",
+				"@orpc/server",
+				"zod",
+				"packages/api/src/index"
+			],
 			"lastTouchedBy": "F019",
 			"procedures": {
 				"list": "List all sessions or filter by status/featureId (optional input)",
@@ -225,7 +287,14 @@
 			"purpose": "Projects list page showing all projects with links to detail pages. Uses beforeLoad auth guard, oRPC query for list, Skeleton loaders, Card components, and type-safe navigation links",
 			"layer": "web",
 			"exports": ["Route"],
-			"imports_from": ["@tanstack/react-query", "@tanstack/react-router", "@/components/ui/card", "@/components/ui/skeleton", "@/lib/auth-client", "@/utils/orpc"],
+			"imports_from": [
+				"@tanstack/react-query",
+				"@tanstack/react-router",
+				"@/components/ui/card",
+				"@/components/ui/skeleton",
+				"@/lib/auth-client",
+				"@/utils/orpc"
+			],
 			"lastTouchedBy": "F020",
 			"patterns": [
 				"beforeLoad async auth guard with redirect to /login",
@@ -246,7 +315,15 @@
 			"purpose": "Project detail page showing project info, related features list filtered by projectId, and navigation. beforeLoad auth guard, type-safe params, feature status color indicators",
 			"layer": "web",
 			"exports": ["Route"],
-			"imports_from": ["@tanstack/react-query", "@tanstack/react-router", "@/components/ui/button", "@/components/ui/card", "@/components/ui/skeleton", "@/lib/auth-client", "@/utils/orpc"],
+			"imports_from": [
+				"@tanstack/react-query",
+				"@tanstack/react-router",
+				"@/components/ui/button",
+				"@/components/ui/card",
+				"@/components/ui/skeleton",
+				"@/lib/auth-client",
+				"@/utils/orpc"
+			],
 			"lastTouchedBy": "F020",
 			"patterns": [
 				"beforeLoad async auth guard",
@@ -269,7 +346,15 @@
 			"purpose": "Feature detail page showing feature metadata, description, acceptance criteria, and dependencies with type-safe links. Displays status/phase/priority with color indicators, enriched data from features.get API",
 			"layer": "web",
 			"exports": ["Route"],
-			"imports_from": ["@tanstack/react-query", "@tanstack/react-router", "@/components/ui/button", "@/components/ui/card", "@/components/ui/skeleton", "@/lib/auth-client", "@/utils/orpc"],
+			"imports_from": [
+				"@tanstack/react-query",
+				"@tanstack/react-router",
+				"@/components/ui/button",
+				"@/components/ui/card",
+				"@/components/ui/skeleton",
+				"@/lib/auth-client",
+				"@/utils/orpc"
+			],
 			"lastTouchedBy": "F020",
 			"patterns": [
 				"beforeLoad async auth guard",

@@ -101,7 +101,6 @@ async function packageSkill(
 
 		// Create a simple zip manually or use a library
 		// For now, use the 'archiver' pattern with Bun.spawn
-		const { spawn } = await import("node:child_process");
 
 		// Create zip using system zip command (cross-platform approach)
 		const parentDir = resolve(resolvedPath, "..");
