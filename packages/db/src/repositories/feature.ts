@@ -23,6 +23,10 @@ export const featureRepository = {
 		return db.select().from(feature).where(eq(feature.status, status));
 	},
 
+	async findByPhase(phase: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(eq(feature.phase, phase));
+	},
+
 	async create(
 		data: Omit<FeatureInsert, "createdAt" | "updatedAt">,
 	): Promise<FeatureSelect> {
