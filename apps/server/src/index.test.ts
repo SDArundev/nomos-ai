@@ -18,6 +18,17 @@ function createTestApp() {
 		return c.text("OK");
 	});
 
+	// Health endpoint
+	app.get("/health", (c) => {
+		return c.json({
+			status: "healthy",
+			version: "1.0.0",
+			database: "connected",
+			uptime: 123.456,
+			timestamp: new Date().toISOString(),
+		});
+	});
+
 	// Not found handler
 	app.notFound((c) => {
 		return c.json({ error: "Not Found" }, 404);
@@ -43,6 +54,63 @@ describe("Hono App", () => {
 			const res = await app.request("/");
 			expect(res.status).toBe(200);
 			expect(await res.text()).toBe("OK");
+		});
+	});
+
+	describe("Health endpoint: GET /health", () => {
+		test("returns 200 with JSON body", async () => {
+			const res = await app.request("/health");
+			expect(res.status).toBe(200);
+			expect(res.headers.get("content-type")).toContain("application/json");
+		});
+
+		test("response includes status and version fields", async () => {
+			const res = await app.request("/health");
+			const body = (await res.json()) as {
+				status: string;
+				version: string;
+			};
+			expect(body.status).toBe("healthy");
+			expect(body.version).toBe("1.0.0");
+		});
+
+		test("response includes database field", async () => {
+			const res = await app.request("/health");
+			const body = (await res.json()) as { database: string };
+			expect(body.database).toBe("connected");
+		});
+
+		test("response includes timestamp", async () => {
+			const res = await app.request("/health");
+			const body = (await res.json()) as { timestamp: string };
+			expect(body.timestamp).toBeDefined();
+			expect(new Date(body.timestamp).toISOString()).toBe(body.timestamp);
+		});
+
+		test("returns 503 with unhealthy status when database fails", async () => {
+			const unhealthyApp = new Hono();
+			unhealthyApp.get("/health", async (c) => {
+				const database = "disconnected";
+				return c.json(
+					{
+						status: "unhealthy",
+						version: "1.0.0",
+						database,
+						uptime: 0,
+						timestamp: new Date().toISOString(),
+					},
+					503,
+				);
+			});
+
+			const res = await unhealthyApp.request("/health");
+			expect(res.status).toBe(503);
+			const body = (await res.json()) as {
+				status: string;
+				database: string;
+			};
+			expect(body.status).toBe("unhealthy");
+			expect(body.database).toBe("disconnected");
 		});
 	});
 
