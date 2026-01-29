@@ -1,0 +1,79 @@
+{
+	"version": 1,
+	"description": "Server-side code patterns and architectural best practices",
+	"lastUpdated": "2026-01-29T14:18:49Z",
+	"lastUpdatedBy": "F015",
+	"patterns": [
+		{
+			"id": "SRV-001",
+			"name": "BUN_SERVE_EXPORT_PATTERN",
+			"description": "Bun.serve binding pattern using export default { port, fetch } to bind Hono app to specific port",
+			"category": "server-setup",
+			"first_seen": "F015",
+			"last_seen": "F015",
+			"confidence": 0.9,
+			"codeExample": "console.log(`Server running on port ${env.PORT}`);\n\nexport default {\n  port: env.PORT,\n  fetch: app.fetch,\n};",
+			"notes": "This is the correct pattern for Bun runtime. Do NOT use app.listen() or manual createServer() - Bun expects the export default with { port, fetch } signature.",
+			"applies_to": ["apps/server", "bun-runtime"],
+			"file": "apps/server/src/index.ts:100-105"
+		},
+		{
+			"id": "SRV-002",
+			"name": "HONO_ERROR_HANDLER_PATTERN",
+			"description": "Production error handling with app.onError and app.notFound for all route types",
+			"category": "error-handling",
+			"first_seen": "F015",
+			"last_seen": "F015",
+			"confidence": 0.9,
+			"codeExample": "app.notFound((c) => {\n  return c.json({ error: 'Not Found' }, 404);\n});\n\napp.onError((err, c) => {\n  if (err instanceof HTTPException) {\n    return err.getResponse();\n  }\n  console.error('Unhandled error:', err);\n  return c.json({ error: 'Internal Server Error' }, 500);\n});",
+			"notes": "app.onError catches errors that middleware and interceptors miss. Must check HTTPException separately to allow specific HTTP errors through.",
+			"applies_to": ["all-routes", "error-handling"],
+			"file": "apps/server/src/index.ts:88-98"
+		},
+		{
+			"id": "SRV-003",
+			"name": "HONO_UNIT_TEST_PATTERN",
+			"description": "Use createTestApp() helper to recreate route handlers in test without importing index.ts directly",
+			"category": "testing",
+			"first_seen": "F015",
+			"last_seen": "F015",
+			"confidence": 0.8,
+			"codeExample": "function createTestApp() {\n  const app = new Hono();\n  // Recreate routes here to avoid top-level side effects from index.ts\n  app.get('/', (c) => c.text('OK'));\n  app.notFound((c) => c.json({ error: 'Not Found' }, 404));\n  app.onError((err, c) => { /* ... */ });\n  return app;\n}\n\ntest('GET / returns 200 OK', async () => {\n  const app = createTestApp();\n  const res = await app.request('/');\n  expect(res.status).toBe(200);\n  expect(await res.text()).toBe('OK');\n});",
+			"notes": "Cannot import index.ts directly because it runs migrations and loads env at module level. createTestApp() pattern avoids side effects while testing routing logic.",
+			"applies_to": ["apps/server/src/index.test.ts"],
+			"file": "apps/server/src/index.test.ts:13-36"
+		},
+		{
+			"id": "SRV-004",
+			"name": "ENV_PORT_COERCE_PATTERN",
+			"description": "Use z.coerce.number().int().default(3000) for PORT env var since env vars are strings",
+			"category": "configuration",
+			"first_seen": "F015",
+			"last_seen": "F015",
+			"confidence": 0.9,
+			"codeExample": "PORT: z.coerce.number().int().default(3000),",
+			"notes": "z.coerce.number() converts string '3000' to number 3000. .default(3000) provides fallback if PORT is undefined.",
+			"applies_to": ["packages/env/src/server.ts"],
+			"file": "packages/env/src/server.ts:23"
+		},
+		{
+			"id": "SRV-005",
+			"name": "ENV_DATABASE_URL_VALIDATION",
+			"description": "Use .refine() to validate DATABASE_URL starts with 'file:', 'libsql://', or 'http' for different backend types",
+			"category": "configuration",
+			"first_seen": "F015",
+			"last_seen": "F015",
+			"confidence": 0.9,
+			"codeExample": "DATABASE_URL: z\n  .string()\n  .min(1)\n  .refine(\n    (url) =>\n      url.startsWith('file:') ||\n      url.startsWith('libsql://') ||\n      url.startsWith('http'),\n    {\n      message:\n        'DATABASE_URL must start with \"file:\" for SQLite, \"libsql://\" for Turso, or \"http\" for remote',\n    },\n  ),",
+			"notes": "Custom refine message tells developers exactly what formats are valid. Prevents silent failures from malformed DATABASE_URL.",
+			"applies_to": ["packages/env/src/server.ts"],
+			"file": "packages/env/src/server.ts:7-19"
+		}
+	],
+	"architectural_notes": {
+		"migration_setup": "Run migrations on startup (top of index.ts) but exit with error code 1 if they fail - don't silently proceed",
+		"middleware_order": "1) logger(), 2) cors(), 3) auth handler, 4) rpc/api handlers, 5) health check, then notFound/onError",
+		"handler_export": "Export apiHandler and rpcHandler separately so they can be imported by test suite or reused elsewhere",
+		"port_binding": "NEVER use app.listen() - always export default { port, fetch } for Bun compatibility"
+	}
+}

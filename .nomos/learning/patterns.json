@@ -38,8 +38,8 @@
 			"name": "WORKTREE_ENV_ISOLATION",
 			"description": "Git worktrees need separate .env files with absolute paths for DATABASE_URL",
 			"category": "git-workflow",
-			"evidence_count": 4,
-			"last_seen": "F006",
+			"evidence_count": 5,
+			"last_seen": "F015",
 			"applies_to": ["CAT-GIT", "all-phases"],
 			"recommendation": "Create .env files in worktree during step-00-init with: 1) file: prefix for SQLite URLs, 2) absolute paths using $(pwd) to avoid CWD issues",
 			"gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
@@ -47,8 +47,8 @@
 			"confidence": 0.8,
 			"success_rate": 1.0,
 			"risk_if_ignored": "HIGH",
-			"features_applied": ["F001", "F003", "F005", "F006"],
-			"features_succeeded": ["F001", "F003", "F005", "F006"]
+			"features_applied": ["F001", "F003", "F005", "F006", "F015"],
+			"features_succeeded": ["F001", "F003", "F005", "F006", "F015"]
 		},
 		{
 			"id": "PAT-004",
@@ -168,35 +168,35 @@
 			"name": "GOOD_PLANNING",
 			"description": "Clear feature scope with specific acceptance criteria leads to zero-retry implementations",
 			"category": "process",
-			"evidence_count": 3,
-			"last_seen": "F014",
+			"evidence_count": 4,
+			"last_seen": "F015",
 			"applies_to": ["all", "all-phases"],
 			"recommendation": "Define 3-5 concrete acceptance criteria per feature. Each should be independently verifiable.",
 			"time_saved_estimate": "15-30 minutes per feature (avoids retry loops)",
-			"confidence": 0.4,
+			"confidence": 0.5,
 			"success_rate": 1.0,
 			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F012", "F013", "F014"],
-			"features_succeeded": ["F012", "F013", "F014"]
+			"features_applied": ["F012", "F013", "F014", "F015"],
+			"features_succeeded": ["F012", "F013", "F014", "F015"]
 		},
 		{
 			"id": "PAT-012",
 			"name": "FOCUSED_SCOPE",
 			"description": "Features that change 3 or fewer core files are completed faster and with fewer issues",
 			"category": "process",
-			"evidence_count": 3,
-			"last_seen": "F014",
+			"evidence_count": 4,
+			"last_seen": "F015",
 			"applies_to": ["all", "all-phases"],
 			"recommendation": "Target S-sized features that touch 3-5 files maximum. Split larger features.",
-			"metric": "F012: 12 min, 3 files, 0 retries. F013: 4 min, 3 files, 0 retries. F014: 18 min, 5 files (3 modified + 2 new), 0 retries.",
-			"confidence": 0.4,
+			"metric": "F012: 12 min, 3 files, 0 retries. F013: 4 min, 3 files, 0 retries. F014: 18 min, 5 files, 0 retries. F015: 16 min, 3 files, 0 retries.",
+			"confidence": 0.5,
 			"success_rate": 1.0,
 			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F012", "F013", "F014"],
-			"features_succeeded": ["F012", "F013", "F014"]
+			"features_applied": ["F012", "F013", "F014", "F015"],
+			"features_succeeded": ["F012", "F013", "F014", "F015"]
 		},
 		{
-			"id": "PAT-013","name": "PATTERN_REUSE","description": "Reusing well-known patterns (standard Drizzle CRUD) reduces implementation time and errors. F013 completed in 4 min by copying F012 template. F014 copied both F012 and F013 for comprehensive pattern reuse.","category": "database","evidence_count": 3,"last_seen": "F014","applies_to": ["CAT-DBS", "all-phases"],"recommendation": "For repository layers, follow the standard CRUD pattern: findAll, findById, create, update, delete with typed returns and error handling. Copy from project.ts or feature.ts template for fastest results.","codeExample": "const repo = {\n  async findById(id: string): Promise<T | null> {\n    const rows = await db.select().from(table).where(eq(table.id, id));\n    return rows[0] ?? null;\n  }\n};","confidence": 0.4,"success_rate": 1.0,"risk_if_ignored": "LOW","features_applied": ["F012", "F013", "F014"],"features_succeeded": ["F012", "F013", "F014"]
+			"id": "PAT-013","name": "PATTERN_REUSE","description": "Reusing well-known patterns (Hono error handlers, oRPC routing, Bun serve export) reduces implementation time and errors. F013 completed in 4 min by copying F012 template. F014 copied both F012 and F013. F015 reused F001 scaffold as-is and filled 2 gaps.","category": "server","evidence_count": 4,"last_seen": "F015","applies_to": ["all", "all-phases"],"recommendation": "For all layers: Identify best-in-class template and copy exactly. Database: use CRUD from F012/F013. Server: use Hono error handlers from F015. UI: follow established component patterns.","codeExample": "// Reuse pattern:\napp.onError((err, c) => {\n  if (err instanceof HTTPException) return err.getResponse();\n  console.error('Unhandled:', err);\n  return c.json({ error: 'Internal Server Error' }, 500);\n});","confidence": 0.5,"success_rate": 1.0,"risk_if_ignored": "LOW","features_applied": ["F012", "F013", "F014", "F015"],"features_succeeded": ["F012", "F013", "F014", "F015"]
 		},
 		{
 			"id": "PAT-014",
@@ -215,5 +215,5 @@
 			"features_succeeded": ["F012", "F013"]
 		}
 	],
-	"last_updated": "2026-01-29T02:02:10Z"
+	"last_updated": "2026-01-29T14:18:49Z"
 }

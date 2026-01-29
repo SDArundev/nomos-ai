@@ -1,0 +1,126 @@
+{
+	"session_number": 2,
+	"feature_id": "F015",
+	"title": "Hono server setup with oRPC",
+	"category": "CAT-API",
+	"phase": "phase-1",
+	"dependencies": ["F001"],
+	"started_at": "2026-01-29T14:02:34Z",
+	"completed_at": "2026-01-29T14:18:49Z",
+	"duration_minutes": 16,
+	"outcome": "success",
+	"retries": 0,
+	"risk_level": "LOW",
+	"discoveries": [
+		"Bun.serve via export default { port, fetch } is the correct pattern for port binding with Hono",
+		"Hono app.onError() catches non-oRPC errors that interceptors miss",
+		"z.coerce.number() is needed for PORT since env vars are strings",
+		"createTestApp() pattern essential to avoid top-level side effects (migrations, env loading) in test files"
+	],
+	"what_worked": [
+		"Extending scaffold rather than rewriting — 90% was already done in F001",
+		"Focused scope: only 3 files modified, 2 added (110 lines added total) for 4 acceptance criteria",
+		"Acceptance criteria were specific and independently verifiable: PORT binding works, error handlers catch errors, health check returns 200, 404 works",
+		"Runtime verification caught the exact gaps: port binding not wired up, missing error handlers, no fallback for 404s",
+		"Zero retries on first execution despite complex integration (migrations + auth + oRPC + error handling)"
+	],
+	"what_failed": [],
+	"implementation_notes": [
+		{
+			"gap": "F001 scaffold had all the middleware wiring but didn't export the Bun.serve config",
+			"solution": "Added export default { port: env.PORT, fetch: app.fetch }",
+			"lines": "102-105"
+		},
+		{
+			"gap": "Error handlers were missing for non-oRPC routes (health check, 404s, unhandled errors)",
+			"solution": "Added app.notFound and app.onError before the export",
+			"lines": "88-98"
+		},
+		{
+			"gap": "PORT env var wasn't defined, leaving it unset",
+			"solution": "Added PORT: z.coerce.number().int().default(3000) to server.ts",
+			"lines": "packages/env/src/server.ts:23"
+		},
+		{
+			"gap": "No tests to verify routing handlers work without side effects",
+			"solution": "Created createTestApp pattern with 4 describe blocks, 6 tests covering health/404/error handling",
+			"lines": "apps/server/src/index.test.ts"
+		}
+	],
+	"pattern_validations": [
+		{
+			"pattern_id": "PAT-003",
+			"name": "WORKTREE_ENV_ISOLATION",
+			"validation": "CONFIRMED - worktree .env with absolute paths for DATABASE_URL worked correctly",
+			"evidence": "Feature executed in isolated F015 worktree with separate .env file"
+		},
+		{
+			"pattern_id": "PAT-011",
+			"name": "GOOD_PLANNING",
+			"validation": "CONFIRMED - 4 specific acceptance criteria led to zero retries",
+			"evidence": "16 min implementation with all criteria met on first try"
+		},
+		{
+			"pattern_id": "PAT-012",
+			"name": "FOCUSED_SCOPE",
+			"validation": "CONFIRMED - 3 files modified completed in 16 minutes",
+			"evidence": "Fast execution time and zero retries"
+		},
+		{
+			"pattern_id": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"validation": "CONFIRMED - Extended F001 scaffold instead of rewriting from scratch",
+			"evidence": "90% of code was already correct from F001, only filled 2 gaps"
+		}
+	],
+	"recommendations_for_next": [
+		"Future API features (F016-F019) should follow the oRPC router pattern in packages/api/src/routers/index.ts",
+		"Use app.onError and app.notFound as the error handling baseline — all routes get this for free",
+		"Test Hono handlers using createTestApp() pattern to avoid top-level side effects",
+		"When defining env vars, ALWAYS use .coerce for numeric types since process.env is strings",
+		"DATABASE_URL validation with .refine() should be the pattern for all database-backed features"
+	],
+	"metrics": {
+		"files_changed": 3,
+		"files_created": 1,
+		"lines_added": 110,
+		"lines_removed": 1,
+		"commits": 2,
+		"test_count": 6,
+		"test_pass_rate": 1.0
+	},
+	"blockers_encountered": [],
+	"integration_points": [
+		{
+			"system": "@nomos-ai/api",
+			"purpose": "oRPC router and context creation",
+			"status": "working"
+		},
+		{
+			"system": "@nomos-ai/auth",
+			"purpose": "better-auth integration",
+			"status": "wired up, not tested yet (no auth routes in acceptance)"
+		},
+		{
+			"system": "@nomos-ai/db",
+			"purpose": "Database initialization and migrations",
+			"status": "running correctly on startup"
+		},
+		{
+			"system": "@nomos-ai/env/server",
+			"purpose": "Environment variable validation",
+			"status": "working with new PORT definition"
+		}
+	],
+	"lessons": [
+		"Bun's export default { port, fetch } is a hard requirement - not using it breaks port binding",
+		"Hono's error handling is split: interceptors catch oRPC errors, app.onError catches the rest",
+		"Test files must never import the main entry file directly — use createTestApp pattern",
+		"Env var validation should match deployment reality: PORT might be undefined in local, so default is essential"
+	],
+	"references": [
+		"F001: Monorepo scaffold that provided 90% of the server structure",
+		"PAT-011, PAT-012, PAT-013: Process patterns that enabled fast execution",
+		"PAT-003: Worktree env isolation that made isolated feature work correctly"
+	]
+}

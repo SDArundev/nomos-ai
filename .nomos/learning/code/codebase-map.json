@@ -1,8 +1,8 @@
 {
 	"version": 1,
 	"description": "File-to-purpose mapping for instant codebase navigation. Updated after each feature.",
-	"lastUpdated": "2026-01-29T02:02:10Z",
-	"lastUpdatedBy": "F014",
+	"lastUpdated": "2026-01-29T14:18:49Z",
+	"lastUpdatedBy": "F015",
 	"files": {
 		"packages/db/src/repositories/feature.ts": {
 			"purpose": "FeatureRepository with CRUD, query by project/status, bulk status update, dependency resolution, and transaction support",
@@ -31,6 +31,27 @@
 			"exports": ["db", "runMigrations", "featureRepository", "projectRepository", "sessionRepository"],
 			"imports_from": ["packages/env/server", "packages/db/src/schema/index.ts", "packages/db/src/migrate.ts", "packages/db/src/repositories/index.ts"],
 			"lastTouchedBy": "F014"
+		},
+		"apps/server/src/index.ts": {
+			"purpose": "Main Hono server entry with oRPC routing, CORS middleware, error handlers (app.onError, app.notFound), health check route, and Bun serve export",
+			"layer": "server",
+			"exports": ["apiHandler", "rpcHandler", "default (Bun serve config)"],
+			"imports_from": ["@nomos-ai/api/context", "@nomos-ai/api/routers/index", "@nomos-ai/auth", "@nomos-ai/db", "@nomos-ai/env/server", "@orpc/openapi/fetch", "@orpc/server/fetch", "hono", "hono/cors", "hono/logger", "hono/http-exception"],
+			"lastTouchedBy": "F015"
+		},
+		"packages/env/src/server.ts": {
+			"purpose": "Server-side environment variable validation with Zod, includes DATABASE_URL format validation (file:, libsql://, http), PORT with coerce and default(3000)",
+			"layer": "shared",
+			"exports": ["env"],
+			"imports_from": ["dotenv/config", "@t3-oss/env-core", "zod"],
+			"lastTouchedBy": "F015"
+		},
+		"apps/server/src/index.test.ts": {
+			"purpose": "Unit tests for Hono app handlers (createTestApp pattern to avoid top-level side effects). Tests: health check GET /, 404 not found, error handling for HTTPException and generic errors",
+			"layer": "test",
+			"exports": [],
+			"imports_from": ["bun:test", "hono", "hono/http-exception"],
+			"lastTouchedBy": "F015"
 		}
 	}
 }

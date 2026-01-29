@@ -577,11 +577,13 @@
         "Error middleware catches exceptions"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-29T14:02:34Z",
+      "verifiedAt": "2026-01-29T14:18:49Z"
     },
     {
       "id": "F016",
