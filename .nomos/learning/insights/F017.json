@@ -1,0 +1,160 @@
+{
+	"feature": {
+		"id": "F017",
+		"title": "Projects oRPC router",
+		"category": "CAT-API",
+		"phase": "phase-1",
+		"size": "M",
+		"started_at": "2026-01-29T14:28:16Z",
+		"verified_at": "2026-01-29T14:47:03Z",
+		"duration_minutes": 19,
+		"files_changed": 3,
+		"lines_added": 448,
+		"commits": 1,
+		"retries": 0,
+		"risk_level": "MEDIUM",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "All CRUD procedures implemented",
+			"status": "verified",
+			"details": "List, get, create, update, delete procedures all implemented with protectedProcedure base"
+		},
+		{
+			"criterion": "Input validated with Zod",
+			"status": "verified",
+			"details": "createProjectInput, updateProjectInput with comprehensive validation (string length, path format, enum values, non-negative numbers)"
+		},
+		{
+			"criterion": "Type-safe client generated",
+			"status": "verified",
+			"details": "AppRouter type exported from routers/index.ts enables auto-generated type-safe client via AppRouterClient"
+		},
+		{
+			"criterion": "Errors return proper codes",
+			"status": "verified",
+			"details": "ORPCError with NOT_FOUND (404), BAD_REQUEST (400) codes, detected by error message content matching 'not found'"
+		}
+	],
+	"dependencies": {
+		"required": ["F015", "F012", "F004"],
+		"reasons": {
+			"F015": "Provides protectedProcedure base pattern and oRPC routing setup",
+			"F012": "Provides projectRepository with CRUD operations",
+			"F004": "Provides ProjectSchema and ProjectIdSchema for validation"
+		}
+	},
+	"discoveries": [
+		{
+			"discovery": "Repository.create() requires explicit ID field",
+			"context": "Initial implementation forgot to include id: crypto.randomUUID() in projectRepository.create() call",
+			"lesson": "Always check repository method signatures - especially required fields in create operations",
+			"prevention": "Copy template from F012 project repository exactly, including all required fields in create call"
+		},
+		{
+			"discovery": "Type casting needed for Zod object to Drizzle Record",
+			"context": "settings field is Zod schema object but Drizzle expects Record<string, unknown>",
+			"code_example": "settings: input.settings as Record<string, unknown> | undefined",
+			"lesson": "Drizzle JSON columns need explicit type cast from Zod-validated objects",
+			"prevention": "Add type cast for all complex object fields when passing to repository"
+		},
+		{
+			"discovery": "Update handlers must build updateData conditionally",
+			"context": "Only fields that changed should be included in updateData to avoid overwriting undefined fields with null",
+			"code_pattern": "const updateData: Record<string, unknown> = {};\nif (input.data.name !== undefined) updateData.name = input.data.name;",
+			"lesson": "Partial updates require filtering out undefined fields before repository call",
+			"prevention": "Use conditional checks for each field, don't spread input.data directly"
+		}
+	],
+	"patterns_applied": [
+		{
+			"pattern": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"how_used": "Copied F015 protectedProcedure pattern as base for all procedures",
+			"benefit": "Reduced implementation time, ensured consistent error handling and auth context"
+		},
+		{
+			"pattern": "PAT-005",
+			"name": "ZOD_BRANDED_TYPES",
+			"how_used": "Used ProjectIdSchema for type-safe project IDs throughout router",
+			"benefit": "Prevented mixing project IDs with other string types at compile time"
+		},
+		{
+			"pattern": "PAT-014",
+			"name": "DRIZZLE_TYPE_INFERENCE",
+			"how_used": "Router types match repository $inferSelect types for full type chain",
+			"benefit": "Type safety from database through API to client"
+		}
+	],
+	"what_worked": [
+		"Clean implementation following existing procedure pattern from F015",
+		"All 4 acceptance criteria met on first attempt (no retries)",
+		"36 comprehensive tests covering CRUD, validation, error handling, defaults, and partial updates",
+		"No merge conflicts or integration issues",
+		"Router integration into appRouter worked smoothly with namespace nesting (projects: projectRouter)"
+	],
+	"what_could_improve": [
+		"Repository create signature should be documented or validated at type level - easy to forget the required ID field",
+		"Type casting from Zod to Drizzle Record could be abstracted into a helper function to reduce boilerplate",
+		"Update handlers have repetitive field-by-field checks - could benefit from a utility to filter changed fields"
+	],
+	"recommendations": [
+		{
+			"recommendation": "Use project.ts as template for all future CRUD routers",
+			"rationale": "Complete example with all error handling, validation, and update logic patterns",
+			"action": "Copy packages/api/src/routers/project.ts, rename entity, swap schema imports, update repository"
+		},
+		{
+			"recommendation": "Always check repository create() signature before implementing",
+			"rationale": "Different repositories may have different required fields (e.g., id, userId, projectId)",
+			"action": "Review packages/db/src/repositories/<entity>.ts create method before writing router create procedure"
+		},
+		{
+			"recommendation": "Create reusable type cast helper for Zod-to-Drizzle Record conversion",
+			"rationale": "Settings, config, metadata fields repeat across routers",
+			"action": "Add utility: type ZodToRecord<T extends z.ZodType> = Record<string, unknown>"
+		},
+		{
+			"recommendation": "Future CRUD routers should have identical test structure to F017",
+			"rationale": "36 tests provide comprehensive coverage of all CRUD paths, validation, and error handling",
+			"action": "Use packages/api/src/routers/__tests__/project.test.ts as test template"
+		}
+	],
+	"metrics": {
+		"test_count": 36,
+		"test_pass_rate": 1.0,
+		"test_categories": {
+			"repository_operations": 8,
+			"input_validation": 8,
+			"error_handling": 5,
+			"settings_defaults": 5,
+			"update_logic": 3,
+			"authentication": 2
+		},
+		"files_created": ["packages/api/src/routers/project.ts", "packages/api/src/routers/__tests__/project.test.ts"],
+		"files_modified": ["packages/api/src/routers/index.ts"]
+	},
+	"next_features_enabled": [
+		{
+			"feature": "Feature router (future F0XX)",
+			"dependency": "Can now implement oRPC CRUD router for features",
+			"template": "packages/api/src/routers/project.ts"
+		},
+		{
+			"feature": "Session router (future F0XX)",
+			"dependency": "Can now implement oRPC CRUD router for sessions",
+			"template": "packages/api/src/routers/project.ts"
+		},
+		{
+			"feature": "Client API generation (future)",
+			"dependency": "Type-safe client now available via AppRouterClient type from AppRouter export"
+		}
+	],
+	"learning_contribution": {
+		"new_pattern": "SRV-007: oRPC_CRUD_ROUTER",
+		"documentation": "Added to .nomos/learning/code/server.json with full code example and keyPoints",
+		"codebase_map": "Updated with project.ts, routers/index.ts, and project.test.ts entries",
+		"metrics": "Added F017 to .nomos/learning/metrics.json with duration, files, commits, test count"
+	}
+}

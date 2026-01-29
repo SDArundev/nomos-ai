@@ -196,7 +196,20 @@
 			"features_succeeded": ["F012", "F013", "F014", "F015"]
 		},
 		{
-			"id": "PAT-013","name": "PATTERN_REUSE","description": "Reusing well-known patterns (Hono error handlers, oRPC routing, Bun serve export) reduces implementation time and errors. F013 completed in 4 min by copying F012 template. F014 copied both F012 and F013. F015 reused F001 scaffold as-is and filled 2 gaps.","category": "server","evidence_count": 4,"last_seen": "F015","applies_to": ["all", "all-phases"],"recommendation": "For all layers: Identify best-in-class template and copy exactly. Database: use CRUD from F012/F013. Server: use Hono error handlers from F015. UI: follow established component patterns.","codeExample": "// Reuse pattern:\napp.onError((err, c) => {\n  if (err instanceof HTTPException) return err.getResponse();\n  console.error('Unhandled:', err);\n  return c.json({ error: 'Internal Server Error' }, 500);\n});","confidence": 0.5,"success_rate": 1.0,"risk_if_ignored": "LOW","features_applied": ["F012", "F013", "F014", "F015"],"features_succeeded": ["F012", "F013", "F014", "F015"]
+			"id": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"description": "Reusing well-known patterns (Hono error handlers, oRPC routing, Bun serve export) reduces implementation time and errors. F013 completed in 4 min by copying F012 template. F014 copied both F012 and F013. F015 reused F001 scaffold as-is and filled 2 gaps.",
+			"category": "server",
+			"evidence_count": 4,
+			"last_seen": "F015",
+			"applies_to": ["all", "all-phases"],
+			"recommendation": "For all layers: Identify best-in-class template and copy exactly. Database: use CRUD from F012/F013. Server: use Hono error handlers from F015. UI: follow established component patterns.",
+			"codeExample": "// Reuse pattern:\napp.onError((err, c) => {\n  if (err instanceof HTTPException) return err.getResponse();\n  console.error('Unhandled:', err);\n  return c.json({ error: 'Internal Server Error' }, 500);\n});",
+			"confidence": 0.5,
+			"success_rate": 1.0,
+			"risk_if_ignored": "LOW",
+			"features_applied": ["F012", "F013", "F014", "F015"],
+			"features_succeeded": ["F012", "F013", "F014", "F015"]
 		},
 		{
 			"id": "PAT-014",

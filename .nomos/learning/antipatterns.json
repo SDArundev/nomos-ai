@@ -61,8 +61,7 @@
 			"what_went_wrong": "drizzle.config.ts hardcoded ../../apps/server/.env while packages/env loaded from CWD",
 			"lesson": "Env loading in monorepos must handle multiple execution contexts (root, package dir, worktree)",
 			"fix_applied": "drizzle.config.ts now tries multiple paths and validates DATABASE_URL format"
-		}
-		,
+		},
 		{
 			"id": "ANTI-006",
 			"name": "BIOME_BEFORE_COMMIT",
