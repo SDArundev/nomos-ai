@@ -8,35 +8,72 @@
 			"purpose": "FeatureRepository with CRUD, query by project/status, bulk status update, dependency resolution, and transaction support",
 			"layer": "server",
 			"exports": ["featureRepository"],
-			"imports_from": ["packages/db/src/index.ts", "packages/db/src/schema/features.ts"],
+			"imports_from": [
+				"packages/db/src/index.ts",
+				"packages/db/src/schema/features.ts"
+			],
 			"lastTouchedBy": "F013"
 		},
 		"packages/db/src/repositories/session.ts": {
 			"purpose": "SessionRepository with CRUD, findActive, findByFeature, appendOutput (SQL CASE WHEN), calculateDuration helper, and withTransaction support",
 			"layer": "server",
 			"exports": ["sessionRepository"],
-			"imports_from": ["packages/db/src/index.ts", "packages/db/src/schema/sessions.ts"],
+			"imports_from": [
+				"packages/db/src/index.ts",
+				"packages/db/src/schema/sessions.ts"
+			],
 			"lastTouchedBy": "F014"
 		},
 		"packages/db/src/repositories/index.ts": {
 			"purpose": "Barrel export for all repository modules",
 			"layer": "server",
-			"exports": ["featureRepository", "projectRepository", "sessionRepository"],
-			"imports_from": ["packages/db/src/repositories/feature.ts", "packages/db/src/repositories/project.ts", "packages/db/src/repositories/session.ts"],
+			"exports": [
+				"featureRepository",
+				"projectRepository",
+				"sessionRepository"
+			],
+			"imports_from": [
+				"packages/db/src/repositories/feature.ts",
+				"packages/db/src/repositories/project.ts",
+				"packages/db/src/repositories/session.ts"
+			],
 			"lastTouchedBy": "F014"
 		},
 		"packages/db/src/index.ts": {
 			"purpose": "Database client initialization (libSQL/Drizzle) and barrel export for db, migrations, and repositories",
 			"layer": "server",
-			"exports": ["db", "runMigrations", "featureRepository", "projectRepository", "sessionRepository"],
-			"imports_from": ["packages/env/server", "packages/db/src/schema/index.ts", "packages/db/src/migrate.ts", "packages/db/src/repositories/index.ts"],
+			"exports": [
+				"db",
+				"runMigrations",
+				"featureRepository",
+				"projectRepository",
+				"sessionRepository"
+			],
+			"imports_from": [
+				"packages/env/server",
+				"packages/db/src/schema/index.ts",
+				"packages/db/src/migrate.ts",
+				"packages/db/src/repositories/index.ts"
+			],
 			"lastTouchedBy": "F014"
 		},
 		"apps/server/src/index.ts": {
 			"purpose": "Main Hono server entry with oRPC routing, CORS middleware, error handlers (app.onError, app.notFound), health check route, and Bun serve export",
 			"layer": "server",
 			"exports": ["apiHandler", "rpcHandler", "default (Bun serve config)"],
-			"imports_from": ["@nomos-ai/api/context", "@nomos-ai/api/routers/index", "@nomos-ai/auth", "@nomos-ai/db", "@nomos-ai/env/server", "@orpc/openapi/fetch", "@orpc/server/fetch", "hono", "hono/cors", "hono/logger", "hono/http-exception"],
+			"imports_from": [
+				"@nomos-ai/api/context",
+				"@nomos-ai/api/routers/index",
+				"@nomos-ai/auth",
+				"@nomos-ai/db",
+				"@nomos-ai/env/server",
+				"@orpc/openapi/fetch",
+				"@orpc/server/fetch",
+				"hono",
+				"hono/cors",
+				"hono/logger",
+				"hono/http-exception"
+			],
 			"lastTouchedBy": "F015"
 		},
 		"packages/env/src/server.ts": {

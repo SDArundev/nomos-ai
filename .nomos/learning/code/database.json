@@ -110,8 +110,7 @@
 			"severity": "LOW",
 			"tags": ["drizzle-orm", "sqlite", "foreign-key", "cascade", "schema"],
 			"addedAt": "2026-01-28T17:40:00Z"
-		}
-		,
+		},
 		{
 			"id": "DB-009",
 			"title": "Drizzle repository pattern with typed CRUD",
@@ -187,7 +186,13 @@
 			"codeAfter": "async findDependencies(id: string): Promise<FeatureSelect[]> {\n  const parent = await this.findById(id);\n  if (!parent) throw new Error(`Feature not found: ${id}`);\n  const deps = parent.dependencies ?? [];\n  if (deps.length === 0) return [];\n  return db.select().from(feature).where(inArray(feature.id, deps));\n}",
 			"learnedFrom": "F013",
 			"severity": "MEDIUM",
-			"tags": ["drizzle-orm", "json-column", "dependencies", "batch-fetch", "patterns"],
+			"tags": [
+				"drizzle-orm",
+				"json-column",
+				"dependencies",
+				"batch-fetch",
+				"patterns"
+			],
 			"addedAt": "2026-01-29T01:00:00Z"
 		},
 		{
@@ -200,7 +205,14 @@
 			"codeAfter": "async appendOutput(id: string, text: string): Promise<AgentSessionSelect> {\\n  const rows = await db\\n    .update(agentSession)\\n    .set({\\n      output: sql`CASE WHEN ${agentSession.output} IS NULL THEN ${text} ELSE ${agentSession.output} || char(10) || ${text} END`,\\n    })\\n    .where(eq(agentSession.id, id))\\n    .returning();\\n  const row = rows[0];\\n  if (!row) throw new Error(`Session not found: ${id}`);\\n  return row;\\n}",
 			"learnedFrom": "F014",
 			"severity": "MEDIUM",
-			"tags": ["drizzle-orm", "sqlite", "sql-template", "null-safety", "text-concatenation", "patterns"],
+			"tags": [
+				"drizzle-orm",
+				"sqlite",
+				"sql-template",
+				"null-safety",
+				"text-concatenation",
+				"patterns"
+			],
 			"addedAt": "2026-01-29T02:02:10Z",
 			"context7LibraryId": "/websites/orm_drizzle_team",
 			"context7Query": "drizzle sqlite null-safe text concatenation sql template"
