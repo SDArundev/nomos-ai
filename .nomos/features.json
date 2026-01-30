@@ -840,11 +840,12 @@
         "Responsive on resize"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "completedAt": "2026-01-30T18:12:51Z"
     },
     {
       "id": "F025",

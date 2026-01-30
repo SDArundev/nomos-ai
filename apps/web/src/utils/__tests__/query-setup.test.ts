@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import "./setup"; // Set up environment variables
 import { queryClient } from "../orpc";
 
 describe("QueryClient Configuration", () => {

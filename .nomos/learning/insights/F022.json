@@ -156,13 +156,8 @@
 			"apps/web/src/store/selectors.ts",
 			"apps/web/src/store/__tests__/store.test.ts"
 		],
-		"files_modified": [
-			"apps/web/package.json",
-			"apps/web/tsconfig.json"
-		],
-		"dependencies_added": [
-			"zustand@^4.x"
-		]
+		"files_modified": ["apps/web/package.json", "apps/web/tsconfig.json"],
+		"dependencies_added": ["zustand@^4.x"]
 	},
 	"next_features_enabled": [
 		{
