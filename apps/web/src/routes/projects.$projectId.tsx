@@ -1,5 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -32,10 +38,25 @@ const statusColors: Record<string, string> = {
 
 function ProjectDetail() {
 	const { projectId } = Route.useParams();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const [confirmDelete, setConfirmDelete] = useState(false);
+
 	const project = useQuery(
 		orpc.projects.get.queryOptions({ input: { id: projectId } }),
 	);
 	const allFeatures = useQuery(orpc.features.list.queryOptions());
+
+	const deleteProject = useMutation(
+		orpc.projects.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.projects.list.queryOptions().queryKey,
+				});
+				navigate({ to: "/projects" });
+			},
+		}),
+	);
 
 	const features = allFeatures.data?.filter((f) => f.projectId === projectId);
 
@@ -75,10 +96,46 @@ function ProjectDetail() {
 				>
 					&larr; Projects
 				</Link>
-				<h1 className="mt-2 font-bold text-2xl">{project.data.name}</h1>
-				<p className="font-mono text-muted-foreground text-xs">
-					{project.data.path}
-				</p>
+				<div className="mt-2 flex items-center justify-between">
+					<div>
+						<h1 className="font-bold text-2xl">{project.data.name}</h1>
+						<p className="font-mono text-muted-foreground text-xs">
+							{project.data.path}
+						</p>
+					</div>
+					<div>
+						{confirmDelete ? (
+							<div className="flex items-center gap-2">
+								<span className="text-muted-foreground text-sm">
+									Delete this project?
+								</span>
+								<Button
+									variant="destructive"
+									size="sm"
+									disabled={deleteProject.isPending}
+									onClick={() => deleteProject.mutate({ id: projectId })}
+								>
+									{deleteProject.isPending ? "Deleting..." : "Confirm"}
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setConfirmDelete(false)}
+								>
+									Cancel
+								</Button>
+							</div>
+						) : (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setConfirmDelete(true)}
+							>
+								Delete
+							</Button>
+						)}
+					</div>
+				</div>
 			</div>
 
 			<section>

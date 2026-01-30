@@ -812,11 +812,13 @@
         "Invalidation on mutations"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-01-30T14:12:17Z",
+      "completedAt": "2026-01-30T15:31:17Z"
     },
     {
       "id": "F024",
