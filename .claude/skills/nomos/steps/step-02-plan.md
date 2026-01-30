@@ -160,9 +160,9 @@ questions:
 - Risk 1: [potential issue and mitigation]
 ```
 
-### 4. Plan Critique (4 Structured Checks)
+### 4. Plan Critique (5 Structured Checks)
 
-Run these 4 checks against the plan. ALL must pass.
+Run these 5 checks against the plan. ALL must pass.
 
 #### Check 1: AC Coverage
 Every acceptance criterion MUST map to ≥1 file change.
@@ -210,6 +210,17 @@ File count should match feature size expectations.
 
 **WARN if:** File count is >50% above expected range.
 
+#### Check 5: Stack Compliance
+Every new module/component must use installed dependencies when they provide equivalent functionality.
+Cross-reference against `{tech_stack}` from step-01.
+
+| Planned Item | Installed Equivalent | Status |
+|-------------|---------------------|--------|
+| {item} | {dep.name}: {dep.provides} | USE_LIBRARY / INSTALL_FROM_REGISTRY / CUSTOM_OK |
+
+**FAIL if:** A hand-rolled implementation has a direct equivalent in an installed dependency or registry.
+**Action on FAIL:** Revise plan to use the library. Add install step if needed.
+
 ---
 
 **Critique Result:**
@@ -223,6 +234,7 @@ File count should match feature size expectations.
 | File Existence | PASS/FAIL | {n} missing |
 | Scope Boundary | PASS/FAIL | {n} unexplained |
 | Complexity Match | PASS/WARN/FAIL | {size}: {n} files |
+| Stack Compliance | PASS/FAIL | {n} items checked, {m} use library |
 
 **Overall:** PASS / FAIL
 ```

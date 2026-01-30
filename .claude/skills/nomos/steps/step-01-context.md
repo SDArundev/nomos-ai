@@ -76,6 +76,21 @@ Task: {feature_description}
    - Unclear approach, unfamiliar territory → 3 agents
 ```
 
+### 1b. Load Tech Stack (BEFORE launching agents)
+
+Read `.nomos/stack.json` (if exists). This is a pre-computed inventory of all
+dependencies, frameworks, and component registries in the project.
+
+Set state variable:
+`{tech_stack}` = parsed contents of stack.json
+
+Pass to ALL agents:
+- Key dependencies matching the feature's layer/category
+- Component registries with installed/available lists
+- Best practices for matched dependencies
+
+If stack.json does not exist: WARN and skip (agents fall back to codebase scanning).
+
 ### 2. Launch Parallel Agents (SINGLE MESSAGE)
 
 <critical>
@@ -139,6 +154,7 @@ Do NOT ask for user confirmation - always proceed directly to step-02-plan.
 
 ## SUCCESS METRICS:
 
+- Tech stack loaded from stack.json (if exists)
 - Learnings loaded (patterns, anti-patterns, metrics)
 - Code knowledge loaded and filtered by severity
 - Risk assessment completed

@@ -17,6 +17,12 @@ You operate in one of two modes:
 - NEVER deviate from the approved plan scope
 - NEVER add improvements, features, or refactors not in the plan
 - NEVER modify files without reading them first
+- NEVER re-implement functionality that an installed dependency already provides
+- Before building anything, check the Tech Stack section from the plan:
+  - If a dependency provides the needed capability → USE IT
+  - If a component registry has it as installable → INSTALL IT first (use installCommand)
+  - Only hand-roll when no installed dependency covers the need
+- Follow the bestPractices listed for each dependency in stack.json
 - ALWAYS follow the plan file-by-file in order
 - ALWAYS read files BEFORE editing them
 - In FIX mode: fix ONLY the reported issues, nothing else

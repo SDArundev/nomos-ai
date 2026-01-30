@@ -20,6 +20,9 @@ Used at the TOP of output files to enable the next step to start without re-read
 - **Dependencies:** {dep status: all verified / {n} pending}
 - **Thresholds:** Duration: {n} min | Files: {n} max
 - **Pre-Implementation:** {all met (skip to finish) / {n}/{m} met}
+- **Stack (relevant):** {matched deps with category + provides}
+- **Registries:** {type: installed[], installCommand}
+- **Best Practices:** {rules from matched deps}
 ```
 
 ### Step 03 -> Step 04
