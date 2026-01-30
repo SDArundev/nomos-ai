@@ -167,9 +167,7 @@
 		"lint_errors_before": 0,
 		"lint_errors_after": 0,
 		"mutations_created": 2,
-		"files_created": [
-			"apps/web/src/utils/__tests__/query-setup.test.ts"
-		],
+		"files_created": ["apps/web/src/utils/__tests__/query-setup.test.ts"],
 		"files_modified": [
 			"apps/web/src/utils/orpc.ts",
 			"apps/web/src/routes/projects.index.tsx",

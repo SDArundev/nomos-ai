@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useState } from "react";
+import { AppSidebar } from "@/components/app-sidebar";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -55,9 +56,14 @@ function RootComponent() {
 				disableTransitionOnChange
 				storageKey="vite-ui-theme"
 			>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Header />
-					<Outlet />
+				<div className="flex h-svh overflow-hidden">
+					<AppSidebar />
+					<div className="flex min-w-0 flex-1 flex-col">
+						<Header />
+						<main className="flex-1 overflow-auto">
+							<Outlet />
+						</main>
+					</div>
 				</div>
 				<Toaster richColors />
 			</ThemeProvider>

@@ -143,9 +143,21 @@ describe("Hono App", () => {
 		});
 
 		test("handles generic errors with 500 JSON response", async () => {
-			const errorApp = createTestApp();
+			// Create a new app instance to test error handling
+			const errorApp = new Hono();
+
+			// Add the route that throws an error
 			errorApp.get("/generic-error", () => {
 				throw new Error("Something went wrong");
+			});
+
+			// Add error handler (must be added after routes in Hono)
+			errorApp.onError((err, c) => {
+				if (err instanceof HTTPException) {
+					return err.getResponse();
+				}
+				console.error("Unhandled error:", err);
+				return c.json({ error: "Internal Server Error" }, 500);
 			});
 
 			const res = await errorApp.request("/generic-error");

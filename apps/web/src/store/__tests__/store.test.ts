@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
+import type { Feature, Project, Session } from "@nomos-ai/types";
 import {
 	FEATURE_STATUS,
 	FeatureIdSchema,
@@ -7,7 +8,6 @@ import {
 	SESSION_STATUS,
 	SessionIdSchema,
 } from "@nomos-ai/types";
-import type { Feature, Project, Session } from "@nomos-ai/types";
 import { useAppStore } from "../index";
 import {
 	selectActiveSessions,
@@ -170,9 +170,7 @@ describe("AppStore - Features Slice", () => {
 	});
 
 	it("setFeatureStatusFilter sets and clears status filter", () => {
-		useAppStore
-			.getState()
-			.setFeatureStatusFilter(FEATURE_STATUS.IN_PROGRESS);
+		useAppStore.getState().setFeatureStatusFilter(FEATURE_STATUS.IN_PROGRESS);
 		expect(useAppStore.getState().featureStatusFilter).toBe(
 			FEATURE_STATUS.IN_PROGRESS,
 		);
@@ -182,9 +180,7 @@ describe("AppStore - Features Slice", () => {
 
 	it("setFeatureStatusFilter accepts all valid statuses", () => {
 		for (const status of Object.values(FEATURE_STATUS)) {
-			useAppStore
-				.getState()
-				.setFeatureStatusFilter(status as FeatureStatus);
+			useAppStore.getState().setFeatureStatusFilter(status as FeatureStatus);
 			expect(useAppStore.getState().featureStatusFilter).toBe(status);
 		}
 	});
