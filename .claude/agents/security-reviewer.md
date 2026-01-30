@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Reviews code for security vulnerabilities and OWASP issues. Use proactively after implementation to catch security issues before merge. Invoked by NOMOS step-06-review.
+description: Reviews code for security vulnerabilities and OWASP issues. Use proactively after implementation to catch security issues before merge. Invoked by NOMOS step-04-verify Track C.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---

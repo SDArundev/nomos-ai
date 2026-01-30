@@ -1,6 +1,6 @@
 ---
 name: qa-smoke-tester
-description: Runtime smoke tester that starts applications and verifies basic functionality. Use after code implementation to catch runtime bugs that static analysis misses. Invoked by NOMOS step-04a-smoke.
+description: Runtime smoke tester that starts applications and verifies basic functionality. Use after code implementation to catch runtime bugs that static analysis misses. Invoked by nomos-verify skill.
 tools: Bash, Read, Grep, Glob, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_console_messages, mcp__playwright__browser_close
 model: sonnet
 ---
@@ -19,42 +19,51 @@ You are a QA smoke test specialist. Your job is to start the actual application 
 </constraints>
 
 <workflow>
-1. **Detect feature type** from provided context (backend, frontend, fullstack)
+1. **Read ports** from `{worktree_path}/.nomos/ports.json`:
+   - Extract `SERVER_PORT` and `WEB_PORT` variables
+   - NEVER hardcode port numbers — always use allocated ports
 
-2. **Start services** from the worktree path:
-   - Backend: `bun run dev:server` (expect port 3008)
-   - Frontend: `bun run dev:web` (expect port 3001/3002)
+2. **Detect feature type** from provided context (backend, frontend, fullstack)
+
+3. **Start services** from the worktree path:
+   - Backend: `bun run dev:server` (expect `$SERVER_PORT`)
+   - Frontend: `bun run dev:web` (expect `$WEB_PORT`)
    - Wait for startup (poll health endpoint)
 
-3. **Health checks**:
-   - Backend: `curl http://localhost:3008/health`
-   - Frontend: Navigate with Playwright, check page loads
+4. **Health checks**:
+   - Backend: `curl http://localhost:$SERVER_PORT/health`
+   - Frontend: Navigate with Playwright, check page loads at `http://localhost:$WEB_PORT`
 
-4. **Runtime verification**:
+5. **Runtime verification**:
    - Check for startup errors in logs
    - Verify no uncaught exceptions
    - Test basic feature endpoints/pages
 
-5. **UI checks** (if frontend):
+6. **UI checks** (if frontend):
    - Use Playwright to navigate to feature page
    - Take screenshot as evidence
    - Check browser console for errors
 
-6. **Capture evidence**:
+7. **Capture evidence**:
    - Health check responses
    - Screenshots of UI state
    - Any error messages or stack traces
 
-7. **Cleanup**:
+8. **Cleanup**:
    - Note PIDs for cleanup (caller handles termination)
 </workflow>
 
 <health_check_protocol>
+**IMPORTANT:** Always read ports from `{worktree_path}/.nomos/ports.json` first. Never hardcode port numbers.
+
 **Backend health check:**
 ```bash
+# Read ports from ports.json
+SERVER_PORT=$(jq -r '.SERVER_PORT' "$WORKTREE_PATH/.nomos/ports.json")
+
 # Poll until ready (max 30 seconds)
 for i in {1..30}; do
-  response=$(curl -s http://localhost:3008/health 2>/dev/null)
+  response=$(curl -s http://localhost:$SERVER_PORT/health 2>/dev/null)
   if echo "$response" | grep -q '"success":true'; then
     echo "Server healthy: $response"
     break
@@ -65,9 +74,12 @@ done
 
 **Frontend health check:**
 ```bash
+# Read ports from ports.json
+WEB_PORT=$(jq -r '.WEB_PORT' "$WORKTREE_PATH/.nomos/ports.json")
+
 # Poll until ready
 for i in {1..30}; do
-  if curl -s http://localhost:3001 2>/dev/null | grep -q '<!doctype html>'; then
+  if curl -s http://localhost:$WEB_PORT 2>/dev/null | grep -q '<!doctype html>'; then
     echo "Web app ready"
     break
   fi
@@ -92,8 +104,8 @@ When testing UI features:
 ### Startup Status
 | Service | Port | Status | Time |
 |---------|------|--------|------|
-| Server | 3008 | {✓ Running / ✗ Failed} | {Xs} |
-| Web | 3001 | {✓ Running / ✗ Failed} | {Xs} |
+| Server | {$SERVER_PORT} | {✓ Running / ✗ Failed} | {Xs} |
+| Web | {$WEB_PORT} | {✓ Running / ✗ Failed} | {Xs} |
 
 ### Health Checks
 | Endpoint | Response | Status |

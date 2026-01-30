@@ -1,6 +1,6 @@
 ---
 name: code-quality-reviewer
-description: Reviews code for quality, patterns, and best practices. Use proactively after implementation to catch issues before merge. Invoked by NOMOS step-06-review.
+description: Reviews code for quality, patterns, and best practices. Use proactively after implementation to catch issues before merge. Invoked by NOMOS step-04-verify Track C.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---

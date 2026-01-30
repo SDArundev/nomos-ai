@@ -224,9 +224,9 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 **NOMOS v2 Pipeline (7 steps):**
 
 ```
-00-init → 01-context → 02-plan → 03-execute → 04-verify → 05-merge → 06-finish
-           (parallel)                           (parallel)              (parallel)
-           3 agents                             3 tracks               2 tracks
+00-init → 01-context → 02-plan → 03-execute-loop → 04-verify → 05-merge → 06-finish
+           (parallel)              (loop: max 3)      (parallel)              (parallel)
+           3 agents                2 agents/iter       3 tracks               2 tracks
 ```
 
 **Standard flow:**
@@ -238,7 +238,7 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 6. Load step-01-context.md → **3 parallel agents**: load-learnings, explore-codebase, research-docs
 7. Load step-02-plan.md → create implementation strategy
 8. If `-p`: Stop here (plan only mode)
-9. Load step-03-execute.md → implement in worktree
+9. Load step-03-execute.md → execute-verify loop (code-writer + qa-reviewer, max 3 iterations)
 10. Load step-04-verify.md → **3 parallel tracks**: static-checks, runtime-verify, code-review
 11. If `-v`: Stop here (verify only mode)
 12. Load step-05-merge.md → rebase, validate, merge
@@ -268,6 +268,7 @@ If no feature ID provided with `-r`, uses `currentFeature` from state.
 | `{output_dir}` | string | **ABSOLUTE** path to output directory (project root, NOT worktree) |
 | `{learned_patterns}` | list | Patterns loaded from learning system |
 | `{risk_level}` | string | LOW/MEDIUM/HIGH from context analysis |
+| `{max_execute_iterations}` | number | Max execute-verify loop iterations (default: 3) |
 | `{phase_models}` | object | Per-phase model defaults: `{ planning: "opus", coding: "sonnet", qa_review: "sonnet", learning: "haiku" }` |
 
 </state_variables>
@@ -298,7 +299,7 @@ After initialization, step-00 loads step-01-context.md.
 | 00 | `steps/step-00-init.md` | sequential | Parse flags, interactive config, setup worktree |
 | 01 | `steps/step-01-context.md` | **3 parallel agents** | Load learnings + explore codebase + research docs |
 | 02 | `steps/step-02-plan.md` | sequential | File-by-file implementation strategy |
-| 03 | `steps/step-03-execute.md` | sequential | Task-driven implementation in worktree |
+| 03 | `steps/step-03-execute.md` | **execute-verify loop (max 3)** | Orchestrate code-writer + qa-reviewer agents |
 | 04 | `steps/step-04-verify.md` | **3 parallel tracks** | Static checks + runtime verify + code review |
 | 05 | `steps/step-05-merge.md` | sequential | Rebase, validate, merge to main |
 | 06 | `steps/step-06-finish.md` | **2 parallel tracks** | Extract learnings + ship (PR) |
@@ -309,33 +310,9 @@ After initialization, step-00 loads step-01-context.md.
 
 ## Parallel Execution Architecture
 
-### Step 01: Context (3 parallel agents)
-| Agent | Purpose | Always? |
-|-------|---------|---------|
-| load-learnings | Patterns, metrics, risk, code knowledge | Yes |
-| explore-codebase | Find files, patterns, utilities | Yes |
-| research-docs | Library docs via Context7 MCP | If unfamiliar libs |
+See `references/parallel-execution.md` for full architecture details.
 
-### Step 04: Verify (3 parallel tracks)
-| Track | Purpose | Server needed? |
-|-------|---------|----------------|
-| A: Static | typecheck + lint + unit tests | No |
-| B: Runtime | start servers ONCE → smoke → QA → stop | Yes |
-| C: Review | security + quality + coverage agents | No |
-
-**Gate:** ALL tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 5 cycles). Track C uses 3-phase structure: read-only review → conditional fix → conditional re-review.
-
-### Step 06: Finish (2 parallel tracks)
-| Track | Purpose | Always? |
-|-------|---------|---------|
-| A: Learnings | metrics, patterns, retrospective | Yes |
-| B: Ship | push + create PR | If -pr flag |
-
-### Rules
-- Always launch parallel agents/tracks in a SINGLE message
-- Never start servers except in Track B of step-04
-- Servers started ONCE and stopped within the same track
-- Failed tracks retried individually, not all tracks
+**Summary:** Steps 01 (3 agents), 03 (2-agent loop), 04 (3 tracks), and 06 (2 tracks) use parallel execution. Always launch parallel agents/tracks in a SINGLE message. Servers only in Track B of step-04.
 
 </parallel_execution>
 
@@ -362,22 +339,27 @@ After initialization, step-00 loads step-01-context.md.
 - Code changes go in `{worktree_path}`. Pipeline logs go in `{output_dir}`. These are DIFFERENT locations.
 </critical>
 
-## Unified Script
+## Scripts
 
-All script operations use `scripts/nomos.sh` with subcommands:
+All operations use `scripts/nomos.sh` and `scripts/nomos-verify.sh`:
 
 ```bash
 # Feature state management
 bash .claude/skills/nomos/scripts/nomos.sh state <action> <feature_id>
-# Actions: start, claim, complete, verify, reset, preverify, get, next
 
 # Port management
-bash .claude/skills/nomos/scripts/nomos.sh ports allocate <feature_id>
-bash .claude/skills/nomos/scripts/nomos.sh ports release <feature_id>
-bash .claude/skills/nomos/scripts/nomos.sh ports cleanup
+bash .claude/skills/nomos/scripts/nomos.sh ports allocate|release|cleanup <feature_id>
 
 # Template initialization
 bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
+
+# Feature diff/metrics/health
+bash .claude/skills/nomos/scripts/nomos.sh diff <feature_id> [--stat|--names|--summary]
+bash .claude/skills/nomos/scripts/nomos.sh metrics <feature_id>
+bash .claude/skills/nomos/scripts/nomos.sh health <feature_id> [--wait|--check]
+
+# Server lifecycle (step-04 Track B)
+bash .claude/skills/nomos/scripts/nomos-verify.sh <feature_id> start|wait|smoke|stop|status
 ```
 
 ## Smart Agent Strategy
@@ -386,8 +368,10 @@ bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
 - `explore-codebase` - Find existing patterns, files, utilities (step-01)
 - `explore-docs` - Research library docs via **Context7 MCP** (step-01)
 - `websearch` - Find approaches, best practices, gotchas (step-01)
-- `qa-smoke-tester` - Runtime smoke test (step-04 Track B)
+- `code-writer` - Implements plan or fixes QA issues, full write access (step-03 loop)
+- `qa-reviewer` - Reviews changes against plan/ACs, read-only (step-03 loop)
 - `qa-functional-tester` - Test acceptance criteria in running app (step-04 Track B)
+- `qa-smoke-tester` - Runtime smoke test (nomos-verify skill only, not in NOMOS pipeline)
 - `security-reviewer` - OWASP security review (step-04 Track C)
 - `code-quality-reviewer` - Code quality & patterns review (step-04 Track C)
 - `test-coverage-analyzer` - Test coverage gap analysis (step-04 Track C)
@@ -412,34 +396,7 @@ bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
 
 <parallel_features_design>
 
-## Parallel Features Design (--parallel N)
-
-**Status:** Design only — not yet implemented.
-
-**Concept:** Run N features simultaneously, each in its own worktree with unique ports.
-
-```
-/nomos -n 3        # Run next 3 available features in parallel
-/nomos -n 2 -a     # Run 2 features autonomously in parallel
-```
-
-**Architecture:**
-1. Orchestrator selects N features (using `state next` N times)
-2. Each feature gets its own worktree + unique ports (already supported)
-3. Features run the full pipeline independently
-4. Learning extraction happens AFTER ALL features complete (not per-feature)
-5. Orchestrator tracks progress and reports aggregate status
-
-**Port allocation:** Already handled — each feature gets `base + (feature_num * 10)`.
-
-**Merge order:** Features merge in dependency order. If F002 depends on F001, F001 merges first.
-
-**Learning aggregation:** Patterns from all N features collected, then deduplicated and scored together.
-
-**Limitations:**
-- Each feature runs in a separate Claude Code session (not parallel within one session)
-- Database conflicts possible if features modify same tables
-- Max N = 4 (practical limit for port ranges and system resources)
+**Status:** Design only — not yet implemented. See `references/parallel-execution.md#appendix-parallel-features-design`.
 
 </parallel_features_design>
 
@@ -447,34 +404,11 @@ bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
 
 ## NOMOS-Specific Features
 
-### 1. Feature-Driven Development
-- Features tracked in `features.json` with acceptance criteria
-- State machine: `pending → in_progress → waiting_approval → verified`
-- Requirement traceability (REQ-FXXX → FXXX)
-
-### 2. Git Worktree Isolation
-- Each feature gets isolated worktree at `.nomos/worktrees/{feature_id}`
-- Branch naming: `nomos/{feature_id}`
-- Clean merge back to main
-
-### 3. Self-Learning System
-- Patterns extracted from successful features
-- Anti-patterns recorded from failures
-- Metrics tracked: duration, files changed, retries
-- Code-level patterns categorized and enhanced with Context7
-- Learnings injected into planning phase
-
-### 4. Quality Gates (Constitutional)
-- ART-001: Specification-first
-- ART-002: Test coverage
-- ART-008: Requirement traceability
-- Security scanning (secrets, XSS)
-- Browser validation for UI features
-
-### 5. Memory Persistence
-- Session context preserved across conversations
-- Decisions recorded for future reference
-- Checkpoints for state snapshots
+1. **Feature-Driven** — `features.json` with state machine (`pending → in_progress → waiting_approval → verified`) and traceability
+2. **Worktree Isolation** — Each feature in `.nomos/worktrees/{feature_id}` with branch `nomos/{feature_id}`
+3. **Self-Learning** — Patterns, anti-patterns, and metrics extracted per feature; injected into future planning (see `references/output-formats.md`)
+4. **Quality Gates** — Specification-first, test coverage, traceability, security scanning, browser validation (see `references/quality-gates.md`)
+5. **Memory Persistence** — Session insights, checkpoints, cross-feature recommendations
 
 </nomos_unique>
 
@@ -494,26 +428,8 @@ bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
 
 ## Git Skill Compatibility
 
-NOMOS has its **own git operations** that must NOT be replaced by generic git skills.
+NOMOS uses its own git operations during steps 00-06. See `references/merge-strategies.md#git-skill-compatibility` for details.
 
-**Why NOMOS handles git internally:**
-
-| Aspect | Git Skills | NOMOS Requirement |
-|--------|------------|-------------------|
-| Commit format | `type(scope): msg` | `feat({feature_id}): {title}` + AC summary |
-| Push behavior | Auto-push always | Controlled (merge step only) |
-| Staging | `git add .` | Selective per worktree |
-| Merge strategy | `--no-commit` | `--no-ff` to preserve history |
-| State tracking | None | Updates features.json |
-| Worktrees | Not supported | Core workflow |
-
-**Rules:**
-
-- **During NOMOS workflow (steps 00-06):** Use NOMOS git operations only
-- **Outside NOMOS workflow:** Git skills can be used for ad-hoc commits
-- **git-create-pr:** Compatible with step-06-finish but NOMOS has richer context
-- **git-merge:** NOT compatible - different strategies
-
-**Rationale:** NOMOS needs feature traceability, state machine updates, and worktree isolation that generic git skills don't provide.
+**Key rule:** During NOMOS workflow, use NOMOS git operations only. Outside NOMOS workflow, generic git skills are fine.
 
 </git_skill_policy>
