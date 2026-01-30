@@ -111,10 +111,20 @@ You are a senior code quality reviewer. Your job is to identify code quality iss
 | {pattern name} | ✓/✗ | {details} |
 
 ### Verdict
-**{APPROVE / REQUEST CHANGES / NEEDS DISCUSSION}**
+**{PASS / FAIL}**
+- Blocking issues: {count of CRITICAL/HIGH}
 
 {Summary of overall quality and required actions}
 </output_format>
+
+<success_criteria>
+Verdict is **PASS** when:
+- 0 CRITICAL severity findings
+- 0 HIGH severity findings with confidence "Certain"
+- No pattern violations that would cause runtime issues
+
+Verdict is **FAIL** when any CRITICAL finding exists, or any HIGH + Certain finding exists. MEDIUM, LOW, and HIGH + Possible findings are logged but do not block.
+</success_criteria>
 
 <anti_patterns_to_catch>
 - God objects/functions doing too much

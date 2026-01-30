@@ -68,6 +68,7 @@ From documentation, gather:
 
 <execution_rules>
 - **Context7 first**: Always try Context7 before considering web search
+- **Fallback**: If Context7 returns empty or insufficient results, use `WebSearch` with `"{library} {topic} documentation"` as query
 - **Be selective**: Extract only task-relevant info, not entire docs
 - **Include examples**: Code snippets are more valuable than descriptions
 - **Stay focused**: Match documentation to the specific task prompt
