@@ -57,6 +57,30 @@ Mental simulation:
 - Apply learned patterns from step-01
 - Avoid learned anti-patterns from step-01
 
+### 1b. Historical Calibration
+
+Load category benchmarks to calibrate expectations:
+```bash
+bash .claude/skills/nomos/scripts/nomos.sh metrics {feature_id} --category-stats
+```
+
+Use the output to set expectations:
+- Expected iteration count (based on category average)
+- Expected file count (based on similar features)
+- Known risks for this category (from common antipatterns)
+
+Include calibration in plan:
+
+```markdown
+### Expected Metrics
+| Metric | Category Avg | This Feature |
+|--------|-------------|--------------|
+| Iterations | {n} | {estimate} |
+| Files | {n} | {planned count} |
+```
+
+If no historical data exists (sample_size == 0), skip this section and use defaults from Check 4: Complexity Match.
+
 ### 2. Clarify Ambiguities
 
 **If `{auto_mode}` = true:**

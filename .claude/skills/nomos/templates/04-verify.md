@@ -1,3 +1,14 @@
+## Compact Context -> Step 05
+
+- **Gate Result:** _pending_
+- **Track A (Static):** _pending_
+- **Track B (Runtime):** _pending_
+- **Track C (Review):** _pending_
+- **Fix Cycles Used:** _pending_
+- **Blocking Issues:** _pending_
+
+---
+
 # Verify: {{feature_id}}
 
 **Started:** {{timestamp}}
@@ -7,24 +18,41 @@
 
 ## Track A: Static Checks
 
-_TypeScript, lint, and test results..._
+- TypeScript: _pending_
+- Lint: _pending_
+- Tests: _pending_
+- New tests created: _pending_
 
 ---
 
 ## Track B: Runtime Verification
 
-_Smoke test and QA results..._
+- Server startup: _pending_
+- Web startup: _pending_
+- Smoke test: _pending_
+- Acceptance Criteria:
+  - AC1: _pending_
+- Servers stopped: _pending_
 
 ---
 
 ## Track C: Code Review
 
-_Security, quality, and coverage findings..._
+- Security: _pending_
+- Quality: _pending_
+- Coverage: _pending_
+
+### Findings Table
+
+| ID | Severity | Category | Location | Issue | Validity |
+|----|----------|----------|----------|-------|----------|
+| | | | | | |
 
 ---
 
 ## Gate
 
 **Result:** Pending
+**Timestamp:** _pending_
 
 ---

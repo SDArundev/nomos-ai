@@ -36,6 +36,7 @@
 | Plan only (`-p`) | {{plan_only}} |
 | Verify only (`-v`) | {{verify_only}} |
 | Interactive mode (`-i`) | {{interactive_mode}} |
+| Max execute iterations | {{max_execute_iterations}} |
 
 ---
 

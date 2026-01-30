@@ -19,30 +19,27 @@ You are a QA smoke test specialist. Your job is to start the actual application 
 </constraints>
 
 <workflow>
-1. **Read ports** from `{worktree_path}/.nomos/ports.json`:
+1. **Start services:**
    ```bash
-   SERVER_PORT=$(jq -r '.SERVER_PORT' "$WORKTREE_PATH/.nomos/ports.json")
-   WEB_PORT=$(jq -r '.WEB_PORT' "$WORKTREE_PATH/.nomos/ports.json")
+   bash .claude/skills/nomos/scripts/nomos-verify.sh {feature_id} start
    ```
-   NEVER hardcode port numbers — always use allocated ports.
 
-2. **Detect feature type** from provided context (backend, frontend, fullstack)
+2. **Wait for health:**
+   ```bash
+   bash .claude/skills/nomos/scripts/nomos-verify.sh {feature_id} wait
+   ```
 
-3. **Start services** from the worktree path:
-   - Backend: `bun run dev:server` (expect `$SERVER_PORT`)
-   - Frontend: `bun run dev:web` (expect `$WEB_PORT`)
+3. **Run smoke test:**
+   ```bash
+   bash .claude/skills/nomos/scripts/nomos-verify.sh {feature_id} smoke
+   ```
 
-4. **Health checks** (poll max 30 seconds, 1s interval):
-   - Backend: `curl -s http://localhost:$SERVER_PORT/health` — expect `"success":true`
-   - Frontend: `curl -s http://localhost:$WEB_PORT` — expect `<!doctype html>`
-   - If 30s elapsed with no response → FAIL with startup timeout
-
-5. **Runtime + UI verification**:
+4. **Runtime + UI verification**:
    - Check startup logs for errors, uncaught exceptions, stack traces
    - If frontend: navigate with Playwright, take snapshot, check console for errors, take screenshot
    - Capture all evidence (health responses, screenshots, error messages)
 
-6. **Cleanup**: Note PIDs for cleanup (caller handles termination)
+5. **Cleanup**: Note PIDs for cleanup (caller handles termination via `nomos-verify.sh {feature_id} stop`)
 </workflow>
 
 <output_format>
@@ -51,14 +48,14 @@ You are a QA smoke test specialist. Your job is to start the actual application 
 ### Startup Status
 | Service | Port | Status | Time |
 |---------|------|--------|------|
-| Server | {$SERVER_PORT} | {✓ Running / ✗ Failed} | {Xs} |
-| Web | {$WEB_PORT} | {✓ Running / ✗ Failed} | {Xs} |
+| Server | {$SERVER_PORT} | {Running / Failed} | {Xs} |
+| Web | {$WEB_PORT} | {Running / Failed} | {Xs} |
 
 ### Health Checks
 | Endpoint | Response | Status |
 |----------|----------|--------|
-| /health | {response snippet} | {✓ / ✗} |
-| / (web) | {HTML/Error} | {✓ / ✗} |
+| /health | {response snippet} | {PASS / FAIL} |
+| / (web) | {HTML/Error} | {PASS / FAIL} |
 
 ### Runtime Errors
 {List any errors found, or "None detected"}
@@ -71,7 +68,7 @@ You are a QA smoke test specialist. Your job is to start the actual application 
 - Server logs: {key excerpts}
 
 ### Verdict
-**{✓ PASS / ✗ FAIL}**: {summary}
+**{PASS / FAIL}**: {summary}
 
 {If FAIL, include:}
 ### Failure Analysis

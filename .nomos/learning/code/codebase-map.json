@@ -1,8 +1,6 @@
 {
   "version": 1,
   "description": "File-to-purpose mapping for instant codebase navigation. Updated after each feature.",
-  "lastUpdated": "2026-01-29T17:46:58Z",
-  "lastUpdatedBy": "F022",
   "files": {
     "packages/db/src/repositories/feature.ts": {
       "purpose": "FeatureRepository with CRUD, query by project/status/phase, bulk status update, dependency resolution, and transaction support",
@@ -319,69 +317,6 @@
         "Authentication": "Required session context, unauthenticated rejection"
       },
       "coverage": "All 4 F018 acceptance criteria: CRUD procedures with 7 operations (list/get/create/update/delete/updateStatus/bulkUpdateStatus), Zod validation on all inputs, transition validation with VALID_TRANSITIONS state machine, type-safe client via AppRouter"
-    },
-    "apps/web/src/routes/projects.index.tsx": {
-      "purpose": "Projects list page showing all projects with links to detail pages. Uses beforeLoad auth guard, oRPC query for list, Skeleton loaders, Card components, and type-safe navigation links",
-      "layer": "web",
-      "exports": [
-        "Route"
-      ],
-      "imports_from": [
-        "@tanstack/react-query",
-        "@tanstack/react-router",
-        "@/components/ui/card",
-        "@/components/ui/skeleton",
-        "@/lib/auth-client",
-        "@/utils/orpc"
-      ],
-      "lastTouchedBy": "F020",
-      "patterns": [
-        "beforeLoad async auth guard with redirect to /login",
-        "useQuery with orpc.projects.list.queryOptions()",
-        "Skeleton loading state with 3 hardcoded placeholders (not Array.from to avoid noArrayIndexKey lint)",
-        "Link components with type-safe params prop",
-        "Card component for project display with name and path"
-      ],
-      "keyFeatures": {
-        "authentication": "beforeLoad ensures session exists before component renders",
-        "data_fetching": "useQuery(orpc.projects.list.queryOptions()) provides type-safe query",
-        "loading_state": "Skeleton loaders provide UX feedback during data fetch",
-        "empty_state": "Shows message when no projects exist",
-        "navigation": "Link to /projects/$projectId with projectId param"
-      }
-    },
-    "apps/web/src/routes/projects.$projectId.tsx": {
-      "purpose": "Project detail page showing project info, related features list filtered by projectId, and navigation. beforeLoad auth guard, type-safe params, feature status color indicators",
-      "layer": "web",
-      "exports": [
-        "Route"
-      ],
-      "imports_from": [
-        "@tanstack/react-query",
-        "@tanstack/react-router",
-        "@/components/ui/button",
-        "@/components/ui/card",
-        "@/components/ui/skeleton",
-        "@/lib/auth-client",
-        "@/utils/orpc"
-      ],
-      "lastTouchedBy": "F020",
-      "patterns": [
-        "beforeLoad async auth guard",
-        "Route.useParams() for type-safe projectId extraction",
-        "useQuery for both project.get and features.list",
-        "Client-side feature filtering by projectId (orpc.features.list() lacks projectId filter)",
-        "statusColors object for status→color mapping",
-        "Skeleton loaders for both project and feature loading states"
-      ],
-      "keyFeatures": {
-        "authentication": "beforeLoad auth guard",
-        "type_safe_params": "Route.useParams() returns typed {projectId}",
-        "feature_filtering": "Client-side: allFeatures.data?.filter((f) => f.projectId === projectId)",
-        "status_visualization": "statusColors[feat.status] provides visual indicator",
-        "breadcrumb_navigation": "Link back to /projects with arrow indicator",
-        "error_state": "Shows 'Project not found' message with back button"
-      }
     },
     "apps/web/src/routes/features.$featureId.tsx": {
       "purpose": "Feature detail page showing feature metadata, description, acceptance criteria, and dependencies with type-safe links. Displays status/phase/priority with color indicators, enriched data from features.get API",

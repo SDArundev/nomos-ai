@@ -1,26 +1,39 @@
 ---
 name: step-03-execute
-description: Task-driven implementation - execute the plan file by file
+description: "Execute-verify loop: orchestrate code-writer and qa-reviewer agents (max 3 iterations)"
 prev_step: steps/step-02-plan.md
 next_step: steps/step-04-verify.md
 ---
 
-# Step 3: Execute (Implementation)
+# Step 3: Execute-Verify Loop
+
+## References
+- `references/agent-prompts.md#step-03-execute-verify-loop-agents` — Code writer + QA reviewer prompts
+- `references/output-formats.md#step-03` — Execute log format
+- `references/output-formats.md#step-03---step-04` — Compact context transfer
 
 ## MANDATORY EXECUTION RULES:
 
+- The MAIN THREAD is the ORCHESTRATOR — it NEVER writes code
+- Code writing is delegated ONLY to the `code-writer` agent
+- QA review is delegated ONLY to the `qa-reviewer` agent
 - NEVER deviate from the approved plan
 - NEVER add features not in the plan (scope creep)
-- NEVER modify files without reading them first
-- ALWAYS follow the plan file-by-file
-- ALWAYS mark tasks complete immediately after each one
-- ALWAYS read files BEFORE editing them
-- YOU ARE AN IMPLEMENTER following a plan, not a designer
-- FORBIDDEN to add "improvements" not in the plan
+- ALWAYS track iterations and write checkpoints
+- ALWAYS escalate after 3 failed iterations
+- The orchestrator formats prompts, passes data between agents, and decides when to stop
 
-## YOUR TASK:
+## ARCHITECTURE:
 
-Execute the approved implementation plan file-by-file, tracking progress with tasks.
+```
+Orchestrator (main thread) — NEVER writes code
+  │
+  ├── Iteration 1: Code Writer (INITIAL) → QA Reviewer → PASS? done : continue
+  ├── Iteration 2: Code Writer (FIX) → QA Reviewer → PASS? done : continue
+  ├── Iteration 3: Code Writer (FIX) → QA Reviewer → PASS? done : ESCALATE
+  │
+  └── On PASS → Step 04 (full verification: runtime, security, coverage)
+```
 
 ---
 
@@ -31,11 +44,14 @@ From previous steps:
 |----------|-------------|
 | `{feature_id}` | Feature identifier |
 | `{feature_title}` | Feature title |
+| `{acceptance_criteria}` | Success criteria from features.json |
 | `{auto_mode}` | Skip confirmations |
 | `{worktree_path}` | Path to worktree |
 | `{output_dir}` | **ABSOLUTE** path to output directory (at project root, NOT worktree) |
+| `{max_execute_iterations}` | Max loop iterations (default: 3) |
 | Implementation plan | File-by-file changes from step-02 |
 | Patterns | How to implement from step-01 |
+| Anti-patterns | What to avoid from step-01 |
 </available_state>
 
 ---
@@ -52,227 +68,149 @@ ls {output_dir}/03-checkpoint.json 2>/dev/null && echo "FOUND" || echo "NOT_FOUN
 
 If found:
 1. Read `{output_dir}/03-checkpoint.json`
-2. Load `completed_tasks` list — these tasks are already done
-3. Skip completed tasks when creating task list (step 1 below)
-4. Log resume state:
-   ```
-   CHECKPOINT RESUME: {completed_count}/{total_count} tasks already done
-   Skipping: {list of completed task subjects}
-   Resuming from: {first pending task subject}
-   ```
+2. Load `loop_state` — check `current_iteration` and `final_verdict`
+3. If `final_verdict` == "PASS": skip to step 5 (write output)
+4. If `final_verdict` == null: resume from `current_iteration`
+5. Load any previous iteration results for context
 
-If not found: Proceed normally (fresh execution).
+If not found: Proceed normally (fresh execution, iteration 1).
 
-### 1. Create Tasks from Plan
+### 1. Prepare Loop Context
 
-Convert each file change from the plan into tasks using **TaskCreate**:
+Read and prepare the data the agents will need:
 
-```
-Plan entry:
-#### `src/auth/handler.ts`
-- Add `validateToken` function
-- Handle error case: expired token
-
-Becomes:
-TaskCreate(
-  subject: "Implement handler.ts changes",
-  description: "Add validateToken, handle expired token error",
-  activeForm: "Implementing handler.ts"
-)
+**1.1** Read the implementation plan from `{output_dir}/02-plan.md`
+**1.2** Read patterns and antipatterns from `{output_dir}/01-context.md`
+**1.3** Read acceptance criteria from features.json or step-00 output
+**1.4** Initialize loop state:
+```json
+{
+  "feature_id": "{feature_id}",
+  "max_iterations": 3,
+  "current_iteration": 1,
+  "final_verdict": null,
+  "iterations": []
+}
 ```
 
-### 2. Skill Detection (MANDATORY)
+### 2. Execute-Verify Loop (max {max_execute_iterations} iterations)
 
-**Before writing any code, discover and invoke relevant skills.**
+For each iteration (1 to {max_execute_iterations}):
 
-Scan the implementation plan for domain keywords and match against available skills:
+#### 2.1 Launch Code Writer Agent
 
-```
-TypeScript/types    → Skill(typescript-expert)
-Drizzle/SQL/schema  → Skill(database-expert)
-React/components    → Skill(react-ecosystem)
-Docker/container    → Skill(docker-expert)
-Auth/JWT            → Skill(auth-expert)
-API/REST            → Skill(api-patterns)
-```
+Determine mode: Iteration 1 = `INITIAL_IMPLEMENTATION`, Iteration 2+ = `FIX_ISSUES`.
+Read prompt template from `references/agent-prompts.md#code-writer-agent`.
 
-**Read the skill's guidance before implementing that domain.**
+**Collect from code writer:**
+- List of files changed
+- Skills invoked
+- Quick verify results (typecheck, lint)
+- Summary of changes (or fixes applied)
 
-Log invoked skills:
-```markdown
-## Skills Invoked
+#### 2.2 Launch QA Reviewer Agent
 
-| Skill | Trigger Keywords | Applied To |
-|-------|------------------|------------|
-| {skill-name} | {keywords} | {files} |
-```
+After code writer completes, launch QA reviewer.
+Read prompt template from `references/agent-prompts.md#qa-reviewer-agent`.
 
-### 3. Execute File by File
+**Collect from QA reviewer:**
+- Structured JSON issue report
+- Verdict: PASS or FAIL
 
-For each task:
+#### 2.3 Evaluate Verdict
 
-**3.1 Mark In Progress**
-```
-TaskUpdate(taskId: "id", status: "in_progress")
-```
-- Only ONE task in_progress at a time
+**If PASS:**
+1. Log: `ITERATION {n}: PASS — Code meets all requirements`
+2. Set `final_verdict = "PASS"`
+3. Write final checkpoint (section 3)
+4. Break out of loop → proceed to step 4
 
-**3.2 Read Before Edit**
-```
-ALWAYS read the file before modifying:
-- Understand current structure
-- Find exact insertion points
-- Verify patterns match expectations
-```
+**If FAIL:**
+1. Log: `ITERATION {n}: FAIL — {count} blocking issues found`
+2. Log each CRITICAL/HIGH issue briefly
+3. Record iteration result in loop state
+4. Write checkpoint (section 3)
+5. If iteration < {max_execute_iterations}: continue to next iteration
+6. If iteration == {max_execute_iterations}: escalate (section 2.4)
 
-**3.3 Implement Changes**
-```
-Make changes specified in the plan:
-- Follow patterns from step-01 analysis
-- Use exact names from plan
-- Handle error cases as specified
-- NO comments unless truly necessary
-```
+#### 2.4 Escalation (after {max_execute_iterations} failures)
 
-**3.4 Mark Complete Immediately**
-```
-TaskUpdate(taskId: "id", status: "completed")
-```
+**If `{auto_mode}` = true:**
+1. Write escalation report to `{output_dir}/03-escalation.md`
+2. Set `final_verdict = "ESCALATED"`
+3. HALT — do not proceed to step-04
 
-**3.5 Log Progress**
-```markdown
-### src/auth/handler.ts
-- Added `validateToken` function (lines 45-78)
-- Added error handling for expired tokens
-**Timestamp:** {ISO}
-```
+**If `{auto_mode}` = false:**
+Ask user via AskUserQuestion: provide guidance, continue with known issues, or abort.
 
-**3.6 Write Checkpoint**
+### 3. Write Checkpoint
 
-After EVERY task completion, write checkpoint to `{output_dir}/03-checkpoint.json`:
+After EVERY iteration, write checkpoint to `{output_dir}/03-checkpoint.json`:
 
 ```json
 {
   "feature_id": "{feature_id}",
   "timestamp": "{ISO}",
-  "completed_tasks": [
-    {
-      "id": "{task_id}",
-      "subject": "Implement handler.ts changes",
-      "completed_at": "{ISO}",
-      "files_changed": ["src/auth/handler.ts"]
-    }
-  ],
-  "pending_tasks": [
-    {
-      "id": "{task_id}",
-      "subject": "Implement types.ts changes"
-    }
-  ],
-  "last_completed_file": "src/auth/handler.ts",
-  "progress_pct": 50
+  "loop_state": {
+    "max_iterations": 3,
+    "current_iteration": "{n}",
+    "final_verdict": "PASS|FAIL|ESCALATED|null",
+    "iterations": [...]
+  },
+  "candidate_antipatterns": []
 }
 ```
 
-Write using **Write tool** after each task (not just at end). This enables resume from any point.
+Write using **Write tool** after each iteration (not just at end). This enables resume from any point.
 
-### 4. Handle Blockers
+### 4. Extract Candidate Anti-Patterns
 
-**If `{auto_mode}` = true:**
-→ Make reasonable decision and continue
+After the loop completes, analyze issue patterns across iterations.
 
-**If `{auto_mode}` = false:**
+**Issue signature:** `{dimension}:{file}:{description_pattern}`
 
-```yaml
-questions:
-  - header: "Blocker"
-    question: "Encountered an issue. How should we proceed?"
-    options:
-      - label: "Use alternative approach (Recommended)"
-        description: "Description of alternative"
-      - label: "Skip this part"
-        description: "Continue without this change"
-      - label: "Stop for discussion"
-        description: "I want to discuss before continuing"
-    multiSelect: false
-```
+For each issue that appeared in 2+ iterations with the same signature:
+- Flag as candidate antipattern
+- Record: signature, occurrences, iterations seen, description
 
-### 5. Quick Verify
+Write to `{output_dir}/03-candidate-antipatterns.json`. Step-06 will process these.
 
-After completing all tasks, run a quick check from worktree:
+### 5. Save Output
 
-```bash
-cd {worktree_path}
-bun run check-types && bun run check
-```
-
-Fix any errors immediately.
-
-### 6. Implementation Summary
-
-```
-**Implementation Complete**
-
-**Files Modified:**
-- `src/auth/handler.ts` - Added validateToken, error handling
-
-**New Files:**
-- `src/types/auth.ts` - Auth type definitions
-
-**Skills Invoked:** {count}
-**Tasks:** {X}/{Y} complete
-```
-
-### 7. Save Output
-
-Write execution log to `{output_dir}/03-execute.md`
+Write execution log to `{output_dir}/03-execute.md`.
+Use the format from `references/output-formats.md#step-03-execute-log-format`.
+Include the compact context transfer block at the TOP (see `references/output-formats.md#step-03---step-04`).
 
 ---
 
 ## SUCCESS METRICS:
 
-- Skills detected and invoked before coding
+- Main thread NEVER writes code — only orchestrates
+- Code writer agent handles ALL code changes
+- QA reviewer agent is strictly read-only
+- Loop converges within {max_execute_iterations} iterations
 - All plan items implemented
-- All tasks marked complete
-- No scope creep - only plan items
-- Files read before modification
+- All acceptance criteria addressed
 - Typecheck and lint pass
-- Progress logged
+- Checkpoints written after every iteration
+- Candidate antipatterns extracted for step-06
+- Clear execution log with iteration history
 
 ## FAILURE MODES:
 
-- Skipping skill detection step
-- Adding features not in the plan
-- Modifying files without reading first
-- Not updating tasks as you work
-- Multiple tasks in_progress simultaneously
-- Ignoring type or lint errors
-
----
-
-## CONTEXT COMPACTION (for step-04 handoff):
-
-Before proceeding, add a compact transfer summary at the TOP of `{output_dir}/03-execute.md`:
-
-```markdown
-## Compact Context → Step 04
-
-- **Files Modified:** {list of files changed with one-line summary each}
-- **New Files Created:** {list}
-- **Lines Changed:** +{added} / -{removed}
-- **Issues Encountered:** {count} — {brief list or "none"}
-- **Skills Invoked:** {list of skill names used}
-- **Quick Verify:** typecheck {PASS/FAIL} | lint {PASS/FAIL}
-```
-
-This compact summary allows step-04 to scope verification without re-reading the full execution log.
+- Main thread writing code instead of delegating to code-writer
+- QA reviewer modifying files
+- Not tracking iterations or writing checkpoints
+- Continuing beyond max iterations without escalating
+- Passing QA issues back to code writer without structured format
+- Not extracting candidate antipatterns from recurring issues
 
 ---
 
 ## NEXT STEP:
 
-After implementation complete, load `./step-04-verify.md`
+After loop completes with PASS, load `./step-04-verify.md`
 
 <critical>
-Execution is about following the plan - don't redesign or add features!
+The main thread is an ORCHESTRATOR ONLY. It formats prompts, launches agents, collects results, and decides next actions. It NEVER writes, edits, or modifies code files.
 </critical>

@@ -356,7 +356,12 @@ bash .claude/skills/nomos/scripts/nomos.sh init <feature_id> <args...>
 # Feature diff/metrics/health
 bash .claude/skills/nomos/scripts/nomos.sh diff <feature_id> [--stat|--names|--summary]
 bash .claude/skills/nomos/scripts/nomos.sh metrics <feature_id>
+bash .claude/skills/nomos/scripts/nomos.sh metrics <feature_id> --category-stats
 bash .claude/skills/nomos/scripts/nomos.sh health <feature_id> [--wait|--check]
+
+# Learning system (insights, patterns)
+bash .claude/skills/nomos/scripts/nomos.sh insights <feature_id>
+bash .claude/skills/nomos/scripts/nomos.sh patterns <feature_id> [--for-plan|--for-code|--for-qa]
 
 # Server lifecycle (step-04 Track B)
 bash .claude/skills/nomos/scripts/nomos-verify.sh <feature_id> start|wait|smoke|stop|status

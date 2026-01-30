@@ -6,6 +6,12 @@ prev_step: steps/step-05-merge.md
 
 # Step 6: Finish (2 Parallel Tracks)
 
+## References
+- `references/agent-prompts.md#step-06-track-a` — Learning extraction agent prompt
+- `references/agent-prompts.md#step-06-track-b` — Ship feature agent prompt
+- `references/output-formats.md#step-06` — Finish report format
+- `references/output-formats.md#final-summary-format` — Final summary
+
 ## MANDATORY EXECUTION RULES:
 
 - NEVER skip learning extraction
@@ -17,8 +23,6 @@ prev_step: steps/step-05-merge.md
 - FORBIDDEN to modify any code
 
 ## MODE: 2 PARALLEL TRACKS
-
-This step merges the old learn + ship into 2 parallel tracks.
 
 ```
 Track A: EXTRACT LEARNINGS
@@ -53,306 +57,70 @@ From previous steps:
 <critical>
 Launch both tracks in a SINGLE message if pr_mode is true.
 If pr_mode is false, only launch Track A.
+Read agent prompts from `references/agent-prompts.md`.
 </critical>
 
----
+**Track A:** Learning Extraction — see `references/agent-prompts.md#step-06-track-a-learning-extraction`
 
-#### TRACK A: Extract Learnings (ALWAYS)
+Track A uses `nomos.sh metrics {feature_id}` to collect metrics (replaces inline git/jq commands).
 
-```
-Task agent: general-purpose
-Model: {phase_models.learning}
-Prompt: |
-  ## Track A: Learning Extraction for {feature_id}: {feature_title}
+**Track B:** Ship Feature (if pr_mode) — see `references/agent-prompts.md#step-06-track-b-ship-feature`
 
-  ### 1. Collect Feature Metrics
+### 3b. Process Execute Loop Candidates (within Track A)
 
-  Calculate from git and state:
-  ```bash
-  # Files changed
-  git diff --stat main~1..main
+Track A reads `{output_dir}/03-candidate-antipatterns.json` and processes candidates:
+- Occurrences >= 2 AND matches existing → increment evidence_count
+- Occurrences >= 2 AND new → add as new antipattern
+- Occurrences == 1 → skip (insufficient evidence)
 
-  # Lines changed
-  git diff --shortstat main~1..main
+This creates a self-healing cycle: recurring execute-verify issues get promoted to antipatterns, which future QA reviews check for.
 
-  # Commit count
-  git rev-list --count nomos/{feature_id} 2>/dev/null || echo "1"
-  ```
+### 3c. Loop Iterations Consistency (within Track A)
 
-  Read feature timestamps from .nomos/features.json:
-  ```bash
-  jq --arg id "{feature_id}" '.features[] | select(.id == $id) | {startedAt, completedAt, verifiedAt}' .nomos/features.json
-  ```
+In the session insight JSON (`insights/{feature_id}.json`), ensure `loop_iterations_used` is a top-level field set to the actual count from `{output_dir}/03-checkpoint.json`. This feeds back into step-02 calibration via `nomos.sh metrics --category-stats`.
 
-  ### 2. Analyze Success Patterns
+### 3d. Pattern Freshness Check (within Track A)
 
-  IF duration < threshold AND retries == 0 → GOOD_PLANNING
-  IF files_changed < threshold → FOCUSED_SCOPE
-  IF all_tests_passed_first_try → TEST_DRIVEN
+For each pattern in `patterns.json`:
+- If `last_seen` is > 10 features ago AND `confidence` < 0.5:
+  → Reduce confidence by 0.1 (min 0.1)
+  → Add note: "Stale — not applied in 10+ features"
+- If `last_seen` is > 20 features ago:
+  → Archive to `patterns-archive.json`
+  → Remove from active `patterns.json`
 
-  ### 3. Analyze Anti-Patterns
+This prevents context bloat as the pattern library grows and automatically prunes one-time observations.
 
-  IF retries > 2 → UNCLEAR_REQUIREMENTS
-  IF files_changed > threshold * 1.5 → SCOPE_CREEP
-  IF duration > threshold * 2 → COMPLEXITY_UNDERESTIMATED
+### 3e. Post-Feature Metrics Comparison (within Track A)
 
-  ### 4. Update Learning Files
+Compare actual metrics against expected (from step-02 calibration if available):
 
-  Read existing files, MERGE (don't overwrite):
-
-  - .nomos/learning/metrics.json → Add feature metrics, recalculate aggregates
-  - .nomos/learning/patterns.json → Add/update patterns with evidence_count
-    - For each pattern applied in this feature, recalculate quality scores:
-      * Add {feature_id} to `features_applied`
-      * If feature succeeded: add to `features_succeeded`
-      * Recalculate: `success_rate = features_succeeded.length / features_applied.length`
-      * Recalculate: `confidence = min(1.0, (evidence_count / 5) * success_rate)`
-  - .nomos/learning/antipatterns.json → Add/update anti-patterns
-
-  ### 5. Update Codebase Map
-
-  Read `.nomos/learning/code/codebase-map.json` (create if missing).
-  For each file changed in this feature, add/update an entry:
-  ```json
-  {
-    "files": {
-      "src/path/file.ts": {
-        "purpose": "Brief description of what this file does",
-        "layer": "server|web|shared|config|test",
-        "exports": ["functionName", "TypeName"],
-        "imports_from": ["src/other/file.ts"],
-        "lastTouchedBy": "{feature_id}"
-      }
-    }
-  }
-  ```
-  - MERGE with existing entries (don't overwrite untouched files)
-  - Update `lastUpdated` and `lastUpdatedBy` in root
-  - Only include key exports (public API), not internal helpers
-
-  ### 6. Extract Code Patterns
-
-  Analyze the diff for code-level learnings:
-  - Bug fixes → potential pitfalls
-  - New utilities → potential patterns
-  - Config changes → potential best practices
-
-  Detect category from file paths and update:
-  - .nomos/learning/code/{category}.json
-
-  For CRITICAL patterns, enhance with Context7:
-  - mcp__context7__resolve-library-id
-  - mcp__context7__query-docs
-  - Add context7Query and context7LibraryId to pattern
-
-  ### 7. Generate Retrospective
-
-  ```markdown
-  ## Retrospective: {feature_id}
-
-  ### What Went Well
-  - {positive}
-
-  ### What Could Improve
-  - {improvement}
-
-  ### Key Learnings
-  1. {learning}
-
-  ### Recommendations for Similar Features
-  - {recommendation}
-  ```
-
-  ### 8. Write Session Insight
-
-  Write a cross-feature insight file to `.nomos/learning/insights/{feature_id}.json`:
-
-  ```bash
-  mkdir -p .nomos/learning/insights
-  ```
-
-  Extract from execution log, verify report, and retrospective:
-
-  ```json
-  {
-    "session_number": {next_session_number},
-    "feature_id": "{feature_id}",
-    "category": "{feature_category}",
-    "phase": "{feature_phase}",
-    "dependencies": {feature_dependencies},
-    "discoveries": ["specific technical discoveries made during implementation"],
-    "what_worked": ["approaches and patterns that succeeded"],
-    "what_failed": ["approaches attempted but abandoned or reworked"],
-    "recommendations_for_next": ["actionable advice for features in same category/phase"]
-  }
-  ```
-
-  - `session_number`: Count existing insight files + 1
-  - `discoveries`: Extract from execution log (03-execute.md) — novel solutions, helper functions found, gotchas
-  - `what_worked`: Extract from retrospective "What Went Well" section
-  - `what_failed`: Extract from retrospective "What Could Improve" and failure log
-  - `recommendations_for_next`: Synthesize from all sections — concrete next-feature advice
-
-  Write using **Write tool** (never cat/heredoc).
-
-  ### Report Format:
-  ```
-  TRACK_A_RESULT: COMPLETE
-  metrics_recorded: true
-  patterns_extracted: {count}
-  antipatterns_extracted: {count}
-  code_patterns_added: {count}
-  codebase_map_entries_updated: {count}
-  insight_written: true
-  insight_file: .nomos/learning/insights/{feature_id}.json
-  files_updated: {list}
-  ```
+```markdown
+### Metrics Comparison
+| Metric | Expected | Actual | Delta |
+|--------|----------|--------|-------|
+| Iterations | {planned} | {actual} | {+/-} |
+| Files | {planned} | {actual} | {+/-} |
 ```
 
----
+If any metric exceeds expected by >50%:
+→ Flag for retrospective analysis
+→ Check if plan was too optimistic or if unexpected complexity emerged
+→ Record as learning: "Category X typically takes {actual} not {expected}"
 
-#### TRACK B: Ship Feature (CONDITIONAL - only if pr_mode)
-
-**Only launch if `{pr_mode}` = true:**
-
-```
-Task agent: general-purpose
-Prompt: |
-  ## Track B: Ship Feature {feature_id}: {feature_title}
-
-  ### 1. Verify Git Status
-  ```bash
-  git status
-  git log --oneline -5
-  ```
-
-  ### 2. Push to Remote
-  ```bash
-  git push -u origin main
-  ```
-
-  If push fails: display error and report.
-
-  ### 3. Create Pull Request
-  ```bash
-  gh pr create --title "feat({feature_id}): {feature_title}" --body "$(cat <<'EOF'
-  ## Summary
-
-  Implements {feature_title} ({feature_id}).
-
-  ## Changes
-
-  {summary of key changes from output files}
-
-  ## Verification
-
-  - Static checks: PASS (typecheck, lint, tests)
-  - Runtime verification: PASS (smoke + QA)
-  - Code review: PASS (security, quality, coverage)
-
-  ## Acceptance Criteria
-
-  {acceptance_criteria with status}
-
-  ---
-
-  _Generated by NOMOS v2 workflow_
-  EOF
-  )"
-  ```
-
-  ### 4. Capture PR URL
-  ```bash
-  gh pr view --json url -q '.url'
-  ```
-
-  ### Report Format:
-  ```
-  TRACK_B_RESULT: COMPLETE
-  pushed: true
-  pr_created: true
-  pr_url: {url}
-  ```
-```
-
----
+This closes the loop: step-02 predicts → step-06 compares → updates thresholds → next step-02 predicts better.
 
 ### 2. Collect Results
 
-After both tracks complete:
+After both tracks complete, gather Track A and Track B reports.
 
 ### 3. Save Output
 
-Write to `{output_dir}/06-finish.md`:
-
-```markdown
-# Finish: {feature_id}
-
-## Learning Extraction
-
-### Feature Metrics
-| Metric | Value |
-|--------|-------|
-| Duration | {minutes} min |
-| Files Changed | {count} |
-| Lines Added | +{count} |
-| Lines Removed | -{count} |
-| Commits | {count} |
-| Risk Level | {risk_level} |
-| Outcome | SUCCESS |
-
-### Patterns Extracted
-| Pattern | Evidence | Recommendation |
-|---------|----------|----------------|
-| {pattern} | {evidence} | {recommendation} |
-
-### Anti-Patterns Identified
-| Anti-Pattern | Evidence | Prevention |
-|--------------|----------|------------|
-| {antipattern} | {evidence} | {prevention} |
-
-### Code Patterns Added
-| ID | Category | Title |
-|----|----------|-------|
-| {id} | {category} | {title} |
-
-### Retrospective
-{retrospective content}
-
-## Ship (if pr_mode)
-**Pushed:** YES/NO
-**PR Created:** YES/NO
-**PR URL:** {url}
-
----
-
-## Step Complete
-**Timestamp:** {ISO timestamp}
-```
+Write to `{output_dir}/06-finish.md` using the format from `references/output-formats.md#step-06-finish-report-format`.
 
 ### 4. Final Summary
 
-```
-NOMOS COMPLETE: {feature_id} - {feature_title}
-
-| Step | Status |
-|------|--------|
-| 00-init | DONE |
-| 01-context | DONE |
-| 02-plan | DONE |
-| 03-execute | DONE |
-| 04-verify | DONE |
-| 05-merge | DONE |
-| 06-finish | DONE |
-
-Status: verified
-Duration: {duration} min
-Files: {count} changed
-Learnings: {count} patterns extracted
-{if pr_mode: "PR: {pr_url}"}
-
-Output: {output_dir}/
-```
+Display the final summary using the format from `references/output-formats.md#final-summary-format`.
 
 ---
 

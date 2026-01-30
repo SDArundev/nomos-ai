@@ -116,6 +116,16 @@ Verdict is **PASS** when:
 Verdict is **FAIL** when any CRITICAL or HIGH gap exists. MEDIUM gaps are logged but do not block.
 </success_criteria>
 
+<test_budget>
+Target test counts by feature size:
+- S (1-2 AC): 5-15 tests
+- M (3-4 AC): 15-30 tests
+- L (5+ AC): 30-60 tests
+
+If recommending 50+ tests, you are likely testing implementation details — focus on behavior instead.
+Prioritize: error paths > edge cases > happy paths.
+</test_budget>
+
 <test_quality_criteria>
 **Good tests:**
 - Test behavior, not implementation
