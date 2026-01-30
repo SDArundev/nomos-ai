@@ -354,7 +354,8 @@
         "F018",
         "F019",
         "F020",
-        "F022"
+        "F022",
+        "F023"
       ],
       "features_succeeded": [
         "F012",
@@ -366,7 +367,8 @@
         "F018",
         "F019",
         "F020",
-        "F022"
+        "F022",
+        "F023"
       ]
     },
     {
@@ -501,7 +503,74 @@
         "F018"
       ],
       "antipattern_avoided": "Without validation, status can be set to any arbitrary value, breaking workflow guarantees"
+    },
+    {
+      "id": "SRV-009",
+      "name": "TANSTACK_QUERY_CLIENT_CONFIG",
+      "description": "Global QueryClient configuration with sensible defaults for all queries and mutations. Includes staleTime (60s), gcTime (5m), retry logic (3 for queries, 1 for mutations), exponential backoff, and QueryCache error handler with toast notifications.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F023",
+      "applies_to": [
+        "CAT-FE",
+        "frontend",
+        "data-fetching"
+      ],
+      "recommendation": "For all React apps using TanStack Query: Create QueryClient with global defaultOptions for queries and mutations. Implement exponential backoff (2^attempt capped at 30s) for retries. Add QueryCache error handler to notify users of failures via toast.",
+      "codeExample": "const queryClient = new QueryClient({\n  defaultOptions: {\n    queries: { staleTime: 60 * 1000, gcTime: 5 * 60 * 1000, retry: 3, retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000) },\n    mutations: { retry: 1 }\n  },\n  queryCache: new QueryCache({\n    onError: (error, query) => { toast.error(`Error: ${error.message}`, { action: { label: 'retry', onClick: query.invalidate } }); }\n  })\n});",
+      "keyPoints": [
+        "staleTime 60s: data fresh for 1 minute after fetch",
+        "gcTime 5m: keep unused cache 5 minutes before garbage collection",
+        "retry 3 for queries: resilient to temporary failures",
+        "retry 1 for mutations: don't retry mutations (side effects)",
+        "exponential backoff: 1s, 2s, 4s, ..., capped at 30s",
+        "QueryCache error handler: catches all query errors and notifies user",
+        "Invalidation retry: user can retry from toast action"
+      ],
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM - without defaults, queries will retry indefinitely, mutations will fail noisily",
+      "features_applied": [
+        "F023"
+      ],
+      "features_succeeded": [
+        "F023"
+      ]
+    },
+    {
+      "id": "SRV-010",
+      "name": "TANSTACK_QUERY_MUTATION_PATTERN",
+      "description": "Mutations with cache invalidation and optimistic updates. Use orpc.{entity}.{method}.mutationOptions({onSuccess}) to integrate with QueryClient. Invalidate related queries in onSuccess callback. Form state managed inline with useState for simplicity.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F023",
+      "applies_to": [
+        "CAT-FE",
+        "frontend",
+        "mutations"
+      ],
+      "recommendation": "For all mutations: 1) Use useMutation(orpc.{entity}.{method}.mutationOptions({onSuccess})) for type-safe mutation options, 2) In onSuccess: queryClient.invalidateQueries({queryKey: orpc.{entity}.list.queryOptions().queryKey}), 3) Clear form state after success, 4) Use mutation.isPending to disable button during request.",
+      "codeExample": "const createProject = useMutation(\n  orpc.projects.create.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryOptions().queryKey });\n      setName('');\n      setPath('');\n      setShowForm(false);\n    },\n  })\n);\nconst handleSubmit = (e: React.FormEvent) => {\n  e.preventDefault();\n  createProject.mutate({ name: name.trim(), path: path.trim() });\n};",
+      "keyPoints": [
+        "orpc.{entity}.{method}.mutationOptions() provides type-safe mutation handler",
+        "onSuccess callback fires after successful server response",
+        "queryClient.invalidateQueries() forces refetch on next access",
+        "queryKey must match queryOptions().queryKey for same query",
+        "Form state reset in onSuccess ensures clean form after submit",
+        "mutation.isPending disables button during request to prevent double-submit",
+        "Type-safe mutation: TypeScript ensures input/output types match server"
+      ],
+      "testCoverage": "Test mutations execute successfully, onSuccess callback fires, form state resets, queries invalidate, error state handled, isPending blocks submits, type checking at compile time",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH - without cache invalidation, UI shows stale data after mutations",
+      "features_applied": [
+        "F023"
+      ],
+      "features_succeeded": [
+        "F023"
+      ]
     }
   ],
-  "last_updated": "2026-01-29T17:09:30Z"
+  "last_updated": "2026-01-30T15:32:45Z"
 }

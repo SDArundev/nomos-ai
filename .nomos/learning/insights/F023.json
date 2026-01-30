@@ -1,0 +1,274 @@
+{
+	"feature": {
+		"id": "F023",
+		"title": "TanStack Query setup for API calls",
+		"category": "CAT-FE",
+		"phase": "phase-1",
+		"size": "M",
+		"started_at": "2026-01-30T14:10:48Z",
+		"completed_at": "2026-01-30T15:32:45Z",
+		"verified_at": "2026-01-30T15:32:45Z",
+		"duration_minutes": 82,
+		"files_changed": 5,
+		"lines_added": 194,
+		"lines_removed": 11,
+		"commits": 1,
+		"retries": 0,
+		"risk_level": "MEDIUM",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "QueryClient with global defaults configured",
+			"status": "verified",
+			"details": "staleTime 60s, gcTime 5m, retry 3 for queries, retry 1 for mutations, exponential backoff with cap at 30s. All defaults apply globally to all queries and mutations."
+		},
+		{
+			"criterion": "QueryCache error handler with toast notifications",
+			"status": "verified",
+			"details": "QueryCache configured with onError handler. Shows toast.error() with message. Provides 'retry' action that calls query.invalidate() to retry failed query."
+		},
+		{
+			"criterion": "Form-based mutations with cache invalidation",
+			"status": "verified",
+			"details": "Create project mutation on projects.index invalidates projects.list query on success. Delete project mutation on projects.$projectId invalidates projects.list and navigates to /projects. Both use mutationOptions({onSuccess}) pattern."
+		},
+		{
+			"criterion": "All tests pass",
+			"status": "verified",
+			"details": "7 tests for QueryClient setup + 28 tests for route mutations = 35 total tests. All 35 tests pass on first run (28/28 route tests pass)."
+		}
+	],
+	"dependencies": {
+		"required": ["F020", "F022"],
+		"reasons": {
+			"F020": "React routes (projects.index, projects.$projectId) needed for mutation implementation",
+			"F022": "Zustand store provides context for mutations to update global state if needed"
+		}
+	},
+	"discoveries": [
+		{
+			"discovery": "orpc.{entity}.{method}.mutationOptions() integrates seamlessly with TanStack Query",
+			"context": "F023 created mutations using orpc.projects.create.mutationOptions({onSuccess}) and orpc.projects.delete.mutationOptions({onSuccess}). The API-generated types from oRPC provide both mutation handler AND type-safe options integration with React Query.",
+			"lesson": "oRPC handles the glue between server router types and React Query. No need for manual typing - mutationOptions() is already typed correctly based on the procedure definition.",
+			"code_pattern": "useMutation(orpc.projects.create.mutationOptions({onSuccess: () => {...}}))",
+			"benefit": "Type-safe mutations with zero additional type definitions. onSuccess callback receives properly typed response."
+		},
+		{
+			"discovery": "queryOptions().queryKey provides type-safe cache invalidation targets",
+			"context": "F023 used orpc.projects.list.queryOptions().queryKey to get the cache key for invalidation. This ensures the invalidation targets exactly match the query that was created.",
+			"lesson": "Always derive invalidation keys from the same queryOptions() call as the query. Hardcoding keys leads to sync issues.",
+			"code_pattern": "queryClient.invalidateQueries({queryKey: orpc.projects.list.queryOptions().queryKey})",
+			"benefit": "Type-safe cache invalidation. If queryOptions changes, invalidation automatically targets the new key."
+		},
+		{
+			"discovery": "QueryClient defaults apply to all queries and mutations globally",
+			"context": "Single QueryClient configuration (staleTime 60s, gcTime 5m, retry 3, exponential backoff) automatically applies to all useQuery and useMutation calls in the app.",
+			"lesson": "Set defaults once at app initialization. Individual queries inherit the global settings unless explicitly overridden.",
+			"benefit": "Consistent retry behavior, cache management, and stale time across the entire app without per-query configuration."
+		},
+		{
+			"discovery": "Form state reset in onSuccess ensures clean UX",
+			"context": "F023 mutation onSuccess callback resets form state (setName(''), setPath(''), setShowForm(false)). This clears the form after successful submission.",
+			"lesson": "onSuccess is the right place to reset form state. Putting it in the component update would cause race conditions.",
+			"code_pattern": "onSuccess: () => { queryClient.invalidateQueries(...); setName(''); setPath(''); setShowForm(false); }",
+			"benefit": "Clean UX: form clears immediately after successful creation, user sees result instantly."
+		},
+		{
+			"discovery": "Two-step delete confirmation pattern prevents accidents",
+			"context": "F023 implemented delete with confirmation: first click shows 'Delete this project?' with Confirm/Cancel buttons. Only second click triggers actual deletion.",
+			"lesson": "For destructive operations, always require two steps. First click shows confirmation, second click executes.",
+			"code_pattern": "const [confirmDelete, setConfirmDelete] = useState(false);\n// Show confirmation buttons if confirmDelete, else show single Delete button",
+			"benefit": "Prevents accidental deletions. User can cancel at any point."
+		},
+		{
+			"discovery": "Exponential backoff with cap prevents runaway retries",
+			"context": "F023 configured retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000). First retry: 1s, second: 2s, third: 4s, then capped at 30s.",
+			"lesson": "Without a cap, exponential backoff can lead to very long delays. Capping at 30s prevents waiting indefinitely.",
+			"code_pattern": "retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)",
+			"benefit": "Resilient to temporary network issues without excessive waiting."
+		},
+		{
+			"discovery": "All 35 tests pass first try with zero retries",
+			"context": "F023 completed with 28 route component tests + 7 QueryClient setup tests, all passing on first run. No failed tests, no type errors, no retries needed.",
+			"lesson": "Pattern reuse from F020 (queryOptions()) combined with standard TanStack Query patterns leads to zero-retry implementation.",
+			"confidence": "HIGH - TanStack Query is well-established, patterns are battle-tested"
+		}
+	],
+	"patterns_applied": [
+		{
+			"pattern": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"how_used": "Reused oRPC queryOptions pattern from F020 for all queries. Reused TanStack Query defaults pattern (staleTime, gcTime, retry) from documentation. Mutation with invalidation pattern is standard TanStack Query.",
+			"benefit": "82-minute implementation (includes comprehensive testing). Patterns applied from F020 queryOptions() directly to mutations."
+		},
+		{
+			"pattern": "SRV-009",
+			"name": "TANSTACK_QUERY_CLIENT_CONFIG",
+			"how_used": "Created QueryClient with global defaults for all queries (staleTime 60s, gcTime 5m, retry 3) and mutations (retry 1). Added exponential backoff with 30s cap. Configured QueryCache error handler with toast notifications.",
+			"benefit": "Consistent behavior across entire app. All queries and mutations inherit same retry logic and caching strategy."
+		},
+		{
+			"pattern": "SRV-010",
+			"name": "TANSTACK_QUERY_MUTATION_PATTERN",
+			"how_used": "Created mutations using orpc.projects.create/delete.mutationOptions({onSuccess}). In onSuccess: invalidate related queries, reset form state, navigate if needed. Used mutation.isPending to disable buttons during request.",
+			"benefit": "Type-safe mutations with automatic cache invalidation. Form state automatically managed. Error handling via QueryCache error handler."
+		}
+	],
+	"what_worked": [
+		"oRPC queryOptions() pattern from F020 applies directly to mutations via mutationOptions()",
+		"TanStack Query documentation patterns (exponential backoff, staleTime/gcTime defaults) applied cleanly",
+		"QueryCache error handler with toast notifications provides good UX for error states",
+		"Type-safe mutations through oRPC integration - no manual type definitions needed",
+		"Cache invalidation via queryKey from queryOptions() ensures sync between query and invalidation",
+		"Form state reset in onSuccess callback provides clean UX without race conditions",
+		"Two-step delete confirmation pattern prevents accidents",
+		"All 35 tests (28 mutations + 7 config) pass on first try",
+		"Zero retries despite being first comprehensive mutation implementation"
+	],
+	"what_failed": [],
+	"what_could_improve": [
+		"useQuery hooks could be extracted to custom hooks for reusability (useProjects, useProject, useFeatures)",
+		"StatusColors mapping could be extracted to shared constants or theme",
+		"Error toast could include error codes for better debugging",
+		"Could add optimistic updates for mutations (show data immediately while request pending)",
+		"Could implement refetch intervals for real-time data updates",
+		"Component tests (Vitest) could supplement integration tests"
+	],
+	"recommendations": [
+		{
+			"recommendation": "Extract custom hooks for common queries",
+			"rationale": "As app grows, useQuery calls repeated across components. Custom hooks (useProjects, useProject) reduce boilerplate.",
+			"action": "Create hooks/useProjects.ts, hooks/useProject.ts with standard useQuery patterns"
+		},
+		{
+			"recommendation": "Add optimistic updates for mutations",
+			"rationale": "Mutations can show data immediately in UI while request pending, improving perceived performance",
+			"action": "Use mutationOptions({onMutate}) to update cache immediately, then rollback on error"
+		},
+		{
+			"recommendation": "Extract statusColors and other constants",
+			"rationale": "Colors, status mappings used across multiple route files. Centralizing enables consistency.",
+			"action": "Create constants/statusColors.ts exporting color mapping for all statuses"
+		},
+		{
+			"recommendation": "Add refetch intervals for real-time data",
+			"rationale": "Projects and features data could auto-refresh every 30s if multiple users editing",
+			"action": "Add refetchInterval: 30 * 1000 to queryOptions for features and projects"
+		}
+	],
+	"metrics": {
+		"test_count": 35,
+		"test_pass_rate": 1.0,
+		"query_tests": 7,
+		"mutation_tests": 28,
+		"build_errors": 0,
+		"type_errors": 0,
+		"lint_errors_before": 0,
+		"lint_errors_after": 0,
+		"mutations_created": 2,
+		"files_created": [
+			"apps/web/src/utils/__tests__/query-setup.test.ts"
+		],
+		"files_modified": [
+			"apps/web/src/utils/orpc.ts",
+			"apps/web/src/routes/projects.index.tsx",
+			"apps/web/src/routes/projects.$projectId.tsx",
+			".nomos/features.json"
+		]
+	},
+	"next_features_enabled": [
+		{
+			"feature": "Session list and detail pages",
+			"dependency": "Can now fetch sessions data and mutations (create, update, delete) with same pattern",
+			"template": "useQuery(orpc.sessions.list.queryOptions()), useMutation(orpc.sessions.create.mutationOptions({onSuccess}))"
+		},
+		{
+			"feature": "Feature list and detail pages",
+			"dependency": "Can fetch features and implement mutations (create, update, delete, updateStatus) with established pattern",
+			"template": "useQuery(orpc.features.list.queryOptions()), useMutation(orpc.features.create.mutationOptions({onSuccess}))"
+		},
+		{
+			"feature": "Real-time data updates",
+			"dependency": "Can add refetchInterval or polling to keep data fresh without manual refresh",
+			"action": "Add refetchInterval: 30 * 1000 to queryOptions for live updates"
+		},
+		{
+			"feature": "Optimistic updates",
+			"dependency": "Can implement onMutate to update cache immediately while request pending",
+			"template": "Use mutationOptions({onMutate: (variables) => {updateCacheImmediately; return rollbackFn;}})"
+		}
+	],
+	"learning_contribution": {
+		"new_patterns": [
+			{
+				"id": "SRV-009",
+				"name": "TANSTACK_QUERY_CLIENT_CONFIG",
+				"description": "Global QueryClient configuration with sensible defaults for staleTime, gcTime, retry logic, exponential backoff, and error handling",
+				"applies_to": ["CAT-FE", "frontend", "data-fetching"],
+				"code_example": "const queryClient = new QueryClient({defaultOptions: {queries: {staleTime: 60 * 1000, gcTime: 5 * 60 * 1000, retry: 3, retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)}, mutations: {retry: 1}}, queryCache: new QueryCache({onError: (error, query) => toast.error(`Error: ${error.message}`, {action: {label: 'retry', onClick: query.invalidate}})})});",
+				"confidence": 0.8,
+				"success_rate": 1.0
+			},
+			{
+				"id": "SRV-010",
+				"name": "TANSTACK_QUERY_MUTATION_PATTERN",
+				"description": "Mutations with cache invalidation, form state management, and confirmation patterns",
+				"applies_to": ["CAT-FE", "frontend", "mutations"],
+				"code_example": "useMutation(orpc.projects.create.mutationOptions({onSuccess: () => {queryClient.invalidateQueries({queryKey: orpc.projects.list.queryOptions().queryKey}); setName(''); setPath(''); setShowForm(false);}}));",
+				"confidence": 0.8,
+				"success_rate": 1.0
+			}
+		],
+		"pattern_enhancements": [
+			{
+				"pattern": "PAT-013",
+				"name": "PATTERN_REUSE",
+				"enhancement": "F023 shows pattern reuse for TanStack Query (oRPC queryOptions + mutationOptions pattern from F020, standard TanStack Query defaults from docs). 82-minute implementation with 0 retries."
+			}
+		],
+		"documentation": "Added SRV-009 and SRV-010 to patterns.json. Updated PAT-013 with F023 evidence. Added 5 entries to codebase-map (orpc.ts, query-setup.test.ts, projects.index with mutations, projects.$projectId with delete mutation).",
+		"metrics": "Added F023 to metrics.json: 82 minutes, 5 files, 194 lines added, 0 retries, success"
+	},
+	"efficiency_analysis": {
+		"implementation_speed": "82 minutes (for QueryClient setup + 2 mutations with cache invalidation + 35 tests)",
+		"why_this_duration": [
+			"Comprehensive mutation implementation with cache invalidation",
+			"7 tests for QueryClient defaults + 28 tests for mutations (35 total)",
+			"Two-step delete confirmation pattern requires additional UI state management",
+			"Form state management (name, path) with reset on success",
+			"Type-safe integration with oRPC adds some setup time but ensures correctness"
+		],
+		"comparison_to_baseline": "Average feature (21 features): 22.1 min. F023: 82 min (includes 35 tests). More tests than average but reflects comprehensive data fetching setup that all future features will benefit from.",
+		"pattern_reuse_value": "Estimated 15+ minutes saved by reusing oRPC queryOptions pattern from F020. Would take 100+ min without established patterns."
+	},
+	"code_quality_notes": {
+		"type_safety": "Full type safety: oRPC mutations are typed, queryKey types derived from queryOptions(), all form handlers typed, no 'any' types",
+		"error_handling": "QueryCache error handler catches all query failures and notifies user via toast. Mutation errors handled by QueryCache (same toast pattern).",
+		"performance": "Exponential backoff prevents overwhelming server. staleTime 60s and gcTime 5m balance freshness and network efficiency. Mutation retry 1 prevents double operations.",
+		"ux_considerations": "Two-step delete confirmation, form resets on success, disabled buttons during pending mutations, loading skeletons, error toasts",
+		"maintainability": "Clear pattern for mutations: use mutationOptions(), invalidate in onSuccess, reset form state. Future mutations can follow exact same pattern."
+	},
+	"architectural_insights": {
+		"query_architecture": "All queries use oRPC queryOptions() for type-safe data fetching. Single QueryClient manages all cache. Global defaults apply consistently.",
+		"mutation_architecture": "Mutations use orpc.{entity}.{method}.mutationOptions({onSuccess}). onSuccess invalidates related queries to sync cache. Form state managed inline with useState.",
+		"cache_strategy": "staleTime 60s ensures data fresh for 1 minute. gcTime 5m keeps unused cache for 5 minutes. Invalidation on mutation ensures data stays in sync with server.",
+		"error_handling": "QueryCache error handler provides consistent error UX across all queries. Toast shows error message with retry action.",
+		"form_pattern": "Two-step delete confirmation. Create mutation with form state reset. Form hidden until success."
+	},
+	"frontend_patterns_discovered": [
+		{
+			"pattern": "WEB-006",
+			"name": "TANSTACK_QUERY_DATA_FETCHING",
+			"description": "Type-safe data fetching with oRPC queryOptions and mutations with cache invalidation",
+			"code_example": "useQuery(orpc.projects.list.queryOptions()), useMutation(orpc.projects.create.mutationOptions({onSuccess: () => queryClient.invalidateQueries({queryKey: orpc.projects.list.queryOptions().queryKey})}))"
+		},
+		{
+			"pattern": "WEB-007",
+			"name": "TWO_STEP_DELETE_CONFIRMATION",
+			"description": "Prevent accidental deletions with confirmation step",
+			"code_example": "const [confirmDelete, setConfirmDelete] = useState(false); // Show confirm buttons if true, else show single Delete button"
+		}
+	],
+	"session_number": 9
+}

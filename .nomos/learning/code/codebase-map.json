@@ -557,6 +557,147 @@
         "DevTools Integration": "Store functional with devtools middleware"
       },
       "coverage": "All store initialization, all setters, all selectors, all UI toggles, DevTools integration"
+    },
+    "apps/web/src/utils/orpc.ts": {
+      "purpose": "TanStack Query client setup with QueryClient global defaults, oRPC client creation, and fetch link configuration. Exports queryClient, link, client, and orpc utilities for type-safe data fetching throughout the app.",
+      "layer": "web",
+      "exports": [
+        "queryClient",
+        "link",
+        "client",
+        "orpc"
+      ],
+      "imports_from": [
+        "@tanstack/react-query",
+        "@orpc/client",
+        "@orpc/client/fetch",
+        "@orpc/tanstack-query",
+        "@nomos-ai/api/routers/index",
+        "@nomos-ai/env/web",
+        "sonner"
+      ],
+      "lastTouchedBy": "F023",
+      "keyComponents": {
+        "queryClient": "QueryClient with staleTime 60s, gcTime 5m, retry 3 (queries) / 1 (mutations), exponential backoff, QueryCache error handler with toast notifications",
+        "link": "RPCLink with fetch credentials: include for auth cookies, url: ${VITE_SERVER_URL}/rpc",
+        "client": "oRPC client created from link, typed as AppRouterClient for type-safe calls",
+        "orpc": "TanStack Query utilities from createTanstackQueryUtils(client) - provides queryOptions/mutationOptions on all procedures"
+      },
+      "configuration": {
+        "staleTime": "60 * 1000 milliseconds (1 minute)",
+        "gcTime": "5 * 60 * 1000 milliseconds (5 minutes)",
+        "queryRetry": 3,
+        "mutationRetry": 1,
+        "retryDelay": "Exponential backoff: Math.min(1000 * 2^attemptIndex, 30000)",
+        "fetchUrl": "${VITE_SERVER_URL}/rpc",
+        "fetchCredentials": "include (sends auth cookies)"
+      },
+      "errorHandling": "QueryCache.onError handler shows toast.error() with message and 'retry' action that calls query.invalidate()"
+    },
+    "apps/web/src/utils/__tests__/query-setup.test.ts": {
+      "purpose": "Test suite for QueryClient configuration. 7 tests validating staleTime, gcTime, retry counts, retryDelay function, and queryCache setup. Ensures QueryClient defaults apply globally.",
+      "layer": "test",
+      "exports": [],
+      "imports_from": [
+        "bun:test",
+        "apps/web/src/utils/orpc"
+      ],
+      "lastTouchedBy": "F023",
+      "testSuites": {
+        "Default Options": "Validates queries and mutations have defaultOptions defined",
+        "staleTime": "Checks staleTime = 60000 (60 seconds)",
+        "gcTime": "Checks gcTime = 300000 (5 minutes)",
+        "Query Retry": "Validates retry = 3 for queries",
+        "Retry Delay": "Tests exponential backoff function: 1000ms, 2000ms, 4000ms, caps at 30000ms",
+        "Mutation Retry": "Validates retry = 1 for mutations",
+        "QueryCache": "Verifies cache is configured and attached to queryClient"
+      },
+      "coverage": "All 7 QueryClient defaults including retry behavior and cache configuration"
+    },
+    "apps/web/src/routes/projects.index.tsx": {
+      "purpose": "Projects list page with create project mutation. Uses oRPC queryOptions for list query, mutationOptions for create, form state with useState, cache invalidation on success, and loading/empty states.",
+      "layer": "web",
+      "exports": [
+        "Route"
+      ],
+      "imports_from": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/skeleton",
+        "@/lib/auth-client",
+        "@/utils/orpc"
+      ],
+      "lastTouchedBy": "F023",
+      "patterns": [
+        "beforeLoad async auth guard with redirect to /login",
+        "useQuery with orpc.projects.list.queryOptions()",
+        "useMutation with orpc.projects.create.mutationOptions({onSuccess})",
+        "onSuccess invalidates projects.list query to refetch data",
+        "Form state managed with useState for name and path",
+        "Skeleton loading state with 3 hardcoded placeholders",
+        "Button disabled during mutation (createProject.isPending)",
+        "Form submission resets state after success"
+      ],
+      "mutations": {
+        "createProject": "Creates new project with name and path, invalidates list query, clears form, closes form dialog"
+      },
+      "keyFeatures": {
+        "authentication": "beforeLoad ensures session exists before component renders",
+        "data_fetching": "useQuery(orpc.projects.list.queryOptions()) type-safe query",
+        "mutation": "useMutation(orpc.projects.create.mutationOptions()) with cache invalidation",
+        "form_state": "useState for name/path, cleared on successful creation",
+        "loading_state": "Skeleton loaders during data fetch",
+        "empty_state": "Message when no projects exist",
+        "error_handling": "QueryCache error handler shows toast on query failures"
+      }
+    },
+    "apps/web/src/routes/projects.$projectId.tsx": {
+      "purpose": "Project detail page showing project info, delete mutation, and filtered features list. Uses oRPC queryOptions for get/list, mutationOptions for delete, two-step confirmation pattern, and client-side feature filtering.",
+      "layer": "web",
+      "exports": [
+        "Route"
+      ],
+      "imports_from": [
+        "@tanstack/react-query",
+        "@tanstack/react-router",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/skeleton",
+        "@/lib/auth-client",
+        "@/utils/orpc"
+      ],
+      "lastTouchedBy": "F023",
+      "patterns": [
+        "beforeLoad async auth guard",
+        "Route.useParams() for type-safe projectId extraction",
+        "useQuery for project.get and features.list",
+        "useMutation with orpc.projects.delete.mutationOptions({onSuccess})",
+        "onSuccess invalidates projects.list query and navigates to /projects",
+        "Two-step delete confirmation: show confirm buttons on click",
+        "Client-side feature filtering by projectId",
+        "statusColors object for status→color mapping",
+        "useNavigate hook for programmatic navigation after deletion"
+      ],
+      "mutations": {
+        "deleteProject": "Deletes project, invalidates projects.list query, navigates to /projects"
+      },
+      "keyFeatures": {
+        "authentication": "beforeLoad auth guard",
+        "type_safe_params": "Route.useParams() returns typed {projectId}",
+        "project_query": "useQuery(orpc.projects.get.queryOptions({input: {id: projectId}}))",
+        "features_query": "useQuery(orpc.features.list.queryOptions()) with client-side projectId filter",
+        "delete_mutation": "Two-step confirmation pattern before deletion",
+        "cache_invalidation": "invalidateQueries projects.list on successful delete",
+        "navigation": "useNavigate() to /projects after delete",
+        "status_visualization": "statusColors map for visual indicators",
+        "error_state": "Shows 'Project not found' message"
+      }
     }
-  }
+  },
+  "lastUpdated": "2026-01-30T15:32:45Z",
+  "lastUpdatedBy": "F023"
 }
