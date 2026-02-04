@@ -14,7 +14,7 @@
       "recommendation": "For new monorepo setup, use 'bun create better-t-stack@latest' with appropriate flags",
       "flags_used": "--database sqlite --orm drizzle --auth --frontend tanstack-router --addons turborepo biome husky --backend hono --runtime bun --api orpc",
       "time_saved_estimate": "2-4 hours",
-      "confidence": 0.2,
+      "confidence": 0.6,
       "success_rate": 1.0,
       "risk_if_ignored": "LOW",
       "features_applied": [
@@ -97,7 +97,7 @@
       ],
       "recommendation": "Use 'bunx biome check . --write --unsafe' for comprehensive auto-fixes",
       "files_fixed": 70,
-      "confidence": 0.2,
+      "confidence": 0.6,
       "success_rate": 1.0,
       "risk_if_ignored": "LOW",
       "features_applied": [
@@ -121,7 +121,7 @@
       ],
       "recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
       "codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;",
-      "confidence": 0.6,
+      "confidence": 1.0,
       "success_rate": 1.0,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
@@ -279,7 +279,7 @@
       ],
       "recommendation": "Define 3-5 concrete acceptance criteria per feature. Each should be independently verifiable.",
       "time_saved_estimate": "15-30 minutes per feature (avoids retry loops)",
-      "confidence": 0.6,
+      "confidence": 1.0,
       "success_rate": 1.0,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
@@ -310,7 +310,7 @@
       ],
       "recommendation": "Target XS/S-sized features that touch 2-5 files maximum. Split larger features.",
       "metric": "F012: 12 min, 3 files. F013: 4 min, 3 files. F014: 18 min, 5 files. F015: 16 min, 3 files. F016: 13 min, 2 files (XS). F017: 19 min, 3 files (M).",
-      "confidence": 0.6,
+      "confidence": 1.0,
       "success_rate": 1.0,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
@@ -674,5 +674,6 @@
       ]
     }
   ],
-  "last_updated": "2026-01-30T22:14:00Z"
+  "last_updated": "2026-02-04T19:55:00Z",
+  "confidence_formula": "min(1.0, 0.1 + (evidence_count * 0.1) + (success_rate * 0.4))"
 }

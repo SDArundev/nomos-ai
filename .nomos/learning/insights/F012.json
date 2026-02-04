@@ -1,0 +1,69 @@
+{
+	"feature": {
+		"id": "F012",
+		"title": "Repository pattern for projects",
+		"category": "CAT-DBS",
+		"phase": "phase-1",
+		"size": "S",
+		"started_at": "2026-01-28T20:05:37Z",
+		"verified_at": "2026-01-28T20:17:26Z",
+		"duration_minutes": 12,
+		"files_changed": 3,
+		"lines_added": 61,
+		"lines_removed": 0,
+		"commits": 3,
+		"retries": 0,
+		"risk_level": "MEDIUM",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "AC1: ProjectRepository with CRUD operations",
+			"status": "verified",
+			"details": "findAll, findById, create, update, delete methods"
+		},
+		{
+			"criterion": "AC2: Typed returns using Drizzle inference",
+			"status": "verified",
+			"details": "Uses $inferSelect for return types"
+		},
+		{
+			"criterion": "AC3: Transaction support",
+			"status": "verified",
+			"details": "withTransaction wrapper for atomic operations"
+		}
+	],
+	"discoveries": [
+		{
+			"discovery": "Drizzle $inferSelect/$inferInsert provide automatic type derivation",
+			"context": "Need type-safe repository without manual interface definitions",
+			"lesson": "Use typeof table.$inferSelect for repository return types",
+			"code_pattern": "type ProjectSelect = typeof projects.$inferSelect;\ntype ProjectInsert = typeof projects.$inferInsert;"
+		},
+		{
+			"discovery": ".returning() may return undefined in edge cases",
+			"context": "Update with no matching rows returns undefined",
+			"lesson": "Add undefined narrowing after .returning() calls",
+			"code_pattern": "const [result] = await db.update(table).returning();\nif (!result) throw new Error('Not found');"
+		}
+	],
+	"patterns_applied": [],
+	"what_worked": [
+		"Repository pattern provides clean data access layer",
+		"Type inference from schema keeps types in sync",
+		"Transaction wrapper enables atomic operations"
+	],
+	"what_failed": [],
+	"what_could_improve": [],
+	"recommendations": [],
+	"learning_contribution": {
+		"new_patterns": [
+			{
+				"id": "PAT-014",
+				"name": "DRIZZLE_TYPE_INFERENCE",
+				"description": "Use Drizzle's $inferSelect/$inferInsert for automatic type derivation"
+			}
+		]
+	},
+	"session_number": 11
+}

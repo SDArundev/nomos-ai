@@ -114,6 +114,84 @@
 			"addedAt": "2026-01-28T16:20:00Z",
 			"context7LibraryId": "/websites/zod_dev",
 			"context7Query": "default transform nested object"
+		},
+		{
+			"id": "TS-009",
+			"title": "TanStack Router beforeLoad auth guard",
+			"subcategory": "routing",
+			"framework": "tanstack-router",
+			"problem": "Need to protect routes from unauthenticated access",
+			"solution": "Use beforeLoad hook to check auth and redirect to login",
+			"codeAfter": "export const Route = createFileRoute('/projects/$projectId')({\n  component: ProjectDetail,\n  beforeLoad: async () => {\n    const session = await authClient.getSession();\n    if (!session.data) {\n      redirect({ to: '/login', throw: true });\n    }\n  },\n});",
+			"learnedFrom": "F020",
+			"severity": "HIGH",
+			"tags": ["routing", "auth", "tanstack-router", "guards"],
+			"addedAt": "2026-02-04T19:55:00Z"
+		},
+		{
+			"id": "TS-010",
+			"title": "TanStack Router type-safe params",
+			"subcategory": "routing",
+			"framework": "tanstack-router",
+			"problem": "Route params need type safety without manual type annotations",
+			"solution": "Use Route.useParams() which returns typed params based on route path",
+			"codeAfter": "// Route: /projects/$projectId\nconst { projectId } = Route.useParams();\n// projectId is automatically typed as string",
+			"learnedFrom": "F020",
+			"severity": "MEDIUM",
+			"tags": ["routing", "type-safety", "tanstack-router", "params"],
+			"addedAt": "2026-02-04T19:55:00Z"
+		},
+		{
+			"id": "TS-011",
+			"title": "Zustand StateCreator with generics",
+			"subcategory": "state-management",
+			"framework": "zustand",
+			"problem": "Combining multiple slices with proper type inference",
+			"solution": "Use StateCreator<AppStore, [], [], SliceType> for each slice",
+			"codeAfter": "import { StateCreator } from 'zustand';\n\nexport type ProjectsSlice = {\n  projects: Project[];\n  setProjects: (projects: Project[]) => void;\n};\n\nexport const createProjectsSlice: StateCreator<\n  AppStore,\n  [],\n  [],\n  ProjectsSlice\n> = (set) => ({\n  projects: [],\n  setProjects: (projects) => set({ projects }),\n});",
+			"learnedFrom": "F022",
+			"severity": "MEDIUM",
+			"tags": ["zustand", "state-management", "slices", "generics"],
+			"addedAt": "2026-02-04T19:55:00Z"
+		},
+		{
+			"id": "TS-012",
+			"title": "Zustand getState() for event handlers",
+			"subcategory": "state-management",
+			"framework": "zustand",
+			"problem": "Calling store actions from event handlers causes unnecessary re-renders",
+			"solution": "Use useAppStore.getState().action() instead of selector hook for one-off calls",
+			"codeAfter": "// Instead of:\nconst toggle = useAppStore(s => s.toggleSidebar);\n<button onClick={toggle} />\n\n// Use:\n<button onClick={() => useAppStore.getState().toggleSidebar()} />",
+			"learnedFrom": "F024",
+			"severity": "LOW",
+			"tags": ["zustand", "state-management", "performance", "event-handlers"],
+			"addedAt": "2026-02-04T19:55:00Z"
+		},
+		{
+			"id": "TS-013",
+			"title": "TanStack Query cache invalidation on mutation",
+			"subcategory": "data-fetching",
+			"framework": "tanstack-query",
+			"problem": "UI shows stale data after mutations",
+			"solution": "Use queryClient.invalidateQueries() in mutation onSuccess callback",
+			"codeAfter": "const createProject = useMutation(\n  orpc.projects.create.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({\n        queryKey: orpc.projects.list.queryOptions().queryKey\n      });\n    },\n  })\n);",
+			"learnedFrom": "F023",
+			"severity": "HIGH",
+			"tags": ["tanstack-query", "mutations", "cache", "data-fetching"],
+			"addedAt": "2026-02-04T19:55:00Z"
+		},
+		{
+			"id": "TS-014",
+			"title": "TanStack Router Link activeProps",
+			"subcategory": "routing",
+			"framework": "tanstack-router",
+			"problem": "Need to style nav links based on current route",
+			"solution": "Use activeProps on Link component - TanStack Router auto-applies when route matches",
+			"codeAfter": "<Link\n  to=\"/projects\"\n  activeProps={{ className: 'bg-accent text-accent-foreground' }}\n>\n  Projects\n</Link>",
+			"learnedFrom": "F024",
+			"severity": "LOW",
+			"tags": ["routing", "navigation", "tanstack-router", "styling"],
+			"addedAt": "2026-02-04T19:55:00Z"
 		}
 	],
 	"pitfalls": [
@@ -155,7 +233,23 @@
 			"pattern": "import { ExistingIdSchema } from './ids'; // Then use in new schemas",
 			"learnedFrom": "F005",
 			"addedAt": "2026-01-28T16:40:00Z"
+		},
+		{
+			"id": "BP-TS-002",
+			"title": "oRPC queryOptions for type-safe data fetching",
+			"description": "Use orpc.{entity}.{method}.queryOptions() for full type inference with TanStack Query",
+			"pattern": "const { data } = useQuery(orpc.projects.get.queryOptions({ input: { id } }));",
+			"learnedFrom": "F020",
+			"addedAt": "2026-02-04T19:55:00Z"
+		},
+		{
+			"id": "BP-TS-003",
+			"title": "Curried Zustand selectors for memoization",
+			"description": "Create curried selectors to enable memoization at selector creation time",
+			"pattern": "export const selectProjectById = (id: string) => (state: AppStore) => state.projects.find(p => p.id === id);",
+			"learnedFrom": "F022",
+			"addedAt": "2026-02-04T19:55:00Z"
 		}
 	],
-	"lastUpdated": "2026-01-28T16:40:00Z"
+	"lastUpdated": "2026-02-04T19:55:00Z"
 }

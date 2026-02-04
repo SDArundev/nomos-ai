@@ -1,0 +1,61 @@
+{
+	"feature": {
+		"id": "F008",
+		"title": "Features table schema",
+		"category": "CAT-DBS",
+		"phase": "phase-1",
+		"size": "M",
+		"started_at": "2026-01-28T17:09:19Z",
+		"verified_at": "2026-01-28T17:26:00Z",
+		"duration_minutes": 17,
+		"files_changed": 3,
+		"lines_added": 184,
+		"lines_removed": 0,
+		"commits": 1,
+		"retries": 0,
+		"risk_level": "LOW",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "AC1: Features table with 38 columns",
+			"status": "verified",
+			"details": "All feature fields mapped to Drizzle columns"
+		},
+		{
+			"criterion": "AC2: Foreign key to projects",
+			"status": "verified",
+			"details": "projectId references projects.id"
+		},
+		{
+			"criterion": "AC3: Indexes on status, phase, projectId",
+			"status": "verified",
+			"details": "Composite and single-column indexes for query performance"
+		}
+	],
+	"discoveries": [
+		{
+			"discovery": "JSON columns in SQLite need text() with mode: 'json'",
+			"context": "Dependencies array stored as JSON",
+			"lesson": "Use text('col', { mode: 'json' }) for JSON columns in SQLite",
+			"code_pattern": "dependencies: text('dependencies', { mode: 'json' }).$type<string[]>()"
+		}
+	],
+	"patterns_applied": [
+		{
+			"pattern": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"how_used": "Followed projects.ts schema template"
+		}
+	],
+	"what_worked": [
+		"Schema template reuse from F007",
+		"Proper indexing for query performance",
+		"JSON column type inference works"
+	],
+	"what_failed": [],
+	"what_could_improve": [],
+	"recommendations": [],
+	"learning_contribution": {},
+	"session_number": 8
+}

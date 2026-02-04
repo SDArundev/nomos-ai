@@ -114,6 +114,7 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 
 | File | Agent Name | Model | Used In | Mode |
 |------|------------|-------|---------|------|
+| `agents/load-learnings.md` | load-learnings | haiku | Step 01 | Load patterns, metrics, risk assessment |
 | `agents/code-writer.md` | code-writer | sonnet | Step 03 | INITIAL_IMPLEMENTATION / FIX_ISSUES |
 | `agents/qa-reviewer.md` | qa-reviewer | sonnet | Step 03 | Read-only review |
 | `agents/qa-smoke-tester.md` | qa-smoke-tester | sonnet | Step 04 Track B | Playwright + Bash |
@@ -163,6 +164,7 @@ SKILL.md
 │   ├── features.json (read feature)
 │   └── templates/*.md (rendered by nomos.sh init)
 ├── step-01-context.md
+│   ├── agents/load-learnings.md
 │   ├── agents/explore-codebase.md
 │   ├── agents/explore-docs.md
 │   ├── agents/websearch.md (optional)

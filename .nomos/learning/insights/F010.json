@@ -1,0 +1,61 @@
+{
+	"feature": {
+		"id": "F010",
+		"title": "Learning table schema",
+		"category": "CAT-DBS",
+		"phase": "phase-1",
+		"size": "M",
+		"started_at": "2026-01-28T17:23:44Z",
+		"verified_at": "2026-01-28T17:40:23Z",
+		"duration_minutes": 17,
+		"files_changed": 3,
+		"lines_added": 99,
+		"lines_removed": 0,
+		"commits": 1,
+		"retries": 0,
+		"risk_level": "LOW",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "AC1: Learning table stores extracted insights",
+			"status": "verified",
+			"details": "Table with id, featureId, category, context (JSON), confidence"
+		},
+		{
+			"criterion": "AC2: Foreign key to features",
+			"status": "verified",
+			"details": "featureId references features.id"
+		},
+		{
+			"criterion": "AC3: Indexes on category for filtering",
+			"status": "verified",
+			"details": "Index enables fast category-based queries"
+		}
+	],
+	"discoveries": [
+		{
+			"discovery": "JSON columns can store arbitrary structured data",
+			"context": "Learning context varies by category",
+			"lesson": "Use JSON columns for flexible structured data that doesn't need querying",
+			"code_pattern": "context: text('context', { mode: 'json' }).$type<Record<string, unknown>>()"
+		}
+	],
+	"patterns_applied": [
+		{
+			"pattern": "PAT-013",
+			"name": "PATTERN_REUSE",
+			"how_used": "Followed sessions.ts schema template"
+		}
+	],
+	"what_worked": [
+		"JSON column handles flexible context data",
+		"Category index enables efficient filtering",
+		"Confidence field enables quality-based filtering"
+	],
+	"what_failed": [],
+	"what_could_improve": [],
+	"recommendations": [],
+	"learning_contribution": {},
+	"session_number": 10
+}

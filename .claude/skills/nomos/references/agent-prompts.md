@@ -20,9 +20,12 @@ All agent prompt templates used across NOMOS pipeline steps.
 ### Agent 1: load-learnings (ALWAYS launch)
 
 ```
-Task agent: general-purpose
+Task agent: load-learnings
 Prompt: |
   Load NOMOS learnings for feature {feature_id}: {feature_title}
+  Feature Category: {category}
+  Feature Phase: {phase}
+  Feature Description: {feature_description}
 
   1. Load patterns from .nomos/learning/patterns.json (if exists)
      - Filter by relevance to this feature's phase and category

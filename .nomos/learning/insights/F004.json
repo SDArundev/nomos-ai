@@ -1,0 +1,73 @@
+{
+	"feature": {
+		"id": "F004",
+		"title": "Project Zod schema with validation",
+		"category": "CAT-PRJ",
+		"phase": "phase-1",
+		"size": "M",
+		"started_at": "2026-01-28T15:34:57Z",
+		"verified_at": "2026-01-28T16:16:02Z",
+		"duration_minutes": 41,
+		"files_changed": 4,
+		"lines_added": 324,
+		"lines_removed": 1,
+		"commits": 1,
+		"retries": 0,
+		"risk_level": "LOW",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "AC1: ProjectSchema validates all project fields",
+			"status": "verified",
+			"details": "Complete Zod schema with name, path, settings"
+		},
+		{
+			"criterion": "AC2: Settings defaults propagate correctly",
+			"status": "verified",
+			"details": "Nested defaults via .optional().transform()"
+		},
+		{
+			"criterion": "AC3: Comprehensive test coverage",
+			"status": "verified",
+			"details": "Tests for defaults, validation, edge cases"
+		}
+	],
+	"discoveries": [
+		{
+			"discovery": "Nested schema defaults require .optional().transform() not .default({})",
+			"context": ".default({}) returns {} directly without parsing - inner defaults don't apply",
+			"lesson": "Use .optional().transform() to explicitly apply nested defaults",
+			"code_pattern": "settings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))"
+		}
+	],
+	"patterns_applied": [
+		{
+			"pattern": "PAT-005",
+			"name": "ZOD_BRANDED_TYPES",
+			"how_used": "Applied to ProjectIdSchema"
+		},
+		{
+			"pattern": "PAT-006",
+			"name": "STATUS_ENUM_PATTERN",
+			"how_used": "Theme and locale enums"
+		}
+	],
+	"what_worked": [
+		"Transform pattern correctly propagates nested defaults",
+		"Tests caught the .default({}) gotcha early"
+	],
+	"what_failed": [],
+	"what_could_improve": [],
+	"recommendations": [],
+	"learning_contribution": {
+		"new_patterns": [
+			{
+				"id": "PAT-009",
+				"name": "NESTED_DEFAULTS_TRANSFORM",
+				"description": "Use .optional().transform() for nested schema defaults"
+			}
+		]
+	},
+	"session_number": 4
+}

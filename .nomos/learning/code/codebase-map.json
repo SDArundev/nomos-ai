@@ -561,8 +561,73 @@
 				"status_visualization": "statusColors map for visual indicators",
 				"error_state": "Shows 'Project not found' message"
 			}
+		},
+		"apps/web/src/components/app-sidebar.tsx": {
+			"purpose": "Collapsible sidebar component with flex layout, mobile overlay pattern (fixed positioning with z-50), and integrated project selector and nav links. Uses Zustand sidebarCollapsed state and toggleSidebar action.",
+			"layer": "web",
+			"exports": ["AppSidebar"],
+			"imports_from": [
+				"apps/web/src/store/index",
+				"apps/web/src/components/nav-links",
+				"apps/web/src/components/project-selector",
+				"@/lib/utils"
+			],
+			"lastTouchedBy": "F024",
+			"patterns": [
+				"Flex layout with transition-[width] duration-300",
+				"Mobile overlay: fixed inset-y-0 left-0 z-50 when expanded",
+				"Desktop: relative positioning",
+				"Backdrop: fixed z-40 bg-black/50 on mobile when expanded"
+			]
+		},
+		"apps/web/src/components/nav-links.tsx": {
+			"purpose": "Navigation links component with TanStack Router activeProps for active state styling. Shows icons always, labels when sidebar expanded. Uses lucide-react icons.",
+			"layer": "web",
+			"exports": ["NavLinks"],
+			"imports_from": [
+				"@tanstack/react-router",
+				"lucide-react"
+			],
+			"lastTouchedBy": "F024",
+			"patterns": [
+				"TanStack Router Link with activeProps",
+				"Conditional label rendering based on collapsed prop",
+				"lucide-react icons for nav items"
+			]
+		},
+		"apps/web/src/components/project-selector.tsx": {
+			"purpose": "Project dropdown selector connected to Zustand store. Shows selected project name or placeholder, lists projects from store, updates selection via getState().",
+			"layer": "web",
+			"exports": ["ProjectSelector"],
+			"imports_from": [
+				"apps/web/src/store/index",
+				"@/components/ui/dropdown-menu",
+				"lucide-react"
+			],
+			"lastTouchedBy": "F024",
+			"patterns": [
+				"Zustand selector for display value",
+				"getState() for event handlers",
+				"DropdownMenu pattern from shadcn/ui"
+			]
+		},
+		"apps/web/src/routes/__root.tsx": {
+			"purpose": "Root layout with flex structure for collapsible sidebar. Contains AppSidebar, Header, and main content area with Outlet. Responsive design handles both desktop and mobile viewports.",
+			"layer": "web",
+			"exports": ["Route"],
+			"imports_from": [
+				"@tanstack/react-router",
+				"apps/web/src/components/app-sidebar",
+				"apps/web/src/components/header"
+			],
+			"lastTouchedBy": "F024",
+			"layoutStructure": {
+				"outer": "flex h-svh overflow-hidden",
+				"sidebar": "AppSidebar with conditional width",
+				"main": "flex flex-1 flex-col with Header and Outlet"
+			}
 		}
 	},
-	"lastUpdated": "2026-01-30T15:32:45Z",
-	"lastUpdatedBy": "F023"
+	"lastUpdated": "2026-02-04T19:55:00Z",
+	"lastUpdatedBy": "F024"
 }

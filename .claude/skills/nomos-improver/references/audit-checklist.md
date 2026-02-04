@@ -71,6 +71,7 @@ For each agent, verify:
 **Reviewers** (read-only): qa-reviewer, security-reviewer, code-quality-reviewer, test-coverage-analyzer
 **Testers** (runtime): qa-smoke-tester, qa-functional-tester
 **Explorers** (research): explore-codebase, explore-docs, websearch
+**Learning** (read-only): load-learnings
 **Utility** (conditional): action
 
 ---

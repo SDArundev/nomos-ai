@@ -1,0 +1,80 @@
+{
+	"feature": {
+		"id": "F003",
+		"title": "Feature Zod schema with validation",
+		"category": "CAT-PRJ",
+		"phase": "phase-1",
+		"size": "M",
+		"started_at": "2026-01-27T15:17:56Z",
+		"verified_at": "2026-01-27T15:34:57Z",
+		"duration_minutes": 17,
+		"files_changed": 7,
+		"lines_added": 927,
+		"lines_removed": 11,
+		"commits": 1,
+		"retries": 0,
+		"risk_level": "LOW",
+		"outcome": "success"
+	},
+	"acceptance_criteria": [
+		{
+			"criterion": "AC1: FeatureSchema validates all feature fields",
+			"status": "verified",
+			"details": "Complete Zod schema with all 38 feature fields"
+		},
+		{
+			"criterion": "AC2: Regex validation for Feature ID format",
+			"status": "verified",
+			"details": "FeatureIdSchema uses .regex(/^F[0-9]{3}$/)"
+		},
+		{
+			"criterion": "AC3: Comprehensive test coverage",
+			"status": "verified",
+			"details": "Tests for valid/invalid inputs, edge cases, defaults"
+		}
+	],
+	"discoveries": [
+		{
+			"discovery": "Regex + branded types combine for pattern-validated nominal IDs",
+			"context": "Feature IDs must match F001-F999 format AND be distinct type",
+			"lesson": "Chain .regex() before .brand() for pattern-validated branded types",
+			"code_pattern": "z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>()"
+		},
+		{
+			"discovery": "Zod .default() does not need .optional()",
+			"context": "Redundant chaining creates semantic confusion",
+			"lesson": "Use .default(value) alone - it already handles undefined input",
+			"code_pattern": "model: ModelSchema.default('sonnet') // NOT .default('sonnet').optional()"
+		}
+	],
+	"patterns_applied": [
+		{
+			"pattern": "PAT-005",
+			"name": "ZOD_BRANDED_TYPES",
+			"how_used": "Applied to FeatureIdSchema"
+		}
+	],
+	"what_worked": [
+		"Comprehensive Zod schema catches validation errors early",
+		"Branded + regex combination ensures type safety and format validity",
+		"Test-first approach caught edge cases"
+	],
+	"what_failed": [],
+	"what_could_improve": [],
+	"recommendations": [],
+	"learning_contribution": {
+		"new_patterns": [
+			{
+				"id": "PAT-007",
+				"name": "REGEX_BRANDED_PATTERN",
+				"description": "Combine .regex() with .brand<>() for pattern-validated branded types"
+			},
+			{
+				"id": "PAT-008",
+				"name": "ZOD_DEFAULT_NOT_OPTIONAL",
+				"description": "Use .default() alone without .optional() - redundant chaining"
+			}
+		]
+	},
+	"session_number": 3
+}
