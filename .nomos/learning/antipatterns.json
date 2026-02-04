@@ -73,7 +73,21 @@
 			"prevention": "Run 'bunx biome check . --write --unsafe' before committing feature code, or integrate into pre-commit hook",
 			"what_went_wrong": "14 Biome formatting fixes needed after initial commit, requiring a separate chore commit",
 			"lesson": "Always format before the first commit to keep commit history clean (1 feat commit instead of feat + chore)"
+		},
+		{
+			"id": "ANTI-007",
+			"name": "MISSING_DEPENDENCY_INSTALL",
+			"description": "Using imports in code without verifying package is installed in package.json",
+			"category": "dependencies",
+			"evidence_count": 1,
+			"last_seen": "F024",
+			"severity": "HIGH",
+			"prevention": "After adding ANY new import, verify package exists in package.json. Run 'bun install' and test 'bun run dev' before marking feature complete.",
+			"what_went_wrong": "zustand was imported in apps/web/src/store/index.ts but never installed. Dev server crashed with 'Failed to resolve import zustand'.",
+			"lesson": "ALWAYS: 1) Check if import is from external package, 2) Verify package.json has dependency, 3) Run 'bun add <pkg>' if missing, 4) Test dev server starts before completing feature",
+			"detection": "Run 'bun run dev' and check for 'Failed to resolve import' errors in browser console",
+			"fix_command": "bun add <missing-package>"
 		}
 	],
-	"last_updated": "2026-02-04T19:55:00Z"
+	"last_updated": "2026-02-04T21:30:00Z"
 }

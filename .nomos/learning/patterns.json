@@ -673,7 +673,36 @@
         "F024"
       ]
     }
+    {
+      "id": "PAT-015",
+      "name": "DEPENDENCY_VERIFICATION",
+      "description": "Always verify external packages are installed before marking feature complete. After adding imports, check package.json and run dev server.",
+      "category": "dependencies",
+      "evidence_count": 1,
+      "last_seen": "F024",
+      "applies_to": [
+        "all",
+        "all-phases"
+      ],
+      "recommendation": "Before completing any feature: 1) List all new imports added, 2) For each external package import, verify it exists in package.json, 3) Run 'bun add <pkg>' for missing deps, 4) Run 'bun run dev' and verify no 'Failed to resolve import' errors",
+      "checklist": [
+        "Identify all new imports in changed files",
+        "Separate internal imports (./*, @nomos-ai/*) from external packages",
+        "Check package.json for each external import",
+        "Run 'bun add <missing>' for any not found",
+        "Start dev server and check browser console for resolve errors",
+        "Verify feature works in browser before completing"
+      ],
+      "gotcha": "Easy to miss when copying code from other projects or using AI suggestions - packages may exist in source but not in target package.json",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH - feature will crash at runtime even if TypeScript passes",
+      "features_applied": [
+        "F024"
+      ],
+      "features_succeeded": []
+    }
   ],
-  "last_updated": "2026-02-04T19:55:00Z",
+  "last_updated": "2026-02-04T21:30:00Z",
   "confidence_formula": "min(1.0, 0.1 + (evidence_count * 0.1) + (success_rate * 0.4))"
 }
