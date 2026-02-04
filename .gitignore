@@ -49,6 +49,12 @@ coverage
 tmp
 temp
 
+# Skill packages (distribution artifacts)
+*.skill
+
+# Playwright test artifacts
+.playwright-mcp/
+
 # NOMOS runtime
 local.db
 *.db

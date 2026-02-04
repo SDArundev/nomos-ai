@@ -1,386 +1,678 @@
 {
-	"patterns": [
-		{
-			"id": "PAT-001",
-			"name": "CLI_SCAFFOLD_FIRST",
-			"description": "Use established CLI scaffolds (better-t-stack, create-next-app, etc.) for initial project setup rather than manual configuration",
-			"category": "project-setup",
-			"evidence_count": 1,
-			"last_seen": "F001",
-			"applies_to": ["CAT-PRJ", "phase-1"],
-			"recommendation": "For new monorepo setup, use 'bun create better-t-stack@latest' with appropriate flags",
-			"flags_used": "--database sqlite --orm drizzle --auth --frontend tanstack-router --addons turborepo biome husky --backend hono --runtime bun --api orpc",
-			"time_saved_estimate": "2-4 hours",
-			"confidence": 0.2,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": ["F001"],
-			"features_succeeded": ["F001"]
-		},
-		{
-			"id": "PAT-002",
-			"name": "ROUTE_TREE_GENERATION",
-			"description": "TanStack Router requires route tree generation before TypeScript will pass. After adding new route files (.tsx), run 'vite build' to scan /routes/ directory and regenerate routeTree.gen.ts with type definitions.",
-			"category": "typescript",
-			"evidence_count": 2,
-			"last_seen": "F020",
-			"applies_to": ["CAT-PRJ", "CAT-FE", "frontend"],
-			"recommendation": "Run 'vite build' or 'vite dev' once to generate routeTree.gen.ts before running type checks. After adding new route files, always run 'vite build' before type-checking.",
-			"gotcha": "TypeScript check will fail with 'Cannot find module ./routeTree.gen' until first build. New routes won't appear in type definitions until 'vite build' is run.",
-			"code_example": "// Added 3 routes in F020:\n// apps/web/src/routes/projects.index.tsx\n// apps/web/src/routes/projects.$projectId.tsx\n// apps/web/src/routes/features.$featureId.tsx\n// Run: vite build\n// Result: routeTree.gen.ts updated with route type definitions",
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "HIGH",
-			"features_applied": ["F001", "F020"],
-			"features_succeeded": ["F001", "F020"]
-		},
-		{
-			"id": "PAT-003",
-			"name": "WORKTREE_ENV_ISOLATION",
-			"description": "Git worktrees need separate .env files with absolute paths for DATABASE_URL",
-			"category": "git-workflow",
-			"evidence_count": 6,
-			"last_seen": "F016",
-			"applies_to": ["CAT-GIT", "all-phases"],
-			"recommendation": "Create .env files in worktree during step-00-init with: 1) file: prefix for SQLite URLs, 2) absolute paths using $(pwd) to avoid CWD issues",
-			"gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
-			"codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env",
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "HIGH",
-			"features_applied": ["F001", "F003", "F005", "F006", "F015", "F016"],
-			"features_succeeded": ["F001", "F003", "F005", "F006", "F015", "F016"]
-		},
-		{
-			"id": "PAT-004",
-			"name": "BIOME_AUTO_FIX",
-			"description": "Biome can auto-fix most formatting and lint issues",
-			"category": "code-quality",
-			"evidence_count": 1,
-			"last_seen": "F001",
-			"applies_to": ["all"],
-			"recommendation": "Use 'bunx biome check . --write --unsafe' for comprehensive auto-fixes",
-			"files_fixed": 70,
-			"confidence": 0.2,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": ["F001"],
-			"features_succeeded": ["F001"]
-		},
-		{
-			"id": "PAT-005",
-			"name": "ZOD_BRANDED_TYPES",
-			"description": "Use Zod's .brand<>() for compile-time type safety on primitive IDs",
-			"category": "typescript",
-			"evidence_count": 6,
-			"last_seen": "F019",
-			"applies_to": ["CAT-PRJ", "types", "validation"],
-			"recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
-			"codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;",
-			"confidence": 0.6,
-			"success_rate": 1.0,
-			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F003", "F004", "F005", "F017", "F018", "F019"],
-			"features_succeeded": ["F003", "F004", "F005", "F017", "F018", "F019"]
-		},
-		{
-			"id": "PAT-006",
-			"name": "STATUS_ENUM_PATTERN",
-			"description": "Define status constants as 'as const' objects with derived types and Zod schemas",
-			"category": "typescript",
-			"evidence_count": 3,
-			"last_seen": "F018",
-			"applies_to": ["CAT-PRJ", "types", "validation"],
-			"recommendation": "Use const objects for status values, derive type with keyof typeof, create z.enum() for validation",
-			"codeExample": "const STATUS = { ACTIVE: 'active' } as const;\ntype Status = (typeof STATUS)[keyof typeof STATUS];\nconst StatusSchema = z.enum([STATUS.ACTIVE]);",
-			"confidence": 0.4,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": ["F003", "F004", "F018"],
-			"features_succeeded": ["F003", "F004", "F018"]
-		},
-		{
-			"id": "PAT-007",
-			"name": "REGEX_BRANDED_PATTERN",
-			"description": "Combine .regex() with .brand<>() for pattern-validated IDs that are also nominally typed",
-			"category": "typescript",
-			"evidence_count": 1,
-			"last_seen": "F003",
-			"applies_to": ["CAT-PRJ", "types", "validation"],
-			"recommendation": "For IDs with specific formats (F001, CAT-XXX), add .regex() before .brand() for runtime validation",
-			"codeExample": "const FeatureIdSchema = z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>();",
-			"confidence": 0.2,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": ["F003"],
-			"features_succeeded": ["F003"]
-		},
-		{
-			"id": "PAT-008",
-			"name": "ZOD_DEFAULT_NOT_OPTIONAL",
-			"description": "Use .default() alone without .optional() - default already handles undefined",
-			"category": "typescript",
-			"evidence_count": 1,
-			"last_seen": "F003",
-			"applies_to": ["CAT-PRJ", "types", "validation"],
-			"recommendation": "When using .default(value), do NOT chain .optional() - it's redundant and creates semantic confusion",
-			"codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()",
-			"confidence": 0.2,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": ["F003"],
-			"features_succeeded": ["F003"]
-		},
-		{
-			"id": "PAT-009",
-			"name": "NESTED_DEFAULTS_TRANSFORM",
-			"description": "Use .optional().transform() to properly apply nested schema defaults when parent field is undefined",
-			"category": "typescript",
-			"evidence_count": 1,
-			"last_seen": "F004",
-			"applies_to": ["CAT-PRJ", "types", "validation"],
-			"recommendation": "When a nested object schema has field defaults that should apply when the parent is omitted or empty, use .optional().transform() instead of .default({})",
-			"codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
-			"gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply",
-			"confidence": 0.2,
-			"success_rate": 1.0,
-			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F004"],
-			"features_succeeded": ["F004"]
-		},
-		{
-			"id": "PAT-010",
-			"name": "SCHEMA_COMPOSITION_PATTERN",
-			"description": "Compose schemas by importing existing ID schemas rather than redefining",
-			"category": "typescript",
-			"evidence_count": 1,
-			"last_seen": "F005",
-			"applies_to": ["CAT-PRJ", "types", "validation"],
-			"recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
-			"codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});",
-			"confidence": 0.2,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": ["F005"],
-			"features_succeeded": ["F005"]
-		},
-		{
-			"id": "PAT-011",
-			"name": "GOOD_PLANNING",
-			"description": "Clear feature scope with specific acceptance criteria leads to zero-retry implementations",
-			"category": "process",
-			"evidence_count": 5,
-			"last_seen": "F016",
-			"applies_to": ["all", "all-phases"],
-			"recommendation": "Define 3-5 concrete acceptance criteria per feature. Each should be independently verifiable.",
-			"time_saved_estimate": "15-30 minutes per feature (avoids retry loops)",
-			"confidence": 0.6,
-			"success_rate": 1.0,
-			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F012", "F013", "F014", "F015", "F016"],
-			"features_succeeded": ["F012", "F013", "F014", "F015", "F016"]
-		},
-		{
-			"id": "PAT-012",
-			"name": "FOCUSED_SCOPE",
-			"description": "Features that change 3 or fewer core files are completed faster and with fewer issues",
-			"category": "process",
-			"evidence_count": 5,
-			"last_seen": "F016",
-			"applies_to": ["all", "all-phases"],
-			"recommendation": "Target XS/S-sized features that touch 2-5 files maximum. Split larger features.",
-			"metric": "F012: 12 min, 3 files. F013: 4 min, 3 files. F014: 18 min, 5 files. F015: 16 min, 3 files. F016: 13 min, 2 files (XS). F017: 19 min, 3 files (M).",
-			"confidence": 0.6,
-			"success_rate": 1.0,
-			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F012", "F013", "F014", "F015", "F016"],
-			"features_succeeded": ["F012", "F013", "F014", "F015", "F016"]
-		},
-		{
-			"id": "PAT-013",
-			"name": "PATTERN_REUSE",
-			"description": "Reusing well-known patterns (Hono error handlers, oRPC routing, Bun serve export, health checks, TanStack Router auth guards, route structure) reduces implementation time and errors. F013 completed in 4 min by copying F012 template. F014 copied both F012 and F013. F015 reused F001 scaffold as-is and filled 2 gaps. F016 reused F015 error handling pattern for health endpoint. F017 reused F015 protectedProcedure pattern as base for CRUD router. F018 copied F017 project router template with new entity and transition validation logic. F019 reused feature.ts template with session-specific status transitions and duration tracking. F020 reused route structure from F001 scaffold (beforeLoad auth guards, component layout, query pattern) for 3 new routes.",
-			"category": "multi-layer",
-			"evidence_count": 10,
-			"last_seen": "F022",
-			"applies_to": ["all", "all-phases"],
-			"recommendation": "For all layers: Identify best-in-class template and copy exactly. Database: use CRUD from F012/F013. Server: use Hono error handlers and health check pattern from F015/F016. API: use protectedProcedure pattern from F015 as base for CRUD routers (F017/F018/F019). Frontend: use route structure from F001 scaffold (beforeLoad, component, data fetching pattern) for new routes. Extreme efficiency achieved when existing template matches exactly (F018: 5 min, F019: 58 min including comprehensive test suite, F020: 21 min for 3 routes).",
-			"codeExample": "// Database CRUD reuse:\nconst { id, ...updateData } = input; // only changed fields\nawait projectRepository.update(id, updateData);\n\n// Server router reuse:\napp.onError((err, c) => {\n  if (err instanceof HTTPException) return err.getResponse();\n  return c.json({ error: 'Internal Server Error' }, 500);\n});\n\n// Frontend route reuse:\nexport const Route = createFileRoute('/projects/$projectId')({component: ProjectDetail,beforeLoad: async () => {const session = await authClient.getSession(); if (!session.data) redirect({ to: '/login', throw: true });},});",
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": [
-				"F012",
-				"F013",
-				"F014",
-				"F015",
-				"F016",
-				"F017",
-				"F018",
-				"F019",
-				"F020",
-				"F022",
-				"F023"
-			],
-			"features_succeeded": [
-				"F012",
-				"F013",
-				"F014",
-				"F015",
-				"F016",
-				"F017",
-				"F018",
-				"F019",
-				"F020",
-				"F022",
-				"F023"
-			]
-		},
-		{
-			"id": "PAT-014",
-			"name": "DRIZZLE_TYPE_INFERENCE",
-			"description": "Use Drizzle's $inferSelect/$inferInsert for automatic type derivation from schema",
-			"category": "database",
-			"evidence_count": 3,
-			"last_seen": "F017",
-			"applies_to": ["CAT-DBS", "types"],
-			"recommendation": "Derive repository types from schema rather than manually defining interfaces. This ensures repository types stay in sync with schema changes.",
-			"codeExample": "type ProjectSelect = typeof projects.$inferSelect;\ntype ProjectInsert = typeof projects.$inferInsert;",
-			"confidence": 0.4,
-			"success_rate": 1.0,
-			"risk_if_ignored": "LOW",
-			"features_applied": ["F012", "F013", "F017"],
-			"features_succeeded": ["F012", "F013", "F017"]
-		},
-		{
-			"id": "SRV-006",
-			"name": "HEALTH_CHECK_PATTERN",
-			"description": "Async health check endpoint with actual external dependency verification (database connectivity). Returns 200 with healthy status and 503 with unhealthy status.",
-			"category": "server",
-			"evidence_count": 1,
-			"last_seen": "F016",
-			"applies_to": ["CAT-API", "server", "health-monitoring"],
-			"recommendation": "For all servers: Implement GET /health endpoint with db connectivity check. Response should include: status (healthy/unhealthy), version, database (connected/disconnected), uptime, timestamp.",
-			"codeExample": "app.get('/health', async (c) => {\n  let database = 'connected';\n  try {\n    await db.run(sql`SELECT 1`);\n  } catch {\n    database = 'disconnected';\n    return c.json({\n      status: 'unhealthy',\n      version: '1.0.0',\n      database,\n      uptime: process.uptime(),\n      timestamp: new Date().toISOString()\n    }, 503);\n  }\n  return c.json({\n    status: 'healthy',\n    version: '1.0.0',\n    database,\n    uptime: process.uptime(),\n    timestamp: new Date().toISOString()\n  });\n});",
-			"responseFields": {
-				"status": "healthy|unhealthy",
-				"version": "semver string for rollout tracking",
-				"database": "connected|disconnected",
-				"uptime": "seconds since process start",
-				"timestamp": "ISO 8601 string for log correlation"
-			},
-			"httpStatus": "200 for healthy, 503 for unhealthy (Service Unavailable)",
-			"testCoverage": "Happy path (200), unhealthy state (503), response structure validation",
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F016"],
-			"features_succeeded": ["F016"],
-			"integration_note": "Requires sql primitive export from @nomos-ai/db package. Add to packages/db/src/index.ts: export { sql } from 'drizzle-orm';"
-		},
-		{
-			"id": "SRV-007",
-			"name": "oRPC_CRUD_ROUTER",
-			"description": "Standard oRPC CRUD router pattern with list, get, create, update, delete procedures, plus entity-specific operations (e.g., updateStatus, appendOutput, getDuration for sessions). Each procedure uses protectedProcedure, Zod input validation, repository integration, and ORPCError for error handling.",
-			"category": "server",
-			"evidence_count": 3,
-			"last_seen": "F019",
-			"applies_to": ["CAT-API", "server", "orpc-routers"],
-			"recommendation": "For all domain CRUD routers: 1) Define input Zod schemas at top of file (createInput, updateInput), 2) Use protectedProcedure as base, 3) Validate with .input(schema), 4) Handle with .handler(async ({ input, context })). 5) Use ORPCError('NOT_FOUND'|'BAD_REQUEST') for errors. 6) For type-safe IDs, import branded schemas like SessionIdSchema. 7) Add entity-specific procedures that leverage repository helpers (appendOutput, calculateDuration).",
-			"codeExample": "const listSessionsInput = z.object({\n  status: SessionStatusSchema.optional(),\n  featureId: FeatureIdSchema.optional(),\n}).optional();\n\nexport const sessionRouter = {\n  list: protectedProcedure.input(listSessionsInput).handler(async ({ input }) => {\n    if (input?.status) return sessionRepository.findByStatus(input.status);\n    if (input?.featureId) return sessionRepository.findByFeature(input.featureId);\n    return sessionRepository.findAll();\n  }),\n  appendOutput: protectedProcedure.input(appendOutputInput).handler(async ({ input }) => {\n    return await sessionRepository.appendOutput(input.id, input.text);\n  }),\n  getDuration: protectedProcedure.input(z.object({ id: SessionIdSchema })).handler(async ({ input }) => {\n    const session = await sessionRepository.findById(input.id);\n    if (!session) throw new ORPCError('NOT_FOUND', { message: `Session not found` });\n    return { duration: sessionRepository.calculateDuration(session) };\n  }),\n};",
-			"keyPoints": [
-				"Always generate IDs with crypto.randomUUID() in create handler",
-				"Type cast Zod objects to Record<string, unknown> when passing to Drizzle for settings/config fields",
-				"Use ORPCError with specific codes: NOT_FOUND for missing records, BAD_REQUEST for validation/query errors",
-				"Update handlers should build updateData object conditionally (only include fields that changed)",
-				"All handlers should be wrapped in try-catch to convert repository errors to ORPCError",
-				"Status-changing operations must validate against state machine transition rules",
-				"Entity-specific operations (append, calculate, list with filters) should leverage repository helpers"
-			],
-			"testCoverage": "36+ tests per CRUD router + additional tests for entity-specific operations covering: create/update/delete ops, validation (string lengths, enum values), error handling (NOT_FOUND, BAD_REQUEST), update partial fields, authentication context, state machine transitions (for entities with status fields), filtering by status/featureId, output append, duration calculation",
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "MEDIUM",
-			"features_applied": ["F017", "F018", "F019"],
-			"features_succeeded": ["F017", "F018", "F019"],
-			"integration_note": "Router must be exported as named export and imported in apps/api/src/routers/index.ts under appropriate namespace (e.g., sessions: sessionRouter)"
-		},
-		{
-			"id": "SRV-008",
-			"name": "TRANSITION_VALIDATION",
-			"description": "For entities with status/state machines, enforce valid transitions via a VALID_TRANSITIONS map before allowing status changes. Apply same validation logic to both single and bulk update operations.",
-			"category": "server",
-			"evidence_count": 1,
-			"last_seen": "F018",
-			"applies_to": ["CAT-API", "server", "state-machines"],
-			"recommendation": "Define VALID_TRANSITIONS record at top of router file mapping current state to allowed next states. Check transitions in updateStatus and bulkUpdateStatus procedures before calling repository.",
-			"codeExample": "const VALID_TRANSITIONS: Record<string, string[]> = {\n  [FEATURE_STATUS.BACKLOG]: [FEATURE_STATUS.PENDING, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.PENDING]: [FEATURE_STATUS.IN_PROGRESS, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.IN_PROGRESS]: [FEATURE_STATUS.WAITING_APPROVAL, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.VERIFIED]: [],\n};\n\n// In updateStatus handler:\nconst allowed = VALID_TRANSITIONS[feat.status];\nif (!allowed || !allowed.includes(input.status)) {\n  throw new ORPCError('BAD_REQUEST', {\n    message: `Invalid status transition: ${feat.status} → ${input.status}`,\n  });\n}",
-			"keyPoints": [
-				"Define transitions at router level (not in repository) for business logic clarity",
-				"Check transitions before fetching from DB to fail fast on invalid requests",
-				"For bulkUpdateStatus: validate ALL features can transition before updating ANY",
-				"Return detailed error messages showing which transitions are invalid and why",
-				"Terminal states (VERIFIED, FAILED) should have empty arrays [] to prevent further transitions"
-			],
-			"testCoverage": "Test valid transitions (backlog→pending, pending→in_progress, etc.), invalid transitions (verified→backlog), bulk operations with mixed validity, error message format",
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "HIGH",
-			"features_applied": ["F018"],
-			"features_succeeded": ["F018"],
-			"antipattern_avoided": "Without validation, status can be set to any arbitrary value, breaking workflow guarantees"
-		},
-		{
-			"id": "SRV-009",
-			"name": "TANSTACK_QUERY_CLIENT_CONFIG",
-			"description": "Global QueryClient configuration with sensible defaults for all queries and mutations. Includes staleTime (60s), gcTime (5m), retry logic (3 for queries, 1 for mutations), exponential backoff, and QueryCache error handler with toast notifications.",
-			"category": "frontend",
-			"evidence_count": 1,
-			"last_seen": "F023",
-			"applies_to": ["CAT-FE", "frontend", "data-fetching"],
-			"recommendation": "For all React apps using TanStack Query: Create QueryClient with global defaultOptions for queries and mutations. Implement exponential backoff (2^attempt capped at 30s) for retries. Add QueryCache error handler to notify users of failures via toast.",
-			"codeExample": "const queryClient = new QueryClient({\n  defaultOptions: {\n    queries: { staleTime: 60 * 1000, gcTime: 5 * 60 * 1000, retry: 3, retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000) },\n    mutations: { retry: 1 }\n  },\n  queryCache: new QueryCache({\n    onError: (error, query) => { toast.error(`Error: ${error.message}`, { action: { label: 'retry', onClick: query.invalidate } }); }\n  })\n});",
-			"keyPoints": [
-				"staleTime 60s: data fresh for 1 minute after fetch",
-				"gcTime 5m: keep unused cache 5 minutes before garbage collection",
-				"retry 3 for queries: resilient to temporary failures",
-				"retry 1 for mutations: don't retry mutations (side effects)",
-				"exponential backoff: 1s, 2s, 4s, ..., capped at 30s",
-				"QueryCache error handler: catches all query errors and notifies user",
-				"Invalidation retry: user can retry from toast action"
-			],
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "MEDIUM - without defaults, queries will retry indefinitely, mutations will fail noisily",
-			"features_applied": ["F023"],
-			"features_succeeded": ["F023"]
-		},
-		{
-			"id": "SRV-010",
-			"name": "TANSTACK_QUERY_MUTATION_PATTERN",
-			"description": "Mutations with cache invalidation and optimistic updates. Use orpc.{entity}.{method}.mutationOptions({onSuccess}) to integrate with QueryClient. Invalidate related queries in onSuccess callback. Form state managed inline with useState for simplicity.",
-			"category": "frontend",
-			"evidence_count": 1,
-			"last_seen": "F023",
-			"applies_to": ["CAT-FE", "frontend", "mutations"],
-			"recommendation": "For all mutations: 1) Use useMutation(orpc.{entity}.{method}.mutationOptions({onSuccess})) for type-safe mutation options, 2) In onSuccess: queryClient.invalidateQueries({queryKey: orpc.{entity}.list.queryOptions().queryKey}), 3) Clear form state after success, 4) Use mutation.isPending to disable button during request.",
-			"codeExample": "const createProject = useMutation(\n  orpc.projects.create.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryOptions().queryKey });\n      setName('');\n      setPath('');\n      setShowForm(false);\n    },\n  })\n);\nconst handleSubmit = (e: React.FormEvent) => {\n  e.preventDefault();\n  createProject.mutate({ name: name.trim(), path: path.trim() });\n};",
-			"keyPoints": [
-				"orpc.{entity}.{method}.mutationOptions() provides type-safe mutation handler",
-				"onSuccess callback fires after successful server response",
-				"queryClient.invalidateQueries() forces refetch on next access",
-				"queryKey must match queryOptions().queryKey for same query",
-				"Form state reset in onSuccess ensures clean form after submit",
-				"mutation.isPending disables button during request to prevent double-submit",
-				"Type-safe mutation: TypeScript ensures input/output types match server"
-			],
-			"testCoverage": "Test mutations execute successfully, onSuccess callback fires, form state resets, queries invalidate, error state handled, isPending blocks submits, type checking at compile time",
-			"confidence": 0.8,
-			"success_rate": 1.0,
-			"risk_if_ignored": "HIGH - without cache invalidation, UI shows stale data after mutations",
-			"features_applied": ["F023"],
-			"features_succeeded": ["F023"]
-		}
-	],
-	"last_updated": "2026-01-30T15:32:45Z"
+  "patterns": [
+    {
+      "id": "PAT-001",
+      "name": "CLI_SCAFFOLD_FIRST",
+      "description": "Use established CLI scaffolds (better-t-stack, create-next-app, etc.) for initial project setup rather than manual configuration",
+      "category": "project-setup",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "applies_to": [
+        "CAT-PRJ",
+        "phase-1"
+      ],
+      "recommendation": "For new monorepo setup, use 'bun create better-t-stack@latest' with appropriate flags",
+      "flags_used": "--database sqlite --orm drizzle --auth --frontend tanstack-router --addons turborepo biome husky --backend hono --runtime bun --api orpc",
+      "time_saved_estimate": "2-4 hours",
+      "confidence": 0.2,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F001"
+      ],
+      "features_succeeded": [
+        "F001"
+      ]
+    },
+    {
+      "id": "PAT-002",
+      "name": "ROUTE_TREE_GENERATION",
+      "description": "TanStack Router requires route tree generation before TypeScript will pass. After adding new route files (.tsx), run 'vite build' to scan /routes/ directory and regenerate routeTree.gen.ts with type definitions.",
+      "category": "typescript",
+      "evidence_count": 2,
+      "last_seen": "F020",
+      "applies_to": [
+        "CAT-PRJ",
+        "CAT-FE",
+        "frontend"
+      ],
+      "recommendation": "Run 'vite build' or 'vite dev' once to generate routeTree.gen.ts before running type checks. After adding new route files, always run 'vite build' before type-checking.",
+      "gotcha": "TypeScript check will fail with 'Cannot find module ./routeTree.gen' until first build. New routes won't appear in type definitions until 'vite build' is run.",
+      "code_example": "// Added 3 routes in F020:\n// apps/web/src/routes/projects.index.tsx\n// apps/web/src/routes/projects.$projectId.tsx\n// apps/web/src/routes/features.$featureId.tsx\n// Run: vite build\n// Result: routeTree.gen.ts updated with route type definitions",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F001",
+        "F020"
+      ],
+      "features_succeeded": [
+        "F001",
+        "F020"
+      ]
+    },
+    {
+      "id": "PAT-003",
+      "name": "WORKTREE_ENV_ISOLATION",
+      "description": "Git worktrees need separate .env files with absolute paths for DATABASE_URL",
+      "category": "git-workflow",
+      "evidence_count": 6,
+      "last_seen": "F016",
+      "applies_to": [
+        "CAT-GIT",
+        "all-phases"
+      ],
+      "recommendation": "Create .env files in worktree during step-00-init with: 1) file: prefix for SQLite URLs, 2) absolute paths using $(pwd) to avoid CWD issues",
+      "gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
+      "codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F001",
+        "F003",
+        "F005",
+        "F006",
+        "F015",
+        "F016"
+      ],
+      "features_succeeded": [
+        "F001",
+        "F003",
+        "F005",
+        "F006",
+        "F015",
+        "F016"
+      ]
+    },
+    {
+      "id": "PAT-004",
+      "name": "BIOME_AUTO_FIX",
+      "description": "Biome can auto-fix most formatting and lint issues",
+      "category": "code-quality",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "applies_to": [
+        "all"
+      ],
+      "recommendation": "Use 'bunx biome check . --write --unsafe' for comprehensive auto-fixes",
+      "files_fixed": 70,
+      "confidence": 0.2,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F001"
+      ],
+      "features_succeeded": [
+        "F001"
+      ]
+    },
+    {
+      "id": "PAT-005",
+      "name": "ZOD_BRANDED_TYPES",
+      "description": "Use Zod's .brand<>() for compile-time type safety on primitive IDs",
+      "category": "typescript",
+      "evidence_count": 6,
+      "last_seen": "F019",
+      "applies_to": [
+        "CAT-PRJ",
+        "types",
+        "validation"
+      ],
+      "recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
+      "codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;",
+      "confidence": 0.6,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F003",
+        "F004",
+        "F005",
+        "F017",
+        "F018",
+        "F019"
+      ],
+      "features_succeeded": [
+        "F003",
+        "F004",
+        "F005",
+        "F017",
+        "F018",
+        "F019"
+      ]
+    },
+    {
+      "id": "PAT-006",
+      "name": "STATUS_ENUM_PATTERN",
+      "description": "Define status constants as 'as const' objects with derived types and Zod schemas",
+      "category": "typescript",
+      "evidence_count": 3,
+      "last_seen": "F018",
+      "applies_to": [
+        "CAT-PRJ",
+        "types",
+        "validation"
+      ],
+      "recommendation": "Use const objects for status values, derive type with keyof typeof, create z.enum() for validation",
+      "codeExample": "const STATUS = { ACTIVE: 'active' } as const;\ntype Status = (typeof STATUS)[keyof typeof STATUS];\nconst StatusSchema = z.enum([STATUS.ACTIVE]);",
+      "confidence": 0.4,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F003",
+        "F004",
+        "F018"
+      ],
+      "features_succeeded": [
+        "F003",
+        "F004",
+        "F018"
+      ]
+    },
+    {
+      "id": "PAT-007",
+      "name": "REGEX_BRANDED_PATTERN",
+      "description": "Combine .regex() with .brand<>() for pattern-validated IDs that are also nominally typed",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F003",
+      "applies_to": [
+        "CAT-PRJ",
+        "types",
+        "validation"
+      ],
+      "recommendation": "For IDs with specific formats (F001, CAT-XXX), add .regex() before .brand() for runtime validation",
+      "codeExample": "const FeatureIdSchema = z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>();",
+      "confidence": 0.2,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F003"
+      ],
+      "features_succeeded": [
+        "F003"
+      ]
+    },
+    {
+      "id": "PAT-008",
+      "name": "ZOD_DEFAULT_NOT_OPTIONAL",
+      "description": "Use .default() alone without .optional() - default already handles undefined",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F003",
+      "applies_to": [
+        "CAT-PRJ",
+        "types",
+        "validation"
+      ],
+      "recommendation": "When using .default(value), do NOT chain .optional() - it's redundant and creates semantic confusion",
+      "codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()",
+      "confidence": 0.2,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F003"
+      ],
+      "features_succeeded": [
+        "F003"
+      ]
+    },
+    {
+      "id": "PAT-009",
+      "name": "NESTED_DEFAULTS_TRANSFORM",
+      "description": "Use .optional().transform() to properly apply nested schema defaults when parent field is undefined",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F004",
+      "applies_to": [
+        "CAT-PRJ",
+        "types",
+        "validation"
+      ],
+      "recommendation": "When a nested object schema has field defaults that should apply when the parent is omitted or empty, use .optional().transform() instead of .default({})",
+      "codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
+      "gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply",
+      "confidence": 0.2,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F004"
+      ],
+      "features_succeeded": [
+        "F004"
+      ]
+    },
+    {
+      "id": "PAT-010",
+      "name": "SCHEMA_COMPOSITION_PATTERN",
+      "description": "Compose schemas by importing existing ID schemas rather than redefining",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F005",
+      "applies_to": [
+        "CAT-PRJ",
+        "types",
+        "validation"
+      ],
+      "recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
+      "codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});",
+      "confidence": 0.2,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F005"
+      ],
+      "features_succeeded": [
+        "F005"
+      ]
+    },
+    {
+      "id": "PAT-011",
+      "name": "GOOD_PLANNING",
+      "description": "Clear feature scope with specific acceptance criteria leads to zero-retry implementations",
+      "category": "process",
+      "evidence_count": 5,
+      "last_seen": "F016",
+      "applies_to": [
+        "all",
+        "all-phases"
+      ],
+      "recommendation": "Define 3-5 concrete acceptance criteria per feature. Each should be independently verifiable.",
+      "time_saved_estimate": "15-30 minutes per feature (avoids retry loops)",
+      "confidence": 0.6,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F012",
+        "F013",
+        "F014",
+        "F015",
+        "F016"
+      ],
+      "features_succeeded": [
+        "F012",
+        "F013",
+        "F014",
+        "F015",
+        "F016"
+      ]
+    },
+    {
+      "id": "PAT-012",
+      "name": "FOCUSED_SCOPE",
+      "description": "Features that change 3 or fewer core files are completed faster and with fewer issues",
+      "category": "process",
+      "evidence_count": 5,
+      "last_seen": "F016",
+      "applies_to": [
+        "all",
+        "all-phases"
+      ],
+      "recommendation": "Target XS/S-sized features that touch 2-5 files maximum. Split larger features.",
+      "metric": "F012: 12 min, 3 files. F013: 4 min, 3 files. F014: 18 min, 5 files. F015: 16 min, 3 files. F016: 13 min, 2 files (XS). F017: 19 min, 3 files (M).",
+      "confidence": 0.6,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F012",
+        "F013",
+        "F014",
+        "F015",
+        "F016"
+      ],
+      "features_succeeded": [
+        "F012",
+        "F013",
+        "F014",
+        "F015",
+        "F016"
+      ]
+    },
+    {
+      "id": "PAT-013",
+      "name": "PATTERN_REUSE",
+      "description": "Reusing well-known patterns (Hono error handlers, oRPC routing, Bun serve export, health checks, TanStack Router auth guards, route structure) reduces implementation time and errors. F013 completed in 4 min by copying F012 template. F014 copied both F012 and F013. F015 reused F001 scaffold as-is and filled 2 gaps. F016 reused F015 error handling pattern for health endpoint. F017 reused F015 protectedProcedure pattern as base for CRUD router. F018 copied F017 project router template with new entity and transition validation logic. F019 reused feature.ts template with session-specific status transitions and duration tracking. F020 reused route structure from F001 scaffold (beforeLoad auth guards, component layout, query pattern) for 3 new routes.",
+      "category": "multi-layer",
+      "evidence_count": 10,
+      "last_seen": "F022",
+      "applies_to": [
+        "all",
+        "all-phases"
+      ],
+      "recommendation": "For all layers: Identify best-in-class template and copy exactly. Database: use CRUD from F012/F013. Server: use Hono error handlers and health check pattern from F015/F016. API: use protectedProcedure pattern from F015 as base for CRUD routers (F017/F018/F019). Frontend: use route structure from F001 scaffold (beforeLoad, component, data fetching pattern) for new routes. Extreme efficiency achieved when existing template matches exactly (F018: 5 min, F019: 58 min including comprehensive test suite, F020: 21 min for 3 routes).",
+      "codeExample": "// Database CRUD reuse:\nconst { id, ...updateData } = input; // only changed fields\nawait projectRepository.update(id, updateData);\n\n// Server router reuse:\napp.onError((err, c) => {\n  if (err instanceof HTTPException) return err.getResponse();\n  return c.json({ error: 'Internal Server Error' }, 500);\n});\n\n// Frontend route reuse:\nexport const Route = createFileRoute('/projects/$projectId')({component: ProjectDetail,beforeLoad: async () => {const session = await authClient.getSession(); if (!session.data) redirect({ to: '/login', throw: true });},});",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F012",
+        "F013",
+        "F014",
+        "F015",
+        "F016",
+        "F017",
+        "F018",
+        "F019",
+        "F020",
+        "F022",
+        "F023"
+      ],
+      "features_succeeded": [
+        "F012",
+        "F013",
+        "F014",
+        "F015",
+        "F016",
+        "F017",
+        "F018",
+        "F019",
+        "F020",
+        "F022",
+        "F023"
+      ]
+    },
+    {
+      "id": "PAT-014",
+      "name": "DRIZZLE_TYPE_INFERENCE",
+      "description": "Use Drizzle's $inferSelect/$inferInsert for automatic type derivation from schema",
+      "category": "database",
+      "evidence_count": 3,
+      "last_seen": "F017",
+      "applies_to": [
+        "CAT-DBS",
+        "types"
+      ],
+      "recommendation": "Derive repository types from schema rather than manually defining interfaces. This ensures repository types stay in sync with schema changes.",
+      "codeExample": "type ProjectSelect = typeof projects.$inferSelect;\ntype ProjectInsert = typeof projects.$inferInsert;",
+      "confidence": 0.4,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F012",
+        "F013",
+        "F017"
+      ],
+      "features_succeeded": [
+        "F012",
+        "F013",
+        "F017"
+      ]
+    },
+    {
+      "id": "SRV-006",
+      "name": "HEALTH_CHECK_PATTERN",
+      "description": "Async health check endpoint with actual external dependency verification (database connectivity). Returns 200 with healthy status and 503 with unhealthy status.",
+      "category": "server",
+      "evidence_count": 1,
+      "last_seen": "F016",
+      "applies_to": [
+        "CAT-API",
+        "server",
+        "health-monitoring"
+      ],
+      "recommendation": "For all servers: Implement GET /health endpoint with db connectivity check. Response should include: status (healthy/unhealthy), version, database (connected/disconnected), uptime, timestamp.",
+      "codeExample": "app.get('/health', async (c) => {\n  let database = 'connected';\n  try {\n    await db.run(sql`SELECT 1`);\n  } catch {\n    database = 'disconnected';\n    return c.json({\n      status: 'unhealthy',\n      version: '1.0.0',\n      database,\n      uptime: process.uptime(),\n      timestamp: new Date().toISOString()\n    }, 503);\n  }\n  return c.json({\n    status: 'healthy',\n    version: '1.0.0',\n    database,\n    uptime: process.uptime(),\n    timestamp: new Date().toISOString()\n  });\n});",
+      "responseFields": {
+        "status": "healthy|unhealthy",
+        "version": "semver string for rollout tracking",
+        "database": "connected|disconnected",
+        "uptime": "seconds since process start",
+        "timestamp": "ISO 8601 string for log correlation"
+      },
+      "httpStatus": "200 for healthy, 503 for unhealthy (Service Unavailable)",
+      "testCoverage": "Happy path (200), unhealthy state (503), response structure validation",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F016"
+      ],
+      "features_succeeded": [
+        "F016"
+      ],
+      "integration_note": "Requires sql primitive export from @nomos-ai/db package. Add to packages/db/src/index.ts: export { sql } from 'drizzle-orm';"
+    },
+    {
+      "id": "SRV-007",
+      "name": "oRPC_CRUD_ROUTER",
+      "description": "Standard oRPC CRUD router pattern with list, get, create, update, delete procedures, plus entity-specific operations (e.g., updateStatus, appendOutput, getDuration for sessions). Each procedure uses protectedProcedure, Zod input validation, repository integration, and ORPCError for error handling.",
+      "category": "server",
+      "evidence_count": 3,
+      "last_seen": "F019",
+      "applies_to": [
+        "CAT-API",
+        "server",
+        "orpc-routers"
+      ],
+      "recommendation": "For all domain CRUD routers: 1) Define input Zod schemas at top of file (createInput, updateInput), 2) Use protectedProcedure as base, 3) Validate with .input(schema), 4) Handle with .handler(async ({ input, context })). 5) Use ORPCError('NOT_FOUND'|'BAD_REQUEST') for errors. 6) For type-safe IDs, import branded schemas like SessionIdSchema. 7) Add entity-specific procedures that leverage repository helpers (appendOutput, calculateDuration).",
+      "codeExample": "const listSessionsInput = z.object({\n  status: SessionStatusSchema.optional(),\n  featureId: FeatureIdSchema.optional(),\n}).optional();\n\nexport const sessionRouter = {\n  list: protectedProcedure.input(listSessionsInput).handler(async ({ input }) => {\n    if (input?.status) return sessionRepository.findByStatus(input.status);\n    if (input?.featureId) return sessionRepository.findByFeature(input.featureId);\n    return sessionRepository.findAll();\n  }),\n  appendOutput: protectedProcedure.input(appendOutputInput).handler(async ({ input }) => {\n    return await sessionRepository.appendOutput(input.id, input.text);\n  }),\n  getDuration: protectedProcedure.input(z.object({ id: SessionIdSchema })).handler(async ({ input }) => {\n    const session = await sessionRepository.findById(input.id);\n    if (!session) throw new ORPCError('NOT_FOUND', { message: `Session not found` });\n    return { duration: sessionRepository.calculateDuration(session) };\n  }),\n};",
+      "keyPoints": [
+        "Always generate IDs with crypto.randomUUID() in create handler",
+        "Type cast Zod objects to Record<string, unknown> when passing to Drizzle for settings/config fields",
+        "Use ORPCError with specific codes: NOT_FOUND for missing records, BAD_REQUEST for validation/query errors",
+        "Update handlers should build updateData object conditionally (only include fields that changed)",
+        "All handlers should be wrapped in try-catch to convert repository errors to ORPCError",
+        "Status-changing operations must validate against state machine transition rules",
+        "Entity-specific operations (append, calculate, list with filters) should leverage repository helpers"
+      ],
+      "testCoverage": "36+ tests per CRUD router + additional tests for entity-specific operations covering: create/update/delete ops, validation (string lengths, enum values), error handling (NOT_FOUND, BAD_REQUEST), update partial fields, authentication context, state machine transitions (for entities with status fields), filtering by status/featureId, output append, duration calculation",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F017",
+        "F018",
+        "F019"
+      ],
+      "features_succeeded": [
+        "F017",
+        "F018",
+        "F019"
+      ],
+      "integration_note": "Router must be exported as named export and imported in apps/api/src/routers/index.ts under appropriate namespace (e.g., sessions: sessionRouter)"
+    },
+    {
+      "id": "SRV-008",
+      "name": "TRANSITION_VALIDATION",
+      "description": "For entities with status/state machines, enforce valid transitions via a VALID_TRANSITIONS map before allowing status changes. Apply same validation logic to both single and bulk update operations.",
+      "category": "server",
+      "evidence_count": 1,
+      "last_seen": "F018",
+      "applies_to": [
+        "CAT-API",
+        "server",
+        "state-machines"
+      ],
+      "recommendation": "Define VALID_TRANSITIONS record at top of router file mapping current state to allowed next states. Check transitions in updateStatus and bulkUpdateStatus procedures before calling repository.",
+      "codeExample": "const VALID_TRANSITIONS: Record<string, string[]> = {\n  [FEATURE_STATUS.BACKLOG]: [FEATURE_STATUS.PENDING, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.PENDING]: [FEATURE_STATUS.IN_PROGRESS, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.IN_PROGRESS]: [FEATURE_STATUS.WAITING_APPROVAL, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.VERIFIED]: [],\n};\n\n// In updateStatus handler:\nconst allowed = VALID_TRANSITIONS[feat.status];\nif (!allowed || !allowed.includes(input.status)) {\n  throw new ORPCError('BAD_REQUEST', {\n    message: `Invalid status transition: ${feat.status} → ${input.status}`,\n  });\n}",
+      "keyPoints": [
+        "Define transitions at router level (not in repository) for business logic clarity",
+        "Check transitions before fetching from DB to fail fast on invalid requests",
+        "For bulkUpdateStatus: validate ALL features can transition before updating ANY",
+        "Return detailed error messages showing which transitions are invalid and why",
+        "Terminal states (VERIFIED, FAILED) should have empty arrays [] to prevent further transitions"
+      ],
+      "testCoverage": "Test valid transitions (backlog→pending, pending→in_progress, etc.), invalid transitions (verified→backlog), bulk operations with mixed validity, error message format",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F018"
+      ],
+      "features_succeeded": [
+        "F018"
+      ],
+      "antipattern_avoided": "Without validation, status can be set to any arbitrary value, breaking workflow guarantees"
+    },
+    {
+      "id": "SRV-009",
+      "name": "TANSTACK_QUERY_CLIENT_CONFIG",
+      "description": "Global QueryClient configuration with sensible defaults for all queries and mutations. Includes staleTime (60s), gcTime (5m), retry logic (3 for queries, 1 for mutations), exponential backoff, and QueryCache error handler with toast notifications.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F023",
+      "applies_to": [
+        "CAT-FE",
+        "frontend",
+        "data-fetching"
+      ],
+      "recommendation": "For all React apps using TanStack Query: Create QueryClient with global defaultOptions for queries and mutations. Implement exponential backoff (2^attempt capped at 30s) for retries. Add QueryCache error handler to notify users of failures via toast.",
+      "codeExample": "const queryClient = new QueryClient({\n  defaultOptions: {\n    queries: { staleTime: 60 * 1000, gcTime: 5 * 60 * 1000, retry: 3, retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000) },\n    mutations: { retry: 1 }\n  },\n  queryCache: new QueryCache({\n    onError: (error, query) => { toast.error(`Error: ${error.message}`, { action: { label: 'retry', onClick: query.invalidate } }); }\n  })\n});",
+      "keyPoints": [
+        "staleTime 60s: data fresh for 1 minute after fetch",
+        "gcTime 5m: keep unused cache 5 minutes before garbage collection",
+        "retry 3 for queries: resilient to temporary failures",
+        "retry 1 for mutations: don't retry mutations (side effects)",
+        "exponential backoff: 1s, 2s, 4s, ..., capped at 30s",
+        "QueryCache error handler: catches all query errors and notifies user",
+        "Invalidation retry: user can retry from toast action"
+      ],
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM - without defaults, queries will retry indefinitely, mutations will fail noisily",
+      "features_applied": [
+        "F023"
+      ],
+      "features_succeeded": [
+        "F023"
+      ]
+    },
+    {
+      "id": "SRV-010",
+      "name": "TANSTACK_QUERY_MUTATION_PATTERN",
+      "description": "Mutations with cache invalidation and optimistic updates. Use orpc.{entity}.{method}.mutationOptions({onSuccess}) to integrate with QueryClient. Invalidate related queries in onSuccess callback. Form state managed inline with useState for simplicity.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F023",
+      "applies_to": [
+        "CAT-FE",
+        "frontend",
+        "mutations"
+      ],
+      "recommendation": "For all mutations: 1) Use useMutation(orpc.{entity}.{method}.mutationOptions({onSuccess})) for type-safe mutation options, 2) In onSuccess: queryClient.invalidateQueries({queryKey: orpc.{entity}.list.queryOptions().queryKey}), 3) Clear form state after success, 4) Use mutation.isPending to disable button during request.",
+      "codeExample": "const createProject = useMutation(\n  orpc.projects.create.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({ queryKey: orpc.projects.list.queryOptions().queryKey });\n      setName('');\n      setPath('');\n      setShowForm(false);\n    },\n  })\n);\nconst handleSubmit = (e: React.FormEvent) => {\n  e.preventDefault();\n  createProject.mutate({ name: name.trim(), path: path.trim() });\n};",
+      "keyPoints": [
+        "orpc.{entity}.{method}.mutationOptions() provides type-safe mutation handler",
+        "onSuccess callback fires after successful server response",
+        "queryClient.invalidateQueries() forces refetch on next access",
+        "queryKey must match queryOptions().queryKey for same query",
+        "Form state reset in onSuccess ensures clean form after submit",
+        "mutation.isPending disables button during request to prevent double-submit",
+        "Type-safe mutation: TypeScript ensures input/output types match server"
+      ],
+      "testCoverage": "Test mutations execute successfully, onSuccess callback fires, form state resets, queries invalidate, error state handled, isPending blocks submits, type checking at compile time",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH - without cache invalidation, UI shows stale data after mutations",
+      "features_applied": [
+        "F023"
+      ],
+      "features_succeeded": [
+        "F023"
+      ]
+    },
+    {
+      "id": "WEB-008",
+      "name": "FLEX_SIDEBAR_LAYOUT",
+      "description": "Collapsible sidebar using flex layout with width transitions. Sidebar takes fixed width (w-16 collapsed, w-64 expanded), main content uses flex-1 to fill remaining space. Smooth transition with transition-[width] duration-300.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F024",
+      "applies_to": [
+        "CAT-FE",
+        "CAT-KAN",
+        "layout",
+        "responsive",
+        "frontend"
+      ],
+      "recommendation": "For responsive layouts with collapsible sidebar, use flex parent with fixed sidebar width and flex-1 child. Structure: <div className=\"flex h-svh\"><aside className={cn('transition-[width]', collapsed ? 'w-16' : 'w-64')}></aside><div className=\"flex flex-1 flex-col\"><Header /><main><Outlet /></main></div></div>",
+      "codeExample": "<div className=\"flex h-svh overflow-hidden\">\n  <aside className={cn('transition-[width] duration-300 ease-in-out', collapsed ? 'w-16' : 'w-64', 'flex flex-col')}>\n    <ProjectSelector collapsed={collapsed} />\n    <NavLinks collapsed={collapsed} />\n  </aside>\n  <div className=\"flex flex-1 flex-col\">\n    <Header />\n    <main className=\"flex-1 overflow-auto\"><Outlet /></main>\n  </div>\n</div>",
+      "keyPoints": [
+        "Flex layout naturally handles collapsible sidebar - content fills remaining space",
+        "Fixed sidebar width (w-16 or w-64) with CSS transition for smooth animation",
+        "Main content uses flex-1 to take remaining space, no calculation needed",
+        "Transition on width property only, no need for transform",
+        "Clean responsive hierarchy: flex parent, sidebar, main content column"
+      ],
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW - grid layouts work but are more complex for collapsible sidebars",
+      "features_applied": [
+        "F024"
+      ],
+      "features_succeeded": [
+        "F024"
+      ]
+    },
+    {
+      "id": "WEB-009",
+      "name": "MOBILE_SIDEBAR_OVERLAY",
+      "description": "Mobile-responsive sidebar overlay using fixed positioning. Desktop (md+): sidebar inline relative. Mobile: sidebar fixed overlay with z-50, backdrop fixed with z-40, both shown only when expanded.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F024",
+      "applies_to": [
+        "CAT-FE",
+        "layout",
+        "responsive",
+        "mobile",
+        "frontend"
+      ],
+      "recommendation": "For mobile sidebars, use fixed positioning with z-index strategy. Sidebar: 'md:relative collapsed && max-md:hidden !collapsed && max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50'. Backdrop: 'fixed inset-0 z-40 bg-black/50 md:hidden', shown only when !collapsed.",
+      "codeExample": "// Sidebar\n<aside className={cn(\n  'flex flex-col',\n  'md:relative',  // Desktop: inline\n  collapsed && 'max-md:hidden',  // Mobile: hidden when collapsed\n  !collapsed && 'max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50'  // Mobile: overlay when expanded\n)}>\n  {children}\n</aside>\n\n// Backdrop\n{!collapsed && (\n  <button className=\"fixed inset-0 z-40 bg-black/50 md:hidden\" onClick={toggleSidebar} />\n)}\n",
+      "keyPoints": [
+        "Sidebar: relative on desktop (md+), fixed on mobile when expanded",
+        "Z-index: sidebar z-50, backdrop z-40 (backdrop underneath)",
+        "Both sidebar and backdrop hidden on mobile when collapsed",
+        "Backdrop click triggers toggleSidebar to close overlay",
+        "inset-y-0 left-0 covers full height, left edge of screen",
+        "Fixed positioning is performant - no JavaScript animation needed"
+      ],
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM - without overlay, mobile sidebar overlaps content without dismissal",
+      "features_applied": [
+        "F024"
+      ],
+      "features_succeeded": [
+        "F024"
+      ]
+    },
+    {
+      "id": "WEB-010",
+      "name": "ZUSTAND_DROPDOWN_INTEGRATION",
+      "description": "Dropdown selector connected to Zustand store. Shows selected value from store, updates store on selection. Uses getState() for event handlers that don't need reactive updates.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F024",
+      "applies_to": [
+        "CAT-FE",
+        "state-management",
+        "ui-controls",
+        "dropdown",
+        "frontend"
+      ],
+      "recommendation": "For dropdowns connected to store: 1) Use selector hook for display value (selected: useAppStore(s => s.selectedProject)), 2) Use getState() in event handler (onClick={() => useAppStore.getState().setSelectedProject(id))), 3) Map store list for options (projects: useAppStore(s => s.projects)).",
+      "codeExample": "export function ProjectSelector({ collapsed }: { collapsed: boolean }) {\n  const selected = useAppStore((s) => s.selectedProject);\n  const projects = useAppStore((s) => s.projects);\n  \n  const handleSelect = (id: string) => {\n    useAppStore.getState().setSelectedProject(id);\n  };\n\n  return (\n    <DropdownMenu>\n      <DropdownMenuTrigger>{selected?.name || 'Select Project'}</DropdownMenuTrigger>\n      <DropdownMenuContent>\n        {projects.map((project) => (\n          <DropdownMenuItem\n            key={project.id}\n            onClick={() => handleSelect(project.id)}\n          >\n            {project.name}\n          </DropdownMenuItem>\n        ))}\n      </DropdownMenuContent>\n    </DropdownMenu>\n  );\n}",
+      "keyPoints": [
+        "Selector hooks for data that triggers re-renders (selected project name)",
+        "getState() in event handlers for one-off store updates (setSelectedProject)",
+        "Show empty state if no selection: 'Select Project' placeholder",
+        "Map store list to dropdown items, update on selection",
+        "No local component state needed - store is single source of truth",
+        "Dropdown menu pattern from shadcn/ui simplifies implementation"
+      ],
+      "testCoverage": "Test dropdown renders, shows selected value, lists projects, handles selection, updates store, shows empty state when no projects",
+      "confidence": 0.85,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW - without store integration, dropdown becomes disconnected from app state",
+      "features_applied": [
+        "F024"
+      ],
+      "features_succeeded": [
+        "F024"
+      ]
+    }
+  ],
+  "last_updated": "2026-01-30T22:14:00Z"
 }
