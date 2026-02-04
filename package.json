@@ -43,9 +43,9 @@
 		"@nomos-ai/types": "workspace:*"
 	},
 	"devDependencies": {
-		"typescript": "catalog:",
-		"@types/bun": "catalog:",
 		"@nomos-ai/config": "workspace:*",
-		"turbo": "^2.6.3"
+		"@types/bun": "^1.3.8",
+		"turbo": "^2.8.3",
+		"typescript": "catalog:"
 	}
 }
