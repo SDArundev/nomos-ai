@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
@@ -19,6 +20,11 @@ import { Route as FeaturesFeatureIdRouteImport } from './routes/features.$featur
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KanbanRoute = KanbanRouteImport.update({
+  id: '/kanban',
+  path: '/kanban',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -50,6 +56,7 @@ const FeaturesFeatureIdRoute = FeaturesFeatureIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/kanban'
     | '/login'
     | '/features/$featureId'
     | '/projects/$projectId'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/kanban'
     | '/login'
     | '/features/$featureId'
     | '/projects/$projectId'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/kanban'
     | '/login'
     | '/features/$featureId'
     | '/projects/$projectId'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  KanbanRoute: typeof KanbanRoute
   LoginRoute: typeof LoginRoute
   FeaturesFeatureIdRoute: typeof FeaturesFeatureIdRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
@@ -115,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kanban': {
+      id: '/kanban'
+      path: '/kanban'
+      fullPath: '/kanban'
+      preLoaderRoute: typeof KanbanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  KanbanRoute: KanbanRoute,
   LoginRoute: LoginRoute,
   FeaturesFeatureIdRoute: FeaturesFeatureIdRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
