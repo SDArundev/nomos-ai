@@ -584,10 +584,7 @@
 			"purpose": "Navigation links component with TanStack Router activeProps for active state styling. Shows icons always, labels when sidebar expanded. Uses lucide-react icons.",
 			"layer": "web",
 			"exports": ["NavLinks"],
-			"imports_from": [
-				"@tanstack/react-router",
-				"lucide-react"
-			],
+			"imports_from": ["@tanstack/react-router", "lucide-react"],
 			"lastTouchedBy": "F024",
 			"patterns": [
 				"TanStack Router Link with activeProps",

@@ -54,9 +54,7 @@
 		"Type inference from schema works"
 	],
 	"what_failed": [],
-	"what_could_improve": [
-		"Document DATABASE_URL format requirements clearly"
-	],
+	"what_could_improve": ["Document DATABASE_URL format requirements clearly"],
 	"recommendations": [],
 	"learning_contribution": {
 		"new_patterns": [

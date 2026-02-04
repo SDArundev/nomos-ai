@@ -1,127 +1,206 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nomos.dev/schemas/stack.schema.json",
-  "title": "NOMOS Stack Schema",
-  "description": "Pre-computed inventory of all dependencies, libraries, packages, frameworks, and tooling in a project. Language/ecosystem-agnostic. Populated at scaffold, read during feature implementation to enforce stack compliance.",
-  "type": "object",
-  "required": ["project", "packages", "updatedAt"],
-  "properties": {
-    "$schema": { "type": "string" },
-    "project": {
-      "type": "object",
-      "required": ["name"],
-      "properties": {
-        "name": { "type": "string" },
-        "runtime": { "type": "string", "description": "Primary runtime (bun, node, deno, go, python, rust, etc.)" },
-        "packageManager": { "type": "string", "description": "Package manager (bun, npm, pnpm, yarn, cargo, pip, go mod, etc.)" },
-        "monorepo": { "type": "boolean" },
-        "buildSystem": { "type": "string", "description": "Monorepo/build tool (turborepo, nx, lerna, make, etc.)" }
-      }
-    },
-    "packages": {
-      "type": "array",
-      "description": "Each workspace/app/package in the project",
-      "items": { "$ref": "#/$defs/package" }
-    },
-    "componentRegistries": {
-      "type": "array",
-      "description": "Registries with installable components (shadcn, etc.)",
-      "items": { "$ref": "#/$defs/componentRegistry" }
-    },
-    "updatedAt": { "type": "string", "format": "date-time" }
-  },
-  "$defs": {
-    "package": {
-      "type": "object",
-      "required": ["name", "path", "layer", "dependencies"],
-      "properties": {
-        "name": { "type": "string", "description": "Package name (e.g., web, server, @nomos-ai/db)" },
-        "path": { "type": "string", "description": "Relative path from project root (e.g., apps/web)" },
-        "layer": {
-          "type": "string",
-          "enum": ["frontend", "backend", "shared", "config", "tooling", "database", "auth", "api", "types", "other"],
-          "description": "Architectural layer"
-        },
-        "language": { "type": "string", "description": "Primary language (typescript, go, python, rust, etc.)" },
-        "framework": { "type": "string", "description": "Primary framework (react, hono, fastapi, gin, etc.)" },
-        "dependencies": {
-          "type": "array",
-          "description": "Key dependencies with their purpose",
-          "items": { "$ref": "#/$defs/dependency" }
-        },
-        "configs": {
-          "type": "array",
-          "description": "Framework/tool config files in this package",
-          "items": { "$ref": "#/$defs/config" }
-        },
-        "scripts": {
-          "type": "object",
-          "description": "Available scripts/commands",
-          "additionalProperties": { "type": "string" }
-        }
-      }
-    },
-    "dependency": {
-      "type": "object",
-      "required": ["name", "version", "purpose"],
-      "properties": {
-        "name": { "type": "string", "description": "Package/module name" },
-        "version": { "type": "string" },
-        "purpose": {
-          "type": "string",
-          "description": "What this dependency provides (e.g., 'UI component library', 'ORM', 'Router', 'Validation')"
-        },
-        "category": {
-          "type": "string",
-          "enum": ["ui-library", "ui-primitives", "css-framework", "state-management", "router", "data-fetching", "orm", "validation", "auth", "api-framework", "api-client", "testing", "linting", "build-tool", "icons", "animations", "utilities", "other"],
-          "description": "Dependency category for matching against feature needs"
-        },
-        "dev": { "type": "boolean", "description": "devDependency", "default": false },
-        "provides": {
-          "type": "array",
-          "description": "Specific capabilities this dependency provides (e.g., ['Sidebar', 'Dialog', 'Form'] for shadcn)",
-          "items": { "type": "string" }
-        },
-        "docs": {
-          "type": "string",
-          "description": "Context7 library ID or docs URL for reference"
-        },
-        "bestPractices": {
-          "type": "array",
-          "description": "Key usage rules — agents MUST follow these",
-          "items": { "type": "string" }
-        }
-      }
-    },
-    "config": {
-      "type": "object",
-      "required": ["file", "tool"],
-      "properties": {
-        "file": { "type": "string", "description": "Relative path to config file" },
-        "tool": { "type": "string", "description": "Tool name (tailwind, biome, drizzle, vite, etc.)" },
-        "notes": { "type": "string", "description": "Key config details (e.g., 'Tailwind v4 — CSS-based, no config file')" }
-      }
-    },
-    "componentRegistry": {
-      "type": "object",
-      "required": ["type", "configPath", "installCommand", "installed"],
-      "properties": {
-        "type": { "type": "string", "description": "Registry type (shadcn, radix-themes, etc.)" },
-        "style": { "type": "string", "description": "Style variant (base-lyra, new-york, default, etc.)" },
-        "configPath": { "type": "string", "description": "Path to config file (e.g., apps/web/components.json)" },
-        "componentDir": { "type": "string", "description": "Where components live (e.g., apps/web/src/components/ui)" },
-        "installCommand": { "type": "string", "description": "CLI command to install new components (e.g., 'bunx shadcn@latest add')" },
-        "installed": {
-          "type": "array",
-          "description": "Currently installed component names",
-          "items": { "type": "string" }
-        },
-        "available": {
-          "type": "array",
-          "description": "Known available components not yet installed",
-          "items": { "type": "string" }
-        }
-      }
-    }
-  }
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://nomos.dev/schemas/stack.schema.json",
+	"title": "NOMOS Stack Schema",
+	"description": "Pre-computed inventory of all dependencies, libraries, packages, frameworks, and tooling in a project. Language/ecosystem-agnostic. Populated at scaffold, read during feature implementation to enforce stack compliance.",
+	"type": "object",
+	"required": ["project", "packages", "updatedAt"],
+	"properties": {
+		"$schema": { "type": "string" },
+		"project": {
+			"type": "object",
+			"required": ["name"],
+			"properties": {
+				"name": { "type": "string" },
+				"runtime": {
+					"type": "string",
+					"description": "Primary runtime (bun, node, deno, go, python, rust, etc.)"
+				},
+				"packageManager": {
+					"type": "string",
+					"description": "Package manager (bun, npm, pnpm, yarn, cargo, pip, go mod, etc.)"
+				},
+				"monorepo": { "type": "boolean" },
+				"buildSystem": {
+					"type": "string",
+					"description": "Monorepo/build tool (turborepo, nx, lerna, make, etc.)"
+				}
+			}
+		},
+		"packages": {
+			"type": "array",
+			"description": "Each workspace/app/package in the project",
+			"items": { "$ref": "#/$defs/package" }
+		},
+		"componentRegistries": {
+			"type": "array",
+			"description": "Registries with installable components (shadcn, etc.)",
+			"items": { "$ref": "#/$defs/componentRegistry" }
+		},
+		"updatedAt": { "type": "string", "format": "date-time" }
+	},
+	"$defs": {
+		"package": {
+			"type": "object",
+			"required": ["name", "path", "layer", "dependencies"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "Package name (e.g., web, server, @nomos-ai/db)"
+				},
+				"path": {
+					"type": "string",
+					"description": "Relative path from project root (e.g., apps/web)"
+				},
+				"layer": {
+					"type": "string",
+					"enum": [
+						"frontend",
+						"backend",
+						"shared",
+						"config",
+						"tooling",
+						"database",
+						"auth",
+						"api",
+						"types",
+						"other"
+					],
+					"description": "Architectural layer"
+				},
+				"language": {
+					"type": "string",
+					"description": "Primary language (typescript, go, python, rust, etc.)"
+				},
+				"framework": {
+					"type": "string",
+					"description": "Primary framework (react, hono, fastapi, gin, etc.)"
+				},
+				"dependencies": {
+					"type": "array",
+					"description": "Key dependencies with their purpose",
+					"items": { "$ref": "#/$defs/dependency" }
+				},
+				"configs": {
+					"type": "array",
+					"description": "Framework/tool config files in this package",
+					"items": { "$ref": "#/$defs/config" }
+				},
+				"scripts": {
+					"type": "object",
+					"description": "Available scripts/commands",
+					"additionalProperties": { "type": "string" }
+				}
+			}
+		},
+		"dependency": {
+			"type": "object",
+			"required": ["name", "version", "purpose"],
+			"properties": {
+				"name": { "type": "string", "description": "Package/module name" },
+				"version": { "type": "string" },
+				"purpose": {
+					"type": "string",
+					"description": "What this dependency provides (e.g., 'UI component library', 'ORM', 'Router', 'Validation')"
+				},
+				"category": {
+					"type": "string",
+					"enum": [
+						"ui-library",
+						"ui-primitives",
+						"css-framework",
+						"state-management",
+						"router",
+						"data-fetching",
+						"orm",
+						"validation",
+						"auth",
+						"api-framework",
+						"api-client",
+						"testing",
+						"linting",
+						"build-tool",
+						"icons",
+						"animations",
+						"utilities",
+						"other"
+					],
+					"description": "Dependency category for matching against feature needs"
+				},
+				"dev": {
+					"type": "boolean",
+					"description": "devDependency",
+					"default": false
+				},
+				"provides": {
+					"type": "array",
+					"description": "Specific capabilities this dependency provides (e.g., ['Sidebar', 'Dialog', 'Form'] for shadcn)",
+					"items": { "type": "string" }
+				},
+				"docs": {
+					"type": "string",
+					"description": "Context7 library ID or docs URL for reference"
+				},
+				"bestPractices": {
+					"type": "array",
+					"description": "Key usage rules — agents MUST follow these",
+					"items": { "type": "string" }
+				}
+			}
+		},
+		"config": {
+			"type": "object",
+			"required": ["file", "tool"],
+			"properties": {
+				"file": {
+					"type": "string",
+					"description": "Relative path to config file"
+				},
+				"tool": {
+					"type": "string",
+					"description": "Tool name (tailwind, biome, drizzle, vite, etc.)"
+				},
+				"notes": {
+					"type": "string",
+					"description": "Key config details (e.g., 'Tailwind v4 — CSS-based, no config file')"
+				}
+			}
+		},
+		"componentRegistry": {
+			"type": "object",
+			"required": ["type", "configPath", "installCommand", "installed"],
+			"properties": {
+				"type": {
+					"type": "string",
+					"description": "Registry type (shadcn, radix-themes, etc.)"
+				},
+				"style": {
+					"type": "string",
+					"description": "Style variant (base-lyra, new-york, default, etc.)"
+				},
+				"configPath": {
+					"type": "string",
+					"description": "Path to config file (e.g., apps/web/components.json)"
+				},
+				"componentDir": {
+					"type": "string",
+					"description": "Where components live (e.g., apps/web/src/components/ui)"
+				},
+				"installCommand": {
+					"type": "string",
+					"description": "CLI command to install new components (e.g., 'bunx shadcn@latest add')"
+				},
+				"installed": {
+					"type": "array",
+					"description": "Currently installed component names",
+					"items": { "type": "string" }
+				},
+				"available": {
+					"type": "array",
+					"description": "Known available components not yet installed",
+					"items": { "type": "string" }
+				}
+			}
+		}
+	}
 }

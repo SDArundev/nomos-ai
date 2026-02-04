@@ -1,668 +1,720 @@
 {
-  "$schema": "./schemas/stack.schema.json",
-  "project": {
-    "name": "nomos-ai",
-    "runtime": "bun",
-    "packageManager": "bun@1.3.0",
-    "monorepo": true,
-    "buildSystem": "turborepo"
-  },
-  "packages": [
-    {
-      "name": "web",
-      "path": "apps/web",
-      "layer": "frontend",
-      "language": "typescript",
-      "framework": "react",
-      "dependencies": [
-        {
-          "name": "react",
-          "version": "19.2.3",
-          "purpose": "UI framework — React 19 with Server Components support",
-          "category": "ui-library",
-          "provides": ["JSX", "hooks", "concurrent rendering", "use hook", "Server Components"],
-          "docs": "react",
-          "bestPractices": [
-            "Use React 19 'use' hook for promises/context instead of useEffect+useState",
-            "Prefer function components with hooks over class components",
-            "Use React.lazy + Suspense for code splitting"
-          ]
-        },
-        {
-          "name": "react-dom",
-          "version": "19.2.3",
-          "purpose": "React DOM rendering",
-          "category": "ui-library"
-        },
-        {
-          "name": "@tanstack/react-router",
-          "version": "^1.141.1",
-          "purpose": "File-based routing with type-safe navigation",
-          "category": "router",
-          "provides": ["file-based routes", "type-safe links", "search params", "loaders", "route context"],
-          "docs": "@tanstack/react-router",
-          "bestPractices": [
-            "Define routes in apps/web/src/routes/ using file-based convention",
-            "Use routeTree.gen.ts (auto-generated — never edit manually)",
-            "Use Link component for navigation, never raw <a> tags for internal routes",
-            "Use route loaders for data fetching, not useEffect"
-          ]
-        },
-        {
-          "name": "@tanstack/react-query",
-          "version": "^5.90.12",
-          "purpose": "Server state management, caching, and data fetching",
-          "category": "data-fetching",
-          "provides": ["useQuery", "useMutation", "query invalidation", "optimistic updates", "infinite queries"],
-          "docs": "@tanstack/react-query",
-          "bestPractices": [
-            "Use with @orpc/tanstack-query for type-safe API calls",
-            "Never use raw fetch/axios — always go through TanStack Query",
-            "Invalidate queries after mutations using queryClient.invalidateQueries",
-            "Use staleTime to control refetch behavior"
-          ]
-        },
-        {
-          "name": "@orpc/tanstack-query",
-          "version": "^1.12.2",
-          "purpose": "Type-safe bridge between oRPC and TanStack Query",
-          "category": "data-fetching",
-          "provides": ["type-safe query hooks from oRPC contracts"],
-          "bestPractices": [
-            "Import hooks from the configured oRPC client, not raw TanStack Query",
-            "oRPC provides end-to-end type safety — never manually type API responses"
-          ]
-        },
-        {
-          "name": "@orpc/client",
-          "version": "^1.12.2",
-          "purpose": "oRPC client for type-safe API communication",
-          "category": "api-client",
-          "provides": ["type-safe RPC client", "contract-first API calls"],
-          "docs": "@orpc/client"
-        },
-        {
-          "name": "zustand",
-          "version": "^5.0.10",
-          "purpose": "Client-side state management (non-server state)",
-          "category": "state-management",
-          "provides": ["global stores", "selectors", "middleware", "persist", "devtools"],
-          "docs": "zustand",
-          "bestPractices": [
-            "Use Zustand for CLIENT state only (UI state, preferences, local selections)",
-            "Use TanStack Query for SERVER state (API data, cached entities)",
-            "Never duplicate server data in Zustand stores",
-            "Keep stores small and focused — one store per domain"
-          ]
-        },
-        {
-          "name": "tailwindcss",
-          "version": "^4.0.15",
-          "purpose": "Utility-first CSS framework",
-          "category": "css-framework",
-          "dev": true,
-          "provides": ["utility classes", "responsive design", "dark mode", "CSS variables"],
-          "docs": "tailwindcss",
-          "bestPractices": [
-            "Tailwind v4 uses CSS-based config (index.css @theme), NOT tailwind.config.js",
-            "Use the cn() utility from lib/utils.ts for conditional classes",
-            "Use tw-animate-css for animations, not custom keyframes",
-            "Use Tailwind classes directly — never write custom CSS unless unavoidable"
-          ]
-        },
-        {
-          "name": "@tailwindcss/vite",
-          "version": "^4.0.15",
-          "purpose": "Tailwind CSS Vite plugin for v4",
-          "category": "build-tool"
-        },
-        {
-          "name": "shadcn",
-          "version": "^3.6.2",
-          "purpose": "CLI for installing shadcn/ui components (copy-paste component system)",
-          "category": "ui-primitives",
-          "provides": ["component installer CLI"],
-          "bestPractices": [
-            "Install components via 'bunx shadcn@latest add <component>' from apps/web/",
-            "Components are copied to apps/web/src/components/ui/ — they are editable",
-            "NEVER hand-roll a component that shadcn provides — install it instead",
-            "Check the installed list before building custom UI"
-          ]
-        },
-        {
-          "name": "@base-ui/react",
-          "version": "^1.0.0",
-          "purpose": "Unstyled UI primitives (used by shadcn base-lyra style)",
-          "category": "ui-primitives",
-          "provides": ["headless UI primitives", "accessibility", "keyboard navigation"],
-          "bestPractices": [
-            "Base UI replaces Radix UI in the base-lyra shadcn style",
-            "Do not install @radix-ui packages — use @base-ui/react instead",
-            "Primitives are unstyled — always apply Tailwind classes"
-          ]
-        },
-        {
-          "name": "class-variance-authority",
-          "version": "^0.7.1",
-          "purpose": "Variant-based component styling (cva)",
-          "category": "utilities",
-          "provides": ["cva function for component variants"],
-          "bestPractices": [
-            "Use cva() for components with multiple visual variants",
-            "Combine with cn() for conditional class merging"
-          ]
-        },
-        {
-          "name": "clsx",
-          "version": "^2.1.1",
-          "purpose": "Conditional className construction",
-          "category": "utilities",
-          "provides": ["clsx function"]
-        },
-        {
-          "name": "tailwind-merge",
-          "version": "^3.3.1",
-          "purpose": "Merge Tailwind classes without conflicts",
-          "category": "utilities",
-          "provides": ["twMerge function"],
-          "bestPractices": [
-            "Always use cn() (wraps clsx + twMerge) from lib/utils.ts instead of raw clsx or twMerge"
-          ]
-        },
-        {
-          "name": "lucide-react",
-          "version": "^0.473.0",
-          "purpose": "Icon library",
-          "category": "icons",
-          "provides": ["SVG icon components"],
-          "bestPractices": [
-            "Import icons individually: import { Home } from 'lucide-react'",
-            "NEVER use other icon libraries — lucide-react is the standard"
-          ]
-        },
-        {
-          "name": "sonner",
-          "version": "^2.0.5",
-          "purpose": "Toast notifications",
-          "category": "ui-library",
-          "provides": ["toast function", "Toaster component"],
-          "bestPractices": [
-            "Use toast() from sonner for all user notifications",
-            "Toaster component is already mounted via shadcn sonner component"
-          ]
-        },
-        {
-          "name": "next-themes",
-          "version": "^0.4.6",
-          "purpose": "Theme management (light/dark mode)",
-          "category": "utilities",
-          "provides": ["ThemeProvider", "useTheme hook"],
-          "bestPractices": [
-            "Use useTheme() hook for theme switching",
-            "ThemeProvider wraps the app — check root layout"
-          ]
-        },
-        {
-          "name": "tw-animate-css",
-          "version": "^1.2.5",
-          "purpose": "Tailwind CSS animation utilities",
-          "category": "animations",
-          "provides": ["animate-* Tailwind classes"]
-        },
-        {
-          "name": "@tanstack/react-form",
-          "version": "^1.12.3",
-          "purpose": "Type-safe form management",
-          "category": "ui-library",
-          "provides": ["useForm", "form validation", "field-level validation"],
-          "docs": "@tanstack/react-form",
-          "bestPractices": [
-            "Use TanStack Form for all forms, not raw useState or uncontrolled inputs",
-            "Combine with Zod validators via @hookform/resolvers"
-          ]
-        },
-        {
-          "name": "@hookform/resolvers",
-          "version": "^5.1.1",
-          "purpose": "Schema validation resolvers for forms",
-          "category": "validation",
-          "provides": ["zodResolver for form validation"]
-        },
-        {
-          "name": "better-auth",
-          "version": "^1.4.9",
-          "purpose": "Authentication library (client-side)",
-          "category": "auth",
-          "provides": ["auth client", "session management", "social login"],
-          "docs": "better-auth"
-        },
-        {
-          "name": "zod",
-          "version": "^4.1.13",
-          "purpose": "Schema validation and type inference",
-          "category": "validation",
-          "provides": ["schema definition", "parsing", "type inference"],
-          "docs": "zod",
-          "bestPractices": [
-            "This is Zod v4 — use z.object(), z.string(), etc.",
-            "Use Zod schemas as single source of truth for validation",
-            "Infer TypeScript types from Zod schemas: z.infer<typeof schema>"
-          ]
-        },
-        {
-          "name": "vite",
-          "version": "^6.2.2",
-          "purpose": "Build tool and dev server",
-          "category": "build-tool",
-          "dev": true,
-          "provides": ["dev server", "HMR", "build", "preview"]
-        },
-        {
-          "name": "@vitejs/plugin-react",
-          "version": "^4.3.4",
-          "purpose": "React support for Vite (JSX transform, Fast Refresh)",
-          "category": "build-tool",
-          "dev": true
-        },
-        {
-          "name": "@tanstack/router-plugin",
-          "version": "^1.141.1",
-          "purpose": "Vite plugin for TanStack Router file-based routing",
-          "category": "build-tool",
-          "dev": true
-        },
-        {
-          "name": "@tanstack/react-query-devtools",
-          "version": "^5.91.1",
-          "purpose": "TanStack Query developer tools",
-          "category": "testing",
-          "dev": true
-        },
-        {
-          "name": "@tanstack/react-router-devtools",
-          "version": "^1.141.1",
-          "purpose": "TanStack Router developer tools",
-          "category": "testing",
-          "dev": true
-        },
-        {
-          "name": "@tauri-apps/cli",
-          "version": "^2.4.0",
-          "purpose": "Tauri CLI for desktop app builds",
-          "category": "build-tool",
-          "dev": true
-        }
-      ],
-      "configs": [
-        {
-          "file": "apps/web/vite.config.ts",
-          "tool": "vite",
-          "notes": "Plugins: tailwindcss, tanstackRouter, react. Alias: @ → ./src. Dev port: 3001"
-        },
-        {
-          "file": "apps/web/tsconfig.json",
-          "tool": "typescript",
-          "notes": "Strict mode, JSX react-jsx, path alias @/* → src/*"
-        },
-        {
-          "file": "apps/web/components.json",
-          "tool": "shadcn",
-          "notes": "Style: base-lyra. Icon library: lucide. CSS variables enabled. Component dir: src/components/ui"
-        }
-      ],
-      "scripts": {
-        "dev": "vite dev",
-        "build": "vite build",
-        "serve": "vite preview",
-        "check-types": "tsc --noEmit",
-        "desktop:dev": "tauri dev",
-        "desktop:build": "tauri build"
-      }
-    },
-    {
-      "name": "server",
-      "path": "apps/server",
-      "layer": "backend",
-      "language": "typescript",
-      "framework": "hono",
-      "dependencies": [
-        {
-          "name": "hono",
-          "version": "^4.8.2",
-          "purpose": "Lightweight web framework for the backend API",
-          "category": "api-framework",
-          "provides": ["HTTP server", "middleware", "routing", "context"],
-          "docs": "hono",
-          "bestPractices": [
-            "Use Hono middleware for cross-cutting concerns (auth, cors, logging)",
-            "Route handlers delegate to oRPC procedures — keep Hono routes thin",
-            "Use Hono's JSX for server-rendered responses if needed"
-          ]
-        },
-        {
-          "name": "@orpc/server",
-          "version": "^1.12.2",
-          "purpose": "oRPC server for type-safe API procedures",
-          "category": "api-framework",
-          "provides": ["type-safe procedures", "middleware", "contract-first API"],
-          "docs": "@orpc/server",
-          "bestPractices": [
-            "Define all API logic as oRPC procedures in packages/api/",
-            "Use Zod schemas for input/output validation in procedures",
-            "Server app mounts oRPC router — don't add business logic in apps/server/"
-          ]
-        },
-        {
-          "name": "@orpc/openapi",
-          "version": "^1.12.2",
-          "purpose": "OpenAPI spec generation from oRPC contracts",
-          "category": "api-framework",
-          "provides": ["auto-generated OpenAPI docs"]
-        },
-        {
-          "name": "@orpc/zod",
-          "version": "^1.12.2",
-          "purpose": "Zod integration for oRPC schema validation",
-          "category": "validation"
-        },
-        {
-          "name": "better-auth",
-          "version": "^1.4.9",
-          "purpose": "Authentication library (server-side)",
-          "category": "auth",
-          "provides": ["auth server", "session management", "email/password", "social login"],
-          "docs": "better-auth",
-          "bestPractices": [
-            "Auth config is in packages/auth/ — don't duplicate in apps/server/",
-            "Use better-auth middleware with Hono for route protection"
-          ]
-        },
-        {
-          "name": "tsdown",
-          "version": "^0.16.5",
-          "purpose": "TypeScript bundler for server builds",
-          "category": "build-tool",
-          "dev": true
-        }
-      ],
-      "configs": [
-        {
-          "file": "apps/server/tsconfig.json",
-          "tool": "typescript",
-          "notes": "Extends base config. Composite. JSX: react-jsx, jsxImportSource: hono/jsx"
-        }
-      ],
-      "scripts": {
-        "dev": "bun run --hot src/index.ts",
-        "build": "tsdown",
-        "check-types": "tsc -b",
-        "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
-        "start": "bun run dist/index.js"
-      }
-    },
-    {
-      "name": "@nomos-ai/api",
-      "path": "packages/api",
-      "layer": "api",
-      "language": "typescript",
-      "dependencies": [
-        {
-          "name": "@orpc/server",
-          "version": "^1.12.2",
-          "purpose": "oRPC procedure definitions (the API contract)",
-          "category": "api-framework",
-          "provides": ["procedures", "routers", "middleware"]
-        },
-        {
-          "name": "@orpc/client",
-          "version": "^1.12.2",
-          "purpose": "oRPC client types for frontend consumption",
-          "category": "api-client"
-        },
-        {
-          "name": "@orpc/openapi",
-          "version": "^1.12.2",
-          "purpose": "OpenAPI spec generation",
-          "category": "api-framework"
-        },
-        {
-          "name": "@orpc/zod",
-          "version": "^1.12.2",
-          "purpose": "Zod schema integration for oRPC",
-          "category": "validation"
-        },
-        {
-          "name": "zod",
-          "version": "^4.1.13",
-          "purpose": "Input/output schema validation for procedures",
-          "category": "validation"
-        }
-      ],
-      "configs": [
-        {
-          "file": "packages/api/tsconfig.json",
-          "tool": "typescript",
-          "notes": "Extends base config. Composite."
-        }
-      ]
-    },
-    {
-      "name": "@nomos-ai/db",
-      "path": "packages/db",
-      "layer": "database",
-      "language": "typescript",
-      "dependencies": [
-        {
-          "name": "drizzle-orm",
-          "version": "^0.45.1",
-          "purpose": "Type-safe ORM for SQLite/Turso",
-          "category": "orm",
-          "provides": ["schema builder", "query builder", "migrations", "relations"],
-          "docs": "drizzle-orm",
-          "bestPractices": [
-            "Define all schemas in packages/db/src/schema/",
-            "Use drizzle-kit for migrations (db:generate, db:push, db:migrate)",
-            "Export schemas and db client from packages/db — don't access DB directly elsewhere",
-            "Use Drizzle's query API for complex queries, SQL template for raw queries"
-          ]
-        },
-        {
-          "name": "drizzle-kit",
-          "version": "^0.31.8",
-          "purpose": "Drizzle migration and studio tooling",
-          "category": "orm",
-          "dev": true,
-          "provides": ["schema push", "migration generation", "studio UI"]
-        },
-        {
-          "name": "@libsql/client",
-          "version": "0.15.15",
-          "purpose": "LibSQL/Turso database client",
-          "category": "other",
-          "provides": ["database connection for Turso/SQLite"]
-        },
-        {
-          "name": "libsql",
-          "version": "0.5.22",
-          "purpose": "LibSQL native bindings",
-          "category": "other"
-        }
-      ],
-      "configs": [
-        {
-          "file": "packages/db/drizzle.config.ts",
-          "tool": "drizzle",
-          "notes": "Dialect: turso. Schema: ./src/schema. Out: ./src/migrations"
-        },
-        {
-          "file": "packages/db/tsconfig.json",
-          "tool": "typescript",
-          "notes": "Extends base config. Composite."
-        }
-      ],
-      "scripts": {
-        "db:local": "turso dev --db-file local.db",
-        "db:push": "drizzle-kit push",
-        "db:generate": "drizzle-kit generate",
-        "db:studio": "drizzle-kit studio",
-        "db:migrate": "drizzle-kit migrate"
-      }
-    },
-    {
-      "name": "@nomos-ai/auth",
-      "path": "packages/auth",
-      "layer": "auth",
-      "language": "typescript",
-      "dependencies": [
-        {
-          "name": "better-auth",
-          "version": "^1.4.9",
-          "purpose": "Authentication configuration and providers",
-          "category": "auth",
-          "provides": ["auth config", "email/password", "social login", "session management"],
-          "docs": "better-auth",
-          "bestPractices": [
-            "All auth configuration lives here — don't create auth logic elsewhere",
-            "Exports auth instance consumed by both server and client packages"
-          ]
-        }
-      ],
-      "configs": [
-        {
-          "file": "packages/auth/tsconfig.json",
-          "tool": "typescript",
-          "notes": "Extends base config. Composite."
-        }
-      ]
-    },
-    {
-      "name": "@nomos-ai/env",
-      "path": "packages/env",
-      "layer": "config",
-      "language": "typescript",
-      "dependencies": [
-        {
-          "name": "@t3-oss/env-core",
-          "version": "^0.13.1",
-          "purpose": "Type-safe environment variable validation",
-          "category": "validation",
-          "provides": ["env schema validation", "type-safe env access"],
-          "bestPractices": [
-            "All env vars must be declared in this package",
-            "Import env from @nomos-ai/env/server or @nomos-ai/env/web",
-            "Never use process.env directly — always go through the typed env"
-          ]
-        },
-        {
-          "name": "dotenv",
-          "version": "^17.2.2",
-          "purpose": "Environment variable loading from .env files",
-          "category": "utilities"
-        }
-      ],
-      "configs": [
-        {
-          "file": "packages/env/tsconfig.json",
-          "tool": "typescript",
-          "notes": "Extends base config."
-        }
-      ]
-    },
-    {
-      "name": "@nomos-ai/types",
-      "path": "packages/types",
-      "layer": "types",
-      "language": "typescript",
-      "dependencies": [
-        {
-          "name": "zod",
-          "version": "^4.1.13",
-          "purpose": "Schema definitions for shared types",
-          "category": "validation"
-        }
-      ],
-      "configs": [
-        {
-          "file": "packages/types/tsconfig.json",
-          "tool": "typescript",
-          "notes": "Extends base config. Composite."
-        }
-      ]
-    },
-    {
-      "name": "@nomos-ai/config",
-      "path": "packages/config",
-      "layer": "config",
-      "language": "typescript",
-      "dependencies": [],
-      "configs": [
-        {
-          "file": "packages/config/tsconfig.base.json",
-          "tool": "typescript",
-          "notes": "Base tsconfig for all packages. Strict mode, ESNext, bundler resolution, noUncheckedIndexedAccess."
-        }
-      ]
-    }
-  ],
-  "componentRegistries": [
-    {
-      "type": "shadcn",
-      "style": "base-lyra",
-      "configPath": "apps/web/components.json",
-      "componentDir": "apps/web/src/components/ui",
-      "installCommand": "cd apps/web && bunx shadcn@latest add",
-      "installed": [
-        "button",
-        "card",
-        "checkbox",
-        "dropdown-menu",
-        "input",
-        "label",
-        "skeleton",
-        "sonner"
-      ],
-      "available": [
-        "accordion",
-        "alert",
-        "alert-dialog",
-        "aspect-ratio",
-        "avatar",
-        "badge",
-        "breadcrumb",
-        "calendar",
-        "chart",
-        "collapsible",
-        "command",
-        "context-menu",
-        "data-table",
-        "date-picker",
-        "dialog",
-        "drawer",
-        "form",
-        "hover-card",
-        "menubar",
-        "navigation-menu",
-        "pagination",
-        "popover",
-        "progress",
-        "radio-group",
-        "resizable",
-        "scroll-area",
-        "select",
-        "separator",
-        "sheet",
-        "sidebar",
-        "slider",
-        "switch",
-        "table",
-        "tabs",
-        "textarea",
-        "toast",
-        "toggle",
-        "toggle-group",
-        "tooltip"
-      ]
-    }
-  ],
-  "updatedAt": "2025-01-31T00:00:00Z"
+	"$schema": "./schemas/stack.schema.json",
+	"project": {
+		"name": "nomos-ai",
+		"runtime": "bun",
+		"packageManager": "bun@1.3.0",
+		"monorepo": true,
+		"buildSystem": "turborepo"
+	},
+	"packages": [
+		{
+			"name": "web",
+			"path": "apps/web",
+			"layer": "frontend",
+			"language": "typescript",
+			"framework": "react",
+			"dependencies": [
+				{
+					"name": "react",
+					"version": "19.2.3",
+					"purpose": "UI framework — React 19 with Server Components support",
+					"category": "ui-library",
+					"provides": [
+						"JSX",
+						"hooks",
+						"concurrent rendering",
+						"use hook",
+						"Server Components"
+					],
+					"docs": "react",
+					"bestPractices": [
+						"Use React 19 'use' hook for promises/context instead of useEffect+useState",
+						"Prefer function components with hooks over class components",
+						"Use React.lazy + Suspense for code splitting"
+					]
+				},
+				{
+					"name": "react-dom",
+					"version": "19.2.3",
+					"purpose": "React DOM rendering",
+					"category": "ui-library"
+				},
+				{
+					"name": "@tanstack/react-router",
+					"version": "^1.141.1",
+					"purpose": "File-based routing with type-safe navigation",
+					"category": "router",
+					"provides": [
+						"file-based routes",
+						"type-safe links",
+						"search params",
+						"loaders",
+						"route context"
+					],
+					"docs": "@tanstack/react-router",
+					"bestPractices": [
+						"Define routes in apps/web/src/routes/ using file-based convention",
+						"Use routeTree.gen.ts (auto-generated — never edit manually)",
+						"Use Link component for navigation, never raw <a> tags for internal routes",
+						"Use route loaders for data fetching, not useEffect"
+					]
+				},
+				{
+					"name": "@tanstack/react-query",
+					"version": "^5.90.12",
+					"purpose": "Server state management, caching, and data fetching",
+					"category": "data-fetching",
+					"provides": [
+						"useQuery",
+						"useMutation",
+						"query invalidation",
+						"optimistic updates",
+						"infinite queries"
+					],
+					"docs": "@tanstack/react-query",
+					"bestPractices": [
+						"Use with @orpc/tanstack-query for type-safe API calls",
+						"Never use raw fetch/axios — always go through TanStack Query",
+						"Invalidate queries after mutations using queryClient.invalidateQueries",
+						"Use staleTime to control refetch behavior"
+					]
+				},
+				{
+					"name": "@orpc/tanstack-query",
+					"version": "^1.12.2",
+					"purpose": "Type-safe bridge between oRPC and TanStack Query",
+					"category": "data-fetching",
+					"provides": ["type-safe query hooks from oRPC contracts"],
+					"bestPractices": [
+						"Import hooks from the configured oRPC client, not raw TanStack Query",
+						"oRPC provides end-to-end type safety — never manually type API responses"
+					]
+				},
+				{
+					"name": "@orpc/client",
+					"version": "^1.12.2",
+					"purpose": "oRPC client for type-safe API communication",
+					"category": "api-client",
+					"provides": ["type-safe RPC client", "contract-first API calls"],
+					"docs": "@orpc/client"
+				},
+				{
+					"name": "zustand",
+					"version": "^5.0.10",
+					"purpose": "Client-side state management (non-server state)",
+					"category": "state-management",
+					"provides": [
+						"global stores",
+						"selectors",
+						"middleware",
+						"persist",
+						"devtools"
+					],
+					"docs": "zustand",
+					"bestPractices": [
+						"Use Zustand for CLIENT state only (UI state, preferences, local selections)",
+						"Use TanStack Query for SERVER state (API data, cached entities)",
+						"Never duplicate server data in Zustand stores",
+						"Keep stores small and focused — one store per domain"
+					]
+				},
+				{
+					"name": "tailwindcss",
+					"version": "^4.0.15",
+					"purpose": "Utility-first CSS framework",
+					"category": "css-framework",
+					"dev": true,
+					"provides": [
+						"utility classes",
+						"responsive design",
+						"dark mode",
+						"CSS variables"
+					],
+					"docs": "tailwindcss",
+					"bestPractices": [
+						"Tailwind v4 uses CSS-based config (index.css @theme), NOT tailwind.config.js",
+						"Use the cn() utility from lib/utils.ts for conditional classes",
+						"Use tw-animate-css for animations, not custom keyframes",
+						"Use Tailwind classes directly — never write custom CSS unless unavoidable"
+					]
+				},
+				{
+					"name": "@tailwindcss/vite",
+					"version": "^4.0.15",
+					"purpose": "Tailwind CSS Vite plugin for v4",
+					"category": "build-tool"
+				},
+				{
+					"name": "shadcn",
+					"version": "^3.6.2",
+					"purpose": "CLI for installing shadcn/ui components (copy-paste component system)",
+					"category": "ui-primitives",
+					"provides": ["component installer CLI"],
+					"bestPractices": [
+						"Install components via 'bunx shadcn@latest add <component>' from apps/web/",
+						"Components are copied to apps/web/src/components/ui/ — they are editable",
+						"NEVER hand-roll a component that shadcn provides — install it instead",
+						"Check the installed list before building custom UI"
+					]
+				},
+				{
+					"name": "@base-ui/react",
+					"version": "^1.0.0",
+					"purpose": "Unstyled UI primitives (used by shadcn base-lyra style)",
+					"category": "ui-primitives",
+					"provides": [
+						"headless UI primitives",
+						"accessibility",
+						"keyboard navigation"
+					],
+					"bestPractices": [
+						"Base UI replaces Radix UI in the base-lyra shadcn style",
+						"Do not install @radix-ui packages — use @base-ui/react instead",
+						"Primitives are unstyled — always apply Tailwind classes"
+					]
+				},
+				{
+					"name": "class-variance-authority",
+					"version": "^0.7.1",
+					"purpose": "Variant-based component styling (cva)",
+					"category": "utilities",
+					"provides": ["cva function for component variants"],
+					"bestPractices": [
+						"Use cva() for components with multiple visual variants",
+						"Combine with cn() for conditional class merging"
+					]
+				},
+				{
+					"name": "clsx",
+					"version": "^2.1.1",
+					"purpose": "Conditional className construction",
+					"category": "utilities",
+					"provides": ["clsx function"]
+				},
+				{
+					"name": "tailwind-merge",
+					"version": "^3.3.1",
+					"purpose": "Merge Tailwind classes without conflicts",
+					"category": "utilities",
+					"provides": ["twMerge function"],
+					"bestPractices": [
+						"Always use cn() (wraps clsx + twMerge) from lib/utils.ts instead of raw clsx or twMerge"
+					]
+				},
+				{
+					"name": "lucide-react",
+					"version": "^0.473.0",
+					"purpose": "Icon library",
+					"category": "icons",
+					"provides": ["SVG icon components"],
+					"bestPractices": [
+						"Import icons individually: import { Home } from 'lucide-react'",
+						"NEVER use other icon libraries — lucide-react is the standard"
+					]
+				},
+				{
+					"name": "sonner",
+					"version": "^2.0.5",
+					"purpose": "Toast notifications",
+					"category": "ui-library",
+					"provides": ["toast function", "Toaster component"],
+					"bestPractices": [
+						"Use toast() from sonner for all user notifications",
+						"Toaster component is already mounted via shadcn sonner component"
+					]
+				},
+				{
+					"name": "next-themes",
+					"version": "^0.4.6",
+					"purpose": "Theme management (light/dark mode)",
+					"category": "utilities",
+					"provides": ["ThemeProvider", "useTheme hook"],
+					"bestPractices": [
+						"Use useTheme() hook for theme switching",
+						"ThemeProvider wraps the app — check root layout"
+					]
+				},
+				{
+					"name": "tw-animate-css",
+					"version": "^1.2.5",
+					"purpose": "Tailwind CSS animation utilities",
+					"category": "animations",
+					"provides": ["animate-* Tailwind classes"]
+				},
+				{
+					"name": "@tanstack/react-form",
+					"version": "^1.12.3",
+					"purpose": "Type-safe form management",
+					"category": "ui-library",
+					"provides": ["useForm", "form validation", "field-level validation"],
+					"docs": "@tanstack/react-form",
+					"bestPractices": [
+						"Use TanStack Form for all forms, not raw useState or uncontrolled inputs",
+						"Combine with Zod validators via @hookform/resolvers"
+					]
+				},
+				{
+					"name": "@hookform/resolvers",
+					"version": "^5.1.1",
+					"purpose": "Schema validation resolvers for forms",
+					"category": "validation",
+					"provides": ["zodResolver for form validation"]
+				},
+				{
+					"name": "better-auth",
+					"version": "^1.4.9",
+					"purpose": "Authentication library (client-side)",
+					"category": "auth",
+					"provides": ["auth client", "session management", "social login"],
+					"docs": "better-auth"
+				},
+				{
+					"name": "zod",
+					"version": "^4.1.13",
+					"purpose": "Schema validation and type inference",
+					"category": "validation",
+					"provides": ["schema definition", "parsing", "type inference"],
+					"docs": "zod",
+					"bestPractices": [
+						"This is Zod v4 — use z.object(), z.string(), etc.",
+						"Use Zod schemas as single source of truth for validation",
+						"Infer TypeScript types from Zod schemas: z.infer<typeof schema>"
+					]
+				},
+				{
+					"name": "vite",
+					"version": "^6.2.2",
+					"purpose": "Build tool and dev server",
+					"category": "build-tool",
+					"dev": true,
+					"provides": ["dev server", "HMR", "build", "preview"]
+				},
+				{
+					"name": "@vitejs/plugin-react",
+					"version": "^4.3.4",
+					"purpose": "React support for Vite (JSX transform, Fast Refresh)",
+					"category": "build-tool",
+					"dev": true
+				},
+				{
+					"name": "@tanstack/router-plugin",
+					"version": "^1.141.1",
+					"purpose": "Vite plugin for TanStack Router file-based routing",
+					"category": "build-tool",
+					"dev": true
+				},
+				{
+					"name": "@tanstack/react-query-devtools",
+					"version": "^5.91.1",
+					"purpose": "TanStack Query developer tools",
+					"category": "testing",
+					"dev": true
+				},
+				{
+					"name": "@tanstack/react-router-devtools",
+					"version": "^1.141.1",
+					"purpose": "TanStack Router developer tools",
+					"category": "testing",
+					"dev": true
+				},
+				{
+					"name": "@tauri-apps/cli",
+					"version": "^2.4.0",
+					"purpose": "Tauri CLI for desktop app builds",
+					"category": "build-tool",
+					"dev": true
+				}
+			],
+			"configs": [
+				{
+					"file": "apps/web/vite.config.ts",
+					"tool": "vite",
+					"notes": "Plugins: tailwindcss, tanstackRouter, react. Alias: @ → ./src. Dev port: 3001"
+				},
+				{
+					"file": "apps/web/tsconfig.json",
+					"tool": "typescript",
+					"notes": "Strict mode, JSX react-jsx, path alias @/* → src/*"
+				},
+				{
+					"file": "apps/web/components.json",
+					"tool": "shadcn",
+					"notes": "Style: base-lyra. Icon library: lucide. CSS variables enabled. Component dir: src/components/ui"
+				}
+			],
+			"scripts": {
+				"dev": "vite dev",
+				"build": "vite build",
+				"serve": "vite preview",
+				"check-types": "tsc --noEmit",
+				"desktop:dev": "tauri dev",
+				"desktop:build": "tauri build"
+			}
+		},
+		{
+			"name": "server",
+			"path": "apps/server",
+			"layer": "backend",
+			"language": "typescript",
+			"framework": "hono",
+			"dependencies": [
+				{
+					"name": "hono",
+					"version": "^4.8.2",
+					"purpose": "Lightweight web framework for the backend API",
+					"category": "api-framework",
+					"provides": ["HTTP server", "middleware", "routing", "context"],
+					"docs": "hono",
+					"bestPractices": [
+						"Use Hono middleware for cross-cutting concerns (auth, cors, logging)",
+						"Route handlers delegate to oRPC procedures — keep Hono routes thin",
+						"Use Hono's JSX for server-rendered responses if needed"
+					]
+				},
+				{
+					"name": "@orpc/server",
+					"version": "^1.12.2",
+					"purpose": "oRPC server for type-safe API procedures",
+					"category": "api-framework",
+					"provides": [
+						"type-safe procedures",
+						"middleware",
+						"contract-first API"
+					],
+					"docs": "@orpc/server",
+					"bestPractices": [
+						"Define all API logic as oRPC procedures in packages/api/",
+						"Use Zod schemas for input/output validation in procedures",
+						"Server app mounts oRPC router — don't add business logic in apps/server/"
+					]
+				},
+				{
+					"name": "@orpc/openapi",
+					"version": "^1.12.2",
+					"purpose": "OpenAPI spec generation from oRPC contracts",
+					"category": "api-framework",
+					"provides": ["auto-generated OpenAPI docs"]
+				},
+				{
+					"name": "@orpc/zod",
+					"version": "^1.12.2",
+					"purpose": "Zod integration for oRPC schema validation",
+					"category": "validation"
+				},
+				{
+					"name": "better-auth",
+					"version": "^1.4.9",
+					"purpose": "Authentication library (server-side)",
+					"category": "auth",
+					"provides": [
+						"auth server",
+						"session management",
+						"email/password",
+						"social login"
+					],
+					"docs": "better-auth",
+					"bestPractices": [
+						"Auth config is in packages/auth/ — don't duplicate in apps/server/",
+						"Use better-auth middleware with Hono for route protection"
+					]
+				},
+				{
+					"name": "tsdown",
+					"version": "^0.16.5",
+					"purpose": "TypeScript bundler for server builds",
+					"category": "build-tool",
+					"dev": true
+				}
+			],
+			"configs": [
+				{
+					"file": "apps/server/tsconfig.json",
+					"tool": "typescript",
+					"notes": "Extends base config. Composite. JSX: react-jsx, jsxImportSource: hono/jsx"
+				}
+			],
+			"scripts": {
+				"dev": "bun run --hot src/index.ts",
+				"build": "tsdown",
+				"check-types": "tsc -b",
+				"compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+				"start": "bun run dist/index.js"
+			}
+		},
+		{
+			"name": "@nomos-ai/api",
+			"path": "packages/api",
+			"layer": "api",
+			"language": "typescript",
+			"dependencies": [
+				{
+					"name": "@orpc/server",
+					"version": "^1.12.2",
+					"purpose": "oRPC procedure definitions (the API contract)",
+					"category": "api-framework",
+					"provides": ["procedures", "routers", "middleware"]
+				},
+				{
+					"name": "@orpc/client",
+					"version": "^1.12.2",
+					"purpose": "oRPC client types for frontend consumption",
+					"category": "api-client"
+				},
+				{
+					"name": "@orpc/openapi",
+					"version": "^1.12.2",
+					"purpose": "OpenAPI spec generation",
+					"category": "api-framework"
+				},
+				{
+					"name": "@orpc/zod",
+					"version": "^1.12.2",
+					"purpose": "Zod schema integration for oRPC",
+					"category": "validation"
+				},
+				{
+					"name": "zod",
+					"version": "^4.1.13",
+					"purpose": "Input/output schema validation for procedures",
+					"category": "validation"
+				}
+			],
+			"configs": [
+				{
+					"file": "packages/api/tsconfig.json",
+					"tool": "typescript",
+					"notes": "Extends base config. Composite."
+				}
+			]
+		},
+		{
+			"name": "@nomos-ai/db",
+			"path": "packages/db",
+			"layer": "database",
+			"language": "typescript",
+			"dependencies": [
+				{
+					"name": "drizzle-orm",
+					"version": "^0.45.1",
+					"purpose": "Type-safe ORM for SQLite/Turso",
+					"category": "orm",
+					"provides": [
+						"schema builder",
+						"query builder",
+						"migrations",
+						"relations"
+					],
+					"docs": "drizzle-orm",
+					"bestPractices": [
+						"Define all schemas in packages/db/src/schema/",
+						"Use drizzle-kit for migrations (db:generate, db:push, db:migrate)",
+						"Export schemas and db client from packages/db — don't access DB directly elsewhere",
+						"Use Drizzle's query API for complex queries, SQL template for raw queries"
+					]
+				},
+				{
+					"name": "drizzle-kit",
+					"version": "^0.31.8",
+					"purpose": "Drizzle migration and studio tooling",
+					"category": "orm",
+					"dev": true,
+					"provides": ["schema push", "migration generation", "studio UI"]
+				},
+				{
+					"name": "@libsql/client",
+					"version": "0.15.15",
+					"purpose": "LibSQL/Turso database client",
+					"category": "other",
+					"provides": ["database connection for Turso/SQLite"]
+				},
+				{
+					"name": "libsql",
+					"version": "0.5.22",
+					"purpose": "LibSQL native bindings",
+					"category": "other"
+				}
+			],
+			"configs": [
+				{
+					"file": "packages/db/drizzle.config.ts",
+					"tool": "drizzle",
+					"notes": "Dialect: turso. Schema: ./src/schema. Out: ./src/migrations"
+				},
+				{
+					"file": "packages/db/tsconfig.json",
+					"tool": "typescript",
+					"notes": "Extends base config. Composite."
+				}
+			],
+			"scripts": {
+				"db:local": "turso dev --db-file local.db",
+				"db:push": "drizzle-kit push",
+				"db:generate": "drizzle-kit generate",
+				"db:studio": "drizzle-kit studio",
+				"db:migrate": "drizzle-kit migrate"
+			}
+		},
+		{
+			"name": "@nomos-ai/auth",
+			"path": "packages/auth",
+			"layer": "auth",
+			"language": "typescript",
+			"dependencies": [
+				{
+					"name": "better-auth",
+					"version": "^1.4.9",
+					"purpose": "Authentication configuration and providers",
+					"category": "auth",
+					"provides": [
+						"auth config",
+						"email/password",
+						"social login",
+						"session management"
+					],
+					"docs": "better-auth",
+					"bestPractices": [
+						"All auth configuration lives here — don't create auth logic elsewhere",
+						"Exports auth instance consumed by both server and client packages"
+					]
+				}
+			],
+			"configs": [
+				{
+					"file": "packages/auth/tsconfig.json",
+					"tool": "typescript",
+					"notes": "Extends base config. Composite."
+				}
+			]
+		},
+		{
+			"name": "@nomos-ai/env",
+			"path": "packages/env",
+			"layer": "config",
+			"language": "typescript",
+			"dependencies": [
+				{
+					"name": "@t3-oss/env-core",
+					"version": "^0.13.1",
+					"purpose": "Type-safe environment variable validation",
+					"category": "validation",
+					"provides": ["env schema validation", "type-safe env access"],
+					"bestPractices": [
+						"All env vars must be declared in this package",
+						"Import env from @nomos-ai/env/server or @nomos-ai/env/web",
+						"Never use process.env directly — always go through the typed env"
+					]
+				},
+				{
+					"name": "dotenv",
+					"version": "^17.2.2",
+					"purpose": "Environment variable loading from .env files",
+					"category": "utilities"
+				}
+			],
+			"configs": [
+				{
+					"file": "packages/env/tsconfig.json",
+					"tool": "typescript",
+					"notes": "Extends base config."
+				}
+			]
+		},
+		{
+			"name": "@nomos-ai/types",
+			"path": "packages/types",
+			"layer": "types",
+			"language": "typescript",
+			"dependencies": [
+				{
+					"name": "zod",
+					"version": "^4.1.13",
+					"purpose": "Schema definitions for shared types",
+					"category": "validation"
+				}
+			],
+			"configs": [
+				{
+					"file": "packages/types/tsconfig.json",
+					"tool": "typescript",
+					"notes": "Extends base config. Composite."
+				}
+			]
+		},
+		{
+			"name": "@nomos-ai/config",
+			"path": "packages/config",
+			"layer": "config",
+			"language": "typescript",
+			"dependencies": [],
+			"configs": [
+				{
+					"file": "packages/config/tsconfig.base.json",
+					"tool": "typescript",
+					"notes": "Base tsconfig for all packages. Strict mode, ESNext, bundler resolution, noUncheckedIndexedAccess."
+				}
+			]
+		}
+	],
+	"componentRegistries": [
+		{
+			"type": "shadcn",
+			"style": "base-lyra",
+			"configPath": "apps/web/components.json",
+			"componentDir": "apps/web/src/components/ui",
+			"installCommand": "cd apps/web && bunx shadcn@latest add",
+			"installed": [
+				"button",
+				"card",
+				"checkbox",
+				"dropdown-menu",
+				"input",
+				"label",
+				"skeleton",
+				"sonner"
+			],
+			"available": [
+				"accordion",
+				"alert",
+				"alert-dialog",
+				"aspect-ratio",
+				"avatar",
+				"badge",
+				"breadcrumb",
+				"calendar",
+				"chart",
+				"collapsible",
+				"command",
+				"context-menu",
+				"data-table",
+				"date-picker",
+				"dialog",
+				"drawer",
+				"form",
+				"hover-card",
+				"menubar",
+				"navigation-menu",
+				"pagination",
+				"popover",
+				"progress",
+				"radio-group",
+				"resizable",
+				"scroll-area",
+				"select",
+				"separator",
+				"sheet",
+				"sidebar",
+				"slider",
+				"switch",
+				"table",
+				"tabs",
+				"textarea",
+				"toast",
+				"toggle",
+				"toggle-group",
+				"tooltip"
+			]
+		}
+	],
+	"updatedAt": "2025-01-31T00:00:00Z"
 }
