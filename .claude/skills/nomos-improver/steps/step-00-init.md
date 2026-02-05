@@ -6,13 +6,23 @@ next_step: steps/step-01-audit.md
 
 # Step 0: Initialize Improvement
 
-<critical>
-## MANDATORY EXECUTION SEQUENCE
+## State Variables (persist across all steps)
 
-1. Parse intent → 2. Identify scope → 3. Resolve target files → 4. Classify complexity → 5. Present summary → 6. Proceed
-</critical>
+| Variable | Type | Description |
+|----------|------|-------------|
+| `{improvement_type}` | string | audit, improve, fix, add, restructure, optimize |
+| `{scope}` | string | step, agent, template, script, reference, learning, system |
+| `{target_files}` | list | Specific files being inspected or modified |
+| `{cascading_files}` | list | Files requiring updates due to cascading impacts |
+| `{auto_mode}` | boolean | Skip confirmations (from user flags) |
 
-## EXECUTION RULES:
+---
+
+## Execution Sequence
+
+1. Parse intent → 2. Identify scope → 3. Resolve files → 4. Classify complexity → 5. Present summary → 6. Proceed
+
+## Rules
 
 - NEVER start editing files in this step
 - NEVER skip scope identification
@@ -20,8 +30,6 @@ next_step: steps/step-01-audit.md
 - ALWAYS classify complexity to set expectations
 
 ---
-
-## EXECUTION SEQUENCE:
 
 ### 1. Parse User Intent
 

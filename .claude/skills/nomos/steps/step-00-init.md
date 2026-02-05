@@ -16,6 +16,32 @@ You MUST follow these steps IN ORDER. Do NOT skip ahead.
 **STOP AND CHECK:** Before ANY bash command, verify you are on the correct step.
 </critical>
 
+## State Variables (persist throughout all steps)
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `{feature_id}` | string | Feature identifier (e.g., F016) |
+| `{feature_title}` | string | Feature title from features.json |
+| `{feature_description}` | string | Feature description |
+| `{acceptance_criteria}` | list | Success criteria from features.json |
+| `{auto_mode}` | boolean | Skip confirmations |
+| `{test_mode}` | boolean | Include test steps |
+| `{pr_mode}` | boolean | Create pull request at end |
+| `{plan_only}` | boolean | Stop after planning |
+| `{verify_only}` | boolean | Run verify step only |
+| `{learn_only}` | boolean | Run learning extraction only |
+| `{interactive_mode}` | boolean | Configure flags interactively |
+| `{resume_mode}` | boolean | Resume from previous state |
+| `{cleanup_mode}` | boolean | Remove worktree after merge |
+| `{from_step}` | number\|null | Resume from this step (0-6) |
+| `{worktree_path}` | string | Path to feature worktree |
+| `{output_dir}` | string | **ABSOLUTE** path to output directory |
+| `{learned_patterns}` | list | Patterns loaded from learning system |
+| `{risk_level}` | string | LOW/MEDIUM/HIGH from context analysis |
+| `{max_execute_iterations}` | number | Max loop iterations (default: 3) |
+
+---
+
 ## EXECUTION RULES:
 
 - NEVER create output directory before worktree exists
