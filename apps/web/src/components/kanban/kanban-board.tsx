@@ -22,6 +22,7 @@ interface KanbanBoardProps {
 		status: string;
 		priority: number | null;
 		estimatedSize: string | null;
+		dependencies?: string[] | null;
 	}>;
 	onStatusChange: (id: string, status: string) => void;
 }

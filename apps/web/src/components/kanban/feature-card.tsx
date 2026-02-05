@@ -1,5 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Link } from "@tanstack/react-router";
+import { GitBranch } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardDescription,
@@ -13,7 +16,21 @@ interface FeatureCardProps {
 		title: string;
 		priority: number | null;
 		estimatedSize: string | null;
+		dependencies?: string[] | null;
 	};
+}
+
+const priorityColors: Record<string, string> = {
+	high: "bg-red-500 text-white hover:bg-red-600",
+	medium: "bg-yellow-500 text-black hover:bg-yellow-600",
+	low: "bg-neutral-400 text-white hover:bg-neutral-500",
+};
+
+function getPriorityLevel(priority: number | null): string {
+	if (priority === null) return "low";
+	if (priority <= 33) return "high";
+	if (priority <= 66) return "medium";
+	return "low";
 }
 
 export function FeatureCard({ feature }: FeatureCardProps) {
@@ -32,25 +49,49 @@ export function FeatureCard({ feature }: FeatureCardProps) {
 		opacity: isDragging ? 0.5 : 1,
 	};
 
+	const priorityLevel = getPriorityLevel(feature.priority);
+	const dependencyCount = feature.dependencies?.length ?? 0;
+
 	return (
-		<Card
-			ref={setNodeRef}
-			style={style}
-			className="cursor-grab active:cursor-grabbing"
-			{...attributes}
-			{...listeners}
+		<Link
+			to="/features/$featureId"
+			params={{ featureId: feature.id }}
+			className="block"
 		>
-			<CardHeader className="p-4">
-				<CardTitle className="line-clamp-1 text-sm">{feature.title}</CardTitle>
-				<CardDescription className="flex items-center gap-2">
-					{feature.priority && (
-						<span className="font-medium text-xs">P{feature.priority}</span>
-					)}
-					{feature.estimatedSize && (
-						<span className="text-xs">{feature.estimatedSize}</span>
-					)}
-				</CardDescription>
-			</CardHeader>
-		</Card>
+			<Card
+				ref={setNodeRef}
+				style={style}
+				className="cursor-grab transition-colors hover:border-primary active:cursor-grabbing"
+				{...attributes}
+				{...listeners}
+			>
+				<CardHeader className="p-4">
+					<div className="mb-1 flex items-center justify-between">
+						<span className="font-mono text-muted-foreground text-xs">
+							{feature.id}
+						</span>
+						<Badge className={priorityColors[priorityLevel]}>
+							{priorityLevel.toUpperCase()}
+						</Badge>
+					</div>
+					<CardTitle className="line-clamp-1 text-sm">
+						{feature.title}
+					</CardTitle>
+					<CardDescription className="flex items-center gap-2">
+						{feature.estimatedSize && (
+							<Badge variant="outline" className="text-xs">
+								{feature.estimatedSize}
+							</Badge>
+						)}
+						{dependencyCount > 0 && (
+							<span className="flex items-center gap-1 text-xs">
+								<GitBranch className="h-3 w-3" />
+								{dependencyCount}
+							</span>
+						)}
+					</CardDescription>
+				</CardHeader>
+			</Card>
+		</Link>
 	);
 }

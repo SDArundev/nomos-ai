@@ -14,6 +14,7 @@ interface KanbanColumnProps {
 		title: string;
 		priority: number | null;
 		estimatedSize: string | null;
+		dependencies?: string[] | null;
 	}>;
 	color: string;
 }
