@@ -54,6 +54,22 @@
 
 ---
 
+## Merge Evidence (REQUIRED)
+
+| Field | Value |
+|-------|-------|
+| Pre-merge main | _pending_ |
+| Post-merge main | _pending_ |
+| Feature commit | _pending_ |
+| Verification | _pending_ |
+
+<critical>
+This section MUST be filled with actual git hashes.
+Do NOT mark as complete without verification output.
+</critical>
+
+---
+
 ## State Update
 
 **Previous status:** _pending_

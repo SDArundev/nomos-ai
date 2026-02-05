@@ -433,8 +433,12 @@ bash .claude/skills/nomos/scripts/nomos-verify.sh <feature_id> start|wait|smoke|
 
 ## Git Skill Compatibility
 
-NOMOS uses its own git operations during steps 00-06. See `references/merge-strategies.md#git-skill-compatibility` for details.
+NOMOS uses its own git operations during steps 00-06. See:
+- `references/git-operations.md` — **Merge verification, worktree management, commit templates**
+- `references/merge-strategies.md#git-skill-compatibility` — Conflict resolution, skill compatibility
 
 **Key rule:** During NOMOS workflow, use NOMOS git operations only. Outside NOMOS workflow, generic git skills are fine.
+
+**Critical:** All merges MUST be verified using the pattern in `references/git-operations.md#merge-verification`.
 
 </git_skill_policy>

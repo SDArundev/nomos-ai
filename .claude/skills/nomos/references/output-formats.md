@@ -211,6 +211,15 @@ Used at the TOP of output files to enable the next step to start without re-read
 **Insertions:** +{count}
 **Deletions:** -{count}
 
+## Merge Evidence (REQUIRED)
+
+| Field | Value |
+|-------|-------|
+| Pre-merge main | {PRE_MERGE_MAIN} |
+| Post-merge main | {POST_MERGE_MAIN} |
+| Feature commit | {FEATURE_COMMIT} |
+| Verification | PASSED — feature commit is ancestor of main |
+
 ## State Update
 **Previous status:** waiting_approval
 **New status:** verified
