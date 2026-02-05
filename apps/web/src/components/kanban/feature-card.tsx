@@ -18,6 +18,7 @@ interface FeatureCardProps {
 		estimatedSize: string | null;
 		dependencies?: string[] | null;
 	};
+	onClick?: (id: string) => void;
 }
 
 const priorityColors: Record<string, string> = {
@@ -33,7 +34,7 @@ function getPriorityLevel(priority: number | null): string {
 	return "low";
 }
 
-export function FeatureCard({ feature }: FeatureCardProps) {
+export function FeatureCard({ feature, onClick }: FeatureCardProps) {
 	const {
 		attributes,
 		listeners,
@@ -52,46 +53,45 @@ export function FeatureCard({ feature }: FeatureCardProps) {
 	const priorityLevel = getPriorityLevel(feature.priority);
 	const dependencyCount = feature.dependencies?.length ?? 0;
 
+	const handleClick = () => {
+		if (!isDragging && onClick) {
+			onClick(feature.id);
+		}
+	};
+
 	return (
-		<Link
-			to="/features/$featureId"
-			params={{ featureId: feature.id }}
-			className="block"
+		<Card
+			ref={setNodeRef}
+			style={style}
+			className="cursor-grab transition-colors hover:border-primary active:cursor-grabbing"
+			onClick={handleClick}
+			{...attributes}
+			{...listeners}
 		>
-			<Card
-				ref={setNodeRef}
-				style={style}
-				className="cursor-grab transition-colors hover:border-primary active:cursor-grabbing"
-				{...attributes}
-				{...listeners}
-			>
-				<CardHeader className="p-4">
-					<div className="mb-1 flex items-center justify-between">
-						<span className="font-mono text-muted-foreground text-xs">
-							{feature.id}
-						</span>
-						<Badge className={priorityColors[priorityLevel]}>
-							{priorityLevel.toUpperCase()}
+			<CardHeader className="p-4">
+				<div className="mb-1 flex items-center justify-between">
+					<span className="font-mono text-muted-foreground text-xs">
+						{feature.id}
+					</span>
+					<Badge className={priorityColors[priorityLevel]}>
+						{priorityLevel.toUpperCase()}
+					</Badge>
+				</div>
+				<CardTitle className="line-clamp-1 text-sm">{feature.title}</CardTitle>
+				<CardDescription className="flex items-center gap-2">
+					{feature.estimatedSize && (
+						<Badge variant="outline" className="text-xs">
+							{feature.estimatedSize}
 						</Badge>
-					</div>
-					<CardTitle className="line-clamp-1 text-sm">
-						{feature.title}
-					</CardTitle>
-					<CardDescription className="flex items-center gap-2">
-						{feature.estimatedSize && (
-							<Badge variant="outline" className="text-xs">
-								{feature.estimatedSize}
-							</Badge>
-						)}
-						{dependencyCount > 0 && (
-							<span className="flex items-center gap-1 text-xs">
-								<GitBranch className="h-3 w-3" />
-								{dependencyCount}
-							</span>
-						)}
-					</CardDescription>
-				</CardHeader>
-			</Card>
-		</Link>
+					)}
+					{dependencyCount > 0 && (
+						<span className="flex items-center gap-1 text-xs">
+							<GitBranch className="h-3 w-3" />
+							{dependencyCount}
+						</span>
+					)}
+				</CardDescription>
+			</CardHeader>
+		</Card>
 	);
 }

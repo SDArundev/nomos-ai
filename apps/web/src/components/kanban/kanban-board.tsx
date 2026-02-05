@@ -25,6 +25,7 @@ interface KanbanBoardProps {
 		dependencies?: string[] | null;
 	}>;
 	onStatusChange: (id: string, status: string) => void;
+	onFeatureSelect?: (id: string) => void;
 }
 
 // Note: 'failed' is a valid transition target but not shown as a column
@@ -66,7 +67,11 @@ const KANBAN_COLUMNS = [
 	},
 ] as const;
 
-export function KanbanBoard({ features, onStatusChange }: KanbanBoardProps) {
+export function KanbanBoard({
+	features,
+	onStatusChange,
+	onFeatureSelect,
+}: KanbanBoardProps) {
 	const [activeId, setActiveId] = useState<string | null>(null);
 
 	const sensors = useSensors(
@@ -142,12 +147,15 @@ export function KanbanBoard({ features, onStatusChange }: KanbanBoardProps) {
 						title={column.title}
 						color={column.color}
 						features={features.filter((f) => f.status === column.status)}
+						onFeatureSelect={onFeatureSelect}
 					/>
 				))}
 			</div>
 
 			<DragOverlay>
-				{activeFeature ? <FeatureCard feature={activeFeature} /> : null}
+				{activeFeature ? (
+					<FeatureCard feature={activeFeature} onClick={onFeatureSelect} />
+				) : null}
 			</DragOverlay>
 		</DndContext>
 	);

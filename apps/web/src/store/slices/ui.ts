@@ -4,10 +4,13 @@ import type { AppStore } from "../index";
 export interface UISlice {
 	sidebarCollapsed: boolean;
 	commandPaletteOpen: boolean;
+	detailPanelOpen: boolean;
 	toggleSidebar: () => void;
 	setSidebarCollapsed: (collapsed: boolean) => void;
 	toggleCommandPalette: () => void;
 	setCommandPaletteOpen: (open: boolean) => void;
+	toggleDetailPanel: () => void;
+	setDetailPanelOpen: (open: boolean) => void;
 }
 
 export const createUISlice: StateCreator<
@@ -18,6 +21,7 @@ export const createUISlice: StateCreator<
 > = (set) => ({
 	sidebarCollapsed: false,
 	commandPaletteOpen: false,
+	detailPanelOpen: false,
 	toggleSidebar: () =>
 		set(
 			(state) => ({ sidebarCollapsed: !state.sidebarCollapsed }),
@@ -34,4 +38,12 @@ export const createUISlice: StateCreator<
 		),
 	setCommandPaletteOpen: (open) =>
 		set({ commandPaletteOpen: open }, undefined, "ui/setCommandPaletteOpen"),
+	toggleDetailPanel: () =>
+		set(
+			(state) => ({ detailPanelOpen: !state.detailPanelOpen }),
+			undefined,
+			"ui/toggleDetailPanel",
+		),
+	setDetailPanelOpen: (open) =>
+		set({ detailPanelOpen: open }, undefined, "ui/setDetailPanelOpen"),
 });
