@@ -1,16 +1,25 @@
 import type { FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { z } from "zod";
 import { FeatureDetailPanel } from "@/components/kanban/feature-detail-panel";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
+import { KanbanFilterBar } from "@/components/kanban/kanban-filter-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
 import { useAppStore } from "@/store";
 import { orpc } from "@/utils/orpc";
 
+const searchSchema = z.object({
+	search: z.string().optional(),
+	category: z.string().optional(),
+	phase: z.string().optional(),
+});
+
 export const Route = createFileRoute("/kanban")({
 	component: KanbanPage,
+	validateSearch: searchSchema,
 	beforeLoad: async () => {
 		const session = await authClient.getSession();
 		if (!session.data) {
@@ -21,6 +30,8 @@ export const Route = createFileRoute("/kanban")({
 
 function KanbanPage() {
 	const queryClient = useQueryClient();
+	const navigate = useNavigate({ from: Route.fullPath });
+	const searchParams = Route.useSearch();
 	const features = useQuery(orpc.features.list.queryOptions());
 
 	const selectedFeatureId = useAppStore((state) => state.selectedFeatureId);
@@ -49,6 +60,56 @@ function KanbanPage() {
 	const handleFeatureSelect = (id: string) => {
 		setSelectedFeature(id);
 		setDetailPanelOpen(true);
+	};
+
+	// Filter features client-side
+	const filteredFeatures = (features.data ?? []).filter((feature) => {
+		if (searchParams.search) {
+			const searchLower = searchParams.search.toLowerCase();
+			if (!feature.title.toLowerCase().includes(searchLower)) {
+				return false;
+			}
+		}
+		if (searchParams.category && feature.category !== searchParams.category) {
+			return false;
+		}
+		if (searchParams.phase && feature.phase !== searchParams.phase) {
+			return false;
+		}
+		return true;
+	});
+
+	const handleSearchChange = (value: string) => {
+		navigate({
+			search: {
+				...searchParams,
+				search: value || undefined,
+			},
+		});
+	};
+
+	const handleCategoryChange = (value: string) => {
+		navigate({
+			search: {
+				...searchParams,
+				category: value || undefined,
+			},
+		});
+	};
+
+	const handlePhaseChange = (value: string) => {
+		navigate({
+			search: {
+				...searchParams,
+				phase: value || undefined,
+			},
+		});
+	};
+
+	const handleClearFilters = () => {
+		navigate({
+			search: {},
+		});
 	};
 
 	if (features.isLoading) {
@@ -92,14 +153,27 @@ function KanbanPage() {
 	return (
 		<div className="flex h-full flex-col">
 			<div className="border-b px-6 py-4">
-				<h1 className="font-bold text-2xl">Kanban Board</h1>
-				<p className="text-muted-foreground text-sm">
-					Drag and drop features to change their status
-				</p>
+				<div className="mb-4 flex items-center justify-between">
+					<div>
+						<h1 className="font-bold text-2xl">Kanban Board</h1>
+						<p className="text-muted-foreground text-sm">
+							Drag and drop features to change their status
+						</p>
+					</div>
+				</div>
+				<KanbanFilterBar
+					search={searchParams.search}
+					category={searchParams.category}
+					phase={searchParams.phase}
+					onSearchChange={handleSearchChange}
+					onCategoryChange={handleCategoryChange}
+					onPhaseChange={handlePhaseChange}
+					onClear={handleClearFilters}
+				/>
 			</div>
 			<div className="flex-1 overflow-hidden">
 				<KanbanBoard
-					features={features.data ?? []}
+					features={filteredFeatures}
 					onStatusChange={handleStatusChange}
 					onFeatureSelect={handleFeatureSelect}
 				/>

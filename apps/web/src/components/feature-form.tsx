@@ -30,7 +30,7 @@ type FeatureFromAPI = {
 	[key: string]: unknown;
 };
 
-const CATEGORIES = [
+export const CATEGORIES = [
 	"CAT-AUTH",
 	"CAT-DB",
 	"CAT-UI",
@@ -38,7 +38,7 @@ const CATEGORIES = [
 	"CAT-KAN",
 	"CAT-CORE",
 ] as const;
-const PHASES = ["phase-1", "phase-2", "phase-3", "phase-4"] as const;
+export const PHASES = ["phase-1", "phase-2", "phase-3", "phase-4"] as const;
 const SIZES = ["XS", "S", "M", "L", "XL"] as const;
 
 interface FeatureFormProps {
