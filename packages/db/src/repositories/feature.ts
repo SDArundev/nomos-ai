@@ -2,8 +2,8 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "../index";
 import { feature } from "../schema/features";
 
-type FeatureSelect = typeof feature.$inferSelect;
-type FeatureInsert = typeof feature.$inferInsert;
+export type FeatureSelect = typeof feature.$inferSelect;
+export type FeatureInsert = typeof feature.$inferInsert;
 
 export const featureRepository = {
 	async findAll(): Promise<FeatureSelect[]> {

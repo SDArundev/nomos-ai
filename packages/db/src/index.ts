@@ -12,6 +12,8 @@ export const db = drizzle({ client, schema });
 export { sql } from "drizzle-orm";
 export { runMigrations } from "./migrate";
 export {
+	type FeatureInsert,
+	type FeatureSelect,
 	featureRepository,
 	projectRepository,
 	sessionRepository,
