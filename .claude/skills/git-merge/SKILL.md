@@ -46,10 +46,25 @@ Merge branches intelligently by understanding feature context and resolving conf
    - Use MultiEdit to resolve all conflicts
    - **STOP**: If >10 files conflicted, ask user
 
-6. **VERIFICATION**:
+6. **PRE-COMMIT REVIEW**:
    - `git diff --cached` to review changes
-   - Check no conflict markers remain: `grep -r "<<<<<<< HEAD"`
+   - Check no conflict markers remain: `grep -r "<<<<<<< HEAD" . --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json"`
    - `git add -A` and commit
+
+7. **MERGE VERIFICATION** (CRITICAL):
+   ```bash
+   # Capture the merged branch's commit
+   FEATURE_COMMIT=$(git rev-parse origin/<branch-name>)
+
+   # Verify feature is now in current branch's ancestry
+   if ! git merge-base --is-ancestor "$FEATURE_COMMIT" HEAD; then
+       echo "ERROR: Merge verification FAILED"
+       echo "Feature commit $FEATURE_COMMIT is NOT in HEAD ancestry"
+       exit 1
+   fi
+
+   echo "VERIFIED: Merge successful — $FEATURE_COMMIT is ancestor of HEAD"
+   ```
 
 ## Conflict Resolution by Type
 
@@ -63,6 +78,11 @@ Merge branches intelligently by understanding feature context and resolving conf
 
 - ALWAYS gather context before merging
 - NEVER blindly accept theirs/ours without analysis
+- **ALWAYS verify merge succeeded** (step 7)
 - ABORT if conflicts exceed 10 files
 - Max 3 resolution attempts per file
 - If stuck: `git merge --abort` and report blockers
+
+## Reference
+
+For detailed merge verification patterns, see `skills/nomos/references/git-operations.md`.

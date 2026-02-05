@@ -9,6 +9,7 @@ next_step: steps/step-06-finish.md
 
 ## References
 - `references/merge-strategies.md` — Conflict detection, classification, resolution algorithms
+- `references/git-operations.md` — **Merge verification patterns (CRITICAL)**
 - `references/output-formats.md#step-05` — Merge log format
 
 ## MANDATORY EXECUTION RULES:
@@ -105,13 +106,61 @@ If post-rebase checks fail: fix issues, commit, re-run checks.
 
 **NOTE:** Main branch is already checked out in {project_root}. Do NOT run `git checkout main`.
 
+<critical>
+**REQUIRED COMMANDS — MUST EXECUTE LITERALLY**
+
+The following commands are NOT descriptions — they MUST be executed and their output captured.
+Do NOT paraphrase, summarize, or skip. Run each command and verify the result.
+</critical>
+
+**Step 4a: Capture pre-merge state**
 ```bash
 cd {project_root}
+PRE_MERGE_MAIN=$(git rev-parse main)
+FEATURE_COMMIT=$(git rev-parse nomos/{feature_id})
+echo "PRE_MERGE_MAIN=$PRE_MERGE_MAIN"
+echo "FEATURE_COMMIT=$FEATURE_COMMIT"
+```
+
+**Step 4b: Execute merge**
+```bash
 git merge nomos/{feature_id} --no-ff -m "feat({feature_id}): {feature_title}
 
 Implements feature {feature_id} with acceptance criteria:
 {acceptance_criteria_summary}"
 ```
+
+**Step 4c: Verify merge succeeded (MANDATORY)**
+
+See `references/git-operations.md#merge-verification` for the full pattern.
+
+```bash
+# Capture post-merge state
+POST_MERGE_MAIN=$(git rev-parse main)
+echo "POST_MERGE_MAIN=$POST_MERGE_MAIN"
+
+# VERIFICATION 1: Main branch moved
+if [[ "$PRE_MERGE_MAIN" == "$POST_MERGE_MAIN" ]]; then
+    echo "ERROR: main branch did not move — merge had no effect"
+    echo "MERGE VERIFICATION: FAILED"
+    exit 1
+fi
+
+# VERIFICATION 2: Feature commit is ancestor of main
+if ! git merge-base --is-ancestor "$FEATURE_COMMIT" main; then
+    echo "ERROR: Feature commit $FEATURE_COMMIT is NOT in main ancestry"
+    echo "MERGE VERIFICATION: FAILED"
+    exit 1
+fi
+
+echo "MERGE VERIFICATION: PASSED"
+echo "  Feature $FEATURE_COMMIT merged into main ($POST_MERGE_MAIN)"
+```
+
+<critical>
+**DO NOT PROCEED** to step 5 unless merge verification outputs "PASSED".
+If verification fails, investigate and retry the merge.
+</critical>
 
 ### 5. Update Feature State
 
@@ -129,15 +178,42 @@ bash .claude/skills/nomos/scripts/nomos.sh ports release {feature_id}
 ```
 
 **If `{cleanup_mode}` = true:**
+
+See `references/git-operations.md#cleanup-worktree` for the safe cleanup pattern.
+
 ```bash
 cd {project_root}
-git worktree remove {worktree_path} --force 2>/dev/null || true
-git branch -d nomos/{feature_id} 2>/dev/null || true
+
+# FIRST: Verify branch was merged (safety check)
+if ! git branch --merged main | grep -q "nomos/{feature_id}"; then
+    echo "ERROR: Cannot delete branch — nomos/{feature_id} was NOT merged into main"
+    echo "Skipping cleanup to preserve unmerged work"
+    # Do NOT exit — continue without cleanup
+else
+    # Safe to remove worktree and branch
+    git worktree remove {worktree_path} --force
+
+    # Delete branch (will fail if not merged, which is correct behavior)
+    git branch -d nomos/{feature_id}
+
+    echo "Cleanup: worktree and branch removed"
+fi
 ```
 
-Verify cleanup:
+**Verify cleanup:**
 ```bash
-ls -d {worktree_path} 2>/dev/null && echo "WARNING: worktree directory still exists — removing manually" && rm -rf {worktree_path} || echo "Worktree removed"
+# Check worktree removed
+if ls -d {worktree_path} 2>/dev/null; then
+    echo "WARNING: worktree directory still exists — removing manually"
+    rm -rf {worktree_path}
+fi
+
+# Check branch removed
+if git branch | grep -q "nomos/{feature_id}"; then
+    echo "WARNING: branch still exists"
+else
+    echo "Branch deleted"
+fi
 ```
 
 **If `{cleanup_mode}` = false AND `{auto_mode}` = false:** Ask user via AskUserQuestion.
@@ -160,14 +236,19 @@ Write merge log using the format from `references/output-formats.md#step-05-merg
 - Rebased on latest main
 - Post-rebase validation passed
 - Merge commit created with proper message
+- **Merge verification PASSED** (main moved, feature is ancestor)
+- **Merge evidence recorded** (pre/post hashes, feature commit)
 - Feature state updated to "verified"
 - Ports released
-- Output saved
+- Output saved with evidence
 
 ## FAILURE MODES:
 
 - Merging with failing tests
 - Force pushing or destructive operations
+- **Skipping merge verification**
+- **Reporting success without evidence**
+- **Cleaning up unmerged branches**
 - Not updating feature state
 - Not releasing ports
 - Modifying code during merge step
