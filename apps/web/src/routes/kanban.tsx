@@ -2,9 +2,11 @@ import type { FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { FeatureDetailPanel } from "@/components/kanban/feature-detail-panel";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
+import { useAppStore } from "@/store";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/kanban")({
@@ -20,6 +22,11 @@ export const Route = createFileRoute("/kanban")({
 function KanbanPage() {
 	const queryClient = useQueryClient();
 	const features = useQuery(orpc.features.list.queryOptions());
+
+	const selectedFeatureId = useAppStore((state) => state.selectedFeatureId);
+	const setSelectedFeature = useAppStore((state) => state.setSelectedFeature);
+	const detailPanelOpen = useAppStore((state) => state.detailPanelOpen);
+	const setDetailPanelOpen = useAppStore((state) => state.setDetailPanelOpen);
 
 	const updateStatus = useMutation(
 		orpc.features.updateStatus.mutationOptions({
@@ -37,6 +44,11 @@ function KanbanPage() {
 
 	const handleStatusChange = (id: string, status: string) => {
 		updateStatus.mutate({ id, status: status as FeatureStatus });
+	};
+
+	const handleFeatureSelect = (id: string) => {
+		setSelectedFeature(id);
+		setDetailPanelOpen(true);
 	};
 
 	if (features.isLoading) {
@@ -89,8 +101,14 @@ function KanbanPage() {
 				<KanbanBoard
 					features={features.data ?? []}
 					onStatusChange={handleStatusChange}
+					onFeatureSelect={handleFeatureSelect}
 				/>
 			</div>
+			<FeatureDetailPanel
+				featureId={selectedFeatureId}
+				open={detailPanelOpen}
+				onOpenChange={setDetailPanelOpen}
+			/>
 		</div>
 	);
 }

@@ -17,6 +17,7 @@ interface KanbanColumnProps {
 		dependencies?: string[] | null;
 	}>;
 	color: string;
+	onFeatureSelect?: (id: string) => void;
 }
 
 export function KanbanColumn({
@@ -24,6 +25,7 @@ export function KanbanColumn({
 	title,
 	features,
 	color,
+	onFeatureSelect,
 }: KanbanColumnProps) {
 	const { setNodeRef, isOver } = useDroppable({ id: status });
 
@@ -56,7 +58,11 @@ export function KanbanColumn({
 						</p>
 					) : (
 						features.map((feature) => (
-							<FeatureCard key={feature.id} feature={feature} />
+							<FeatureCard
+								key={feature.id}
+								feature={feature}
+								onClick={onFeatureSelect}
+							/>
 						))
 					)}
 				</div>
