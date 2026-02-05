@@ -5,12 +5,15 @@ export interface UISlice {
 	sidebarCollapsed: boolean;
 	commandPaletteOpen: boolean;
 	detailPanelOpen: boolean;
+	collapsedColumns: Record<string, boolean>;
 	toggleSidebar: () => void;
 	setSidebarCollapsed: (collapsed: boolean) => void;
 	toggleCommandPalette: () => void;
 	setCommandPaletteOpen: (open: boolean) => void;
 	toggleDetailPanel: () => void;
 	setDetailPanelOpen: (open: boolean) => void;
+	toggleColumnCollapsed: (status: string) => void;
+	setColumnCollapsed: (status: string, collapsed: boolean) => void;
 }
 
 export const createUISlice: StateCreator<
@@ -22,6 +25,7 @@ export const createUISlice: StateCreator<
 	sidebarCollapsed: false,
 	commandPaletteOpen: false,
 	detailPanelOpen: false,
+	collapsedColumns: {},
 	toggleSidebar: () =>
 		set(
 			(state) => ({ sidebarCollapsed: !state.sidebarCollapsed }),
@@ -46,4 +50,26 @@ export const createUISlice: StateCreator<
 		),
 	setDetailPanelOpen: (open) =>
 		set({ detailPanelOpen: open }, undefined, "ui/setDetailPanelOpen"),
+	toggleColumnCollapsed: (status) =>
+		set(
+			(state) => ({
+				collapsedColumns: {
+					...state.collapsedColumns,
+					[status]: !state.collapsedColumns[status],
+				},
+			}),
+			undefined,
+			"ui/toggleColumnCollapsed",
+		),
+	setColumnCollapsed: (status, collapsed) =>
+		set(
+			(state) => ({
+				collapsedColumns: {
+					...state.collapsedColumns,
+					[status]: collapsed,
+				},
+			}),
+			undefined,
+			"ui/setColumnCollapsed",
+		),
 });
