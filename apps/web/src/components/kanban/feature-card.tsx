@@ -1,6 +1,5 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Link } from "@tanstack/react-router";
 import { GitBranch } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
