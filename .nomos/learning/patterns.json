@@ -672,7 +672,7 @@
       "features_succeeded": [
         "F024"
       ]
-    }
+    },
     {
       "id": "PAT-015",
       "name": "DEPENDENCY_VERIFICATION",
@@ -701,8 +701,228 @@
         "F024"
       ],
       "features_succeeded": []
+    },
+    {
+      "id": "WEB-011",
+      "name": "DND_KIT_KANBAN_INTEGRATION",
+      "description": "Drag-and-drop kanban board using dnd-kit with DndContext, DragOverlay, and SortableContext. Requires both PointerSensor (mouse/touch) and KeyboardSensor for full accessibility. Uses closestCenter collision detection.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F025",
+      "applies_to": [
+        "CAT-FE",
+        "CAT-KAN",
+        "drag-drop",
+        "state-management"
+      ],
+      "recommendation": "For kanban boards and task lists, use dnd-kit with both sensors configured for accessibility. Always include DragOverlay for visual feedback.",
+      "code_example": "const sensors = useSensors(\n  useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),\n  useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })\n);\nreturn <DndContext sensors={sensors} collisionDetection={closestCenter}>\n  {columns.map(col => <KanbanColumn ... />)}\n  <DragOverlay>{activeFeature ? <FeatureCard feature={activeFeature} /> : null}</DragOverlay>\n</DndContext>",
+      "confidence": 0.95,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW - alternative: build custom drag-drop with higher maintenance cost",
+      "features_applied": [
+        "F025"
+      ],
+      "features_succeeded": [
+        "F025"
+      ]
+    },
+    {
+      "id": "WEB-012",
+      "name": "STATE_MACHINE_VALIDATION_PATTERN",
+      "description": "Client-side state machine validation using VALID_TRANSITIONS map to enforce legal status changes before drag-drop operations. Must match backend state machine exactly. Provides user feedback via toast on invalid transitions.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F025",
+      "applies_to": [
+        "CAT-FE",
+        "CAT-KAN",
+        "state-validation",
+        "data-integrity"
+      ],
+      "recommendation": "Before building status-based UI, extract VALID_TRANSITIONS from backend router (F018/F019) and copy to frontend. Always validate against backend model.",
+      "code_example": "const VALID_TRANSITIONS: Record<string, string[]> = {\n  backlog: ['pending', 'failed'],\n  pending: ['in_progress', 'failed'],\n  in_progress: ['waiting_approval', 'failed'],\n  waiting_approval: ['verified', 'failed'],\n  verified: [],\n  failed: []\n};\n// In handleDragEnd:\nconst allowedTransitions = VALID_TRANSITIONS[currentStatus];\nif (!allowedTransitions?.includes(newStatus)) {\n  toast.error(`Cannot move from ${currentStatus} to ${newStatus}`);\n  return;\n}",
+      "gotcha": "State machine bugs caught late in QA if backend not checked first. Easy to miss a transition or allow invalid moves.",
+      "confidence": 0.95,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH - invalid state transitions at UI level confuse users and can cause data integrity issues",
+      "features_applied": [
+        "F025"
+      ],
+      "features_succeeded": [
+        "F025"
+      ]
+    },
+    {
+      "id": "WEB-013",
+      "name": "DRAGGABLE_CARD_WITH_USESORTABLE",
+      "description": "Draggable card component using useSortable hook. Applies CSS transforms, transition, and opacity based on drag state. Forwards all dnd-kit attributes and listeners to root element.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F025",
+      "applies_to": [
+        "CAT-FE",
+        "drag-drop",
+        "ui-components"
+      ],
+      "recommendation": "Every draggable item in dnd-kit should use useSortable with CSS.Transform.toString() for hardware acceleration.",
+      "code_example": "const FeatureCard = ({ feature }) => {\n  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: feature.id });\n  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };\n  return <Card ref={setNodeRef} style={style} className=\"cursor-grab active:cursor-grabbing\" {...attributes} {...listeners}>\n    <CardHeader><CardTitle>{feature.title}</CardTitle></CardHeader>\n  </Card>;\n};",
+      "gotcha": "CSS.Transform.toString() required - can't stringify transform directly. All attributes and listeners must be forwarded.",
+      "confidence": 0.95,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM - without useSortable, items not draggable or missing visual feedback",
+      "features_applied": [
+        "F025"
+      ],
+      "features_succeeded": [
+        "F025"
+      ]
+    },
+    {
+      "id": "WEB-014",
+      "name": "DROPPABLE_COLUMN_WITH_USEDROPABLE",
+      "description": "Droppable column container using useDroppable hook. Shows isOver visual feedback and wraps items in SortableContext with verticalListSortingStrategy for internal sorting.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F025",
+      "applies_to": [
+        "CAT-FE",
+        "drag-drop",
+        "containers"
+      ],
+      "recommendation": "Every column/container that accepts dropped items should use useDroppable and wrap children in SortableContext.",
+      "code_example": "const KanbanColumn = ({ status, title, features, color }) => {\n  const { setNodeRef, isOver } = useDroppable({ id: status });\n  return <div ref={setNodeRef} className={cn('flex flex-col', isOver && 'bg-accent/30')}>\n    <div className=\"flex items-center gap-2\"><div className={`h-2 w-2 rounded-full ${color}`} /><h3>{title}</h3></div>\n    <SortableContext items={features.map(f => f.id)} strategy={verticalListSortingStrategy}>\n      <div className=\"flex flex-1 flex-col gap-2\">\n        {features.map(f => <FeatureCard key={f.id} feature={f} />)}\n      </div>\n    </SortableContext>\n  </div>;\n};",
+      "confidence": 0.95,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM - without useDroppable, drop targets don't work and no visual feedback on hover",
+      "features_applied": [
+        "F025"
+      ],
+      "features_succeeded": [
+        "F025"
+      ]
+    },
+    {
+      "id": "WEB-015",
+      "name": "TANSTACK_QUERY_WITH_MUTATION_CALLBACK",
+      "description": "TanStack Query mutation with onSuccess callback that invalidates related queries and shows toast notification. onError callback displays error message to user.",
+      "category": "frontend",
+      "evidence_count": 1,
+      "last_seen": "F025",
+      "applies_to": [
+        "CAT-FE",
+        "data-fetching",
+        "mutations"
+      ],
+      "recommendation": "Use mutationOptions() from oRPC with onSuccess/onError callbacks instead of manual state management.",
+      "code_example": "const queryClient = useQueryClient();\nconst updateStatus = useMutation(\n  orpc.features.updateStatus.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({ queryKey: orpc.features.list.queryOptions().queryKey });\n      toast.success('Feature status updated');\n    },\n    onError: (error) => {\n      toast.error(error.message || 'Failed to update feature status');\n    }\n  })\n);\nconst handleStatusChange = (id: string, status: string) => {\n  updateStatus.mutate({ id, status: status as FeatureStatus });\n};",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM - without callbacks, UI doesn't update after mutation or show user feedback",
+      "features_applied": [
+        "F025"
+      ],
+      "features_succeeded": [
+        "F025"
+      ]
+    },
+    {
+      "id": "PAT-022",
+      "name": "TANSTACK_FORM_ARRAY_FIELDS",
+      "description": "Use TanStack Form mode=\"array\" for dynamic list fields (e.g., acceptance criteria). Fields support pushValue()/removeValue() for add/remove buttons with validation on array length.",
+      "category": "react-forms",
+      "evidence_count": 1,
+      "last_seen": "F028",
+      "applies_to": [
+        "CAT-KAN",
+        "CAT-FE",
+        "form-handling"
+      ],
+      "recommendation": "For list fields in forms, use form.Field(name=\"arrayField\", mode=\"array\") to get field.pushValue(value) and field.removeValue(index) methods. Apply validation on field.state.value.length for min/max constraints.",
+      "code_example": "form.Field(name=\"acceptanceCriteria\", mode=\"array\", validators={{onChange: ({value}) => {if (value.length < 1) return \"Minimum 1 required\"; if (value.length > 10) return \"Max 10\";}}}) renders array field with pushValue/removeValue.",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F028"
+      ],
+      "features_succeeded": [
+        "F028"
+      ]
+    },
+    {
+      "id": "PAT-023",
+      "name": "SHEET_FORM_INTEGRATION_PATTERN",
+      "description": "Combine Sheet (sidebar modal) with form components for create/edit workflows. Sheet holds form, handles open state via Zustand UI store. Form prop controls edit vs create mode with conditional mutations.",
+      "category": "react-components",
+      "evidence_count": 1,
+      "last_seen": "F028",
+      "applies_to": [
+        "CAT-KAN",
+        "CAT-FE",
+        "modal-forms"
+      ],
+      "recommendation": "Use Sheet component to wrap form: <Sheet><SheetContent><FeatureForm feature={selectedFeature} projectId={projectId} onSuccess={() => setSheetOpen(false)} /></SheetContent></Sheet>. Form detects feature prop to conditionally call create or update mutation.",
+      "code_example": "feature ? updateFeature.mutateAsync({id: feature.id, data: {...}}) : createFeature.mutateAsync({...data, status: \"backlog\"}). Mutations both invalidate query key to refresh list.",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F028"
+      ],
+      "features_succeeded": [
+        "F028"
+      ]
+    },
+    {
+      "id": "PAT-024",
+      "name": "ZUSTAND_MULTI_ITEM_BOOLEAN_STATE",
+      "description": "Extend Zustand UISlice to manage multi-item boolean state (e.g., collapsed columns) using Record<string, boolean>. Use spread operator with computed key to update individual items without replacing entire object.",
+      "category": "state-management",
+      "evidence_count": 1,
+      "last_seen": "F029",
+      "applies_to": [
+        "CAT-FE",
+        "zustand",
+        "ui-state"
+      ],
+      "recommendation": "Pattern: collapsedColumns: Record<string, boolean> = {}. Toggle with: set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]} })). Consumer: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false)",
+      "code_example": "toggleColumnCollapsed: (status) => set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]}, }), undefined, 'ui/toggleColumnCollapsed'). In component: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false); const toggle = useAppStore((s) => s.toggleColumnCollapsed);",
+      "confidence": 0.7,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F029"
+      ],
+      "features_succeeded": [
+        "F029"
+      ]
+    },
+    {
+      "id": "PAT-025",
+      "name": "ICON_BUTTON_ACCESSIBILITY_LABELS",
+      "description": "Icon-only buttons require context-aware aria-labels that describe the action and reflect current state. Labels should change based on state (e.g., 'Expand column' when collapsed, 'Collapse column' when expanded).",
+      "category": "accessibility",
+      "evidence_count": 1,
+      "last_seen": "F029",
+      "applies_to": [
+        "CAT-FE",
+        "accessibility",
+        "ui-components"
+      ],
+      "recommendation": "Always pair icon-only buttons with aria-label. For toggle buttons, use state-aware label: aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}. For menu buttons, use consistent description: aria-label='Column options'",
+      "code_example": "<Button variant='ghost' size='icon-xs' aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}><ChevronDown className={isCollapsed && '-rotate-90'} /></Button>. Or for menu: <DropdownMenuTrigger render={<Button variant='ghost' size='icon-xs' aria-label='Column options' />}><MoreHorizontal /></DropdownMenuTrigger>",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F029"
+      ],
+      "features_succeeded": [
+        "F029"
+      ]
     }
   ],
-  "last_updated": "2026-02-04T21:30:00Z",
+  "last_updated": "2026-02-05T17:01:42Z",
   "confidence_formula": "min(1.0, 0.1 + (evidence_count * 0.1) + (success_rate * 0.4))"
 }

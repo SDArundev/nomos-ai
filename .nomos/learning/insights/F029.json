@@ -1,0 +1,68 @@
+{
+  "feature_id": "F029",
+  "title": "Kanban column header with count",
+  "category": "CAT-KAN",
+  "phase": "phase-1",
+  "dependencies": [
+    "F025"
+  ],
+  "session_duration_minutes": 22,
+  "loop_iterations_used": 1,
+  "started_at": "2026-02-05T16:40:11Z",
+  "completed_at": "2026-02-05T17:01:42Z",
+  "discoveries": [
+    "Zustand UISlice pattern extends easily with Record<string, boolean> for multi-item toggleable state",
+    "DropdownMenuTrigger render prop pattern enables custom button styling without wrapper element",
+    "Animated SVG icons (ChevronDown with -rotate-90) provide visual feedback for state changes",
+    "Combining icon button + dropdown menu for dual interaction (toggle + actions)"
+  ],
+  "what_worked_well": [
+    "Followed existing UISlice pattern from F024 (sidebarCollapsed) exactly - pattern reuse achieved feature in single iteration",
+    "Using installed shadcn DropdownMenu component - render prop pattern matched existing codebase conventions",
+    "Proactive accessibility improvements: aria-labels on all icon-only buttons (collapse toggle and options menu)",
+    "Render prop pattern in DropdownMenuTrigger allowed custom icon button without wrapper divs",
+    "Single-responsibility: UI state in Zustand, component handles presentation only"
+  ],
+  "what_failed": [],
+  "root_causes": [],
+  "recommendations_for_next": [
+    "For multi-item boolean state in Zustand, Record<string, boolean> pattern is proven - use spread operator to update",
+    "Always add aria-label to icon-only buttons - combine with descriptive label that reflects state (e.g., 'Expand column' when collapsed)",
+    "DropdownMenu render prop is more idiomatic than children - prefer render for custom button styling",
+    "Consider extracting column header styling into separate component if more columns use similar patterns"
+  ],
+  "patterns_taught": [
+    "PAT-024: Zustand multi-item boolean state with Record<string, boolean>",
+    "PAT-025: Icon button accessibility with context-aware aria-labels"
+  ],
+  "antipatterns_identified": [],
+  "metrics": {
+    "files_changed": 2,
+    "lines_added": 67,
+    "lines_removed": 13,
+    "commits": 1,
+    "retries": 0,
+    "duration_minutes": 22,
+    "acceptance_criteria_met": 4,
+    "all_criteria_passed_first_try": true,
+    "success_rate": "100%"
+  },
+  "code_quality": {
+    "typescript": "PASS",
+    "lint": "PASS (fixed by lint auto-fix)",
+    "accessibility": "PASS (aria-labels added throughout)",
+    "component_patterns": "PASS (exact reuse of F024 UISlice pattern)"
+  },
+  "commit": "8d49780 feat(F029): Kanban column header with count",
+  "files_modified": [
+    "apps/web/src/components/kanban/kanban-column.tsx",
+    "apps/web/src/store/slices/ui.ts"
+  ],
+  "pattern_reuse": {
+    "pattern_id": "PAT-004",
+    "pattern_name": "ZUSTAND_UI_SLICE_PATTERN",
+    "applied_from": "F024",
+    "modification": "Extended with Record<string, boolean> for multi-item state instead of single boolean",
+    "evidence": "collapsedColumns: Record<string, boolean>, toggleColumnCollapsed(status), setColumnCollapsed(status, collapsed)"
+  }
+}

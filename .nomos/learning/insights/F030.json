@@ -1,0 +1,131 @@
+{
+  "feature_id": "F030",
+  "title": "Kanban filters and search",
+  "category": "CAT-KAN",
+  "phase": "phase-1",
+  "execution_date": "2026-02-05",
+  "duration_minutes": 22,
+  "status": "success",
+  "iterations": 1,
+  "metrics": {
+    "files_changed": 3,
+    "lines_added": 94,
+    "lines_removed": 5,
+    "commits": 1,
+    "retries": 0
+  },
+  "discoveries": [
+    {
+      "title": "URL Search Params for Filter Persistence",
+      "pattern": "WEB-016",
+      "confidence": 0.90,
+      "description": "TanStack Router validateSearch with Zod provides type-safe, URL-persisted filter state without needing Zustand or useState. Filters persist on refresh and are shareable via URL.",
+      "implementation": "validateSearch: (search) => SearchSchema.parse(search) in route config, then Route.useSearch() in component",
+      "applicability": "All list views with filters (F031 features list, F032 sessions list)"
+    },
+    {
+      "title": "Constants Reuse via Component Export",
+      "pattern": "PAT-013",
+      "confidence": 0.85,
+      "description": "Instead of duplicating CATEGORIES and PHASES from feature-form.tsx, exported them for reuse in kanban-filter-bar.tsx. Maintains single source of truth and prevents enum divergence.",
+      "implementation": "export const CATEGORIES/PHASES in feature-form.tsx, import in kanban-filter-bar.tsx",
+      "applicability": "Any component needing shared enum definitions"
+    },
+    {
+      "title": "Client-Side Filtering Simplicity",
+      "pattern": "WEB-SIMPLE-FILTER",
+      "confidence": 0.75,
+      "description": "Applied simple JavaScript array.filter() at page level before passing to KanbanBoard. No API changes needed, instant UI feedback.",
+      "implementation": "Filter logic in kanban.tsx: search (substring, case-insensitive), category (exact match), phase (exact match)",
+      "applicability": "When dataset fits in memory; use server-side filtering for large datasets (>1000 items)"
+    }
+  ],
+  "what_worked": [
+    "Exported constants from existing component (PAT-013) - avoided duplication",
+    "URL search params via validateSearch - clean, type-safe, shareable",
+    "Client-side filtering before component render - no API overhead",
+    "Used existing Select component from shadcn/ui - pattern consistency",
+    "Single iteration pass - proper planning led to zero retries",
+    "Fixed accessibility issue quickly - aria-label added to search input"
+  ],
+  "what_failed": [],
+  "issues_found": [
+    {
+      "id": "ACC-001",
+      "severity": "HIGH",
+      "category": "accessibility",
+      "location": "kanban-filter-bar.tsx:36",
+      "issue": "Missing aria-label on search input",
+      "resolution": "Added aria-label='Search features by title'",
+      "pattern_reference": "PAT-025 (extended scope to input fields)"
+    },
+    {
+      "id": "ANTI-008-F030",
+      "severity": "MEDIUM",
+      "category": "code_organization",
+      "location": "feature-form.tsx, kanban-filter-bar.tsx",
+      "issue": "CATEGORIES/PHASES not in shared @nomos-ai/types package",
+      "resolution": "DEFERRED as tech debt - affects multiple features, requires @nomos-ai/types restructuring",
+      "recommendation": "Create @nomos-ai/types/features.ts with shared enums in future refactor"
+    },
+    {
+      "id": "LINT-001",
+      "severity": "LOW",
+      "category": "code_quality",
+      "location": "Multiple files",
+      "issue": "Biome formatting issues",
+      "resolution": "Fixed with bunx biome check . --write --unsafe",
+      "pattern_reference": "ANTI-006 (BIOME_BEFORE_COMMIT)"
+    }
+  ],
+  "patterns_applied": [
+    "PAT-013: PATTERN_REUSE (constants export)",
+    "PAT-011: GOOD_PLANNING (clear ACs led to 1 iteration)",
+    "PAT-012: FOCUSED_SCOPE (3 files, XS/S-sized feature)",
+    "WEB-010: UI dropdown via Zustand (not needed here - URL params instead)",
+    "WEB-016: URL_SEARCH_PARAMS_FILTERING (NEW PATTERN)"
+  ],
+  "antipatterns_avoided": [
+    "ANTI-008: Avoided duplicating CATEGORIES/PHASES by exporting from feature-form.tsx",
+    "ANTI-006: Would've had extra Biome commit without format before commit",
+    "ANTI-007: Verified all imports existed in package.json"
+  ],
+  "future_improvements": [
+    {
+      "priority": "HIGH",
+      "title": "Create @nomos-ai/types/features.ts",
+      "description": "Move CATEGORIES, PHASES, SIZES to shared types package to fix ANTI-008",
+      "effort": "1-2 hours",
+      "blocking": false
+    },
+    {
+      "priority": "MEDIUM",
+      "title": "Apply WEB-016 to Other List Views",
+      "description": "Use URL search params pattern in F031 (features list) and F032 (sessions list)",
+      "effort": "30 min per feature",
+      "blocking": false
+    },
+    {
+      "priority": "LOW",
+      "title": "Add Advanced Filtering",
+      "description": "Support priority range, multi-select status, estimated size range",
+      "effort": "2-3 hours",
+      "blocking": false
+    }
+  ],
+  "category_learnings": {
+    "previous_features": ["F024 (app layout)", "F025 (kanban board)", "F028 (feature form)", "F029 (column header)"],
+    "category_pattern": "CAT-KAN features form cohesive subsystem with shared patterns",
+    "category_success_rate": 1.0,
+    "category_avg_duration": 24.25,
+    "category_avg_files": 5.2,
+    "f030_comparison": "22 min vs 24.25 avg (slightly faster), 3 files vs 5.2 avg (smaller scope), 1 iteration vs 1.8 avg (cleaner execution)"
+  },
+  "recommendations": {
+    "immediate": "Apply WEB-016 to F031 and F032 list views",
+    "short_term": "Extract constants to @nomos-ai/types/features.ts",
+    "long_term": "Consider advanced filtering UI for power users (priority ranges, date filters, etc.)"
+  },
+  "timestamp": "2026-02-05T18:25:00Z",
+  "extracted_by": "nomos-learn-track-a"
+}

@@ -1,0 +1,72 @@
+{
+  "feature_id": "F028",
+  "title": "Feature create/edit form",
+  "category": "CAT-KAN",
+  "phase": "phase-1",
+  "session_duration_minutes": 33,
+  "loop_iterations_used": 3,
+  "completed_at": "2026-02-05T15:57:35Z",
+  "discoveries": [
+    "TanStack Form mode='array' pattern for dynamic list fields",
+    "Sheet modal integration with form components",
+    "Array field validation with min/max constraints",
+    "Create/edit conditional mutation routing",
+    "Zod validation integration with form error rendering"
+  ],
+  "what_worked_well": [
+    "Pattern reuse from sign-up-form.tsx accelerated implementation",
+    "TanStack Form array fields work as documented - pushValue/removeValue simple to use",
+    "Sheet component abstraction makes form modal integration clean",
+    "Zod validators inline with form fields enable real-time validation feedback",
+    "Query cache invalidation pattern from F023 reused successfully"
+  ],
+  "what_failed": [
+    "Iteration 1: Type safety issues - used unsafe 'as unknown as Feature' cast instead of proper typing",
+    "Iteration 1-2: Array index as React key in error messages caused warnings",
+    "Iteration 1-2: SVG accessibility - missing title element in close button",
+    "Iteration 2: Filter accepted empty strings in acceptance criteria array"
+  ],
+  "root_causes": [
+    "Local type definition (FeatureFromAPI) instead of importing from shared package - caused drift from actual API response shape",
+    "Copied error message rendering pattern without updating key generation",
+    "SVG accessibility patterns not familiar - needed title element inside SVG, not aria-label on wrapper"
+  ],
+  "recommendations_for_next": [
+    "Create FeatureSelect export in @nomos-ai/db and use throughout frontend to eliminate type duplication",
+    "Extract form field components into reusable validation + error rendering component to avoid copy-paste errors",
+    "Add UI component accessibility checklist before QA (SVG needs title, inputs need labels, etc.)",
+    "Consider form generation from Zod schema to reduce boilerplate (zod-form-data or similar)"
+  ],
+  "patterns_taught": [
+    "PAT-022: TanStack Form array fields (mode='array', pushValue, removeValue)",
+    "PAT-023: Sheet/modal form integration pattern"
+  ],
+  "antipatterns_identified": [
+    "ANTI-008: Local type duplication instead of importing from @nomos-ai/db"
+  ],
+  "metrics": {
+    "files_changed": 11,
+    "lines_added": 993,
+    "lines_removed": 27,
+    "commits": 2,
+    "retries": 0,
+    "duration_minutes": 33,
+    "acceptance_criteria_met": 4,
+    "test_coverage": "0 new tests (no test script configured)",
+    "success_rate": "100%"
+  },
+  "code_quality": {
+    "typescript": "PASS (8 packages checked)",
+    "lint": "PASS (83 files, 0 errors after Biome format)",
+    "accessibility": "PASS (after 2 iterations)",
+    "type_safety": "MEDIUM (local type reduces type safety)"
+  },
+  "commits": [
+    "4877547 feat(F028): Feature create/edit form (initial)",
+    "8de1b62 feat(F028): Feature create/edit form (iterations)"
+  ],
+  "dependencies_touched": [
+    "@tanstack/react-form (added Select UI component to peer deps)",
+    "sonner (toast notifications)"
+  ]
+}

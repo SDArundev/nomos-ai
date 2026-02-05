@@ -1,93 +1,107 @@
 {
-	"antipatterns": [
-		{
-			"id": "ANTI-001",
-			"name": "SKIP_QA_FOR_INFRASTRUCTURE",
-			"description": "Skipping visual QA testing for 'infrastructure' or 'scaffold' features",
-			"category": "qa",
-			"evidence_count": 1,
-			"last_seen": "F001",
-			"severity": "HIGH",
-			"prevention": "ALL features require step-05a-qa, even scaffolds. Visual verification catches integration issues.",
-			"what_went_wrong": "Initially skipped visual testing assuming scaffold didn't need it",
-			"lesson": "Even scaffolds need browser verification to confirm frontend-backend integration works"
-		},
-		{
-			"id": "ANTI-002",
-			"name": "MANUAL_LEARNING_OUTPUT",
-			"description": "Writing superficial 09-learn.md without updating actual learning system files",
-			"category": "learning",
-			"evidence_count": 1,
-			"last_seen": "F001",
-			"severity": "MEDIUM",
-			"prevention": "Step-09-learn MUST update: metrics.json, patterns.json, antipatterns.json in .nomos/learning/",
-			"what_went_wrong": "Created output file but didn't update learning infrastructure",
-			"lesson": "Learning extraction requires updating JSON files, not just markdown"
-		},
-		{
-			"id": "ANTI-003",
-			"name": "SKIP_CLEANUP_PROMPT",
-			"description": "Not asking user about worktree cleanup when auto_mode=false",
-			"category": "git-workflow",
-			"evidence_count": 1,
-			"last_seen": "F001",
-			"severity": "LOW",
-			"prevention": "When cleanup_mode=false AND auto_mode=false, MUST use AskUserQuestion for cleanup decision",
-			"what_went_wrong": "Worktree left behind without asking user preference",
-			"lesson": "Follow step-08-merge.md cleanup protocol exactly"
-		},
-		{
-			"id": "ANTI-004",
-			"name": "RELATIVE_DATABASE_URL",
-			"description": "Using relative path without file: prefix in DATABASE_URL causes CWD-dependent failures",
-			"category": "configuration",
-			"evidence_count": 3,
-			"last_seen": "F006",
-			"severity": "CRITICAL",
-			"prevention": "Always use absolute paths with file: prefix in DATABASE_URL: file:/absolute/path/to/db.sqlite",
-			"what_went_wrong": "DATABASE_URL=.nomos/nomos.db missing file: prefix and using relative path. @libsql/client requires file: prefix. Relative paths resolve from CWD which varies in monorepo.",
-			"lesson": "In worktree .env setup: 1) Use WORKTREE_ROOT=$(pwd) to get absolute path, 2) Use file:${WORKTREE_ROOT}/.nomos/nomos.db format",
-			"fix_applied": "step-00-init.md now uses absolute paths with file: prefix"
-		},
-		{
-			"id": "ANTI-005",
-			"name": "DUAL_ENV_LOADING",
-			"description": "drizzle.config.ts and packages/env load .env from different locations causing mismatches",
-			"category": "configuration",
-			"evidence_count": 2,
-			"last_seen": "F006",
-			"severity": "HIGH",
-			"prevention": "drizzle.config.ts now tries multiple paths: CWD, apps/server, packages/db relative. Validation added for DATABASE_URL format.",
-			"what_went_wrong": "drizzle.config.ts hardcoded ../../apps/server/.env while packages/env loaded from CWD",
-			"lesson": "Env loading in monorepos must handle multiple execution contexts (root, package dir, worktree)",
-			"fix_applied": "drizzle.config.ts now tries multiple paths and validates DATABASE_URL format"
-		},
-		{
-			"id": "ANTI-006",
-			"name": "BIOME_BEFORE_COMMIT",
-			"description": "Not running Biome format check before committing leads to extra chore commits",
-			"category": "code-quality",
-			"evidence_count": 1,
-			"last_seen": "F012",
-			"severity": "LOW",
-			"prevention": "Run 'bunx biome check . --write --unsafe' before committing feature code, or integrate into pre-commit hook",
-			"what_went_wrong": "14 Biome formatting fixes needed after initial commit, requiring a separate chore commit",
-			"lesson": "Always format before the first commit to keep commit history clean (1 feat commit instead of feat + chore)"
-		},
-		{
-			"id": "ANTI-007",
-			"name": "MISSING_DEPENDENCY_INSTALL",
-			"description": "Using imports in code without verifying package is installed in package.json",
-			"category": "dependencies",
-			"evidence_count": 1,
-			"last_seen": "F024",
-			"severity": "HIGH",
-			"prevention": "After adding ANY new import, verify package exists in package.json. Run 'bun install' and test 'bun run dev' before marking feature complete.",
-			"what_went_wrong": "zustand was imported in apps/web/src/store/index.ts but never installed. Dev server crashed with 'Failed to resolve import zustand'.",
-			"lesson": "ALWAYS: 1) Check if import is from external package, 2) Verify package.json has dependency, 3) Run 'bun add <pkg>' if missing, 4) Test dev server starts before completing feature",
-			"detection": "Run 'bun run dev' and check for 'Failed to resolve import' errors in browser console",
-			"fix_command": "bun add <missing-package>"
-		}
-	],
-	"last_updated": "2026-02-04T21:30:00Z"
+  "antipatterns": [
+    {
+      "id": "ANTI-001",
+      "name": "SKIP_QA_FOR_INFRASTRUCTURE",
+      "description": "Skipping visual QA testing for 'infrastructure' or 'scaffold' features",
+      "category": "qa",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "severity": "HIGH",
+      "prevention": "ALL features require step-05a-qa, even scaffolds. Visual verification catches integration issues.",
+      "what_went_wrong": "Initially skipped visual testing assuming scaffold didn't need it",
+      "lesson": "Even scaffolds need browser verification to confirm frontend-backend integration works"
+    },
+    {
+      "id": "ANTI-002",
+      "name": "MANUAL_LEARNING_OUTPUT",
+      "description": "Writing superficial 09-learn.md without updating actual learning system files",
+      "category": "learning",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "severity": "MEDIUM",
+      "prevention": "Step-09-learn MUST update: metrics.json, patterns.json, antipatterns.json in .nomos/learning/",
+      "what_went_wrong": "Created output file but didn't update learning infrastructure",
+      "lesson": "Learning extraction requires updating JSON files, not just markdown"
+    },
+    {
+      "id": "ANTI-003",
+      "name": "SKIP_CLEANUP_PROMPT",
+      "description": "Not asking user about worktree cleanup when auto_mode=false",
+      "category": "git-workflow",
+      "evidence_count": 1,
+      "last_seen": "F001",
+      "severity": "LOW",
+      "prevention": "When cleanup_mode=false AND auto_mode=false, MUST use AskUserQuestion for cleanup decision",
+      "what_went_wrong": "Worktree left behind without asking user preference",
+      "lesson": "Follow step-08-merge.md cleanup protocol exactly"
+    },
+    {
+      "id": "ANTI-004",
+      "name": "RELATIVE_DATABASE_URL",
+      "description": "Using relative path without file: prefix in DATABASE_URL causes CWD-dependent failures",
+      "category": "configuration",
+      "evidence_count": 3,
+      "last_seen": "F006",
+      "severity": "CRITICAL",
+      "prevention": "Always use absolute paths with file: prefix in DATABASE_URL: file:/absolute/path/to/db.sqlite",
+      "what_went_wrong": "DATABASE_URL=.nomos/nomos.db missing file: prefix and using relative path. @libsql/client requires file: prefix. Relative paths resolve from CWD which varies in monorepo.",
+      "lesson": "In worktree .env setup: 1) Use WORKTREE_ROOT=$(pwd) to get absolute path, 2) Use file:${WORKTREE_ROOT}/.nomos/nomos.db format",
+      "fix_applied": "step-00-init.md now uses absolute paths with file: prefix"
+    },
+    {
+      "id": "ANTI-005",
+      "name": "DUAL_ENV_LOADING",
+      "description": "drizzle.config.ts and packages/env load .env from different locations causing mismatches",
+      "category": "configuration",
+      "evidence_count": 2,
+      "last_seen": "F006",
+      "severity": "HIGH",
+      "prevention": "drizzle.config.ts now tries multiple paths: CWD, apps/server, packages/db relative. Validation added for DATABASE_URL format.",
+      "what_went_wrong": "drizzle.config.ts hardcoded ../../apps/server/.env while packages/env loaded from CWD",
+      "lesson": "Env loading in monorepos must handle multiple execution contexts (root, package dir, worktree)",
+      "fix_applied": "drizzle.config.ts now tries multiple paths and validates DATABASE_URL format"
+    },
+    {
+      "id": "ANTI-006",
+      "name": "BIOME_BEFORE_COMMIT",
+      "description": "Not running Biome format check before committing leads to extra chore commits",
+      "category": "code-quality",
+      "evidence_count": 1,
+      "last_seen": "F012",
+      "severity": "LOW",
+      "prevention": "Run 'bunx biome check . --write --unsafe' before committing feature code, or integrate into pre-commit hook",
+      "what_went_wrong": "14 Biome formatting fixes needed after initial commit, requiring a separate chore commit",
+      "lesson": "Always format before the first commit to keep commit history clean (1 feat commit instead of feat + chore)"
+    },
+    {
+      "id": "ANTI-007",
+      "name": "MISSING_DEPENDENCY_INSTALL",
+      "description": "Using imports in code without verifying package is installed in package.json",
+      "category": "dependencies",
+      "evidence_count": 1,
+      "last_seen": "F024",
+      "severity": "HIGH",
+      "prevention": "After adding ANY new import, verify package exists in package.json. Run 'bun install' and test 'bun run dev' before marking feature complete.",
+      "what_went_wrong": "zustand was imported in apps/web/src/store/index.ts but never installed. Dev server crashed with 'Failed to resolve import zustand'.",
+      "lesson": "ALWAYS: 1) Check if import is from external package, 2) Verify package.json has dependency, 3) Run 'bun add <pkg>' if missing, 4) Test dev server starts before completing feature",
+      "detection": "Run 'bun run dev' and check for 'Failed to resolve import' errors in browser console",
+      "fix_command": "bun add <missing-package>"
+    },
+    {
+      "id": "ANTI-008",
+      "name": "LOCAL_TYPE_DUPLICATION",
+      "description": "Defining API response types (FeatureFromAPI) locally in components instead of importing from shared @nomos-ai/types package",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F028",
+      "severity": "MEDIUM",
+      "prevention": "All API-facing types must be defined in @nomos-ai/types or @nomos-ai/db and imported, not redefined in components. This prevents divergence between frontend and backend type definitions.",
+      "what_went_wrong": "feature-form.tsx defined local FeatureFromAPI type with id, title, category, etc. instead of importing from @nomos-ai/db/schema or creating FeatureSelect in @nomos-ai/types.",
+      "lesson": "Source of truth for entity shapes must be single location (database schema or shared package). Frontend should import and extend, never redefine.",
+      "fix_approach": "Create FeatureSelect export in packages/db/src/schema/features.ts using getTableColumns(features), export from @nomos-ai/db. Import in components as: import { type FeatureSelect } from \"@nomos-ai/db\";",
+      "estimated_impact": "MEDIUM - inconsistency risk if entity shape changes in API but frontend type diverges"
+    }
+  ],
+  "last_updated": "2026-02-04T21:30:00Z"
 }
