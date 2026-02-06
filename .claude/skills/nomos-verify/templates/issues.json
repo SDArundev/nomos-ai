@@ -1,51 +1,59 @@
 {
+	"version": "2.0",
 	"metadata": {
 		"timestamp": "{timestamp}",
 		"scope": "{scope}",
-		"mode": "{mode}",
+		"analysis_mode": "{analysis_mode}",
+		"depth": "{depth}",
 		"features_verified": []
 	},
 	"summary": {
-		"total": 0,
-		"passed": 0,
-		"failed": 0,
+		"total_findings": 0,
+		"by_severity": {
+			"CRITICAL": 0,
+			"HIGH": 0,
+			"MEDIUM": 0,
+			"LOW": 0
+		},
+		"by_dimension": {
+			"Bugs": 0,
+			"Quality": 0,
+			"Requirements": 0,
+			"Security": 0,
+			"Testing": 0
+		},
 		"regressions": 0,
 		"pass_rate": 0
 	},
-	"results": {
-		"passed": [],
-		"failed": [],
-		"regressions": []
-	},
-	"issues": [
+	"findings": [
 		{
 			"id": "ISS-001",
 			"feature": "FXXX",
 			"severity": "CRITICAL|HIGH|MEDIUM|LOW",
-			"type": "runtime|logic|security|quality",
-			"description": "",
-			"evidence": "",
-			"ac_affected": "",
-			"fix_feature": null
+			"dimension": "Bugs|Quality|Requirements|Security|Testing",
+			"category": "subcategory",
+			"file": "path/to/file.ts:42",
+			"description": "What is wrong",
+			"impact": "Why it matters",
+			"suggested_fix": "How to fix it",
+			"status": "open|fixed|wontfix",
+			"regression": false
 		}
 	],
-	"notes": [],
-	"enhancements": [
-		{
-			"id": "ENH-001",
-			"feature": "FXXX",
-			"priority": "P1|P2|P3|P4|P5",
-			"category": "performance|security|ux|resilience|observability|testing|documentation",
-			"title": "",
-			"description": "",
-			"rationale": "",
-			"effort": "low|medium|high",
-			"impact": "low|medium|high"
+	"per_feature": {
+		"FXXX": {
+			"status": "PASS|FAIL",
+			"findings_count": 0,
+			"acs_met": 0,
+			"acs_total": 0,
+			"regression": false
 		}
-	],
-	"actions": {
-		"reverted_to_pending": [],
-		"bug_fixes_created": [],
-		"patterns_recorded": []
+	},
+	"fix_results": {
+		"fix_mode": false,
+		"iterations": 0,
+		"issues_fixed": 0,
+		"issues_remaining": 0,
+		"result": "N/A|PASS|PARTIAL|ESCALATED"
 	}
 }

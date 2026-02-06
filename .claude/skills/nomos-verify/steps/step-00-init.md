@@ -1,113 +1,171 @@
-# Step 00: Initialize Verification
+---
+name: step-00-init
+description: Parse arguments, determine scope, create output directory, initialize session
+next_step: steps/step-01-analyze.md
+---
 
-<objective>
-Parse arguments, determine scope, create isolated worktree for verification.
-</objective>
+# Step 0: Initialize Verification Session
 
-<instructions>
+## State Variables (persist across all steps)
 
-## 0. Create Isolated Worktree
+| Variable | Type | Description |
+|----------|------|-------------|
+| `{scope}` | string | single/range/verified/pending/all |
+| `{analysis_mode}` | string | `feature` (single/range) or `codebase` (verified/pending/all) |
+| `{depth}` | string | quick/standard/deep |
+| `{fix_mode}` | boolean | Whether to attempt fixes (`-f` flag) |
+| `{auto_mode}` | boolean | Skip confirmations (`-a` flag) |
+| `{features_to_verify}` | list | Feature IDs to verify |
+| `{output_dir}` | string | ABSOLUTE path to `.nomos/verify/{timestamp}/` |
+| `{timestamp}` | string | Session timestamp (ISO) |
+| `{max_fix_iterations}` | number | Max fix loop iterations (default: 3) |
 
-Verification runs in isolation to avoid modifying main directly.
+---
+
+## Rules
+
+- NEVER create a worktree in this step (read-only by default)
+- NEVER start analyzing code in this step
+- ALWAYS resolve to specific feature IDs before proceeding
+- ALWAYS create the output directory
+
+---
+
+## Execution Sequence
+
+### 1. Parse Flags
+
+| Short | Long | Default | Description |
+|-------|------|---------|-------------|
+| `-a` | `--auto` | false | Auto mode: skip confirmations |
+| `-s` | `--scope` | single | Scope: single/range/verified/pending/all |
+| `-r` | `--resume` | false | Resume previous session |
+| `-q` | `--quick` | false | Quick: 2 dimensions only |
+| `-d` | `--deep` | false | Deep: all 5 dimensions |
+| `-f` | `--fix` | false | Attempt to fix issues found |
+| `-o` | `--output` | auto | Custom output path |
+
+If no depth flag: `{depth}` = `standard`.
+If `-q`: `{depth}` = `quick`.
+If `-d`: `{depth}` = `deep`.
+
+### 2. Determine Scope
+
+```
+If argument is a single feature ID (e.g., "F027"):
+  → {scope} = "single"
+  → {analysis_mode} = "feature"
+
+If argument is a range (e.g., "F027-F050"):
+  → {scope} = "range"
+  → {analysis_mode} = "feature"
+
+If -s verified:
+  → {scope} = "verified"
+  → {analysis_mode} = "codebase"
+
+If -s pending:
+  → {scope} = "pending"
+  → {analysis_mode} = "codebase"
+
+If -s all:
+  → {scope} = "all"
+  → {analysis_mode} = "codebase"
+```
+
+### 3. Load Features
+
+Read `.nomos/features.json` and filter by scope:
+
+```
+single → find feature by ID
+range → filter features in ID range
+verified → filter features where status == "verified"
+pending → filter features where status == "pending" or "in_progress"
+all → all features with status != "backlog"
+```
+
+Set `{features_to_verify}` to the filtered list.
+
+If no features match the scope, display warning and stop.
+
+### 4. Create Output Directory
 
 ```bash
-# Generate timestamp-based identifiers
 timestamp=$(date +%Y-%m-%dT%H-%M-%S)
-branch_name="verify/${timestamp}"
-worktree_path=".nomos/worktrees/verify-${timestamp}"
-
-# Create branch from current HEAD
-git branch "${branch_name}"
-
-# Create worktree
-git worktree add "${worktree_path}" "${branch_name}"
-
-echo "Created verification worktree at ${worktree_path}"
-```
-
-**Why isolation?**
-- Verification may modify features.json (reverts, bug fixes)
-- Learning step updates .nomos/learning/ files
-- Keep main clean until changes are reviewed/approved
-- Consistent with NOMOS worktree pattern
-
-## 1. Parse Arguments
-
-Extract from user input:
-- **Feature ID or Range:** e.g., `F027`, `F027-F050`
-- **Flags:** `-a`, `-s`, `-r`, `-q`, `-d`, `-f`
-
-**Default values:**
-```
-scope = "single"
-mode = "standard"  # quick, standard, deep
-auto_fix = false
-regression_only = false
-```
-
-## 2. Determine Scope
-
-Based on arguments, set `{scope}` and `{features_to_verify}`:
-
-| Input | Scope | Features |
-|-------|-------|----------|
-| `F027` | single | [F027] |
-| `F027-F050` | range | [F027, F028, ..., F050] |
-| `-s verified` | verified | all with status=verified |
-| `-s pending` | pending | all with status=pending |
-| `-r` | verified | all with status=verified (regression) |
-| `-s all` | all | entire feature set |
-
-## 3. Load Features
-
-```bash
-# Read features.json
-node -e "
-const fs = require('fs');
-const data = JSON.parse(fs.readFileSync('.nomos/features.json', 'utf8'));
-// Filter based on scope
-// Output list of feature IDs to verify
-"
-```
-
-## 4. Create Output Directory
-
-```bash
-timestamp=$(date +%Y-%m-%dT%H-%M-%S)
-output_dir=".nomos/verify/${timestamp}"
+output_dir="$(pwd)/.nomos/verify/${timestamp}"
 mkdir -p "${output_dir}"
 ```
 
-## 5. Set State Variables
+Set `{output_dir}` to the **absolute** path.
+Set `{timestamp}` to the generated timestamp.
 
-| Variable | Value |
-|----------|-------|
-| `{scope}` | single/range/verified/pending/all |
-| `{mode}` | quick/standard/deep |
-| `{auto_fix}` | true/false |
-| `{regression_only}` | true/false |
-| `{features_to_verify}` | list of feature IDs |
-| `{output_dir}` | path to output directory |
-| `{timestamp}` | ISO timestamp |
-| `{worktree_path}` | path to verification worktree |
-| `{branch_name}` | verification branch name |
+### 5. Check for Resume (`-r` flag)
 
-## 6. Display Configuration
+If `-r` flag is set:
+1. Find the most recent `.nomos/verify/*/checkpoint.json`
+2. Read checkpoint to determine last completed step
+3. Restore state variables from checkpoint
+4. Skip to the appropriate step
+
+### 6. Display Configuration Summary
 
 ```markdown
-## Verification Configuration
+## Verification Session
 
-| Setting | Value |
-|---------|-------|
-| Scope | {scope} |
-| Mode | {mode} |
-| Features | {count} |
-| Auto-fix | {auto_fix} |
-| Output | {output_dir} |
+| Field | Value |
+|-------|-------|
+| **Scope** | {scope} |
+| **Analysis Mode** | {analysis_mode} |
+| **Depth** | {depth} |
+| **Fix Mode** | {fix_mode} |
+| **Auto Mode** | {auto_mode} |
+| **Features** | {feature_count} features |
+| **Feature IDs** | {comma-separated list} |
+| **Output** | {output_dir} |
+| **Max Fix Iterations** | {max_fix_iterations} |
 ```
 
-</instructions>
+If not `{auto_mode}`, ask user for confirmation before proceeding.
 
-<next_step>
-Load `steps/step-01-discover.md`
-</next_step>
+### 7. Write Session Config
+
+Write `{output_dir}/00-init.md` using template `templates/00-init.md`.
+
+Write checkpoint:
+```json
+{
+  "version": "2.0",
+  "timestamp": "{timestamp}",
+  "step": "00-init",
+  "scope": "{scope}",
+  "analysis_mode": "{analysis_mode}",
+  "depth": "{depth}",
+  "fix_mode": false,
+  "auto_mode": false,
+  "features_to_verify": [],
+  "completed_steps": ["00-init"]
+}
+```
+
+---
+
+## SUCCESS METRICS:
+
+- Scope resolved to specific feature list
+- Output directory created
+- State variables initialized
+- Configuration displayed to user
+- Checkpoint written
+
+## FAILURE MODES:
+
+- Creating a worktree (not needed yet)
+- Starting code analysis (that's step-01)
+- No features matching scope (should warn and stop)
+
+---
+
+## NEXT STEP:
+
+Load `./step-01-analyze.md`
