@@ -5,10 +5,10 @@ import { SESSION_STATUS, type Session, SessionSchema } from "../session";
 
 describe("SessionSchema", () => {
 	const validSession = {
-		id: "sess_abc123",
+		id: "S001",
 		featureId: "F001",
 		status: "pending",
-		startedAt: "2026-01-28T10:00:00Z",
+		startedAt: new Date("2026-01-28T10:00:00Z"),
 	};
 
 	describe("Valid sessions", () => {
@@ -16,21 +16,22 @@ describe("SessionSchema", () => {
 			const result = SessionSchema.safeParse(validSession);
 			expect(result.success).toBe(true);
 			if (result.success) {
-				expect(result.data.id).toBe("sess_abc123");
+				expect(result.data.id).toBe("S001");
 				expect(result.data.featureId).toBe("F001");
 				expect(result.data.status).toBe("pending");
 			}
 		});
 
 		it("accepts session with completedAt", () => {
+			const completedAt = new Date("2026-01-28T11:00:00Z");
 			const result = SessionSchema.safeParse({
 				...validSession,
 				status: "completed",
-				completedAt: "2026-01-28T11:00:00Z",
+				completedAt,
 			});
 			expect(result.success).toBe(true);
 			if (result.success) {
-				expect(result.data.completedAt).toBe("2026-01-28T11:00:00Z");
+				expect(result.data.completedAt).toEqual(completedAt);
 			}
 		});
 
@@ -138,6 +139,19 @@ describe("SessionSchema", () => {
 			});
 			expect(result.success).toBe(false);
 		});
+
+		it("coerces valid date strings to Date objects", () => {
+			const result = SessionSchema.safeParse({
+				id: "S001",
+				featureId: "F001",
+				status: "pending",
+				startedAt: "2026-01-28T10:00:00Z",
+			});
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.startedAt).toBeInstanceOf(Date);
+			}
+		});
 	});
 
 	describe("Timestamp validation", () => {
@@ -150,12 +164,15 @@ describe("SessionSchema", () => {
 			expect(result.success).toBe(true);
 		});
 
-		it("rejects timestamps without Z suffix (Zod datetime is strict)", () => {
+		it("accepts timestamps in various formats (coercion)", () => {
 			const result = SessionSchema.safeParse({
 				...validSession,
 				startedAt: "2026-01-28T10:00:00+00:00",
 			});
-			expect(result.success).toBe(false);
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.startedAt).toBeInstanceOf(Date);
+			}
 		});
 	});
 
@@ -163,13 +180,13 @@ describe("SessionSchema", () => {
 		it("infers Session type correctly", () => {
 			const session = SessionSchema.parse(validSession);
 			const _typed: Session = session;
-			expect(session.id).toBe("sess_abc123");
+			expect(session.id).toBe("S001");
 		});
 	});
 
 	describe("Branded type safety", () => {
 		it("branded types prevent compile-time mixing", () => {
-			const sessionId: SessionId = SessionIdSchema.parse("sess_123");
+			const sessionId: SessionId = SessionIdSchema.parse("S002");
 			const featureId: FeatureId = FeatureIdSchema.parse("F001");
 			// @ts-expect-error - Type 'SessionId' is not assignable to type 'FeatureId'
 			const _wrongAssignment: FeatureId = sessionId;
@@ -204,7 +221,7 @@ describe("SessionSchema", () => {
 			const result = SessionSchema.safeParse({
 				...validSession,
 				status: SESSION_STATUS.COMPLETED,
-				completedAt: "2026-01-28T12:00:00Z",
+				completedAt: new Date("2026-01-28T12:00:00Z"),
 				output: "Success!",
 			});
 			expect(result.success).toBe(true);
@@ -217,7 +234,7 @@ describe("SessionSchema", () => {
 			const result = SessionSchema.safeParse({
 				...validSession,
 				status: SESSION_STATUS.FAILED,
-				completedAt: "2026-01-28T12:00:00Z",
+				completedAt: new Date("2026-01-28T12:00:00Z"),
 				error: "Build failed",
 			});
 			expect(result.success).toBe(true);

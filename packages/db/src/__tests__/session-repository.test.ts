@@ -42,9 +42,11 @@ type TestDb = ReturnType<typeof createTestDb>;
 const CREATE_PROJECT_TABLE = `
 CREATE TABLE IF NOT EXISTS \`project\` (
 	\`id\` text PRIMARY KEY NOT NULL,
+	\`user_id\` text NOT NULL,
 	\`name\` text NOT NULL,
 	\`path\` text NOT NULL,
 	\`settings\` text DEFAULT '{}' NOT NULL,
+	\`status\` text DEFAULT 'draft' NOT NULL,
 	\`created_at\` integer DEFAULT (cast(unixepoch('subsec') * 1000 as integer)) NOT NULL,
 	\`updated_at\` integer DEFAULT (cast(unixepoch('subsec') * 1000 as integer)) NOT NULL
 );`;
@@ -52,6 +54,7 @@ CREATE TABLE IF NOT EXISTS \`project\` (
 const CREATE_FEATURE_TABLE = `
 CREATE TABLE IF NOT EXISTS \`feature\` (
 	\`id\` text PRIMARY KEY NOT NULL,
+	\`user_id\` text NOT NULL,
 	\`project_id\` text NOT NULL,
 	\`title\` text NOT NULL,
 	\`category\` text NOT NULL,
@@ -64,6 +67,7 @@ CREATE TABLE IF NOT EXISTS \`feature\` (
 	\`requirements\` text,
 	\`dependencies\` text,
 	\`estimated_size\` text,
+	\`pre_implemented\` integer,
 	\`model\` text,
 	\`thinking_level\` text,
 	\`planning_mode\` text,
@@ -95,6 +99,7 @@ CREATE TABLE IF NOT EXISTS \`feature\` (
 const CREATE_AGENT_SESSION_TABLE = `
 CREATE TABLE IF NOT EXISTS \`agent_session\` (
 	\`id\` text PRIMARY KEY NOT NULL,
+	\`user_id\` text NOT NULL,
 	\`feature_id\` text NOT NULL,
 	\`status\` text NOT NULL,
 	\`started_at\` integer NOT NULL,
@@ -115,6 +120,7 @@ async function setupTestDb(testDb: TestDb) {
 async function seedProject(testDb: TestDb) {
 	await testDb.insert(schema.project).values({
 		id: "proj_test1",
+		userId: "user_test1",
 		name: "Test Project",
 		path: "/tmp/test-project",
 	});
@@ -123,6 +129,7 @@ async function seedProject(testDb: TestDb) {
 async function seedFeature(testDb: TestDb, id = "F001") {
 	await testDb.insert(schema.feature).values({
 		id,
+		userId: "user_test1",
 		projectId: "proj_test1",
 		title: "Test Feature",
 		category: "core",
@@ -246,6 +253,7 @@ describe("Database Package - Session Repository", () => {
 				.insert(agentSession)
 				.values({
 					id: "sess_create1",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "pending",
 					startedAt: now,
@@ -266,6 +274,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_find1",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "running",
 				startedAt: now,
@@ -297,18 +306,21 @@ describe("Database Package - Session Repository", () => {
 			await testDb.insert(agentSession).values([
 				{
 					id: "sess_a",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "pending",
 					startedAt: now,
 				},
 				{
 					id: "sess_b",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "running",
 					startedAt: now,
 				},
 				{
 					id: "sess_c",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "completed",
 					startedAt: now,
@@ -325,18 +337,21 @@ describe("Database Package - Session Repository", () => {
 			await testDb.insert(agentSession).values([
 				{
 					id: "sess_f1a",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "pending",
 					startedAt: now,
 				},
 				{
 					id: "sess_f1b",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "running",
 					startedAt: now,
 				},
 				{
 					id: "sess_f2a",
+				userId: "user_test1",
 					featureId: "F002",
 					status: "pending",
 					startedAt: now,
@@ -365,18 +380,21 @@ describe("Database Package - Session Repository", () => {
 			await testDb.insert(agentSession).values([
 				{
 					id: "sess_s1",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "pending",
 					startedAt: now,
 				},
 				{
 					id: "sess_s2",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "running",
 					startedAt: now,
 				},
 				{
 					id: "sess_s3",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "running",
 					startedAt: now,
@@ -395,24 +413,28 @@ describe("Database Package - Session Repository", () => {
 			await testDb.insert(agentSession).values([
 				{
 					id: "sess_act1",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "pending",
 					startedAt: now,
 				},
 				{
 					id: "sess_act2",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "running",
 					startedAt: now,
 				},
 				{
 					id: "sess_act3",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "completed",
 					startedAt: now,
 				},
 				{
 					id: "sess_act4",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "failed",
 					startedAt: now,
@@ -433,6 +455,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_upd1",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "pending",
 				startedAt: now,
@@ -453,6 +476,7 @@ describe("Database Package - Session Repository", () => {
 			const completedAt = new Date(now.getTime() + 60_000);
 			await testDb.insert(agentSession).values({
 				id: "sess_upd2",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "running",
 				startedAt: now,
@@ -479,6 +503,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_upd3",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "running",
 				startedAt: now,
@@ -502,6 +527,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_del1",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "completed",
 				startedAt: now,
@@ -537,6 +563,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_ao1",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "running",
 				startedAt: now,
@@ -558,6 +585,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_ao2",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "running",
 				startedAt: now,
@@ -579,6 +607,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_ao3",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "running",
 				startedAt: now,
@@ -621,6 +650,7 @@ describe("Database Package - Session Repository", () => {
 
 			await testDb.insert(agentSession).values({
 				id: "sess_dur1",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "completed",
 				startedAt,
@@ -646,6 +676,7 @@ describe("Database Package - Session Repository", () => {
 
 			await testDb.insert(agentSession).values({
 				id: "sess_dur2",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "running",
 				startedAt,
@@ -671,6 +702,7 @@ describe("Database Package - Session Repository", () => {
 			try {
 				await testDb.insert(agentSession).values({
 					id: "sess_null1",
+				userId: "user_test1",
 					featureId: null as unknown as string,
 					status: "pending",
 					startedAt: now,
@@ -687,6 +719,7 @@ describe("Database Package - Session Repository", () => {
 			try {
 				await testDb.insert(agentSession).values({
 					id: "sess_null2",
+				userId: "user_test1",
 					featureId: "F001",
 					status: null as unknown as string,
 					startedAt: now,
@@ -702,6 +735,7 @@ describe("Database Package - Session Repository", () => {
 			try {
 				await testDb.insert(agentSession).values({
 					id: "sess_null3",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "pending",
 					startedAt: null as unknown as Date,
@@ -718,6 +752,7 @@ describe("Database Package - Session Repository", () => {
 				.insert(agentSession)
 				.values({
 					id: "sess_opt1",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "pending",
 					startedAt: now,
@@ -738,6 +773,7 @@ describe("Database Package - Session Repository", () => {
 			const now = new Date();
 			await testDb.insert(agentSession).values({
 				id: "sess_dup1",
+				userId: "user_test1",
 				featureId: "F001",
 				status: "pending",
 				startedAt: now,
@@ -747,6 +783,7 @@ describe("Database Package - Session Repository", () => {
 			try {
 				await testDb.insert(agentSession).values({
 					id: "sess_dup1",
+				userId: "user_test1",
 					featureId: "F001",
 					status: "running",
 					startedAt: now,
