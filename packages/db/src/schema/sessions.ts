@@ -11,10 +11,13 @@ export const agentSession = sqliteTable(
 			.notNull()
 			.references(() => feature.id, { onDelete: "cascade" }),
 		status: text("status").notNull(),
+		cwd: text("cwd"),
 		startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
 		completedAt: integer("completed_at", { mode: "timestamp_ms" }),
 		output: text("output"),
 		error: text("error"),
+		toolCalls: text("tool_calls", { mode: "json" }),
+		tokenUsage: text("token_usage", { mode: "json" }),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),

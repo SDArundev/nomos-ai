@@ -1,4 +1,12 @@
-export { DEFAULT_TOOLS, MODEL_MAP } from "./agent";
+export {
+	AGENT_EVENT_TYPE,
+	type AgentEventType,
+	type AgentStreamEvent,
+	DEFAULT_TOOLS,
+	type ExecutionTokenUsage,
+	MODEL_MAP,
+	type ToolCallRecord,
+} from "./agent";
 export {
 	type BranchName,
 	BranchNameSchema,
