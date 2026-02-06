@@ -23,10 +23,10 @@ export const SessionSchema = z.object({
 	status: SessionStatusSchema,
 
 	/** When the session was created/started */
-	startedAt: z.string().datetime(),
+	startedAt: z.coerce.date(),
 
 	/** When the session completed (undefined if still running) */
-	completedAt: z.string().datetime().optional(),
+	completedAt: z.coerce.date().optional(),
 
 	/** Agent output/response (undefined if not yet complete or failed) */
 	output: z.string().optional(),

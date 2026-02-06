@@ -5,6 +5,7 @@ import {
 	MODEL,
 	MODEL_MAP,
 	type Model,
+	ModelSchema,
 	SESSION_STATUS,
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
@@ -125,12 +126,9 @@ export async function createAgentSession(
 	// Configure tools
 	const tools = configureTools(input.tools);
 
-	// Resolve model - validate feature.model against enum values
-	const validModels: Model[] = ["opus", "sonnet", "haiku"];
-	const featureModel =
-		feature.model && validModels.includes(feature.model as Model)
-			? (feature.model as Model)
-			: null;
+	// Resolve model - validate feature.model against ModelSchema
+	const modelResult = feature.model ? ModelSchema.safeParse(feature.model) : null;
+	const featureModel = modelResult?.success ? modelResult.data : null;
 	const modelKey: Model = input.model ?? featureModel ?? MODEL.SONNET;
 	const model = MODEL_MAP[modelKey];
 

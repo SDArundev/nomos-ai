@@ -124,15 +124,7 @@ export const sessionRouter = {
 			try {
 				return await sessionRepository.delete(input.id);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to delete session",
-				});
+				handleRepositoryError(error, "delete session");
 			}
 		}),
 

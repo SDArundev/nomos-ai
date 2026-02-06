@@ -11,7 +11,7 @@ const mockSessionRepository = {
 	create: mock(() => Promise.resolve(null)),
 };
 
-const mockGenerateSessionId = mock(() => Promise.resolve("sess_test123"));
+const mockGenerateSessionId = mock(() => Promise.resolve("S001"));
 
 mock.module("@nomos-ai/db", () => ({
 	featureRepository: mockFeatureRepository,
@@ -336,7 +336,7 @@ describe("agent-service", () => {
 			};
 
 			const mockSession = {
-				id: "sess_test123",
+				id: "S001",
 				userId: "user_001",
 				featureId: "F010",
 				status: SESSION_STATUS.PENDING,
@@ -345,7 +345,7 @@ describe("agent-service", () => {
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
 			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("sess_test123");
+			mockGenerateSessionId.mockResolvedValueOnce("S001");
 
 			const result = await createAgentSession({
 				featureId: "F010",
@@ -394,7 +394,7 @@ describe("agent-service", () => {
 			};
 
 			const mockSession = {
-				id: "sess_test124",
+				id: "S002",
 				userId: "user_001",
 				featureId: "F011",
 				status: SESSION_STATUS.PENDING,
@@ -403,7 +403,7 @@ describe("agent-service", () => {
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
 			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("sess_test124");
+			mockGenerateSessionId.mockResolvedValueOnce("S002");
 
 			const result = await createAgentSession({
 				featureId: "F011",
@@ -442,7 +442,7 @@ describe("agent-service", () => {
 			};
 
 			const mockSession = {
-				id: "sess_test125",
+				id: "S003",
 				userId: "user_001",
 				featureId: "F012",
 				status: SESSION_STATUS.PENDING,
@@ -451,7 +451,7 @@ describe("agent-service", () => {
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
 			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("sess_test125");
+			mockGenerateSessionId.mockResolvedValueOnce("S003");
 
 			const result = await createAgentSession({
 				featureId: "F012",
@@ -491,7 +491,7 @@ describe("agent-service", () => {
 			};
 
 			const mockSession = {
-				id: "sess_test126",
+				id: "S004",
 				userId: "user_001",
 				featureId: "F013",
 				status: SESSION_STATUS.PENDING,
@@ -500,7 +500,7 @@ describe("agent-service", () => {
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
 			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("sess_test126");
+			mockGenerateSessionId.mockResolvedValueOnce("S004");
 
 			const result = await createAgentSession({
 				featureId: "F013",
@@ -541,7 +541,7 @@ describe("agent-service", () => {
 			};
 
 			const mockSession = {
-				id: "sess_test127",
+				id: "S005",
 				userId: "user_001",
 				featureId: "F014",
 				status: SESSION_STATUS.PENDING,
@@ -550,7 +550,7 @@ describe("agent-service", () => {
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
 			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("sess_test127");
+			mockGenerateSessionId.mockResolvedValueOnce("S005");
 
 			const result = await createAgentSession({
 				featureId: "F014",
