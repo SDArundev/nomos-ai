@@ -74,6 +74,7 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 | `/nomos verify --audit` | Full codebase health audit |
 | `/nomos refactor -t rename X Y` | Safe codebase refactoring (9-step) |
 | `/nomos improve` | NOMOS system self-improvement |
+| `nomos.sh ingest [--dry-run]` | Ingest verification findings into features |
 
 ---
 

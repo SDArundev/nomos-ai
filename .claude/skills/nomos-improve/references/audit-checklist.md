@@ -118,6 +118,10 @@ For each script, verify:
 - [ ] Template init renders all variables defined in templates
 - [ ] Metrics collection captures all fields expected by `learning/metrics.json`
 - [ ] Insights scoring algorithm matches documented relevance criteria
+- [ ] All 6 modules in `lib/` are sourced (state, ports, init, learn, lifecycle, ingest)
+- [ ] `cmd_patterns` reads VP file in all 3 modes (--for-plan, --for-code, --for-qa)
+- [ ] `cmd_session` includes VERIFICATION section
+- [ ] `cmd_ingest` handles --dry-run, dedup via tags, and all 3 sources (issues, enhancements, regressions)
 
 ### nomos-verify.sh Specifics
 

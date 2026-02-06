@@ -114,8 +114,11 @@ Before launching the load-learnings agent, use the existing insights scoring to 
 # Get top relevant insights (scored by dependency +3, category +2, phase +1)
 RELEVANT_INSIGHTS=$(bash .claude/skills/nomos/scripts/nomos.sh insights {feature_id})
 
-# Get category-specific patterns
+# Get category-specific patterns (includes verification patterns with source: "verification")
 RELEVANT_PATTERNS=$(bash .claude/skills/nomos/scripts/nomos.sh patterns {feature_id} --for-code)
+
+# Get verification patterns for QA awareness (includes VP entries with detection signatures)
+VERIFICATION_PATTERNS=$(bash .claude/skills/nomos/scripts/nomos.sh patterns {feature_id} --for-qa)
 ```
 
 Pass ONLY these pre-filtered results to the load-learnings agent prompt, NOT the raw file paths. This prevents the agent from reading ALL learning files (50% of which are typically irrelevant).
@@ -125,6 +128,7 @@ The load-learnings agent should still read:
 - `metrics.json` (for threshold calculation)
 - Code knowledge files matching the feature's category ONLY
 - The pre-scored insights (top 3 from above, not all insight files)
+- Verification patterns are already included in RELEVANT_PATTERNS and VERIFICATION_PATTERNS (no extra read needed)
 
 ### 3. Pre-Implementation Check (CRITICAL)
 

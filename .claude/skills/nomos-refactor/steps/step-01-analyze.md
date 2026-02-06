@@ -16,9 +16,12 @@ cat .nomos/learning/patterns.json 2>/dev/null | jq '[.patterns[] | select(.categ
 
 # Read antipatterns for known pitfalls (graceful fallback)
 cat .nomos/learning/antipatterns.json 2>/dev/null | jq '[.antipatterns[] | select(.category == "refactoring" or .tags[]? == "refactoring")] | .[0:5]' 2>/dev/null || echo "[]"
+
+# Read verification patterns for quality/integration issues (graceful fallback)
+cat .nomos/learning/verification-patterns.json 2>/dev/null | jq '[.patterns[] | select(.type == "quality" or .type == "integration")] | .[0:5]' 2>/dev/null || echo "[]"
 ```
 
-If patterns/antipatterns are found, include them as context for analysis agents.
+If patterns/antipatterns/verification-patterns are found, include them as context for analysis agents.
 If files don't exist or are empty, proceed without them — the learning system is optional.
 
 ---

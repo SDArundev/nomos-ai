@@ -44,17 +44,19 @@ Load data from these locations:
 | Server | `.nomos/learning/code/server.json` | Backend patterns and pitfalls |
 | Codebase Map | `.nomos/learning/code/codebase-map.json` | File-to-purpose mapping |
 | Insights | `.nomos/learning/insights/F*.json` | Detailed per-feature learnings |
+| Verification Patterns | `.nomos/learning/verification-patterns.json` | Runtime/integration issues found by verification |
 </data_sources>
 
 <workflow>
 
 ## Step 1: Load Core Learning Files
 
-Read the three core files:
+Read the four core files:
 ```bash
 cat .nomos/learning/patterns.json
 cat .nomos/learning/antipatterns.json
 cat .nomos/learning/metrics.json
+cat .nomos/learning/verification-patterns.json 2>/dev/null || echo '{"patterns":[]}'
 ```
 
 ## Step 2: Filter Patterns by Relevance
@@ -72,7 +74,17 @@ if pattern.evidence_count >= 5 → score += 1
 if pattern.success_rate == 1.0 → score += 1
 ```
 
+**Verification pattern scoring (VP-* entries):**
+```
+score = 0
+if vp.features_affected includes current feature → score += 4
+if vp.category matches feature.category → score += 3
+if vp.type == "runtime" or "security" → score += 2  (bonus for high-impact types)
+if vp.frequency >= 2 → score += 1
+```
+
 Select top 10 patterns by score. Include ALL anti-patterns (they're always relevant).
+Include top 5 verification patterns by score (they represent real runtime findings).
 
 ## Step 3: Load Category-Specific Code Knowledge
 
@@ -154,6 +166,12 @@ Output a structured learning context document:
 | ID | Name | Severity | Prevention |
 |----|------|----------|------------|
 | {ANTI-XXX} | {name} | {severity} | {prevention} |
+
+### Verification Patterns
+
+| ID | Name | Type | Prevention |
+|----|------|------|------------|
+| {VP-XXX} | {name} | {type} | {prevention} |
 
 ### Code Knowledge
 
@@ -264,6 +282,7 @@ A complete learning context includes:
 - Risk assessment with confidence score
 - At least 5 relevant patterns (if available)
 - All anti-patterns listed
+- Verification patterns loaded and scored (if available)
 - Category-specific code knowledge loaded
 - At least 1 related feature insight (if available)
 - Thresholds calculated from historical data

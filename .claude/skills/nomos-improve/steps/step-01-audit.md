@@ -49,9 +49,23 @@ Read each file in `{target_files}`. For each file:
 - Identify which checklist items apply
 - Check each applicable item
 
+### 2b. Load Verification Context (Graceful)
+
+If verification data exists, load it for audit context:
+
+```bash
+# Load verification patterns (graceful — file may not exist)
+cat .nomos/learning/verification-patterns.json 2>/dev/null | jq '.patterns // []' 2>/dev/null || echo "[]"
+
+# Find latest verify run for issue counts
+ls -1d .nomos/verify/*/ 2>/dev/null | sort -r | head -1
+```
+
+Use VP data to inform consistency checks — verification patterns reveal real runtime issues that static auditing might miss.
+
 ### 3. Run Cross-File Consistency Checks
 
-**Always run these 7 checks** (regardless of scope):
+**Always run these 8 checks** (regardless of scope):
 
 **Check 1: Agent References**
 ```
@@ -86,6 +100,17 @@ In patterns.json + antipatterns.json → verify all IDs are unique
 **Check 7: Step Numbering**
 ```
 For each step-NN.md → verify NN-name.md template exists and matches
+```
+
+**Check 8: Verification Data Integration**
+```
+Verify verification data flows are connected:
+- .nomos/learning/verification-patterns.json → read by nomos.sh patterns (all 3 modes)
+- .nomos/learning/verification-patterns.json → read by load-learnings agent
+- .nomos/verify/*/issues.json → consumable by nomos.sh ingest
+- .nomos/verify/*/enhancements.json → consumable by nomos.sh ingest
+- nomos.sh ingest command exists and handles --dry-run
+- cmd_session shows VERIFICATION section
 ```
 
 **Scope-limited check:** When `{scope}` is not `system`, only run checks relevant to the targeted component type. For example, if scope is `agent`, focus on Check 1 (agent references) and skip template/script checks.

@@ -1,0 +1,79 @@
+{
+  "patterns": [
+    {
+      "id": "VP-001",
+      "name": "UUID instead of branded ID",
+      "description": "Entity creation uses crypto.randomUUID() instead of generating branded IDs matching the type system (F###, P###, S###)",
+      "category": "CAT-API",
+      "type": "logic",
+      "frequency": 1,
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "features_affected": ["F017", "F018", "F019"],
+      "root_cause": "Repositories use generic UUID generation without awareness of branded type conventions",
+      "prevention": "Implement sequential ID generation in base repository or ID service",
+      "detection": "Check create handlers for crypto.randomUUID() vs branded format",
+      "fix_pattern": "Query max(id), parse numeric suffix, increment, format with prefix"
+    },
+    {
+      "id": "VP-002",
+      "name": "State machine duplication",
+      "description": "VALID_TRANSITIONS constant duplicated across server and client code",
+      "category": "CAT-CORE",
+      "type": "quality",
+      "frequency": 1,
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "features_affected": ["F018", "F019", "F025", "F027"],
+      "root_cause": "No shared package exports state machine logic, each module defines its own",
+      "prevention": "Define state machines in @nomos-ai/types and import everywhere",
+      "detection": "Search for VALID_TRANSITIONS across codebase",
+      "fix_pattern": "Extract to shared package, export as const, import in consumers"
+    },
+    {
+      "id": "VP-003",
+      "name": "DB schema / Zod schema drift",
+      "description": "Drizzle table schema missing columns that exist in the corresponding Zod type schema",
+      "category": "CAT-DB",
+      "type": "integration",
+      "frequency": 1,
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "features_affected": ["F007", "F008"],
+      "root_cause": "Zod schemas and Drizzle schemas evolved independently without cross-validation",
+      "prevention": "Add build-time check comparing Zod schema keys against Drizzle column names",
+      "detection": "Compare exported Zod schema shape with Drizzle table columns",
+      "fix_pattern": "Add missing columns + migration, or remove from Zod schema if not needed"
+    },
+    {
+      "id": "VP-004",
+      "name": "TOCTOU in bulk operations",
+      "description": "Bulk status update validates then modifies in separate steps without transaction",
+      "category": "CAT-API",
+      "type": "runtime",
+      "frequency": 1,
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "features_affected": ["F018"],
+      "root_cause": "Validation and mutation not wrapped in same transaction",
+      "prevention": "Always use transactions for validate-then-mutate patterns",
+      "detection": "Look for await Promise.all() followed by separate update calls",
+      "fix_pattern": "Wrap in Drizzle transaction: db.transaction(async (tx) => { ... })"
+    },
+    {
+      "id": "VP-005",
+      "name": "Error handling boilerplate duplication",
+      "description": "Identical try-catch error handling pattern repeated across all oRPC router handlers",
+      "category": "CAT-API",
+      "type": "quality",
+      "frequency": 1,
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "features_affected": ["F017", "F018", "F019"],
+      "root_cause": "No shared error handling middleware or utility",
+      "prevention": "Create withErrorHandling wrapper or oRPC middleware",
+      "detection": "Search for 'ORPCError' + 'NOT_FOUND' pattern across routers",
+      "fix_pattern": "Extract to shared utility function in packages/api/src/utils/"
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "version": "2.0",
+  "timestamp": "2026-02-06T15:38:41",
+  "scope": "all",
+  "depth": "standard",
+  "summary": {
+    "total": 18,
+    "critical": 0,
+    "high": 6,
+    "medium": 8,
+    "low": 4,
+    "features_affected": ["F001", "F006", "F007", "F008", "F011", "F016", "F018"],
+    "pass_rate": "90%"
+  },
+  "findings": [
+    {
+      "id": "SYS-001",
+      "severity": "HIGH",
+      "dimension": "Bugs",
+      "category": "Data Integrity - ID Generation",
+      "files": [
+        "packages/api/src/routers/feature.ts:110",
+        "packages/api/src/routers/project.ts:73",
+        "packages/api/src/routers/session.ts:86"
+      ],
+      "description": "ID generation uses crypto.randomUUID() instead of branded format (F###, P###, S###) across all 3 entity routers",
+      "impact": "Stored IDs violate type system branding conventions. Won't match expected patterns for FeatureId/ProjectId/SessionId.",
+      "suggested_fix": "Implement sequential ID generation in repositories using max(id) + 1 pattern",
+      "feature": "CROSS-CUTTING",
+      "effort": "medium"
+    },
+    {
+      "id": "BUG-004",
+      "severity": "HIGH",
+      "dimension": "Bugs",
+      "category": "Race Condition",
+      "files": ["packages/api/src/routers/feature.ts:194-217"],
+      "description": "bulkUpdateStatus has TOCTOU race: validates transitions, then updates in separate operations without transaction",
+      "impact": "Concurrent bulk updates could bypass state machine rules",
+      "suggested_fix": "Wrap validation + update in a Drizzle transaction",
+      "feature": "F018",
+      "effort": "medium"
+    },
+    {
+      "id": "BUG-005",
+      "severity": "MEDIUM",
+      "dimension": "Bugs",
+      "category": "Silent Failure",
+      "files": ["packages/api/src/routers/feature.ts:202-203"],
+      "description": "bulkUpdateStatus silently skips non-existent feature IDs instead of returning error",
+      "impact": "Client receives success response but some IDs were not processed",
+      "suggested_fix": "Collect missing IDs and throw ORPCError NOT_FOUND",
+      "feature": "F018",
+      "effort": "low"
+    },
+    {
+      "id": "BUG-006",
+      "severity": "MEDIUM",
+      "dimension": "Bugs",
+      "category": "Type Mismatch",
+      "files": ["packages/db/src/schema/projects.ts:10-13", "packages/types/src/project.ts:39-44"],
+      "description": "Settings default mismatch between DB schema (stores {}) and Zod transform (expects undefined to apply defaults)",
+      "impact": "Partially provided settings may miss default values for locale, notifications, etc.",
+      "suggested_fix": "Align transform to handle {} case or use deep merge for defaults",
+      "feature": "CROSS-CUTTING",
+      "effort": "low"
+    },
+    {
+      "id": "BUG-007",
+      "severity": "HIGH",
+      "dimension": "Bugs",
+      "category": "Missing Column",
+      "files": ["packages/db/src/schema/projects.ts"],
+      "description": "Projects table missing 'status' column defined in ProjectSchema Zod type",
+      "impact": "Runtime errors when reading/writing project.status from DB",
+      "suggested_fix": "Add status text column with default 'draft' + migration",
+      "feature": "F007",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-001",
+      "severity": "HIGH",
+      "dimension": "Requirements",
+      "category": "Missing AC",
+      "files": ["packages/db/src/schema/projects.ts"],
+      "description": "F007 AC4 requires flexible settings column — status field gap between Zod schema and DB",
+      "impact": "Feature not fully meeting acceptance criteria",
+      "suggested_fix": "Add status column to projects table",
+      "feature": "F007",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-005",
+      "severity": "HIGH",
+      "dimension": "Requirements",
+      "category": "Missing AC",
+      "files": ["packages/db/src/migrate.ts"],
+      "description": "F011 AC3 'Schema version tracked' — no version tracking exposed to application",
+      "impact": "Cannot programmatically query migration status",
+      "suggested_fix": "Query Drizzle metadata table for current version",
+      "feature": "F011",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-006",
+      "severity": "HIGH",
+      "dimension": "Requirements",
+      "category": "Missing AC",
+      "files": ["packages/db/src/migrate.ts"],
+      "description": "F011 AC4 'Rollback capability exists' — no rollback mechanism implemented",
+      "impact": "Cannot recover from failed migrations",
+      "suggested_fix": "Document rollback strategy or implement manual rollback scripts",
+      "feature": "F011",
+      "effort": "medium"
+    },
+    {
+      "id": "QC001",
+      "severity": "MEDIUM",
+      "dimension": "Quality",
+      "category": "Code Duplication",
+      "files": [
+        "packages/api/src/routers/feature.ts:12-25",
+        "apps/web/src/components/kanban/kanban-board.tsx:33-40",
+        "apps/web/src/components/kanban/feature-detail-panel.tsx:34-41",
+        "packages/api/src/routers/session.ts:12-17"
+      ],
+      "description": "VALID_TRANSITIONS state machine duplicated in 4 files",
+      "impact": "State machine changes require updating 4 files in sync",
+      "suggested_fix": "Extract to @nomos-ai/types as centralized constant",
+      "feature": "CROSS-CUTTING",
+      "effort": "low"
+    },
+    {
+      "id": "QC002",
+      "severity": "MEDIUM",
+      "dimension": "Quality",
+      "category": "Code Duplication",
+      "files": [
+        "apps/web/src/components/kanban/feature-detail-panel.tsx:25-32",
+        "apps/web/src/routes/projects.$projectId.tsx:52-59",
+        "apps/web/src/routes/features.$featureId.tsx:19-26"
+      ],
+      "description": "statusColors mapping duplicated in 3 frontend files",
+      "impact": "UI color inconsistency risk on changes",
+      "suggested_fix": "Centralize to apps/web/src/lib/status-colors.ts",
+      "feature": "CROSS-CUTTING",
+      "effort": "low"
+    },
+    {
+      "id": "QC003",
+      "severity": "MEDIUM",
+      "dimension": "Quality",
+      "category": "Code Duplication",
+      "files": [
+        "packages/types/src/feature.ts:8-25",
+        "packages/api/src/routers/feature.ts:48",
+        "apps/web/src/components/feature-form.tsx:42"
+      ],
+      "description": "EstimatedSize enum duplicated instead of importing from @nomos-ai/types",
+      "impact": "Size options diverge if updated in one location only",
+      "suggested_fix": "Import EstimatedSizeSchema from @nomos-ai/types in router and form",
+      "feature": "CROSS-CUTTING",
+      "effort": "low"
+    },
+    {
+      "id": "QC004",
+      "severity": "MEDIUM",
+      "dimension": "Quality",
+      "category": "Code Duplication",
+      "files": [
+        "packages/api/src/routers/feature.ts",
+        "packages/api/src/routers/project.ts",
+        "packages/api/src/routers/session.ts"
+      ],
+      "description": "Identical error handling try-catch pattern duplicated 8+ times across routers",
+      "impact": "Error handling changes require updating all routers",
+      "suggested_fix": "Create shared handleRepositoryError utility",
+      "feature": "CROSS-CUTTING",
+      "effort": "low"
+    },
+    {
+      "id": "QC005",
+      "severity": "LOW",
+      "dimension": "Quality",
+      "category": "Code Duplication",
+      "files": [
+        "apps/web/src/components/feature-form.tsx:18-31",
+        "apps/web/src/routes/projects.$projectId.tsx:27-40"
+      ],
+      "description": "FeatureFromAPI type duplicated in 2 files",
+      "impact": "Minor type inconsistency risk",
+      "suggested_fix": "Infer type from oRPC client or create shared type",
+      "feature": "CROSS-CUTTING",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-002",
+      "severity": "MEDIUM",
+      "dimension": "Requirements",
+      "category": "Configuration",
+      "files": ["packages/db/drizzle.config.ts:48"],
+      "description": "DB file location defaults to local.db instead of .nomos/data/ as documented",
+      "impact": "Database may not persist in expected location",
+      "suggested_fix": "Update DATABASE_URL docs/example to point to .nomos/data/",
+      "feature": "F006",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-003",
+      "severity": "MEDIUM",
+      "dimension": "Requirements",
+      "category": "Missing Field",
+      "files": ["packages/db/src/schema/features.ts"],
+      "description": "Missing preImplemented boolean field in features DB table",
+      "impact": "Cannot persist pre-implemented flag for features",
+      "suggested_fix": "Add preImplemented column + migration",
+      "feature": "F008",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-004",
+      "severity": "LOW",
+      "dimension": "Requirements",
+      "category": "Missing Pipeline",
+      "files": ["turbo.json:10-12"],
+      "description": "Missing 'check' or 'lint' pipeline in turbo.json (F001 AC1)",
+      "impact": "Cannot run unified static analysis",
+      "suggested_fix": "Add check task to turbo.json",
+      "feature": "F001",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-008",
+      "severity": "LOW",
+      "dimension": "Requirements",
+      "category": "Missing Measurement",
+      "files": ["apps/server/src/index.ts:88-112"],
+      "description": "Health check response time not measured against 100ms AC",
+      "impact": "Cannot verify non-functional requirement",
+      "suggested_fix": "Add response time logging",
+      "feature": "F016",
+      "effort": "low"
+    },
+    {
+      "id": "REQ-009",
+      "severity": "LOW",
+      "dimension": "Requirements",
+      "category": "Missing Tests",
+      "files": ["packages/api/src/routers/__tests__/feature.test.ts"],
+      "description": "No integration tests for invalid state transitions",
+      "impact": "State machine validation untested",
+      "suggested_fix": "Add tests for rejected transitions",
+      "feature": "F018",
+      "effort": "low"
+    }
+  ]
+}

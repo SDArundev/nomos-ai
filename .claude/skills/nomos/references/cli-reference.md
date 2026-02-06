@@ -89,6 +89,43 @@ Sub-commands are routed in `step-00-init.md` before flag parsing. The first posi
 /nomos -i F016
 ```
 
+## Script Commands (nomos.sh)
+
+| Command | Purpose |
+|---------|---------|
+| `state <action> [id]` | Feature state management (start, claim, complete, verify, reset, fail, retry, preverify, get, next) |
+| `ports <action> [id]` | Port allocation (allocate, release, cleanup) |
+| `init <id> <args>` | Initialize output templates |
+| `diff <id> [mode]` | Show feature changes (--names, --stat, --summary) |
+| `metrics <id>` | Collect feature metrics as JSON |
+| `metrics <id> --category-stats` | Category-level benchmarks |
+| `health <id> [mode]` | Check server health (--wait, --check) |
+| `insights <id>` | Top 3 relevant insights (scored) |
+| `patterns <id> [mode]` | Filtered patterns (--for-plan, --for-code, --for-qa) |
+| `cleanup [--stale]` | Clean up stale features and orphaned resources |
+| `session` | Rich project context dashboard |
+| `ingest [--dry-run]` | Ingest verification findings into features.json |
+
+### `ingest` Command
+
+Ingests findings from the latest verification run into features.json:
+
+- **HIGH/CRITICAL issues** → new features with `status: "pending"`, priority 1 (CRITICAL) or 5 (HIGH)
+- **Enhancements** → new features with `status: "backlog"`, priority 100
+- **Regressions** → affected features marked `status: "failed"` with `failureReason: "regression_detected"`
+
+Deduplication via `tags` array (e.g., `["verify-ingested", "verify-ingested:SYS-001"]`).
+
+```bash
+# Preview what would be ingested
+bash .claude/skills/nomos/scripts/nomos.sh ingest --dry-run
+
+# Actually ingest
+bash .claude/skills/nomos/scripts/nomos.sh ingest
+```
+
+---
+
 ## Resume Workflow
 
 When using `-r {feature-id}`:

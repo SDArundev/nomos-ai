@@ -60,28 +60,43 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 
 ## Scripts
 
-### nomos.sh (~1000 lines)
+### nomos.sh v3 (modular, ~100 lines entry + 6 modules)
 
-| Command | Called By | Purpose |
-|---------|-----------|---------|
-| `state start <id>` | step-00 | pending → in_progress |
-| `state claim <id>` | step-00 | Atomic claim (returns ALREADY_CLAIMED) |
-| `state complete <id>` | step-04 | in_progress → waiting_approval |
-| `state verify <id>` | step-05 | waiting_approval → verified |
-| `state reset <id>` | manual | any → pending |
-| `state preverify <id>` | step-01 | pending → verified (skip) |
-| `state get <id>` | step-00, step-01 | Read feature state |
-| `state next` | step-00 | Get next pending feature |
-| `ports allocate <id>` | step-00 | Allocate unique ports |
-| `ports release <id>` | step-05 | Release ports |
-| `ports cleanup` | manual | Kill orphaned processes |
-| `init <id> <args>` | step-00 | Render all templates |
-| `diff <id>` | step-05, step-06 | Show feature diff |
-| `metrics <id>` | step-06 | Collect feature metrics |
-| `health <id>` | step-04 | Server health check |
-| `insights <id>` | step-01 | Relevance-scored insights |
-| `patterns <id>` | step-01, step-02 | Filtered patterns |
-| `cleanup [--stale]` | manual | Clean up stale features + orphaned worktrees |
+```
+scripts/
+├── nomos.sh              # Entry: shared vars + locks + router (~100 lines)
+├── nomos-verify.sh       # Server lifecycle (221 lines)
+└── lib/
+    ├── state.sh          # cmd_state                              (~210 lines)
+    ├── ports.sh          # cmd_ports, kill_port                   (~155 lines)
+    ├── init.sh           # cmd_init                               (~95 lines)
+    ├── learn.sh          # cmd_patterns, cmd_insights, cmd_metrics, cmd_metrics_category_stats (~310 lines)
+    ├── lifecycle.sh      # cmd_diff, cmd_health, cmd_cleanup, cmd_session (~220 lines)
+    └── ingest.sh         # cmd_ingest                             (~120 lines)
+```
+
+| Command | Called By | Module | Purpose |
+|---------|-----------|--------|---------|
+| `state start <id>` | step-00 | state.sh | pending → in_progress |
+| `state claim <id>` | step-00 | state.sh | Atomic claim (returns ALREADY_CLAIMED) |
+| `state complete <id>` | step-04 | state.sh | in_progress → waiting_approval |
+| `state verify <id>` | step-05 | state.sh | waiting_approval → verified |
+| `state reset <id>` | manual | state.sh | any → pending |
+| `state preverify <id>` | step-01 | state.sh | pending → verified (skip) |
+| `state get <id>` | step-00, step-01 | state.sh | Read feature state |
+| `state next` | step-00 | state.sh | Get next pending feature |
+| `ports allocate <id>` | step-00 | ports.sh | Allocate unique ports |
+| `ports release <id>` | step-05 | ports.sh | Release ports |
+| `ports cleanup` | manual | ports.sh | Kill orphaned processes |
+| `init <id> <args>` | step-00 | init.sh | Render all templates |
+| `diff <id>` | step-05, step-06 | lifecycle.sh | Show feature diff |
+| `metrics <id>` | step-06 | learn.sh | Collect feature metrics |
+| `health <id>` | step-04 | lifecycle.sh | Server health check |
+| `insights <id>` | step-01 | learn.sh | Relevance-scored insights |
+| `patterns <id>` | step-01, step-02 | learn.sh | Filtered patterns (+ VP) |
+| `cleanup [--stale]` | manual | lifecycle.sh | Clean up stale features + orphaned worktrees |
+| `session` | manual | lifecycle.sh | Rich project dashboard (+ VP stats) |
+| `ingest [--dry-run]` | manual/post-verify | ingest.sh | Ingest verify findings → features.json |
 
 ### nomos-verify.sh (~220 lines)
 
@@ -139,10 +154,33 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 | `learning/antipatterns.json` | Known mistakes (ANTI-*) | Step 06 | Step 01, Step 03 |
 | `learning/metrics.json` | Per-feature metrics | Step 06 | Step 01, Step 02 |
 | `learning/insights/F*.json` | Per-feature detailed insights | Step 06 | Step 01 |
+| `learning/verification-patterns.json` | Runtime/integration issues (VP-*) | nomos-verify | nomos.sh patterns (all 3 modes), load-learnings, step-01-context, nomos-refactor step-01, nomos-improve step-01 |
+| `learning/regression-log.json` | Regression tracking | nomos-verify | nomos.sh ingest |
 | `learning/code/codebase-map.json` | File-to-purpose map | Step 06 | Step 01 |
 | `learning/code/database.json` | DB patterns | Step 06 | Step 01 |
 | `learning/code/server.json` | Backend patterns | Step 06 | Step 01 |
 | `learning/code/typescript.json` | Type patterns | Step 06 | Step 01 |
+
+### Verification Data Flow
+
+```
+nomos-verify → writes:
+├── .nomos/learning/verification-patterns.json
+│   ├──→ nomos.sh patterns --for-plan  (verification_patterns key)
+│   ├──→ nomos.sh patterns --for-code  (entries with source: "verification")
+│   ├──→ nomos.sh patterns --for-qa    (entries with detection signatures)
+│   ├──→ nomos.sh session              (VERIFICATION section)
+│   ├──→ load-learnings agent          (VP scoring + output section)
+│   ├──→ step-01-context.md            (VERIFICATION_PATTERNS variable)
+│   ├──→ nomos-refactor step-01        (quality/integration filter)
+│   └──→ nomos-improve step-01         (Check 8 + VP context)
+├── .nomos/verify/*/issues.json
+│   └──→ nomos.sh ingest → features.json (HIGH/CRITICAL → pending)
+├── .nomos/verify/*/enhancements.json
+│   └──→ nomos.sh ingest → features.json (suggestions → backlog)
+└── .nomos/learning/regression-log.json
+    └──→ nomos.sh ingest → features.json (regressions → failed)
+```
 
 ---
 
@@ -219,10 +257,13 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 
 Shared Infrastructure:
 ├── .claude/skills/nomos/scripts/nomos.sh      ← Used by: nomos, nomos-verify (via nomos-verify.sh)
+│   └── lib/{state,ports,init,learn,lifecycle,ingest}.sh ← Modular command implementations
 ├── .claude/agents/*.md                         ← Used by: all 4 skills
-├── .nomos/features.json                        ← Used by: nomos, nomos-verify
-├── .nomos/learning/                            ← Written by: nomos, nomos-refactor | Read by: all
-└── .nomos/output/, .nomos/verify/, .nomos/refactor/ ← Output directories per skill
+├── .nomos/features.json                        ← Used by: nomos, nomos-verify, nomos.sh ingest
+├── .nomos/learning/                            ← Written by: nomos, nomos-refactor, nomos-verify | Read by: all
+│   └── verification-patterns.json             ← Written by: nomos-verify | Read by: all 4 skills
+├── .nomos/verify/                              ← Written by: nomos-verify | Read by: nomos.sh ingest
+└── .nomos/output/, .nomos/refactor/            ← Output directories per skill
 ```
 
 ---
