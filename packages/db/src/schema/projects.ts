@@ -5,12 +5,14 @@ export const project = sqliteTable(
 	"project",
 	{
 		id: text("id").primaryKey(),
+		userId: text("user_id").notNull(),
 		name: text("name").notNull(),
 		path: text("path").notNull().unique(),
 		settings: text("settings", { mode: "json" })
 			.$type<Record<string, unknown>>()
-			.default({})
+			.default({ theme: "system", locale: "en", autoSaveInterval: 30, notifications: true })
 			.notNull(),
+		status: text("status").notNull().default("draft"),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),

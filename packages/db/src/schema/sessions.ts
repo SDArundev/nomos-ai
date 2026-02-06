@@ -6,6 +6,7 @@ export const agentSession = sqliteTable(
 	"agent_session",
 	{
 		id: text("id").primaryKey(),
+		userId: text("user_id").notNull(),
 		featureId: text("feature_id")
 			.notNull()
 			.references(() => feature.id, { onDelete: "cascade" }),

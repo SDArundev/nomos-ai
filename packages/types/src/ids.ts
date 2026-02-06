@@ -11,11 +11,17 @@ export const FeatureIdSchema = z
 	.regex(/^F[0-9]{3}$/, "Feature ID must be in format F001-F999")
 	.brand<"FeatureId">();
 
-/** Schema for validating and branding Project IDs */
-export const ProjectIdSchema = z.string().brand<"ProjectId">();
+/** Schema for validating and branding Project IDs (P001-P999 format) */
+export const ProjectIdSchema = z
+	.string()
+	.regex(/^P[0-9]{3}$/, "Project ID must be in format P001-P999")
+	.brand<"ProjectId">();
 
-/** Schema for validating and branding Session IDs */
-export const SessionIdSchema = z.string().brand<"SessionId">();
+/** Schema for validating and branding Session IDs (S001-S999 format) */
+export const SessionIdSchema = z
+	.string()
+	.regex(/^S[0-9]{3}$/, "Session ID must be in format S001-S999")
+	.brand<"SessionId">();
 
 /** Schema for validating and branding User IDs */
 export const UserIdSchema = z.string().brand<"UserId">();

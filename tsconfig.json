@@ -1,3 +1,11 @@
 {
-	"extends": "@nomos-ai/config/tsconfig.base.json"
+	"extends": "@nomos-ai/config/tsconfig.base.json",
+	"references": [
+		{ "path": "packages/types" },
+		{ "path": "packages/db" },
+		{ "path": "packages/auth" },
+		{ "path": "packages/api" },
+		{ "path": "packages/env" },
+		{ "path": "apps/server" }
+	]
 }

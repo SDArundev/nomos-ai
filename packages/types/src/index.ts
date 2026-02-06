@@ -72,10 +72,12 @@ export {
 	FEATURE_STATUS,
 	type FeatureStatus,
 	FeatureStatusSchema,
+	FEATURE_VALID_TRANSITIONS,
 	PROJECT_STATUS,
 	type ProjectStatus,
 	ProjectStatusSchema,
 	SESSION_STATUS,
 	type SessionStatus,
 	SessionStatusSchema,
+	SESSION_VALID_TRANSITIONS,
 } from "./status";

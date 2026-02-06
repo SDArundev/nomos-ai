@@ -6,6 +6,7 @@ export const learning = sqliteTable(
 	"learning",
 	{
 		id: text("id").primaryKey(),
+		userId: text("user_id").notNull(),
 		featureId: text("feature_id").references(() => feature.id, {
 			onDelete: "set null",
 		}),

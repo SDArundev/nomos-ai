@@ -24,6 +24,31 @@ try {
 const app = new Hono();
 
 app.use(logger());
+
+// Simple in-memory rate limiter
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 100; // 100 requests per minute
+
+app.use("/*", async (c, next) => {
+	const ip =
+		c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
+	const now = Date.now();
+	const entry = rateLimitStore.get(ip);
+
+	if (!entry || now > entry.resetAt) {
+		rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+	} else {
+		entry.count++;
+		if (entry.count > RATE_LIMIT_MAX) {
+			c.header("Retry-After", String(Math.ceil((entry.resetAt - now) / 1000)));
+			return c.json({ error: "Too Many Requests" }, 429);
+		}
+	}
+
+	await next();
+});
+
 app.use(
 	"/*",
 	cors({
@@ -33,6 +58,16 @@ app.use(
 		credentials: true,
 	}),
 );
+
+// Security headers
+app.use("/*", async (c, next) => {
+	await next();
+	c.header("X-Content-Type-Options", "nosniff");
+	c.header("X-Frame-Options", "DENY");
+	c.header("X-XSS-Protection", "1; mode=block");
+	c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+	c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+});
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
@@ -120,7 +155,11 @@ app.onError((err, c) => {
 		return err.getResponse();
 	}
 	console.error("Unhandled error:", err);
-	return c.json({ error: "Internal Server Error" }, 500);
+	const message =
+		process.env.NODE_ENV === "production"
+			? "Internal Server Error"
+			: err.message || "Internal Server Error";
+	return c.json({ error: message }, 500);
 });
 
 console.log(`Server running on port ${env.PORT}`);

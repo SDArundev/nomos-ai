@@ -6,6 +6,7 @@ export const feature = sqliteTable(
 	"feature",
 	{
 		id: text("id").primaryKey(),
+		userId: text("user_id").notNull(),
 		projectId: text("project_id")
 			.notNull()
 			.references(() => project.id, { onDelete: "cascade" }),
