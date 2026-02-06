@@ -52,7 +52,9 @@ app.use("/*", async (c, next) => {
 app.use(
 	"/*",
 	cors({
-		origin: env.CORS_ORIGIN,
+		origin: env.CORS_ORIGIN.includes(",")
+			? env.CORS_ORIGIN.split(",").map((o) => o.trim())
+			: env.CORS_ORIGIN,
 		allowMethods: ["GET", "POST", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
 		credentials: true,
