@@ -1,0 +1,31 @@
+{
+  "feature_id": "F032",
+  "title": "Agent session creation service",
+  "category": "CAT-AGT",
+  "phase": "phase-2",
+  "loop_iterations_used": 2,
+  "discoveries": [
+    "Drizzle mode:'json' columns are already parsed objects at runtime — no need for manual JSON.parse()",
+    "Cross-package constant sharing requires moving to a shared types package, not duplicating",
+    "Service layer functions (not just routers) belong in packages/api/src/services/ for clean imports"
+  ],
+  "what_worked": [
+    "Moving MODEL_MAP and DEFAULT_TOOLS to @nomos-ai/types eliminated 3 copies of the same data",
+    "Testing real functions with Bun mock.module provides better coverage than testing logic copies",
+    "Separating service (createAgentSession) from router endpoint keeps concerns clean",
+    "buildSystemPrompt as a pure function is easy to test and extend",
+    "configureTools with optional override parameter provides extensibility without complexity"
+  ],
+  "what_failed": [
+    "Initial implementation duplicated MODEL_MAP in 3 places — caught by QA review",
+    "Tests initially tested logic copies instead of real implementation — caught by QA review",
+    "Silent JSON parsing in try-catch hid potential data quality issues — unnecessary since Drizzle handles it"
+  ],
+  "recommendations": [
+    "For future agent features: import MODEL_MAP and DEFAULT_TOOLS from @nomos-ai/types, not agent-client.ts",
+    "Always check Drizzle column mode before adding manual JSON.parse() — mode:'json' does it automatically",
+    "When creating services in packages/api, put them in src/services/ directory",
+    "For cross-package constants: always put in @nomos-ai/types to avoid circular dependencies",
+    "F033 (Agent execution with streaming) should import createAgentSession from packages/api/src/services/agent-service"
+  ]
+}

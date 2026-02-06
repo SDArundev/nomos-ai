@@ -1,0 +1,12 @@
+{
+  "version": "2.0",
+  "timestamp": "2026-02-06T22-04-32",
+  "step": "00-init",
+  "scope": "single",
+  "analysis_mode": "feature",
+  "depth": "standard",
+  "fix_mode": false,
+  "auto_mode": false,
+  "features_to_verify": ["F031"],
+  "completed_steps": ["00-init"]
+}

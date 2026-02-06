@@ -992,6 +992,36 @@
       "features_succeeded": [
         "F031"
       ]
+    },
+    {
+      "name": "SHARED_CONSTANTS_IN_TYPES",
+      "description": "Move cross-package constants (MODEL_MAP, DEFAULT_TOOLS) to @nomos-ai/types to avoid duplication",
+      "confidence": 0.9,
+      "code_example": "// packages/types/src/agent.ts\nexport const MODEL_MAP: Record<Model, string> = { ... };\nexport const DEFAULT_TOOLS = [\"Read\", \"Write\", \"Edit\", \"Bash\", \"Glob\", \"Grep\"];",
+      "category": "typescript",
+      "source": "learning",
+      "first_seen": "F032",
+      "last_seen": "F032"
+    },
+    {
+      "name": "SERVICE_LAYER_IN_API_PACKAGE",
+      "description": "Service functions that bridge multiple repositories belong in packages/api/src/services/. Routers are thin wrappers.",
+      "confidence": 0.85,
+      "code_example": "// packages/api/src/services/agent-service.ts\nexport async function createAgentSession(input) { ... }\n\n// packages/api/src/routers/session.ts\ncreateAgentSession: protectedProcedure.input(schema).handler(({ input, context }) => createAgentSession({ ...input, userId: context.session.user.id }))",
+      "category": "server",
+      "source": "learning",
+      "first_seen": "F032",
+      "last_seen": "F032"
+    },
+    {
+      "name": "DRIZZLE_JSON_MODE_NO_PARSE",
+      "description": "Drizzle columns with mode:\"json\" are already parsed objects at runtime. Do NOT add manual JSON.parse().",
+      "confidence": 0.9,
+      "code_example": "// WRONG: const criteria = JSON.parse(feature.acceptanceCriteria)\n// RIGHT: const criteria = feature.acceptanceCriteria // already an array/object",
+      "category": "database",
+      "source": "learning",
+      "first_seen": "F032",
+      "last_seen": "F032"
     }
   ],
   "last_updated": "2026-02-06T14:20:00Z",
