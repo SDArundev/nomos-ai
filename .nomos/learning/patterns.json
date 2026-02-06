@@ -921,8 +921,79 @@
       "features_succeeded": [
         "F029"
       ]
+    },
+    {
+      "id": "AGT-001",
+      "name": "SDK_OPTION_PROPERTY_NAMES",
+      "description": "Claude Agent SDK has `tools` (base tool set) vs `allowedTools` (auto-allowed without prompting). These are DIFFERENT properties with different purposes.",
+      "category": "server",
+      "evidence_count": 1,
+      "last_seen": "F031",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "When creating agent queries, pass tools in options: query({ prompt, options: { tools: [...], allowedTools: [...] } })",
+      "code_example": "const result = await agentQuery({\n  prompt: \"Build a feature\",\n  options: {\n    tools: DEFAULT_TOOLS,\n    allowedTools: [\"execute_code\", \"read_file\"]\n  }\n});",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F031"
+      ],
+      "features_succeeded": [
+        "F031"
+      ]
+    },
+    {
+      "id": "TS-015",
+      "name": "TEST_ENV_SETUP_PATTERN",
+      "description": "Server tests importing env module trigger Zod validation at import time. Need bunfig.toml with [test] preload to set env vars before test imports.",
+      "category": "testing",
+      "evidence_count": 1,
+      "last_seen": "F031",
+      "applies_to": [
+        "CAT-AGT",
+        "testing",
+        "environment"
+      ],
+      "recommendation": "Create bunfig.toml with [test] section: preload = [\"./test-setup.ts\"] and test-setup.ts that assigns process.env vars",
+      "code_example": "// bunfig.toml:\n[test]\npreload = [\"./test-setup.ts\"]\n\n// test-setup.ts:\nprocess.env.ANTHROPIC_API_KEY = \"test-key\";\nprocess.env.CLAUDE_MODEL = \"claude-opus-4-20250514\";",
+      "gotcha": "If env vars are not set before imports, Zod validation fails at module load time, causing all tests to fail with cryptic errors",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F031"
+      ],
+      "features_succeeded": [
+        "F031"
+      ]
+    },
+    {
+      "id": "AGT-002",
+      "name": "SDK_MODEL_ID_FORMAT",
+      "description": "Claude Agent SDK uses dated model IDs (claude-opus-4-20250514, claude-sonnet-4-5-20250929, claude-haiku-4-5-20251001). Map short names to full IDs via MODEL_MAP.",
+      "category": "server",
+      "evidence_count": 1,
+      "last_seen": "F031",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "Create MODEL_MAP object mapping short names (opus, sonnet, haiku) to dated model IDs. Use as lookup table for model selection.",
+      "code_example": "const MODEL_MAP = {\n  \"opus\": \"claude-opus-4-20250514\",\n  \"sonnet\": \"claude-sonnet-4-5-20250929\",\n  \"haiku\": \"claude-haiku-4-5-20251001\",\n} as const;\n\nconst getModel = (shortName: string) => MODEL_MAP[shortName as keyof typeof MODEL_MAP];",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F031"
+      ],
+      "features_succeeded": [
+        "F031"
+      ]
     }
   ],
-  "last_updated": "2026-02-05T17:01:42Z",
+  "last_updated": "2026-02-06T14:20:00Z",
   "confidence_formula": "min(1.0, 0.1 + (evidence_count * 0.1) + (success_rate * 0.4))"
 }

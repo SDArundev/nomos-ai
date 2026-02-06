@@ -1,0 +1,51 @@
+{
+  "feature_id": "F031",
+  "category": "CAT-AGT",
+  "phase": "phase-2",
+  "timestamp": "2026-02-06T14:20:00Z",
+  "duration_minutes": 15,
+  "files_changed": 8,
+  "lines_added": 159,
+  "lines_removed": 10,
+  "loop_iterations_used": 1,
+  "discoveries": [
+    "SDK uses separate `tools` and `allowedTools` properties with distinct behaviors",
+    "Model IDs in SDK are dated (claude-opus-4-20250514) not version-only (opus)",
+    "Test environment setup requires bunfig.toml preload for env validation at import time"
+  ],
+  "what_worked": [
+    "Factory pattern for createAgentQuery() provides consistent options structure",
+    "TypeScript strict mode catches MODEL_MAP type mismatches at compile time",
+    "Unit tests for env validation caught missing CLAUDE_MODEL initially",
+    "Typed env validation with Zod prevents runtime errors from missing API keys",
+    "Clean separation of concerns: MODEL_MAP for model selection, DEFAULT_TOOLS for tool registry"
+  ],
+  "what_failed": [],
+  "recommendations": [
+    "For future agent features: reuse agent-client.ts factory pattern and MODEL_MAP lookup",
+    "Establish test-setup.ts pattern as standard for all Bun tests that import env module",
+    "Document SDK model IDs as they change with new releases",
+    "Consider creating ag-client-setup task that includes bunfig.toml template for new agent features"
+  ],
+  "files_modified": [
+    "packages/server/src/agent-client.ts (new)",
+    "packages/server/src/agent-client.test.ts (new)",
+    "packages/env/src/server.ts (added ANTHROPIC_API_KEY, CLAUDE_MODEL)",
+    "packages/server/test-setup.ts (new)",
+    "bunfig.toml (updated)",
+    "package.json (added @anthropic-ai/claude-agent-sdk)"
+  ],
+  "metrics": {
+    "first_try_success": true,
+    "iterations_needed": 1,
+    "total_tests": 12,
+    "test_pass_rate": 1.0,
+    "code_quality": "high - strict types, comprehensive unit tests, proper error handling"
+  },
+  "related_patterns": [
+    "AGT-001: SDK_OPTION_PROPERTY_NAMES",
+    "AGT-002: SDK_MODEL_ID_FORMAT",
+    "TS-015: TEST_ENV_SETUP_PATTERN",
+    "SRV-004: ENV_PORT_COERCE_PATTERN"
+  ]
+}

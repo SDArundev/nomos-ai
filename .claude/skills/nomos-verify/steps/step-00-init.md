@@ -77,14 +77,29 @@ If -s all:
 
 ### 3. Load Features
 
-Read `.nomos/features.json` and filter by scope:
+Read `.nomos/features.json` and filter by scope using **jq** (never use `python3 -c` — `!` causes shell escaping issues):
 
-```
-single → find feature by ID
-range → filter features in ID range
-verified → filter features where status == "verified"
-pending → filter features where status == "pending" or "in_progress"
-all → all features with status != "backlog"
+```bash
+# single — find by ID
+jq -r --arg id "F027" '.features[] | select(.id == $id) | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
+
+# range — filter by ID range
+jq -r '.features[] | select(.id >= "F027" and .id <= "F050") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
+
+# verified — status == "verified"
+jq -r '.features[] | select(.status == "verified") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
+
+# pending — status == "pending" or "in_progress"
+jq -r '.features[] | select(.status == "pending" or .status == "in_progress") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
+
+# all — status != "backlog" (use jq, NOT python)
+jq -r '.features[] | select(.status != "backlog") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
+
+# count features
+jq '[.features[] | select(.status != "backlog")] | length' .nomos/features.json
+
+# get feature IDs as JSON array
+jq '[.features[] | select(.status != "backlog") | .id]' .nomos/features.json
 ```
 
 Set `{features_to_verify}` to the filtered list.

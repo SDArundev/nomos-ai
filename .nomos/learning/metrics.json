@@ -432,6 +432,23 @@
       "completed_at": "2026-02-05T17:01:42Z",
       "verified_at": "2026-02-05T17:01:42Z",
       "notes": "Kanban column header with count, collapse/expand toggle, and actions dropdown. Single iteration pass with exact pattern reuse from F024 UISlice. Added aria-labels for accessibility. All 4 acceptance criteria passed on first try. Demonstrates clean pattern extension (Record<string, boolean> for multi-item state)."
+    },
+    "F031": {
+      "id": "F031",
+      "title": "Claude Agent SDK client setup",
+      "category": "CAT-AGT",
+      "phase": "phase-2",
+      "duration_minutes": 15,
+      "files_changed": 8,
+      "lines_added": 159,
+      "lines_removed": 10,
+      "commits": 1,
+      "retries": 0,
+      "risk_level": "MEDIUM",
+      "outcome": "success",
+      "started_at": "2026-02-06T13:07:49Z",
+      "verified_at": "2026-02-06T14:20:00Z",
+      "notes": "Claude Agent SDK integration: installed @anthropic-ai/claude-agent-sdk, added ANTHROPIC_API_KEY and CLAUDE_MODEL to typed env, created agent-client.ts with MODEL_MAP and createAgentQuery factory, comprehensive unit tests, test env setup pattern established"
     }
   },
   "aggregates": {

@@ -1,0 +1,20 @@
+{
+  "version": "2.0",
+  "timestamp": "2026-02-06T18:25:09",
+  "enhancements": [
+    {
+      "id": "ENH-001",
+      "category": "quality",
+      "suggestion": "Move ID generation from router handlers into repository create methods",
+      "features": ["F018", "CROSS-CUTTING"],
+      "effort": "low"
+    },
+    {
+      "id": "ENH-002",
+      "category": "quality",
+      "suggestion": "Add unified 'check' pipeline to turbo.json combining check-types + lint",
+      "features": ["F001"],
+      "effort": "low"
+    }
+  ]
+}

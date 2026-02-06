@@ -40,7 +40,14 @@ From step-00-init:
 ### 1. Prepare Agent Context
 
 **For feature mode** (`{analysis_mode}` = `feature`):
-1. Read features from `.nomos/features.json` — get acceptance criteria
+1. Read features from `.nomos/features.json` — get acceptance criteria using **jq**:
+   ```bash
+   # Get feature with ACs (single feature)
+   jq -r --arg id "F027" '.features[] | select(.id == $id) | "### \(.id) [\(.status)] \(.title)\n  ACs:\n" + ([.acceptanceCriteria[]? // empty | "    - " + .] | join("\n"))' .nomos/features.json
+
+   # Get features with ACs (range)
+   jq -r '.features[] | select(.id >= "F027" and .id <= "F050" and .status != "backlog") | "### \(.id) [\(.status)] \(.title)\n  ACs:\n" + ([.acceptanceCriteria[]? // empty | "    - " + .] | join("\n"))' .nomos/features.json
+   ```
 2. Identify files related to each feature:
    - Check feature metadata for `files` field
    - If no metadata, search codebase for feature references
@@ -48,9 +55,20 @@ From step-00-init:
 3. Build `{feature_files}` list and `{acceptance_criteria}` block
 
 **For codebase mode** (`{analysis_mode}` = `codebase`):
-1. Read all features in scope from `.nomos/features.json`
+1. Read all features in scope from `.nomos/features.json` using **jq**:
+   ```bash
+   # List all non-backlog features with ACs
+   jq -r '.features[] | select(.status != "backlog") | "### \(.id) [\(.status)] \(.title)\n  ACs:\n" + ([.acceptanceCriteria[]? // empty | "    - " + .] | join("\n"))' .nomos/features.json
+
+   # Count features by status
+   jq -r '[.features[] | select(.status != "backlog")] | group_by(.status) | map("\(.[0].status): \(length)") | join(", ")' .nomos/features.json
+   ```
 2. Scan `apps/` and `packages/` directories for implemented code
 3. Build full file inventory as context
+
+<important>
+**NEVER use `python3 -c "..."` for JSON processing** — the `!=` operator causes bash history expansion issues with `!`. Always use **jq** which is the standard tool across the NOMOS ecosystem.
+</important>
 
 ### 2. Load Known Patterns
 

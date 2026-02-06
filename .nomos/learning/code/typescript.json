@@ -1,255 +1,342 @@
 {
-	"category": "typescript",
-	"description": "TypeScript patterns and pitfalls for monorepo development",
-	"patterns": [
-		{
-			"id": "TS-001",
-			"title": "Workspace package naming convention",
-			"subcategory": "monorepo",
-			"framework": "turborepo",
-			"problem": "Need consistent naming for internal packages",
-			"solution": "Use @{project-name}/{package-name} format (e.g., @nomos-ai/api, @nomos-ai/db)",
-			"codeAfter": "\"name\": \"@nomos-ai/types\"",
-			"learnedFrom": "F001",
-			"severity": "LOW",
-			"tags": ["naming", "packages", "workspace"],
-			"addedAt": "2026-01-27T18:20:00Z",
-			"updatedAt": "2026-01-27T19:30:00Z",
-			"updatedFrom": "F002"
-		},
-		{
-			"id": "TS-002",
-			"title": "Shared TypeScript config extension",
-			"subcategory": "configuration",
-			"framework": "typescript",
-			"problem": "Duplicating tsconfig settings across packages",
-			"solution": "Create packages/config/tsconfig.base.json and extend it in each package",
-			"codeBefore": "// Each package has full tsconfig",
-			"codeAfter": "{\n  \"extends\": \"@nomos-ai/config/tsconfig.base.json\"\n}",
-			"learnedFrom": "F001",
-			"severity": "MEDIUM",
-			"tags": ["tsconfig", "shared-config", "DRY"],
-			"addedAt": "2026-01-27T18:20:00Z"
-		},
-		{
-			"id": "TS-003",
-			"title": "Bun workspace catalog for version management",
-			"subcategory": "dependencies",
-			"framework": "bun",
-			"problem": "Keeping dependency versions in sync across packages",
-			"solution": "Use workspaces.catalog in root package.json, reference with \"catalog:\" in packages",
-			"codeAfter": "{\n  \"workspaces\": {\n    \"catalog\": {\n      \"zod\": \"^4.1.13\"\n    }\n  }\n}\n\n// In package:\n\"dependencies\": {\n  \"zod\": \"catalog:\"\n}",
-			"learnedFrom": "F001",
-			"severity": "MEDIUM",
-			"tags": ["dependencies", "versioning", "bun"],
-			"addedAt": "2026-01-27T18:20:00Z"
-		},
-		{
-			"id": "TS-004",
-			"title": "Branded types with Zod for ID safety",
-			"subcategory": "types",
-			"framework": "zod",
-			"problem": "Structurally identical IDs (FeatureId, ProjectId) can be accidentally swapped",
-			"solution": "Use Zod .brand<>() to create nominal types that prevent mixing at compile time",
-			"codeAfter": "import { z } from 'zod';\n\nconst FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;\n\n// Now FeatureId and ProjectId are incompatible!",
-			"learnedFrom": "F002",
-			"severity": "HIGH",
-			"tags": ["branded-types", "nominal-typing", "type-safety", "zod"],
-			"addedAt": "2026-01-27T19:30:00Z",
-			"context7LibraryId": "/websites/zod_dev",
-			"context7Query": "branded types brand method"
-		},
-		{
-			"id": "TS-005",
-			"title": "Status enum pattern with const + Zod",
-			"subcategory": "types",
-			"framework": "zod",
-			"problem": "Need both TypeScript type safety and runtime validation for status values",
-			"solution": "Define as const object, derive type, create z.enum() schema",
-			"codeAfter": "const STATUS = {\n  ACTIVE: 'active',\n  DONE: 'done'\n} as const;\n\ntype Status = (typeof STATUS)[keyof typeof STATUS];\n\nconst StatusSchema = z.enum([STATUS.ACTIVE, STATUS.DONE]);",
-			"learnedFrom": "F002",
-			"severity": "MEDIUM",
-			"tags": ["enums", "const-assertion", "zod", "validation"],
-			"addedAt": "2026-01-27T19:30:00Z"
-		},
-		{
-			"id": "TS-006",
-			"title": "Regex pattern validation with branded types",
-			"subcategory": "types",
-			"framework": "zod",
-			"problem": "Need to validate string IDs match specific patterns (F001, CAT-XXX) at runtime",
-			"solution": "Chain .regex() before .brand() for pattern-validated branded types",
-			"codeAfter": "const FeatureIdSchema = z\n  .string()\n  .regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999')\n  .brand<'FeatureId'>();",
-			"learnedFrom": "F003",
-			"severity": "HIGH",
-			"tags": ["regex", "validation", "branded-types", "zod"],
-			"addedAt": "2026-01-27T15:35:00Z"
-		},
-		{
-			"id": "TS-007",
-			"title": "Zod default() does not need optional()",
-			"subcategory": "types",
-			"framework": "zod",
-			"problem": "Redundant .default().optional() creates semantic confusion",
-			"solution": "Use .default() alone - it already handles undefined input",
-			"codeBefore": "model: ModelSchema.default('sonnet').optional()",
-			"codeAfter": "model: ModelSchema.default('sonnet')",
-			"learnedFrom": "F003",
-			"severity": "MEDIUM",
-			"tags": ["zod", "defaults", "optional", "anti-pattern"],
-			"addedAt": "2026-01-27T15:35:00Z"
-		},
-		{
-			"id": "TS-008",
-			"title": "Nested schema defaults with transform",
-			"subcategory": "types",
-			"framework": "zod",
-			"problem": "Using .default({}) on nested schema doesn't propagate inner field defaults when parent is undefined",
-			"solution": "Use .optional().transform() to explicitly merge with defaults",
-			"codeBefore": "settings: SettingsSchema.default({}) // Returns {} not {theme:'system'}",
-			"codeAfter": "settings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en',\n  autoSaveInterval: s?.autoSaveInterval ?? 30\n}))",
-			"learnedFrom": "F004",
-			"severity": "HIGH",
-			"tags": ["zod", "defaults", "nested-objects", "transform"],
-			"addedAt": "2026-01-28T16:20:00Z",
-			"context7LibraryId": "/websites/zod_dev",
-			"context7Query": "default transform nested object"
-		},
-		{
-			"id": "TS-009",
-			"title": "TanStack Router beforeLoad auth guard",
-			"subcategory": "routing",
-			"framework": "tanstack-router",
-			"problem": "Need to protect routes from unauthenticated access",
-			"solution": "Use beforeLoad hook to check auth and redirect to login",
-			"codeAfter": "export const Route = createFileRoute('/projects/$projectId')({\n  component: ProjectDetail,\n  beforeLoad: async () => {\n    const session = await authClient.getSession();\n    if (!session.data) {\n      redirect({ to: '/login', throw: true });\n    }\n  },\n});",
-			"learnedFrom": "F020",
-			"severity": "HIGH",
-			"tags": ["routing", "auth", "tanstack-router", "guards"],
-			"addedAt": "2026-02-04T19:55:00Z"
-		},
-		{
-			"id": "TS-010",
-			"title": "TanStack Router type-safe params",
-			"subcategory": "routing",
-			"framework": "tanstack-router",
-			"problem": "Route params need type safety without manual type annotations",
-			"solution": "Use Route.useParams() which returns typed params based on route path",
-			"codeAfter": "// Route: /projects/$projectId\nconst { projectId } = Route.useParams();\n// projectId is automatically typed as string",
-			"learnedFrom": "F020",
-			"severity": "MEDIUM",
-			"tags": ["routing", "type-safety", "tanstack-router", "params"],
-			"addedAt": "2026-02-04T19:55:00Z"
-		},
-		{
-			"id": "TS-011",
-			"title": "Zustand StateCreator with generics",
-			"subcategory": "state-management",
-			"framework": "zustand",
-			"problem": "Combining multiple slices with proper type inference",
-			"solution": "Use StateCreator<AppStore, [], [], SliceType> for each slice",
-			"codeAfter": "import { StateCreator } from 'zustand';\n\nexport type ProjectsSlice = {\n  projects: Project[];\n  setProjects: (projects: Project[]) => void;\n};\n\nexport const createProjectsSlice: StateCreator<\n  AppStore,\n  [],\n  [],\n  ProjectsSlice\n> = (set) => ({\n  projects: [],\n  setProjects: (projects) => set({ projects }),\n});",
-			"learnedFrom": "F022",
-			"severity": "MEDIUM",
-			"tags": ["zustand", "state-management", "slices", "generics"],
-			"addedAt": "2026-02-04T19:55:00Z"
-		},
-		{
-			"id": "TS-012",
-			"title": "Zustand getState() for event handlers",
-			"subcategory": "state-management",
-			"framework": "zustand",
-			"problem": "Calling store actions from event handlers causes unnecessary re-renders",
-			"solution": "Use useAppStore.getState().action() instead of selector hook for one-off calls",
-			"codeAfter": "// Instead of:\nconst toggle = useAppStore(s => s.toggleSidebar);\n<button onClick={toggle} />\n\n// Use:\n<button onClick={() => useAppStore.getState().toggleSidebar()} />",
-			"learnedFrom": "F024",
-			"severity": "LOW",
-			"tags": ["zustand", "state-management", "performance", "event-handlers"],
-			"addedAt": "2026-02-04T19:55:00Z"
-		},
-		{
-			"id": "TS-013",
-			"title": "TanStack Query cache invalidation on mutation",
-			"subcategory": "data-fetching",
-			"framework": "tanstack-query",
-			"problem": "UI shows stale data after mutations",
-			"solution": "Use queryClient.invalidateQueries() in mutation onSuccess callback",
-			"codeAfter": "const createProject = useMutation(\n  orpc.projects.create.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({\n        queryKey: orpc.projects.list.queryOptions().queryKey\n      });\n    },\n  })\n);",
-			"learnedFrom": "F023",
-			"severity": "HIGH",
-			"tags": ["tanstack-query", "mutations", "cache", "data-fetching"],
-			"addedAt": "2026-02-04T19:55:00Z"
-		},
-		{
-			"id": "TS-014",
-			"title": "TanStack Router Link activeProps",
-			"subcategory": "routing",
-			"framework": "tanstack-router",
-			"problem": "Need to style nav links based on current route",
-			"solution": "Use activeProps on Link component - TanStack Router auto-applies when route matches",
-			"codeAfter": "<Link\n  to=\"/projects\"\n  activeProps={{ className: 'bg-accent text-accent-foreground' }}\n>\n  Projects\n</Link>",
-			"learnedFrom": "F024",
-			"severity": "LOW",
-			"tags": ["routing", "navigation", "tanstack-router", "styling"],
-			"addedAt": "2026-02-04T19:55:00Z"
-		}
-	],
-	"pitfalls": [
-		{
-			"id": "TS-PIT-001",
-			"title": "TanStack Router routeTree.gen.ts not found",
-			"error": "Cannot find module './routeTree.gen' or its corresponding type declarations",
-			"cause": "Route tree file is auto-generated on first build/dev run",
-			"prevention": "Run 'vite build' or 'vite dev' once before 'tsc --noEmit'",
-			"learnedFrom": "F001",
-			"addedAt": "2026-01-27T18:20:00Z"
-		},
-		{
-			"id": "TS-PIT-002",
-			"title": "Vite import.meta.env type casting",
-			"error": "Type 'ImportMeta' has no property 'env'",
-			"cause": "Vite's import.meta.env needs type assertion for @t3-oss/env-core",
-			"prevention": "Use (import.meta as any).env or add proper Vite client types",
-			"codeExample": "runtimeEnv: (import.meta as any).env",
-			"learnedFrom": "F001",
-			"addedAt": "2026-01-27T18:20:00Z"
-		},
-		{
-			"id": "TS-PIT-003",
-			"title": "Package scope mismatch during rebase",
-			"error": "@F001/config@workspace:* failed to resolve",
-			"cause": "When main branch renames packages (e.g., @F001/* to @nomos-ai/*), worktree code references old names",
-			"prevention": "After rebase, check for package name references in tsconfig.json extends and package.json dependencies",
-			"codeExample": "// Check after rebase:\n// - tsconfig.json extends\n// - package.json devDependencies",
-			"learnedFrom": "F002",
-			"addedAt": "2026-01-27T19:30:00Z"
-		}
-	],
-	"bestPractices": [
-		{
-			"id": "BP-TS-001",
-			"title": "Schema composition via imports",
-			"description": "Compose schemas by importing existing ID schemas rather than duplicating definitions",
-			"pattern": "import { ExistingIdSchema } from './ids'; // Then use in new schemas",
-			"learnedFrom": "F005",
-			"addedAt": "2026-01-28T16:40:00Z"
-		},
-		{
-			"id": "BP-TS-002",
-			"title": "oRPC queryOptions for type-safe data fetching",
-			"description": "Use orpc.{entity}.{method}.queryOptions() for full type inference with TanStack Query",
-			"pattern": "const { data } = useQuery(orpc.projects.get.queryOptions({ input: { id } }));",
-			"learnedFrom": "F020",
-			"addedAt": "2026-02-04T19:55:00Z"
-		},
-		{
-			"id": "BP-TS-003",
-			"title": "Curried Zustand selectors for memoization",
-			"description": "Create curried selectors to enable memoization at selector creation time",
-			"pattern": "export const selectProjectById = (id: string) => (state: AppStore) => state.projects.find(p => p.id === id);",
-			"learnedFrom": "F022",
-			"addedAt": "2026-02-04T19:55:00Z"
-		}
-	],
-	"lastUpdated": "2026-02-04T19:55:00Z"
+  "category": "typescript",
+  "description": "TypeScript patterns and pitfalls for monorepo development",
+  "patterns": [
+    {
+      "id": "TS-001",
+      "title": "Workspace package naming convention",
+      "subcategory": "monorepo",
+      "framework": "turborepo",
+      "problem": "Need consistent naming for internal packages",
+      "solution": "Use @{project-name}/{package-name} format (e.g., @nomos-ai/api, @nomos-ai/db)",
+      "codeAfter": "\"name\": \"@nomos-ai/types\"",
+      "learnedFrom": "F001",
+      "severity": "LOW",
+      "tags": [
+        "naming",
+        "packages",
+        "workspace"
+      ],
+      "addedAt": "2026-01-27T18:20:00Z",
+      "updatedAt": "2026-01-27T19:30:00Z",
+      "updatedFrom": "F002"
+    },
+    {
+      "id": "TS-002",
+      "title": "Shared TypeScript config extension",
+      "subcategory": "configuration",
+      "framework": "typescript",
+      "problem": "Duplicating tsconfig settings across packages",
+      "solution": "Create packages/config/tsconfig.base.json and extend it in each package",
+      "codeBefore": "// Each package has full tsconfig",
+      "codeAfter": "{\n  \"extends\": \"@nomos-ai/config/tsconfig.base.json\"\n}",
+      "learnedFrom": "F001",
+      "severity": "MEDIUM",
+      "tags": [
+        "tsconfig",
+        "shared-config",
+        "DRY"
+      ],
+      "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-003",
+      "title": "Bun workspace catalog for version management",
+      "subcategory": "dependencies",
+      "framework": "bun",
+      "problem": "Keeping dependency versions in sync across packages",
+      "solution": "Use workspaces.catalog in root package.json, reference with \"catalog:\" in packages",
+      "codeAfter": "{\n  \"workspaces\": {\n    \"catalog\": {\n      \"zod\": \"^4.1.13\"\n    }\n  }\n}\n\n// In package:\n\"dependencies\": {\n  \"zod\": \"catalog:\"\n}",
+      "learnedFrom": "F001",
+      "severity": "MEDIUM",
+      "tags": [
+        "dependencies",
+        "versioning",
+        "bun"
+      ],
+      "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-004",
+      "title": "Branded types with Zod for ID safety",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Structurally identical IDs (FeatureId, ProjectId) can be accidentally swapped",
+      "solution": "Use Zod .brand<>() to create nominal types that prevent mixing at compile time",
+      "codeAfter": "import { z } from 'zod';\n\nconst FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;\n\n// Now FeatureId and ProjectId are incompatible!",
+      "learnedFrom": "F002",
+      "severity": "HIGH",
+      "tags": [
+        "branded-types",
+        "nominal-typing",
+        "type-safety",
+        "zod"
+      ],
+      "addedAt": "2026-01-27T19:30:00Z",
+      "context7LibraryId": "/websites/zod_dev",
+      "context7Query": "branded types brand method"
+    },
+    {
+      "id": "TS-005",
+      "title": "Status enum pattern with const + Zod",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Need both TypeScript type safety and runtime validation for status values",
+      "solution": "Define as const object, derive type, create z.enum() schema",
+      "codeAfter": "const STATUS = {\n  ACTIVE: 'active',\n  DONE: 'done'\n} as const;\n\ntype Status = (typeof STATUS)[keyof typeof STATUS];\n\nconst StatusSchema = z.enum([STATUS.ACTIVE, STATUS.DONE]);",
+      "learnedFrom": "F002",
+      "severity": "MEDIUM",
+      "tags": [
+        "enums",
+        "const-assertion",
+        "zod",
+        "validation"
+      ],
+      "addedAt": "2026-01-27T19:30:00Z"
+    },
+    {
+      "id": "TS-006",
+      "title": "Regex pattern validation with branded types",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Need to validate string IDs match specific patterns (F001, CAT-XXX) at runtime",
+      "solution": "Chain .regex() before .brand() for pattern-validated branded types",
+      "codeAfter": "const FeatureIdSchema = z\n  .string()\n  .regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999')\n  .brand<'FeatureId'>();",
+      "learnedFrom": "F003",
+      "severity": "HIGH",
+      "tags": [
+        "regex",
+        "validation",
+        "branded-types",
+        "zod"
+      ],
+      "addedAt": "2026-01-27T15:35:00Z"
+    },
+    {
+      "id": "TS-007",
+      "title": "Zod default() does not need optional()",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Redundant .default().optional() creates semantic confusion",
+      "solution": "Use .default() alone - it already handles undefined input",
+      "codeBefore": "model: ModelSchema.default('sonnet').optional()",
+      "codeAfter": "model: ModelSchema.default('sonnet')",
+      "learnedFrom": "F003",
+      "severity": "MEDIUM",
+      "tags": [
+        "zod",
+        "defaults",
+        "optional",
+        "anti-pattern"
+      ],
+      "addedAt": "2026-01-27T15:35:00Z"
+    },
+    {
+      "id": "TS-008",
+      "title": "Nested schema defaults with transform",
+      "subcategory": "types",
+      "framework": "zod",
+      "problem": "Using .default({}) on nested schema doesn't propagate inner field defaults when parent is undefined",
+      "solution": "Use .optional().transform() to explicitly merge with defaults",
+      "codeBefore": "settings: SettingsSchema.default({}) // Returns {} not {theme:'system'}",
+      "codeAfter": "settings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en',\n  autoSaveInterval: s?.autoSaveInterval ?? 30\n}))",
+      "learnedFrom": "F004",
+      "severity": "HIGH",
+      "tags": [
+        "zod",
+        "defaults",
+        "nested-objects",
+        "transform"
+      ],
+      "addedAt": "2026-01-28T16:20:00Z",
+      "context7LibraryId": "/websites/zod_dev",
+      "context7Query": "default transform nested object"
+    },
+    {
+      "id": "TS-009",
+      "title": "TanStack Router beforeLoad auth guard",
+      "subcategory": "routing",
+      "framework": "tanstack-router",
+      "problem": "Need to protect routes from unauthenticated access",
+      "solution": "Use beforeLoad hook to check auth and redirect to login",
+      "codeAfter": "export const Route = createFileRoute('/projects/$projectId')({\n  component: ProjectDetail,\n  beforeLoad: async () => {\n    const session = await authClient.getSession();\n    if (!session.data) {\n      redirect({ to: '/login', throw: true });\n    }\n  },\n});",
+      "learnedFrom": "F020",
+      "severity": "HIGH",
+      "tags": [
+        "routing",
+        "auth",
+        "tanstack-router",
+        "guards"
+      ],
+      "addedAt": "2026-02-04T19:55:00Z"
+    },
+    {
+      "id": "TS-010",
+      "title": "TanStack Router type-safe params",
+      "subcategory": "routing",
+      "framework": "tanstack-router",
+      "problem": "Route params need type safety without manual type annotations",
+      "solution": "Use Route.useParams() which returns typed params based on route path",
+      "codeAfter": "// Route: /projects/$projectId\nconst { projectId } = Route.useParams();\n// projectId is automatically typed as string",
+      "learnedFrom": "F020",
+      "severity": "MEDIUM",
+      "tags": [
+        "routing",
+        "type-safety",
+        "tanstack-router",
+        "params"
+      ],
+      "addedAt": "2026-02-04T19:55:00Z"
+    },
+    {
+      "id": "TS-011",
+      "title": "Zustand StateCreator with generics",
+      "subcategory": "state-management",
+      "framework": "zustand",
+      "problem": "Combining multiple slices with proper type inference",
+      "solution": "Use StateCreator<AppStore, [], [], SliceType> for each slice",
+      "codeAfter": "import { StateCreator } from 'zustand';\n\nexport type ProjectsSlice = {\n  projects: Project[];\n  setProjects: (projects: Project[]) => void;\n};\n\nexport const createProjectsSlice: StateCreator<\n  AppStore,\n  [],\n  [],\n  ProjectsSlice\n> = (set) => ({\n  projects: [],\n  setProjects: (projects) => set({ projects }),\n});",
+      "learnedFrom": "F022",
+      "severity": "MEDIUM",
+      "tags": [
+        "zustand",
+        "state-management",
+        "slices",
+        "generics"
+      ],
+      "addedAt": "2026-02-04T19:55:00Z"
+    },
+    {
+      "id": "TS-012",
+      "title": "Zustand getState() for event handlers",
+      "subcategory": "state-management",
+      "framework": "zustand",
+      "problem": "Calling store actions from event handlers causes unnecessary re-renders",
+      "solution": "Use useAppStore.getState().action() instead of selector hook for one-off calls",
+      "codeAfter": "// Instead of:\nconst toggle = useAppStore(s => s.toggleSidebar);\n<button onClick={toggle} />\n\n// Use:\n<button onClick={() => useAppStore.getState().toggleSidebar()} />",
+      "learnedFrom": "F024",
+      "severity": "LOW",
+      "tags": [
+        "zustand",
+        "state-management",
+        "performance",
+        "event-handlers"
+      ],
+      "addedAt": "2026-02-04T19:55:00Z"
+    },
+    {
+      "id": "TS-013",
+      "title": "TanStack Query cache invalidation on mutation",
+      "subcategory": "data-fetching",
+      "framework": "tanstack-query",
+      "problem": "UI shows stale data after mutations",
+      "solution": "Use queryClient.invalidateQueries() in mutation onSuccess callback",
+      "codeAfter": "const createProject = useMutation(\n  orpc.projects.create.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({\n        queryKey: orpc.projects.list.queryOptions().queryKey\n      });\n    },\n  })\n);",
+      "learnedFrom": "F023",
+      "severity": "HIGH",
+      "tags": [
+        "tanstack-query",
+        "mutations",
+        "cache",
+        "data-fetching"
+      ],
+      "addedAt": "2026-02-04T19:55:00Z"
+    },
+    {
+      "id": "TS-014",
+      "title": "TanStack Router Link activeProps",
+      "subcategory": "routing",
+      "framework": "tanstack-router",
+      "problem": "Need to style nav links based on current route",
+      "solution": "Use activeProps on Link component - TanStack Router auto-applies when route matches",
+      "codeAfter": "<Link\n  to=\"/projects\"\n  activeProps={{ className: 'bg-accent text-accent-foreground' }}\n>\n  Projects\n</Link>",
+      "learnedFrom": "F024",
+      "severity": "LOW",
+      "tags": [
+        "routing",
+        "navigation",
+        "tanstack-router",
+        "styling"
+      ],
+      "addedAt": "2026-02-04T19:55:00Z"
+    },
+    {
+      "id": "TS-015",
+      "title": "Test environment setup with bunfig.toml preload",
+      "subcategory": "testing",
+      "framework": "bun",
+      "problem": "Server tests importing env module trigger Zod validation at import time before test env is set",
+      "solution": "Use bunfig.toml [test] preload to execute test-setup.ts before all test imports",
+      "codeBefore": "// Test fails: Zod validation error for missing ANTHROPIC_API_KEY",
+      "codeAfter": "// bunfig.toml:\n[test]\npreload = [\"./test-setup.ts\"]\n\n// test-setup.ts:\nprocess.env.ANTHROPIC_API_KEY = \"test-key\";\nprocess.env.CLAUDE_MODEL = \"claude-opus-4-20250514\";",
+      "learnedFrom": "F031",
+      "severity": "HIGH",
+      "tags": [
+        "testing",
+        "environment",
+        "bun",
+        "zod"
+      ],
+      "addedAt": "2026-02-06T14:20:00Z",
+      "gotcha": "If env vars are not set before imports, Zod validation fails at module load time, causing all tests to fail with cryptic errors about missing env vars"
+    }
+  ],
+  "pitfalls": [
+    {
+      "id": "TS-PIT-001",
+      "title": "TanStack Router routeTree.gen.ts not found",
+      "error": "Cannot find module './routeTree.gen' or its corresponding type declarations",
+      "cause": "Route tree file is auto-generated on first build/dev run",
+      "prevention": "Run 'vite build' or 'vite dev' once before 'tsc --noEmit'",
+      "learnedFrom": "F001",
+      "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-PIT-002",
+      "title": "Vite import.meta.env type casting",
+      "error": "Type 'ImportMeta' has no property 'env'",
+      "cause": "Vite's import.meta.env needs type assertion for @t3-oss/env-core",
+      "prevention": "Use (import.meta as any).env or add proper Vite client types",
+      "codeExample": "runtimeEnv: (import.meta as any).env",
+      "learnedFrom": "F001",
+      "addedAt": "2026-01-27T18:20:00Z"
+    },
+    {
+      "id": "TS-PIT-003",
+      "title": "Package scope mismatch during rebase",
+      "error": "@F001/config@workspace:* failed to resolve",
+      "cause": "When main branch renames packages (e.g., @F001/* to @nomos-ai/*), worktree code references old names",
+      "prevention": "After rebase, check for package name references in tsconfig.json extends and package.json dependencies",
+      "codeExample": "// Check after rebase:\n// - tsconfig.json extends\n// - package.json devDependencies",
+      "learnedFrom": "F002",
+      "addedAt": "2026-01-27T19:30:00Z"
+    }
+  ],
+  "bestPractices": [
+    {
+      "id": "BP-TS-001",
+      "title": "Schema composition via imports",
+      "description": "Compose schemas by importing existing ID schemas rather than duplicating definitions",
+      "pattern": "import { ExistingIdSchema } from './ids'; // Then use in new schemas",
+      "learnedFrom": "F005",
+      "addedAt": "2026-01-28T16:40:00Z"
+    },
+    {
+      "id": "BP-TS-002",
+      "title": "oRPC queryOptions for type-safe data fetching",
+      "description": "Use orpc.{entity}.{method}.queryOptions() for full type inference with TanStack Query",
+      "pattern": "const { data } = useQuery(orpc.projects.get.queryOptions({ input: { id } }));",
+      "learnedFrom": "F020",
+      "addedAt": "2026-02-04T19:55:00Z"
+    },
+    {
+      "id": "BP-TS-003",
+      "title": "Curried Zustand selectors for memoization",
+      "description": "Create curried selectors to enable memoization at selector creation time",
+      "pattern": "export const selectProjectById = (id: string) => (state: AppStore) => state.projects.find(p => p.id === id);",
+      "learnedFrom": "F022",
+      "addedAt": "2026-02-04T19:55:00Z"
+    }
+  ],
+  "lastUpdated": "2026-02-06T14:20:00Z"
 }

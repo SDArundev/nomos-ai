@@ -944,6 +944,35 @@
         "tailwind"
       ],
       "lastTouchedBy": "F028"
+    },
+    "packages/server/src/agent-client.ts": {
+      "purpose": "Claude Agent SDK client setup with model ID mapping and query factory. Exports MODEL_MAP for model selection, DEFAULT_TOOLS base tool set, and createAgentQuery factory function for type-safe agent interactions.",
+      "layer": "server",
+      "exports": [
+        "MODEL_MAP",
+        "DEFAULT_TOOLS",
+        "createAgentQuery",
+        "AgentQueryInput",
+        "AgentQueryOutput"
+      ],
+      "imports_from": [
+        "@anthropic-ai/claude-agent-sdk",
+        "@nomos-ai/env/server"
+      ],
+      "lastTouchedBy": "F031",
+      "keyFeatures": {
+        "MODEL_MAP": "Lookup table mapping short model names (opus/sonnet/haiku) to dated model IDs",
+        "DEFAULT_TOOLS": "Standard tool set available to agent (code_execution, file_read, file_write, etc.)",
+        "createAgentQuery": "Factory function creating type-safe agent queries with consistent options structure",
+        "AgentQueryInput": "Type for input parameters (prompt, model, maxTokens, tools, allowedTools)",
+        "AgentQueryOutput": "Type for query response (success boolean, result text, toolCalls array)"
+      },
+      "patterns": [
+        "Factory pattern for consistent API creation",
+        "MODEL_MAP for centralized model ID management",
+        "Type-safe SDK integration with TypeScript generics",
+        "Tool set configuration with granular control (tools vs allowedTools)"
+      ]
     }
   },
   "lastUpdated": "2026-02-04T21:50:00Z",
