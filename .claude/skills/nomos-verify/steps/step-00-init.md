@@ -38,13 +38,14 @@ next_step: steps/step-01-analyze.md
 | Short | Long | Default | Description |
 |-------|------|---------|-------------|
 | `-a` | `--auto` | false | Auto mode: skip confirmations |
-| `-s` | `--scope` | single | Scope: single/range/verified/pending/all |
+| `-s` | `--scope` | single | Scope: single/range/verified/pending/failed/all |
 | `-r` | `--resume` | false | Resume previous session |
 | `-q` | `--quick` | false | Quick: 2 dimensions only |
 | `-d` | `--deep` | false | Deep: all 5 dimensions |
 | `-f` | `--fix` | false | Attempt to fix issues found |
 | `-o` | `--output` | auto | Custom output path |
 | | `--audit` | false | Full codebase audit (sets deep + all + codebase) |
+| | `--include-planned` | false | Include pending features in scope (normally excluded) |
 
 If no depth flag: `{depth}` = `standard`.
 If `-q`: `{depth}` = `quick`.
@@ -66,13 +67,21 @@ If -s verified:
   → {scope} = "verified"
   → {analysis_mode} = "codebase"
 
+If -s failed:
+  → {scope} = "failed"
+  → {analysis_mode} = "codebase"
+
 If -s pending:
   → {scope} = "pending"
   → {analysis_mode} = "codebase"
+  → NOTE: Only includes pending features. Use for checking planned-but-unimplemented features.
 
 If -s all:
   → {scope} = "all"
   → {analysis_mode} = "codebase"
+  → NOTE: "all" means IMPLEMENTED features only (verified + in_progress + failed).
+  → Pending features are excluded by default — they have no code to verify.
+  → Use --include-planned to also include pending features.
 ```
 
 ### 3. Load Features
@@ -89,17 +98,24 @@ jq -r '.features[] | select(.id >= "F027" and .id <= "F050") | "\(.id) [\(.statu
 # verified — status == "verified"
 jq -r '.features[] | select(.status == "verified") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
 
-# pending — status == "pending" or "in_progress"
+# failed — status == "failed"
+jq -r '.features[] | select(.status == "failed") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
+
+# pending — status == "pending" or "in_progress" (planned features, use explicitly)
 jq -r '.features[] | select(.status == "pending" or .status == "in_progress") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
 
-# all — status != "backlog" (use jq, NOT python)
-jq -r '.features[] | select(.status != "backlog") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
+# all — IMPLEMENTED features only: verified + in_progress + failed (NOT pending/backlog)
+# Rationale: pending features have no code to verify. Use --include-planned to add them.
+jq -r '.features[] | select(.status == "verified" or .status == "in_progress" or .status == "failed") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
 
-# count features
-jq '[.features[] | select(.status != "backlog")] | length' .nomos/features.json
+# all --include-planned — also includes pending (for auditing planned-vs-implemented gaps)
+jq -r '.features[] | select(.status == "verified" or .status == "in_progress" or .status == "failed" or .status == "pending") | "\(.id) [\(.status)] \(.title)"' .nomos/features.json
 
-# get feature IDs as JSON array
-jq '[.features[] | select(.status != "backlog") | .id]' .nomos/features.json
+# count features (implemented only)
+jq '[.features[] | select(.status == "verified" or .status == "in_progress" or .status == "failed")] | length' .nomos/features.json
+
+# get feature IDs as JSON array (implemented only)
+jq '[.features[] | select(.status == "verified" or .status == "in_progress" or .status == "failed") | .id]' .nomos/features.json
 ```
 
 Set `{features_to_verify}` to the filtered list.

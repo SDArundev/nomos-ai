@@ -36,7 +36,9 @@ cmd_ingest() {
     local ingested_enhancements=0
     local ingested_regressions=0
 
-    # ---- 1. Ingest HIGH/CRITICAL issues as pending features ----
+    # ---- 1. Ingest HIGH/CRITICAL issues as backlog features ----
+    # NOTE: Issues go to backlog (not pending) — let human prioritize what to fix next.
+    # Only regressions (section 3) create failed entries that demand immediate attention.
 
     if [[ -f "$issues_file" ]]; then
         echo ""
@@ -77,20 +79,20 @@ cmd_ingest() {
                 [[ "$severity" == "CRITICAL" ]] && priority=1
 
                 if [[ "$dry_run" == "true" ]]; then
-                    echo "  WOULD ADD: $issue_id ($severity) → pending, priority=$priority"
+                    echo "  WOULD ADD: $issue_id ($severity) → backlog, priority=$priority"
                     echo "    desc: $description"
                 else
                     # Generate feature ID (FXXX format from next available)
                     local next_id
                     next_id=$(jq -r '[.features[].id | ltrimstr("F") | tonumber] | max + 1 | "F" + (. | tostring | if length < 3 then ("000" + .)[-3:] else . end)' "$FEATURES_FILE" 2>/dev/null)
 
-                    # Add as new feature
+                    # Add as new feature (backlog — human decides when to prioritize)
                     atomic_update "$(cat <<JQEOF
                         .features += [{
                             "id": "$next_id",
                             "title": "Fix: $description",
                             "description": "$description. Suggested fix: $suggested_fix",
-                            "status": "pending",
+                            "status": "backlog",
                             "priority": $priority,
                             "category": "CAT-FIX",
                             "passes": false,
@@ -223,7 +225,7 @@ JQEOF
     local mode_label="APPLIED"
     [[ "$dry_run" == "true" ]] && mode_label="DRY RUN"
     echo "Mode: $mode_label"
-    echo "Issues → features: $ingested_issues"
+    echo "Issues → backlog: $ingested_issues"
     echo "Enhancements → backlog: $ingested_enhancements"
     echo "Regressions → failed: $ingested_regressions"
     echo "Total ingested: $((ingested_issues + ingested_enhancements + ingested_regressions))"

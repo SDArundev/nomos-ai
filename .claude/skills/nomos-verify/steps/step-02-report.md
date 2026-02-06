@@ -63,9 +63,27 @@ For each unique finding, classify using `references/severity-guide.md`:
 
 ### 4. Identify Regressions
 
+<critical>
+A **regression** means something that PREVIOUSLY PASSED now FAILS — not merely "we found a new issue."
+Finding a code quality issue or missing best practice in a verified feature is NOT a regression.
+It is an **enhancement** or **tech debt** item.
+</critical>
+
 For each feature with status `verified` in `.nomos/features.json`:
-- If findings are CRITICAL or HIGH → mark as **REGRESSION**
-- Regressions get automatic severity bump (MEDIUM → HIGH, HIGH → CRITICAL)
+
+**IS a regression (mark as REGRESSION):**
+- A CRITICAL bug that directly breaks a feature's acceptance criteria (AC was met before, now it isn't)
+- A data loss or security vulnerability introduced by a LATER commit (not present at verification time)
+- A runtime failure that prevents the feature from functioning at all
+
+**IS NOT a regression (mark as ENHANCEMENT or TECH_DEBT):**
+- Code quality issues (DRY violations, boilerplate, type safety patterns)
+- Missing best practices (rate limiting, security headers) that were never implemented
+- Race conditions or edge cases that existed at verification time but weren't caught
+- Acceptance criteria that were aspirational or loosely defined (e.g., "rollback capability exists")
+
+Only true regressions get severity bump (MEDIUM → HIGH, HIGH → CRITICAL).
+Quality issues on verified features should be reported normally without severity inflation.
 
 ### 5. Build Improvement Strategy
 

@@ -60,16 +60,35 @@ Combine step-02 report with step-03 fix results (if applicable):
 
 ### 2. Update features.json
 
-**Regressions:**
-- For each verified feature that failed verification:
+**Regressions (strict definition):**
+
+<critical>
+Only mark a verified feature as regressed if it meets the STRICT regression criteria from step-02:
+- A CRITICAL bug that directly breaks an acceptance criterion that was previously met
+- A runtime failure introduced by a LATER commit
+- Data loss or security vulnerability not present at verification time
+
+Do NOT regress features for: code quality issues, missing best practices, race conditions
+that existed at verification time, or aspirational ACs that were loosely verified.
+When in doubt, report the issue as an enhancement/tech-debt item, NOT a regression.
+</critical>
+
+- For each TRUE regression (verified feature with AC-breaking CRITICAL finding):
   - Set `status` back to `pending`
   - Add `regressionDetected` timestamp
-  - Log reason in feature notes
+  - Add `regressionReason` with specific AC that broke
+  - Log in feature notes
+
+- For quality issues on verified features (NOT regressions):
+  - Do NOT change feature status
+  - Record as enhancement suggestions in enhancements.json
+  - Optionally create backlog features via `nomos.sh ingest`
 
 **Auto mode bug features:**
-- If `{auto_mode}` AND issues found:
-  - Create new bug-fix features in features.json for CRITICAL/HIGH issues
+- If `{auto_mode}` AND true regressions found:
+  - Create new bug-fix features in features.json for regression items only
   - Set priority based on severity (CRITICAL=1, HIGH=2-5)
+  - Set status to `backlog` (not `pending` — let human prioritize)
   - Set dependency on affected feature
 
 ### 3. Learning Extraction

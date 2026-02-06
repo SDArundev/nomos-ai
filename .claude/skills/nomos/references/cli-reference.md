@@ -110,9 +110,11 @@ Sub-commands are routed in `step-00-init.md` before flag parsing. The first posi
 
 Ingests findings from the latest verification run into features.json:
 
-- **HIGH/CRITICAL issues** → new features with `status: "pending"`, priority 1 (CRITICAL) or 5 (HIGH)
+- **HIGH/CRITICAL issues** → new features with `status: "backlog"`, priority 1 (CRITICAL) or 5 (HIGH)
 - **Enhancements** → new features with `status: "backlog"`, priority 100
 - **Regressions** → affected features marked `status: "failed"` with `failureReason: "regression_detected"`
+
+> Issues go to **backlog** (not pending) so humans decide what to fix next. Only true regressions create failed entries that demand immediate attention.
 
 Deduplication via `tags` array (e.g., `["verify-ingested", "verify-ingested:SYS-001"]`).
 
@@ -136,10 +138,13 @@ bash .claude/skills/nomos/scripts/nomos.sh ingest
 | `-q` | `--quick` | Quick depth (2 dimensions: bugs + requirements) |
 | `-d` | `--deep` | Deep depth (5 dimensions: all) |
 | `-f` | `--fix` | Fix mode: create worktree and fix issues found |
-| `-s` | `--scope` | Scope: single, range, verified, pending, all |
+| `-s` | `--scope` | Scope: single, range, verified, failed, pending, all |
 | `-r` | `--resume` | Resume previous verification session |
 | `-o` | `--output` | Custom output directory |
 | | `--audit` | Full codebase audit (deep + all + codebase mode) |
+| | `--include-planned` | Include pending features in scope (normally excluded from `all`) |
+
+> **Scope note:** `all` means **implemented features only** (verified + in_progress + failed). Pending features with no code are excluded by default. Use `--include-planned` to explicitly include them.
 
 ### nomos-refactor Flags
 
