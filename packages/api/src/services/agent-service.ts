@@ -140,6 +140,7 @@ export async function createAgentSession(
 		userId: input.userId,
 		featureId: input.featureId,
 		status: SESSION_STATUS.PENDING,
+		cwd: input.cwd,
 		startedAt: new Date(),
 	});
 

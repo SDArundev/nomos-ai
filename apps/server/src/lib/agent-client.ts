@@ -32,6 +32,7 @@ export function createAgentQuery(options: {
 	cwd?: string;
 	systemPrompt?: string;
 	permissionMode?: PermissionMode;
+	includePartialMessages?: boolean;
 }) {
 	const sdkModel = options.model ? MODEL_MAP[options.model] : env.CLAUDE_MODEL;
 	const effectivePermissionMode = options.permissionMode ?? "bypassPermissions";
@@ -49,6 +50,7 @@ export function createAgentQuery(options: {
 			...(effectivePermissionMode === "bypassPermissions" && {
 				allowDangerouslySkipPermissions: true,
 			}),
+			includePartialMessages: options.includePartialMessages,
 		},
 	});
 }
