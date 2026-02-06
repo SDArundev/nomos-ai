@@ -15,6 +15,9 @@ export {
 	type FeatureInsert,
 	type FeatureSelect,
 	featureRepository,
+	type LearningInsert,
+	type LearningSelect,
+	learningRepository,
 	projectRepository,
 	sessionRepository,
 } from "./repositories";

@@ -59,11 +59,19 @@ export const featureRepository = {
 		status: string,
 	): Promise<FeatureSelect[]> {
 		if (ids.length === 0) return [];
-		return db
-			.update(feature)
-			.set({ status })
-			.where(inArray(feature.id, ids))
-			.returning();
+		return db.transaction(async (tx) => {
+			const existing = await tx.select({ id: feature.id }).from(feature).where(inArray(feature.id, ids));
+			const existingIds = new Set(existing.map((r) => r.id));
+			const missingIds = ids.filter((id) => !existingIds.has(id));
+			if (missingIds.length > 0) {
+				throw new Error(`Features not found: ${missingIds.join(", ")}`);
+			}
+			return tx
+				.update(feature)
+				.set({ status })
+				.where(inArray(feature.id, ids))
+				.returning();
+		});
 	},
 
 	async delete(id: string): Promise<FeatureSelect> {

@@ -1,6 +1,7 @@
 import type { RouterClient } from "@orpc/server";
 import { protectedProcedure, publicProcedure } from "../index";
 import { featureRouter } from "./feature";
+import { learningRouter } from "./learning";
 import { projectRouter } from "./project";
 import { sessionRouter } from "./session";
 
@@ -15,6 +16,7 @@ export const appRouter = {
 		};
 	}),
 	features: featureRouter,
+	learnings: learningRouter,
 	projects: projectRouter,
 	sessions: sessionRouter,
 };

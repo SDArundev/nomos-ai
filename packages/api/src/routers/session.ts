@@ -2,19 +2,15 @@ import { sessionRepository } from "@nomos-ai/db";
 import {
 	FeatureIdSchema,
 	SESSION_STATUS,
+	SESSION_VALID_TRANSITIONS,
+	type SessionStatus,
 	SessionIdSchema,
 	SessionStatusSchema,
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
-
-const VALID_TRANSITIONS: Record<string, string[]> = {
-	[SESSION_STATUS.PENDING]: [SESSION_STATUS.RUNNING, SESSION_STATUS.FAILED],
-	[SESSION_STATUS.RUNNING]: [SESSION_STATUS.COMPLETED, SESSION_STATUS.FAILED],
-	[SESSION_STATUS.COMPLETED]: [],
-	[SESSION_STATUS.FAILED]: [],
-};
+import { generateSessionId } from "../utils/id-generation";
 
 const listSessionsInput = z
 	.object({
@@ -80,10 +76,11 @@ export const sessionRouter = {
 
 	create: protectedProcedure
 		.input(createSessionInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			try {
 				return await sessionRepository.create({
-					id: crypto.randomUUID(),
+					id: await generateSessionId(),
+					userId: context.session.user.id,
 					featureId: input.featureId,
 					status: input.status,
 					startedAt: input.startedAt,
@@ -152,7 +149,7 @@ export const sessionRouter = {
 				});
 			}
 
-			const allowed = VALID_TRANSITIONS[session.status];
+			const allowed = SESSION_VALID_TRANSITIONS[session.status as SessionStatus];
 			if (!allowed || !allowed.includes(input.status)) {
 				throw new ORPCError("BAD_REQUEST", {
 					message: `Invalid status transition: ${session.status} → ${input.status}`,

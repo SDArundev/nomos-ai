@@ -3,6 +3,7 @@ import { ProjectIdSchema } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { generateProjectId } from "../utils/id-generation";
 
 const createProjectInput = z.object({
 	name: z.string().min(1, "Project name is required").max(100),
@@ -67,10 +68,11 @@ export const projectRouter = {
 
 	create: protectedProcedure
 		.input(createProjectInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			try {
 				return await projectRepository.create({
-					id: crypto.randomUUID(),
+					id: await generateProjectId(),
+					userId: context.session.user.id,
 					name: input.name,
 					path: input.path,
 					settings: input.settings as Record<string, unknown> | undefined,

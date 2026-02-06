@@ -1,6 +1,7 @@
 import { featureRepository } from "@nomos-ai/db";
 import {
-	FEATURE_STATUS,
+	FEATURE_VALID_TRANSITIONS,
+	type FeatureStatus,
 	FeatureIdSchema,
 	FeatureStatusSchema,
 	PhaseIdSchema,
@@ -8,21 +9,7 @@ import {
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
-
-const VALID_TRANSITIONS: Record<string, string[]> = {
-	[FEATURE_STATUS.BACKLOG]: [FEATURE_STATUS.PENDING, FEATURE_STATUS.FAILED],
-	[FEATURE_STATUS.PENDING]: [FEATURE_STATUS.IN_PROGRESS, FEATURE_STATUS.FAILED],
-	[FEATURE_STATUS.IN_PROGRESS]: [
-		FEATURE_STATUS.WAITING_APPROVAL,
-		FEATURE_STATUS.FAILED,
-	],
-	[FEATURE_STATUS.WAITING_APPROVAL]: [
-		FEATURE_STATUS.VERIFIED,
-		FEATURE_STATUS.FAILED,
-	],
-	[FEATURE_STATUS.VERIFIED]: [],
-	[FEATURE_STATUS.FAILED]: [],
-};
+import { generateFeatureId } from "../utils/id-generation";
 
 const listFeaturesInput = z
 	.object({
@@ -104,10 +91,11 @@ export const featureRouter = {
 
 	create: protectedProcedure
 		.input(createFeatureInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			try {
 				return await featureRepository.create({
-					id: crypto.randomUUID(),
+					id: await generateFeatureId(),
+					userId: context.session.user.id,
 					projectId: input.projectId,
 					title: input.title,
 					category: input.category,
@@ -181,7 +169,7 @@ export const featureRouter = {
 				});
 			}
 
-			const allowed = VALID_TRANSITIONS[feat.status];
+			const allowed = FEATURE_VALID_TRANSITIONS[feat.status as FeatureStatus];
 			if (!allowed || !allowed.includes(input.status)) {
 				throw new ORPCError("BAD_REQUEST", {
 					message: `Invalid status transition: ${feat.status} → ${input.status}`,
@@ -201,7 +189,7 @@ export const featureRouter = {
 			const invalid: string[] = [];
 			for (const feat of features) {
 				if (!feat) continue;
-				const allowed = VALID_TRANSITIONS[feat.status];
+				const allowed = FEATURE_VALID_TRANSITIONS[feat.status as FeatureStatus];
 				if (!allowed || !allowed.includes(input.status)) {
 					invalid.push(`${feat.id}: ${feat.status} → ${input.status}`);
 				}
