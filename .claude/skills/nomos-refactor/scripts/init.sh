@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# refactor-expert initialization script
+# nomos-refactor initialization script
 # Creates isolated worktree and output directory
 #
 

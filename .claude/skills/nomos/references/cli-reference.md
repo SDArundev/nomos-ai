@@ -1,6 +1,23 @@
 # NOMOS CLI Reference
 
-## Flags
+## Sub-commands
+
+`/nomos` is the single entry point that routes to specialized pipelines:
+
+| Command | Pipeline | Description |
+|---------|----------|-------------|
+| `/nomos F031` | 7-step feature | Implement feature from backlog (default) |
+| `/nomos verify F031` | 5-step analysis | Verification, analysis, reporting |
+| `/nomos verify --audit` | 5-step analysis | Full codebase health audit (deep + all) |
+| `/nomos refactor -t rename X Y` | 9-step refactor | Safe systematic refactoring |
+| `/nomos improve` | 5-step meta | NOMOS system self-improvement |
+| `/nomos -s` | — | Session dashboard (status + recommendations) |
+
+Sub-commands are routed in `step-00-init.md` before flag parsing. The first positional argument (`verify`, `refactor`, `improve`) determines which sub-skill pipeline loads.
+
+---
+
+## Feature Flags
 
 ### Enable Flags (turn ON)
 

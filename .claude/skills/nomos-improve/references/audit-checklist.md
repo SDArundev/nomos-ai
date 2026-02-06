@@ -191,6 +191,56 @@ For each reference, verify:
 
 ---
 
+## nomos-verify Checklist
+
+**Location:** `.claude/skills/nomos-verify/`
+
+- [ ] **SKILL.md triggers** — Includes "nomos verify", "/nomos verify", "codebase audit"
+- [ ] **Step count** — 5 steps (00-04) match SKILL.md pipeline diagram
+- [ ] **Depth levels** — Quick (2), Standard (3), Deep (5) agent counts correct
+- [ ] **--audit flag** — Sets deep + all + codebase correctly in step-00
+- [ ] **Agent references** — All agent names match `.claude/agents/` files
+- [ ] **Output path** — Uses `{output_dir}` (absolute) consistently
+- [ ] **Read-only default** — Steps 00-02 never modify code files
+- [ ] **Fix mode isolation** — Worktree only created in step-03 (if -f flag)
+- [ ] **Dimension definitions** — analysis-dimensions.md covers all 5 (+ optional 6th)
+- [ ] **Severity guide** — Consistent CRITICAL/HIGH/MEDIUM/LOW classification
+
+---
+
+## nomos-refactor Checklist
+
+**Location:** `.claude/skills/nomos-refactor/`
+
+- [ ] **SKILL.md triggers** — Includes "nomos refactor", "/nomos refactor"
+- [ ] **Step count** — 9 steps (00-08) match SKILL.md step_files table
+- [ ] **Agent references** — Uses `explore-codebase` (not `code-explorer`), `code-architect` exists
+- [ ] **Learning reads** — step-01 reads patterns.json and antipatterns.json (graceful)
+- [ ] **Learning writes** — step-08 writes to refactoring-history.json and patterns.json
+- [ ] **Worktree isolation** — All code changes in worktree, never main
+- [ ] **Safety features** — Baseline tests, incremental validation, rollback points
+- [ ] **Risk levels** — LOW/MEDIUM/HIGH/CRITICAL consistent with SKILL.md
+- [ ] **Scripts** — init.sh, state.sh, cleanup.sh all have correct paths
+- [ ] **Refactor types** — 8 types (dependency, move, rename, optimize, extract, inline, modernize, structure) all have analysis templates
+
+---
+
+## Cross-Skill Consistency
+
+Checks across all NOMOS sub-skills:
+
+- [ ] **Routing** — step-00-init.md routes verify/refactor/improve correctly
+- [ ] **Naming convention** — All skills follow `nomos-*` pattern
+- [ ] **Shared agents** — Agent names consistent across all skills that reference them
+- [ ] **Learning system** — All write paths use merge (never overwrite)
+- [ ] **Output conventions** — Each skill has its own output directory (.nomos/output/, .nomos/verify/, .nomos/refactor/)
+- [ ] **SKILL.md triggers** — No overlapping triggers that could cause mis-routing
+- [ ] **State machine** — Feature states consistent across skills
+- [ ] **Progressive loading** — All skills use step-by-step loading pattern
+- [ ] **Component map** — component-map.md covers all 4 skills
+
+---
+
 ## System-Wide Consistency
 
 Cross-cutting checks across all components:

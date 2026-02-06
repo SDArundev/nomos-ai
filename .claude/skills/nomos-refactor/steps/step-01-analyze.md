@@ -6,6 +6,23 @@ Understand the full scope of the refactoring by finding all usages, dependencies
 
 <instructions>
 
+## 0. Load Learning System Context (Graceful)
+
+Before launching analysis agents, check for relevant patterns and antipatterns:
+
+```bash
+# Read refactoring patterns (graceful fallback)
+cat .nomos/learning/patterns.json 2>/dev/null | jq '[.patterns[] | select(.category == "refactoring" or .tags[]? == "refactoring")] | .[0:5]' 2>/dev/null || echo "[]"
+
+# Read antipatterns for known pitfalls (graceful fallback)
+cat .nomos/learning/antipatterns.json 2>/dev/null | jq '[.antipatterns[] | select(.category == "refactoring" or .tags[]? == "refactoring")] | .[0:5]' 2>/dev/null || echo "[]"
+```
+
+If patterns/antipatterns are found, include them as context for analysis agents.
+If files don't exist or are empty, proceed without them — the learning system is optional.
+
+---
+
 ## 1. Launch Analysis Agents
 
 Launch in parallel based on refactor type:
@@ -13,7 +30,7 @@ Launch in parallel based on refactor type:
 ```javascript
 const agents = [
   {
-    type: "code-explorer",
+    type: "explore-codebase",
     prompt: `Analyze usage of "${target}" in the codebase:
       1. Find all imports/references
       2. Map which files depend on it
@@ -26,7 +43,7 @@ const agents = [
 // Add type-specific analysis
 if (refactor_type === "dependency") {
   agents.push({
-    type: "code-explorer",
+    type: "explore-codebase",
     prompt: `Analyze the ${target} package:
       1. Which functions/exports are used?
       2. Are there type imports?

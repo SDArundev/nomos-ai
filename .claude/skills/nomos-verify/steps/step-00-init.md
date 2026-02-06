@@ -44,10 +44,12 @@ next_step: steps/step-01-analyze.md
 | `-d` | `--deep` | false | Deep: all 5 dimensions |
 | `-f` | `--fix` | false | Attempt to fix issues found |
 | `-o` | `--output` | auto | Custom output path |
+| | `--audit` | false | Full codebase audit (sets deep + all + codebase) |
 
 If no depth flag: `{depth}` = `standard`.
 If `-q`: `{depth}` = `quick`.
 If `-d`: `{depth}` = `deep`.
+If `--audit`: `{depth}` = `deep`, `{scope}` = `all`, `{analysis_mode}` = `codebase`.
 
 ### 2. Determine Scope
 

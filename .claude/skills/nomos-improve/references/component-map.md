@@ -157,7 +157,77 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 
 ---
 
-## Dependency Graph
+---
+
+## nomos-verify Components
+
+| File | Role | Key Content |
+|------|------|-------------|
+| `skills/nomos-verify/SKILL.md` | Verify skill definition | 5-step pipeline, dual focus mode, depth levels |
+| `skills/nomos-verify/steps/step-00-init.md` | Parse args, scope, output dir | Flags: -a, -s, -r, -q, -d, -f, -o, --audit |
+| `skills/nomos-verify/steps/step-01-analyze.md` | Parallel agent analysis | Dimension-based: Bugs, Quality, Requirements, Security, Testing |
+| `skills/nomos-verify/steps/step-02-report.md` | Consolidate findings | Severity classification, issue aggregation |
+| `skills/nomos-verify/steps/step-03-fix.md` | Fix loop (optional, -f) | Max 3 iterations, worktree created here |
+| `skills/nomos-verify/steps/step-04-finish.md` | Summary + learning | Pattern extraction, feature state update |
+| `skills/nomos-verify/references/analysis-dimensions.md` | Dimension definitions | 5 dimensions + optional architecture health |
+| `skills/nomos-verify/references/severity-guide.md` | Severity classification | CRITICAL/HIGH/MEDIUM/LOW rules |
+
+---
+
+## nomos-refactor Components
+
+| File | Role | Key Content |
+|------|------|-------------|
+| `skills/nomos-refactor/SKILL.md` | Refactor skill definition | 9-step pipeline, 8 refactor types, safety features |
+| `skills/nomos-refactor/steps/step-00-init.md` | Parse args, create worktree | Flags: -a, -t, -d, -f, -k |
+| `skills/nomos-refactor/steps/step-01-analyze.md` | Impact analysis | Learning reads, explore-codebase + code-architect |
+| `skills/nomos-refactor/steps/step-02-plan.md` | Refactoring plan | Step-by-step with rollback points |
+| `skills/nomos-refactor/steps/step-03-baseline.md` | Baseline capture | Tests, types, lint, metrics |
+| `skills/nomos-refactor/steps/step-04-execute.md` | Execute with validation | Incremental tests after each step |
+| `skills/nomos-refactor/steps/step-05-validate.md` | Full validation | Compare to baseline |
+| `skills/nomos-refactor/steps/step-06-review.md` | Diff + security | Unintended changes, dead code |
+| `skills/nomos-refactor/steps/step-07-merge.md` | Merge to main | Approval + cleanup |
+| `skills/nomos-refactor/steps/step-08-document.md` | Record history | refactoring-history.json, patterns.json |
+| `skills/nomos-refactor/scripts/*.sh` | Init, state, cleanup | Worktree + branch lifecycle |
+
+---
+
+## nomos-improve Components (self-reference)
+
+| File | Role | Key Content |
+|------|------|-------------|
+| `skills/nomos-improve/SKILL.md` | Improve skill definition | 5-step pipeline, improvement types |
+| `skills/nomos-improve/steps/step-00-init.md` | Parse intent, scope | 6 improvement types, 9+ scope values |
+| `skills/nomos-improve/steps/step-01-audit.md` | Audit target files | Per-component checklists |
+| `skills/nomos-improve/steps/step-02-plan.md` | Plan improvements | Impact analysis, cascading files |
+| `skills/nomos-improve/steps/step-03-execute.md` | Execute changes | Read-before-edit, cross-file updates |
+| `skills/nomos-improve/steps/step-04-validate.md` | Validate changes | Consistency checks |
+| `skills/nomos-improve/references/component-map.md` | This file | Full ecosystem inventory |
+| `skills/nomos-improve/references/audit-checklist.md` | Per-component checklists | Step, agent, template, script checks |
+| `skills/nomos-improve/references/improvement-patterns.md` | Proven recipes | Common improvement patterns |
+
+---
+
+## Cross-Skill Dependency Graph
+
+```
+/nomos (entry point)
+├── verify   → .claude/skills/nomos-verify/steps/step-00-init.md
+├── refactor → .claude/skills/nomos-refactor/steps/step-00-init.md
+├── improve  → .claude/skills/nomos-improve/steps/step-00-init.md
+└── F###     → .claude/skills/nomos/steps/step-01-context.md (feature pipeline)
+
+Shared Infrastructure:
+├── .claude/skills/nomos/scripts/nomos.sh      ← Used by: nomos, nomos-verify (via nomos-verify.sh)
+├── .claude/agents/*.md                         ← Used by: all 4 skills
+├── .nomos/features.json                        ← Used by: nomos, nomos-verify
+├── .nomos/learning/                            ← Written by: nomos, nomos-refactor | Read by: all
+└── .nomos/output/, .nomos/verify/, .nomos/refactor/ ← Output directories per skill
+```
+
+---
+
+## Dependency Graph (nomos feature pipeline)
 
 ```
 SKILL.md

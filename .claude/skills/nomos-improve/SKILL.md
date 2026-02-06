@@ -1,12 +1,12 @@
 ---
-name: nomos-improver
+name: nomos-improve
 description: >
   Structured improvement of the NOMOS autonomous development system.
   Use when asked to improve, fix, audit, update, optimize, or refactor any part of the NOMOS pipeline:
   steps, agents, templates, scripts, references, learning files, schemas, or the SKILL.md itself.
-  Triggers: "improve nomos", "update nomos", "fix nomos", "nomos pipeline", "nomos agents",
-  "nomos steps", "nomos templates", "nomos scripts", "nomos learning", "audit nomos",
-  "refactor nomos", "optimize nomos", "nomos system", "nomos quality".
+  Triggers: "/nomos improve", "nomos improve", "improve nomos", "update nomos", "fix nomos",
+  "nomos pipeline", "nomos agents", "nomos steps", "nomos templates", "nomos scripts",
+  "nomos learning", "audit nomos", "refactor nomos", "optimize nomos", "nomos system", "nomos quality".
 ---
 
 # NOMOS Improver

@@ -54,19 +54,26 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 
 .claude/
 ├── skills/
-│   └── nomos/         # NOMOS skill system
-└── agents/            # Subagent definitions
+│   ├── nomos/             # Core: feature implementation (7-step)
+│   ├── nomos-verify/      # Verification & analysis (5-step)
+│   ├── nomos-refactor/    # Safe refactoring (9-step)
+│   └── nomos-improve/     # System self-improvement (5-step)
+└── agents/                # 14 shared agent definitions
 ```
 
 ---
 
-## Usage
+## NOMOS Ecosystem
 
-```bash
-/nomos -a F001        # Autonomous feature run
-/nomos -s             # Status overview
-/nomos -v F001        # Verify feature
-```
+| Command | Purpose |
+|---------|---------|
+| `/nomos -s` | Session dashboard — run at start of session |
+| `/nomos F031` | Implement feature (7-step pipeline) |
+| `/nomos -a -t -pr F031` | Full auto: implement + test + PR |
+| `/nomos verify F031` | Verify feature (5-step pipeline) |
+| `/nomos verify --audit` | Full codebase health audit |
+| `/nomos refactor -t rename X Y` | Safe codebase refactoring (9-step) |
+| `/nomos improve` | NOMOS system self-improvement |
 
 ---
 

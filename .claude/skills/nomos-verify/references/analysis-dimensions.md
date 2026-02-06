@@ -90,6 +90,27 @@ Suggested Fix: {how to fix it}
 Feature: {feature_id or "N/A" for codebase mode}
 ```
 
+---
+
+## Optional 6th Dimension: Architecture Health
+
+**Available when:** `{depth}` = `deep` AND `{analysis_mode}` = `codebase` (i.e., `--audit` mode)
+
+| Dimension | Agent | Focus |
+|-----------|-------|-------|
+| **Architecture** | `code-quality-reviewer` (extended scope) | Dependency cycles, duplication patterns, module boundaries, dead code |
+
+**What to Check:**
+- Circular dependency chains between modules
+- Code duplication across features (>30 lines similar)
+- Module boundary violations (direct DB access from UI layer, etc.)
+- Dead code: exported symbols with zero importers
+- Inconsistent patterns across similar features
+
+**Note:** This dimension reuses `code-quality-reviewer` with an architecture-focused prompt. It is NOT a separate agent launch — it extends the quality dimension prompt in audit mode.
+
+---
+
 Multiple findings separated by `---`.
 
 Summary at end:

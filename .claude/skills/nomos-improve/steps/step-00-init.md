@@ -60,7 +60,11 @@ Determine which component type(s) are targeted:
 | `learning` | `.nomos/learning/*.json` |
 | `skill` | `.claude/skills/nomos/SKILL.md` |
 | `schema` | `.nomos/schemas/*.json` |
-| `system` | All of the above (full system audit) |
+| `verify` | `.claude/skills/nomos-verify/**` |
+| `refactor` | `.claude/skills/nomos-refactor/**` |
+| `improve` | `.claude/skills/nomos-improve/**` |
+| `ecosystem` | All 4 skills + agents + learning (full cross-skill audit) |
+| `system` | All of the above (full system audit, same as ecosystem) |
 
 Set `{scope}` based on what the user specified or what the request implies.
 

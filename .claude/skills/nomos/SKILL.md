@@ -1,26 +1,29 @@
 ---
 name: nomos
 description: >
-  NOMOS autonomous feature development - systematic implementation from backlog to production
-  using worktrees, learnings, and quality gates. Use when implementing features tracked in features.json.
-  Triggers: "/nomos", "implement feature", "nomos F0XX", "autonomous feature", "feature pipeline".
+  NOMOS autonomous development ecosystem - single entry point for feature implementation,
+  verification, refactoring, and system improvement. Routes to sub-skills automatically.
+  Triggers: "/nomos", "implement feature", "nomos F0XX", "autonomous feature", "feature pipeline",
+  "nomos verify", "nomos refactor", "nomos improve", "nomos audit".
 ---
 
 # NOMOS
 
-Autonomous feature development with worktree isolation, parallel verification, and self-learning.
+Autonomous development ecosystem with worktree isolation, parallel verification, and self-learning.
 
 ## Quick Start
 
 ```bash
-/nomos F016           # Basic
-/nomos -a F016        # Autonomous (skip confirmations)
-/nomos -a -t -pr F016 # Full: auto + tests + PR
-/nomos -r F016        # Resume previous
-/nomos -s             # Status
+/nomos -s                       # Session dashboard
+/nomos F031                     # Implement feature
+/nomos -a -t -pr F031           # Full auto: implement + test + PR
+/nomos verify F031              # Verify single feature
+/nomos verify --audit           # Full codebase audit
+/nomos refactor -t rename X Y   # Safe refactoring
+/nomos improve                  # Improve NOMOS system
 ```
 
-**Flags:** `-a` (auto), `-t` (test), `-pr` (pull-request), `-r` (resume), `-i` (interactive), `-p` (plan-only), `-v` (verify-only), `-c` (cleanup)
+**Feature flags:** `-a` (auto), `-t` (test), `-pr` (pull-request), `-r` (resume), `-i` (interactive), `-p` (plan-only), `-v` (verify-only), `-c` (cleanup)
 
 See `references/cli-reference.md` for all flags and examples.
 

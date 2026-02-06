@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# refactor-expert state management script
+# nomos-refactor state management script
 #
 
 set -e

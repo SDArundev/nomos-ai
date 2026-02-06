@@ -3,7 +3,8 @@ name: nomos-verify
 description: >
   Verification and regression testing for NOMOS features.
   Multi-dimensional analysis (bugs, quality, requirements, security, testing) with optional fix loop.
-  Triggers: "/verify", "verify feature", "regression check", "codebase audit", "second opinion".
+  Triggers: "/verify", "/nomos verify", "nomos verify", "verify feature", "regression check",
+  "codebase audit", "second opinion", "analyze codebase", "health report", "code audit".
 ---
 
 # NOMOS Verify

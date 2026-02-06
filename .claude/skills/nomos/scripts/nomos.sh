@@ -1047,6 +1047,85 @@ EOF
 }
 
 # ============================================================================
+# SESSION: Rich project context dashboard
+# ============================================================================
+
+cmd_session() {
+    # 1. Silent port cleanup
+    cmd_ports cleanup 2>/dev/null || true
+
+    # 2. Project status (counts by status from features.json)
+    echo "=== PROJECT STATUS ==="
+    jq '{
+      verified: [.features[] | select(.status == "verified")] | length,
+      in_progress: [.features[] | select(.status == "in_progress")] | length,
+      pending: [.features[] | select(.status == "pending")] | length,
+      failed: [.features[] | select(.status == "failed")] | length,
+      backlog: [.features[] | select(.status == "backlog")] | length,
+      total: .features | length
+    }' "$FEATURES_FILE"
+
+    # 3. Recent activity (last 3 verified features)
+    echo ""
+    echo "=== RECENT ACTIVITY ==="
+    local recent
+    recent=$(jq -r '[.features[] | select(.status == "verified") |
+      {id, title, verifiedAt}] | sort_by(.verifiedAt // "") | reverse | .[0:3] |
+      .[] | "\(.id): \(.title)"' "$FEATURES_FILE" 2>/dev/null)
+    if [[ -n "$recent" ]]; then
+        echo "$recent"
+    else
+        echo "No verified features yet"
+    fi
+
+    # 4. Attention needed (failed + stale in_progress)
+    echo ""
+    echo "=== ATTENTION ==="
+    local attention
+    attention=$(jq -r '.features[] | select(.status == "failed") |
+      "\(.id): FAILED - \(.failureReason // "unknown")"' "$FEATURES_FILE" 2>/dev/null)
+    if [[ -n "$attention" ]]; then
+        echo "$attention"
+    else
+        echo "No issues requiring attention"
+    fi
+
+    # 5. Learning health
+    echo ""
+    echo "=== LEARNING ==="
+    local pattern_count
+    pattern_count=$(jq '.patterns | length' "$PROJECT_ROOT/.nomos/learning/patterns.json" 2>/dev/null || echo 0)
+    local anti_count
+    anti_count=$(jq '.antipatterns | length' "$PROJECT_ROOT/.nomos/learning/antipatterns.json" 2>/dev/null || echo 0)
+    local insight_count
+    insight_count=$(ls "$PROJECT_ROOT/.nomos/learning/insights/"*.json 2>/dev/null | wc -l | tr -d ' ')
+    echo "Patterns: $pattern_count | Antipatterns: $anti_count | Insights: $insight_count"
+
+    # 6. Next recommended
+    echo ""
+    echo "=== NEXT ==="
+    cmd_state next 2>/dev/null || echo "No pending features"
+
+    # 7. Active worktrees
+    echo ""
+    echo "=== WORKTREES ==="
+    local worktrees_dir="$PROJECT_ROOT/.nomos/worktrees"
+    if [[ -d "$worktrees_dir" ]]; then
+        local wt_found=false
+        for wt in "$worktrees_dir"/F*; do
+            [[ -d "$wt" ]] || continue
+            wt_found=true
+            echo "$(basename "$wt")"
+        done
+        if [[ "$wt_found" == "false" ]]; then
+            echo "None"
+        fi
+    else
+        echo "None"
+    fi
+}
+
+# ============================================================================
 # FUTURE: parallel subcommand (design only, not yet implemented)
 # Usage: nomos.sh parallel <N>
 # - Selects N features using "state next" N times
@@ -1096,6 +1175,9 @@ case "$SUBCOMMAND" in
     cleanup)
         cmd_cleanup "$@"
         ;;
+    session)
+        cmd_session "$@"
+        ;;
     --help|-h|"")
         echo "NOMOS Unified Script v2"
         echo ""
@@ -1110,6 +1192,7 @@ case "$SUBCOMMAND" in
         echo "  $0 insights <feature_id>            Top 3 relevant insights (scored)"
         echo "  $0 patterns <feature_id> [--for-plan|--for-code|--for-qa]  Filtered patterns"
         echo "  $0 cleanup [--stale]                 Clean up stale features and orphaned resources"
+        echo "  $0 session                            Rich project context dashboard"
         echo ""
         echo "State actions: start, claim, complete, verify, reset, fail, retry, preverify, get, next"
         echo "Port actions:  allocate <fid>, release <fid>, cleanup"

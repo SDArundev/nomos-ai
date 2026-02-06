@@ -7,6 +7,34 @@ next_step: steps/step-01-context.md
 # Step 0: Initialization
 
 <critical>
+## STEP 0: Route Sub-command
+
+Parse the FIRST positional argument (non-flag) from the user's input:
+
+**IF first argument is `verify`:**
+→ Remove "verify" from argument list
+→ Load `.claude/skills/nomos-verify/steps/step-00-init.md`
+→ Pass remaining arguments as-is
+→ **STOP processing this file entirely**
+
+**IF first argument is `refactor`:**
+→ Remove "refactor" from argument list
+→ Load `.claude/skills/nomos-refactor/steps/step-00-init.md`
+→ Pass remaining arguments as-is
+→ **STOP processing this file entirely**
+
+**IF first argument is `improve`:**
+→ Remove "improve" from argument list
+→ Load `.claude/skills/nomos-improve/steps/step-00-init.md`
+→ Pass remaining arguments as-is
+→ **STOP processing this file entirely**
+
+**OTHERWISE:** Continue with feature implementation below.
+</critical>
+
+---
+
+<critical>
 ## MANDATORY EXECUTION SEQUENCE
 
 You MUST follow these steps IN ORDER. Do NOT skip ahead.
@@ -167,17 +195,9 @@ questions:
 
 **IF `-s` or `--status`:**
 ```bash
-cat .nomos/features.json | jq '{
-  total: .features | length,
-  completed: [.features[] | select(.passes == true)] | length,
-  remaining: [.features[] | select(.passes == false)] | length,
-  in_progress: [.features[] | select(.status == "in_progress")] | length,
-  pre_implemented: [.features[] | select(.preImplemented == true)] | length
-}'
-
-cat .nomos/features.json | jq -r '.features[] | select(.passes == false) | "\(.id): \(.title)"' | head -5
+bash .claude/skills/nomos/scripts/nomos.sh session
 ```
-→ EXIT after showing status
+→ EXIT after showing dashboard
 
 **IF `-l` without feature_id:**
 → Load step-06-finish.md directly (learning extraction track)

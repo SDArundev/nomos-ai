@@ -42,6 +42,14 @@ bash .claude/skills/nomos/scripts/nomos.sh insights <feature_id>
 bash .claude/skills/nomos/scripts/nomos.sh patterns <feature_id> [--for-plan|--for-code|--for-qa]
 ```
 
+### Session Dashboard
+
+```bash
+bash .claude/skills/nomos/scripts/nomos.sh session
+```
+
+Outputs: project status counts, recent activity, failed features needing attention, learning health, next recommended feature, and active worktrees.
+
 ## nomos-verify.sh Commands
 
 Server lifecycle for step-04 Track B:

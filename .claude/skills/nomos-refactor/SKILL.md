@@ -1,6 +1,10 @@
 ---
-name: refactor-expert
-description: Safe, systematic codebase refactoring - dependency replacement, structure changes, optimizations. Always in isolated worktree with comprehensive validation.
+name: nomos-refactor
+description: >
+  Safe, systematic codebase refactoring - dependency replacement, structure changes, optimizations.
+  Always in isolated worktree with comprehensive validation.
+  Triggers: "/nomos refactor", "nomos refactor", "/refactor", "refactor dependency", "refactor rename",
+  "refactor move", "refactor optimize", "safe refactoring", "codebase refactoring".
 argument-hint: "[-a] [-t <type>] <target> [replacement]"
 ---
 
@@ -166,8 +170,8 @@ Execute safe, systematic refactoring operations with full traceability, validati
 
 | Agent | Purpose | When Used |
 |-------|---------|-----------|
-| `code-explorer` | Analyze usage patterns, dependencies | Always |
-| `code-architect` | Plan refactoring strategy | Always |
+| `explore-codebase` | Analyze usage patterns, dependencies | Always |
+| `code-architect` | Plan refactoring strategy, evaluate trade-offs | Always |
 | `qa-smoke-tester` | Validate app still runs | Always |
 | `security-reviewer` | Check for vulnerabilities (deps) | Dependency changes |
 | `test-coverage-analyzer` | Ensure coverage maintained | Always |

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# refactor-expert cleanup script
+# nomos-refactor cleanup script
 # Removes worktree and optionally the branch
 #
 
