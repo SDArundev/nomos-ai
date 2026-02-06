@@ -1,3 +1,10 @@
+---
+name: step-02-plan
+description: "Create a detailed, step-by-step plan for executing the refactor safely"
+prev_step: steps/step-01-analyze.md
+next_step: steps/step-03-baseline.md
+---
+
 # Step 02: Create Refactoring Plan
 
 <objective>

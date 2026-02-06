@@ -1,3 +1,9 @@
+---
+name: step-00-init
+description: "Parse arguments, create isolated worktree, and setup output directory for refactoring session"
+next_step: steps/step-01-analyze.md
+---
+
 # Step 00: Initialize Refactor
 
 <objective>

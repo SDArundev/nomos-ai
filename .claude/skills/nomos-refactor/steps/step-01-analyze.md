@@ -1,3 +1,10 @@
+---
+name: step-01-analyze
+description: "Understand the full scope of the refactoring by finding all usages, dependencies, and potential risks"
+prev_step: steps/step-00-init.md
+next_step: steps/step-02-plan.md
+---
+
 # Step 01: Analyze Impact
 
 <objective>

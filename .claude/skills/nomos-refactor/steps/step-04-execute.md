@@ -1,3 +1,10 @@
+---
+name: step-04-execute
+description: "Execute the refactoring plan step by step with validation after each step"
+prev_step: steps/step-03-baseline.md
+next_step: steps/step-05-validate.md
+---
+
 # Step 04: Execute Refactor
 
 <objective>

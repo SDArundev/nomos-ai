@@ -1,3 +1,9 @@
+---
+name: step-08-document
+description: "Record the refactoring in history and update any affected documentation"
+prev_step: steps/step-07-merge.md
+---
+
 # Step 08: Document Refactoring
 
 <objective>

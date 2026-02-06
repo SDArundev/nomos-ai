@@ -1,3 +1,10 @@
+---
+name: step-03-baseline
+description: "Run full validation suite and capture metrics before any changes to detect regressions"
+prev_step: steps/step-02-plan.md
+next_step: steps/step-04-execute.md
+---
+
 # Step 03: Capture Baseline
 
 <objective>

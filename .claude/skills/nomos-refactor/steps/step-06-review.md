@@ -1,3 +1,10 @@
+---
+name: step-06-review
+description: "Review all changes made and check for issues before merging"
+prev_step: steps/step-05-validate.md
+next_step: steps/step-07-merge.md
+---
+
 # Step 06: Review Changes
 
 <objective>

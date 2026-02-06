@@ -1,3 +1,10 @@
+---
+name: step-07-merge
+description: "Merge refactoring changes to main branch and cleanup"
+prev_step: steps/step-06-review.md
+next_step: steps/step-08-document.md
+---
+
 # Step 07: Merge to Main
 
 <objective>

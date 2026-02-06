@@ -1,3 +1,10 @@
+---
+name: step-05-validate
+description: "Run complete validation suite and compare results to baseline"
+prev_step: steps/step-04-execute.md
+next_step: steps/step-06-review.md
+---
+
 # Step 05: Full Validation
 
 <objective>
