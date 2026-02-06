@@ -23,6 +23,7 @@ export const feature = sqliteTable(
 		requirements: text("requirements", { mode: "json" }).$type<string[]>(),
 		dependencies: text("dependencies", { mode: "json" }).$type<string[]>(),
 		estimatedSize: text("estimated_size"),
+		preImplemented: integer("pre_implemented", { mode: "boolean" }),
 		model: text("model"),
 		thinkingLevel: text("thinking_level"),
 		planningMode: text("planning_mode"),

@@ -1,3 +1,8 @@
+import {
+	ESTIMATED_SIZE,
+	FEATURE_CATEGORIES,
+	FEATURE_PHASES,
+} from "@nomos-ai/types";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -30,16 +35,10 @@ type FeatureFromAPI = {
 	[key: string]: unknown;
 };
 
-export const CATEGORIES = [
-	"CAT-AUTH",
-	"CAT-DB",
-	"CAT-UI",
-	"CAT-API",
-	"CAT-KAN",
-	"CAT-CORE",
-] as const;
-export const PHASES = ["phase-1", "phase-2", "phase-3", "phase-4"] as const;
-const SIZES = ["XS", "S", "M", "L", "XL"] as const;
+// Using exported constants from @nomos-ai/types for consistency
+const CATEGORIES = FEATURE_CATEGORIES;
+const PHASES = FEATURE_PHASES;
+const SIZES = Object.values(ESTIMATED_SIZE);
 
 interface FeatureFormProps {
 	feature?: FeatureFromAPI;

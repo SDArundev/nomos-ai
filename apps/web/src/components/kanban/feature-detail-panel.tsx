@@ -1,4 +1,4 @@
-import type { FeatureStatus } from "@nomos-ai/types";
+import { FEATURE_VALID_TRANSITIONS, type FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
@@ -31,14 +31,8 @@ const statusColors: Record<string, string> = {
 	failed: "bg-red-500",
 };
 
-const VALID_TRANSITIONS: Record<string, string[]> = {
-	backlog: ["pending", "failed"],
-	pending: ["in_progress", "failed"],
-	in_progress: ["waiting_approval", "failed"],
-	waiting_approval: ["verified", "failed"],
-	verified: [],
-	failed: [],
-};
+// Using FEATURE_VALID_TRANSITIONS from @nomos-ai/types for consistency
+const VALID_TRANSITIONS = FEATURE_VALID_TRANSITIONS as Record<string, string[]>;
 
 export function FeatureDetailPanel({
 	featureId,

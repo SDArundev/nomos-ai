@@ -207,6 +207,18 @@ export const PlanSpecSchema = z.object({
 export type PlanSpec = z.infer<typeof PlanSpecSchema>;
 
 /**
+ * Feature categories (UI display values)
+ */
+export const FEATURE_CATEGORIES = [
+	"CAT-AUTH",
+	"CAT-DB",
+	"CAT-UI",
+	"CAT-API",
+	"CAT-KAN",
+	"CAT-CORE",
+] as const;
+
+/**
  * Category ID pattern (CAT-XXX format)
  */
 export const CategoryIdSchema = z
@@ -214,6 +226,16 @@ export const CategoryIdSchema = z
 	.regex(/^CAT-[A-Z]{3}$/, "Category ID must be in format CAT-XXX");
 
 export type CategoryId = z.infer<typeof CategoryIdSchema>;
+
+/**
+ * Feature phases (UI display values)
+ */
+export const FEATURE_PHASES = [
+	"phase-1",
+	"phase-2",
+	"phase-3",
+	"phase-4",
+] as const;
 
 /**
  * Phase ID pattern (phase-N format)

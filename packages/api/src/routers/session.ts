@@ -3,13 +3,14 @@ import {
 	FeatureIdSchema,
 	SESSION_STATUS,
 	SESSION_VALID_TRANSITIONS,
-	type SessionStatus,
 	SessionIdSchema,
+	type SessionStatus,
 	SessionStatusSchema,
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { handleRepositoryError } from "../utils/error-handler";
 import { generateSessionId } from "../utils/id-generation";
 
 const listSessionsInput = z
@@ -86,10 +87,7 @@ export const sessionRouter = {
 					startedAt: input.startedAt,
 				});
 			} catch (error) {
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to create session",
-				});
+				handleRepositoryError(error, "create session");
 			}
 		}),
 
@@ -97,23 +95,12 @@ export const sessionRouter = {
 		.input(updateSessionInput)
 		.handler(async ({ input }) => {
 			try {
-				const updateData: Record<string, unknown> = {};
-				for (const [key, value] of Object.entries(input.data)) {
-					if (value !== undefined) {
-						updateData[key] = value;
-					}
-				}
+				const updateData = Object.fromEntries(
+					Object.entries(input.data).filter(([, v]) => v !== undefined),
+				);
 				return await sessionRepository.update(input.id, updateData);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to update session",
-				});
+				handleRepositoryError(error, "update session");
 			}
 		}),
 
@@ -149,7 +136,8 @@ export const sessionRouter = {
 				});
 			}
 
-			const allowed = SESSION_VALID_TRANSITIONS[session.status as SessionStatus];
+			const allowed =
+				SESSION_VALID_TRANSITIONS[session.status as SessionStatus];
 			if (!allowed || !allowed.includes(input.status)) {
 				throw new ORPCError("BAD_REQUEST", {
 					message: `Invalid status transition: ${session.status} → ${input.status}`,

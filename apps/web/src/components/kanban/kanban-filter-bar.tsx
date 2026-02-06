@@ -1,5 +1,5 @@
+import { FEATURE_CATEGORIES, FEATURE_PHASES } from "@nomos-ai/types";
 import { X } from "lucide-react";
-import { CATEGORIES, PHASES } from "@/components/feature-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -51,7 +51,7 @@ export function KanbanFilterBar({
 				</SelectTrigger>
 				<SelectContent>
 					<SelectItem value="">All Categories</SelectItem>
-					{CATEGORIES.map((cat) => (
+					{FEATURE_CATEGORIES.map((cat) => (
 						<SelectItem key={cat} value={cat}>
 							{cat}
 						</SelectItem>
@@ -68,7 +68,7 @@ export function KanbanFilterBar({
 				</SelectTrigger>
 				<SelectContent>
 					<SelectItem value="">All Phases</SelectItem>
-					{PHASES.map((p) => (
+					{FEATURE_PHASES.map((p) => (
 						<SelectItem key={p} value={p}>
 							{p}
 						</SelectItem>
