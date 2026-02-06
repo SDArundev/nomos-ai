@@ -138,17 +138,20 @@ The NOMOS system has been validated and is complete. All 220 features are proper
 
 | Agent | Model | Triggered By | Status |
 |-------|-------|--------------|--------|
-| explore-codebase | haiku | step-02-analyze | ✅ |
-| explore-docs | haiku | step-02-analyze | ✅ |
-| websearch | haiku | step-02-analyze | ✅ |
-| qa-smoke-tester | sonnet | step-04a-smoke | ✅ |
-| qa-functional-tester | sonnet | step-05a-qa | ✅ |
-| security-reviewer | sonnet | step-06-review | ✅ |
-| code-quality-reviewer | sonnet | step-06-review | ✅ |
-| test-coverage-analyzer | sonnet | step-06-review | ✅ |
-| action | haiku | Ad-hoc | ✅ |
+| explore-codebase | haiku | step-01-context | ✅ |
+| explore-docs | haiku | step-01-context, step-03 (on-demand) | ✅ |
+| load-learnings | haiku | step-01-context | ✅ |
+| code-writer | sonnet | step-03-execute | ✅ |
+| qa-reviewer | sonnet | step-03-execute | ✅ |
+| qa-smoke-tester | sonnet | step-04 Track B | ✅ |
+| qa-functional-tester | sonnet | step-04 Track B | ✅ |
+| security-reviewer | sonnet | step-04 Track C | ✅ |
+| code-quality-reviewer | haiku | step-04 Track C | ✅ |
+| test-coverage-analyzer | haiku | step-04 Track C | ✅ |
+| code-reviewer | sonnet | step-04, verify dim-1 | ✅ |
+| code-architect | sonnet | refactor step-01, step-02 | ✅ |
 
-**Total:** 9 agents, all defined
+**Total:** 12 agents, all defined
 
 ---
 

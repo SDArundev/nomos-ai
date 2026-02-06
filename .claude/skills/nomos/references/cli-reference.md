@@ -126,6 +126,33 @@ bash .claude/skills/nomos/scripts/nomos.sh ingest
 
 ---
 
+## Sub-Skill Flags
+
+### nomos-verify Flags
+
+| Short | Long | Description |
+|-------|------|-------------|
+| `-a` | `--auto` | Autonomous mode: skip confirmations |
+| `-q` | `--quick` | Quick depth (2 dimensions: bugs + requirements) |
+| `-d` | `--deep` | Deep depth (5 dimensions: all) |
+| `-f` | `--fix` | Fix mode: create worktree and fix issues found |
+| `-s` | `--scope` | Scope: single, range, verified, pending, all |
+| `-r` | `--resume` | Resume previous verification session |
+| `-o` | `--output` | Custom output directory |
+| | `--audit` | Full codebase audit (deep + all + codebase mode) |
+
+### nomos-refactor Flags
+
+| Short | Long | Description |
+|-------|------|-------------|
+| `-a` | `--auto` | Autonomous mode: no confirmations |
+| `-t` | `--type` | Refactor type (dependency, move, rename, optimize, extract, inline, modernize, structure) |
+| `-d` | `--dry-run` | Show plan without executing |
+| `-f` | `--force` | Skip safety checks (dangerous) |
+| `-k` | `--keep` | Keep worktree after completion |
+
+---
+
 ## Resume Workflow
 
 When using `-r {feature-id}`:

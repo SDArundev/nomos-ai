@@ -31,7 +31,7 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 | File | Step | Agents Launched | Reads | Writes |
 |------|------|-----------------|-------|--------|
 | `steps/step-00-init.md` | Init | none (orchestrator) | features.json, SKILL.md | 00-context.md (via nomos.sh init) |
-| `steps/step-01-context.md` | Context | load-learnings, explore-codebase, research-docs | learning/*.json, codebase | 01-context.md |
+| `steps/step-01-context.md` | Context | load-learnings, explore-codebase, explore-docs | learning/*.json, codebase | 01-context.md |
 | `steps/step-02-plan.md` | Plan | none (orchestrator) | 01-context.md, codebase | 02-plan.md |
 | `steps/step-03-execute.md` | Execute | code-writer, qa-reviewer | 02-plan.md | 03-execute.md |
 | `steps/step-04-verify.md` | Verify | smoke-tester, functional-tester, security/quality/coverage reviewers | 03-execute.md, codebase | 04-verify.md |
@@ -139,10 +139,7 @@ scripts/
 | `agents/code-quality-reviewer.md` | code-quality-reviewer | haiku | Step 04 Track C | Static analysis |
 | `agents/test-coverage-analyzer.md` | test-coverage-analyzer | haiku | Step 04 Track C | Static analysis |
 | `agents/explore-codebase.md` | explore-codebase | haiku | Step 01 | Grep + Read |
-| `agents/explore-docs.md` | explore-docs | haiku | Step 01 | Context7 MCP |
-| `agents/websearch.md` | websearch | haiku | Step 01 | WebSearch |
-| `agents/research-docs.md` | research-docs | haiku | Step 03 (on-demand) | Context7 API lookup |
-| `agents/action.md` | action | haiku | Step 04 (conditional) | Verify-then-act |
+| `agents/explore-docs.md` | explore-docs | haiku | Step 01, Step 03 (on-demand) | Context7 MCP (comprehensive + quick lookup) |
 
 ---
 
@@ -279,8 +276,7 @@ SKILL.md
 ├── step-01-context.md
 │   ├── agents/load-learnings.md
 │   ├── agents/explore-codebase.md
-│   ├── agents/explore-docs.md
-│   ├── agents/websearch.md (optional)
+│   ├── agents/explore-docs.md (conditional)
 │   ├── nomos.sh (insights, patterns)
 │   ├── learning/*.json (all files)
 │   └── references/agent-prompts.md

@@ -1039,11 +1039,12 @@
         "Tool permissions set"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
+      "status": "in_progress",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-02-06T13:07:49Z"
     },
     {
       "id": "F032",
@@ -1066,11 +1067,12 @@
         "Tools configured correctly"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
+      "status": "in_progress",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-02-06T13:12:01Z"
     },
     {
       "id": "F033",
@@ -1092,11 +1094,12 @@
         "Thinking tokens tracked"
       ],
       "estimatedSize": "L",
-      "status": "backlog",
+      "status": "in_progress",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "extended",
-      "planningMode": "spec"
+      "planningMode": "spec",
+      "startedAt": "2026-02-06T13:27:30Z"
     },
     {
       "id": "F034",

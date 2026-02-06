@@ -10,7 +10,7 @@ Architecture for parallel agent/track execution across NOMOS pipeline steps.
 |-------|---------|---------|
 | load-learnings | Patterns, metrics, risk, code knowledge | Yes |
 | explore-codebase | Find files, patterns, utilities | Yes |
-| research-docs | Library docs via Context7 MCP | If unfamiliar libs |
+| explore-docs | Library docs via Context7 MCP | If unfamiliar libs |
 
 ---
 

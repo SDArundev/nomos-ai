@@ -3,8 +3,8 @@ name: nomos
 description: >
   NOMOS autonomous development ecosystem - single entry point for feature implementation,
   verification, refactoring, and system improvement. Routes to sub-skills automatically.
-  Triggers: "/nomos", "implement feature", "nomos F0XX", "autonomous feature", "feature pipeline",
-  "nomos verify", "nomos refactor", "nomos improve", "nomos audit".
+  Triggers: "/nomos", "/nomos F0XX", "implement feature", "nomos F0XX", "autonomous feature",
+  "feature pipeline", "nomos session", "nomos status".
 ---
 
 # NOMOS
@@ -23,7 +23,7 @@ Autonomous development ecosystem with worktree isolation, parallel verification,
 /nomos improve                  # Improve NOMOS system
 ```
 
-**Feature flags:** `-a` (auto), `-t` (test), `-pr` (pull-request), `-r` (resume), `-i` (interactive), `-p` (plan-only), `-v` (verify-only), `-c` (cleanup)
+**Feature flags:** `-a` (auto), `-t` (test), `-pr` (pull-request), `-r` (resume), `-i` (interactive), `-p` (plan-only), `-v` (verify-only), `-l` (learn-only), `-c` (cleanup), `-f N` (from-step N)
 
 See `references/cli-reference.md` for all flags and examples.
 
@@ -96,7 +96,7 @@ See `references/cli-reference.md` for all flags and examples.
 
 ## NOMOS Features
 
-1. **Feature-Driven** — `features.json` with state machine (pending → in_progress → waiting_approval → verified)
+1. **Feature-Driven** — `features.json` with state machine (backlog → pending → in_progress → waiting_approval → verified | failed)
 2. **Worktree Isolation** — Each feature in `.nomos/worktrees/{feature_id}` with branch `nomos/{feature_id}`
 3. **Self-Learning** — Patterns extracted per feature, injected into future planning
 4. **Quality Gates** — Spec-first, test coverage, security scanning, browser validation

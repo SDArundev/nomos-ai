@@ -38,6 +38,15 @@ Systematically improve NOMOS while maintaining cross-file consistency.
 
 **CRITICAL:** Every NOMOS change can cascade. Check impact table in step-02 before edits.
 
+## Agents
+
+This skill uses the orchestrator model directly (no subagent launches). All auditing, planning, execution, and validation happen in the main conversation. External agents referenced for context only:
+
+| Agent | When |
+|-------|------|
+| `load-learnings` | Step 01 — optional learning context |
+| `explore-codebase` | Step 01 — codebase exploration if needed |
+
 ## References
 
 | File | When |

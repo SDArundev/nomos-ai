@@ -4,7 +4,7 @@ All agent prompt templates used across NOMOS pipeline steps.
 
 ## Table of Contents
 
-- [Step 01: Context Agents](#step-01-context-agents) — load-learnings, explore-codebase, research-docs
+- [Step 01: Context Agents](#step-01-context-agents) — load-learnings, explore-codebase, explore-docs
 - [Step 03: Execute-Verify Loop Agents](#step-03-execute-verify-loop-agents) — code-writer, qa-reviewer
 - [Step 04: Static Checks (Track A)](#step-04-static-checks-track-a)
 - [Step 04: Runtime Verification (Track B)](#step-04-runtime-verification-track-b)
@@ -97,7 +97,7 @@ Prompt: |
   DO NOT suggest implementations. Report what EXISTS.
 ```
 
-### Agent 3: research-docs (CONDITIONAL)
+### Agent 3: explore-docs (CONDITIONAL)
 
 ```
 Task agent: explore-docs
@@ -166,12 +166,14 @@ Prompt: |
   {END IF}
 ```
 
-### Research Docs Agent (ON-DEMAND, optional)
+### Explore Docs Agent — Quick Lookup Mode (ON-DEMAND, optional)
 
 ```
-Task agent: research-docs
+Task agent: explore-docs
 Model: haiku
 Prompt: |
+  QUICK LOOKUP MODE — speed is critical, return under 200 lines.
+
   Look up documentation for: {library_name}
   Specific question: {api_question}
   Context: Code-writer encountered an unfamiliar API during {feature_id} implementation.
@@ -181,7 +183,7 @@ Prompt: |
   2. Minimal code example
   3. Common pitfalls
 
-  Return concise answer (under 200 lines). Speed is critical.
+  Return concise answer. Do NOT do comprehensive research — just answer the specific question.
 ```
 
 **When to launch:** The orchestrator MAY launch this agent between code-writer iterations if:

@@ -29,7 +29,7 @@ Launch **up to 3 agents simultaneously** depending on task complexity:
 |-------|---------|---------|
 | **load-learnings** | Load patterns, metrics, risk assessment, code knowledge | Yes |
 | **explore-codebase** | Find existing patterns, files, utilities related to feature | Yes |
-| **research-docs** | Research library docs via Context7 MCP | Only if unfamiliar libraries |
+| **explore-docs** | Research library docs via Context7 MCP | Only if unfamiliar libraries |
 
 ---
 

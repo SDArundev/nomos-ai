@@ -67,8 +67,7 @@ bash .claude/skills/nomos/scripts/nomos-verify.sh <feature_id> status
 | Agent | Used In | Purpose |
 |-------|---------|---------|
 | `explore-codebase` | step-01 | Find existing patterns, files, utilities |
-| `explore-docs` | step-01 | Research library docs via Context7 MCP |
-| `websearch` | step-01 | Find approaches, best practices |
+| `explore-docs` | step-01, step-03 | Research library docs via Context7 MCP (comprehensive + quick lookup) |
 | `code-writer` | step-03 | Implements plan or fixes QA issues |
 | `qa-reviewer` | step-03 | Reviews changes against plan/ACs |
 | `qa-functional-tester` | step-04 Track B | Test acceptance criteria in running app |

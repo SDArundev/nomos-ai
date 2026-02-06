@@ -137,7 +137,7 @@ NOMOS (**N**avigation · **O**rchestration · **M**emory · **O**bservation · *
 | 00-init | Create worktree, initialize state | None | backlog → in_progress |
 | 00i-interactive | Configure flags interactively | None | None |
 | 01-context | Load learned patterns | None | None |
-| 02-analyze | Explore codebase | explore-codebase, explore-docs, websearch | None |
+| 02-analyze | Explore codebase | explore-codebase, explore-docs | None |
 | 03-plan | Create implementation plan | None | None |
 | 04-execute | Implement in worktree | None | None |
 | 04a-smoke | Runtime smoke test | qa-smoke-tester | None |
@@ -193,16 +193,11 @@ The workflow uses **progressive step loading** to optimize context:
 │  │docs          │     │tester        │     │reviewer      │        │
 │  │(haiku)       │     │(sonnet)      │     │(sonnet)      │        │
 │  └──────────────┘     └──────────────┘     └──────────────┘        │
-│  ┌──────────────┐                          ┌──────────────┐        │
-│  │websearch     │                          │test-coverage-│        │
-│  │(haiku)       │                          │analyzer      │        │
-│  └──────────────┘                          │(sonnet)      │        │
+│                                            ┌──────────────┐        │
+│                                            │test-coverage-│        │
+│                                            │analyzer      │        │
+│                                            │(sonnet)      │        │
 │                                            └──────────────┘        │
-│  UTILITY                                                            │
-│  ┌──────────────┐                                                   │
-│  │action        │                                                   │
-│  │(haiku)       │                                                   │
-│  └──────────────┘                                                   │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -221,14 +216,12 @@ The workflow uses **progressive step loading** to optimize context:
 | Agent | Tools |
 |-------|-------|
 | explore-codebase | Glob, Grep, Read |
-| explore-docs | Context7 MCP |
-| websearch | WebSearch |
+| explore-docs | Context7 MCP, WebSearch, WebFetch |
 | qa-smoke-tester | Bash, Playwright |
 | qa-functional-tester | Bash, Playwright |
 | security-reviewer | Read, Grep, Glob, Bash |
 | code-quality-reviewer | Read, Grep, Glob, Bash |
 | test-coverage-analyzer | Read, Grep, Bash |
-| action | Grep, explore-docs |
 
 ---
 
@@ -366,16 +359,19 @@ nomos-ai/
 │   │   ├── git-fix-pr-comments/
 │   │   ├── git-merge/
 │   │   └── ...                 # Other utility skills
-│   └── agents/                 # 9 agent definitions
+│   └── agents/                 # 12 agent definitions
 │       ├── explore-codebase.md
 │       ├── explore-docs.md
-│       ├── websearch.md
+│       ├── load-learnings.md
+│       ├── code-writer.md
+│       ├── qa-reviewer.md
 │       ├── qa-smoke-tester.md
 │       ├── qa-functional-tester.md
 │       ├── security-reviewer.md
 │       ├── code-quality-reviewer.md
-│       ├── test-coverage-analyzer.md
-│       └── action.md
+│       ├── code-architect.md
+│       ├── code-reviewer.md
+│       └── test-coverage-analyzer.md
 └── CLAUDE.md                   # Project memory
 ```
 
