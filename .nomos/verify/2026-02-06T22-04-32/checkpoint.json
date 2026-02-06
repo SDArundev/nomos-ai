@@ -1,12 +1,16 @@
 {
   "version": "2.0",
   "timestamp": "2026-02-06T22-04-32",
-  "step": "00-init",
+  "step": "04-finish",
   "scope": "single",
   "analysis_mode": "feature",
   "depth": "standard",
-  "fix_mode": false,
+  "fix_mode": true,
   "auto_mode": false,
   "features_to_verify": ["F031"],
-  "completed_steps": ["00-init"]
+  "completed_steps": ["00-init", "01-analyze", "02-report", "03-fix", "04-finish"],
+  "final_result": "COMPLETE",
+  "features_updated": [],
+  "patterns_extracted": 2,
+  "worktree_status": "merged"
 }

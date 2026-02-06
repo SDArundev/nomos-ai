@@ -23,15 +23,19 @@ describe("agent-client", () => {
 		expect(DEFAULT_TOOLS).toContain("Grep");
 	});
 
-	test("PERMISSION_MODES has all 4 modes", () => {
+	test("PERMISSION_MODES has all 6 modes", () => {
 		expect(PERMISSION_MODES).toHaveProperty("default");
 		expect(PERMISSION_MODES).toHaveProperty("acceptEdits");
 		expect(PERMISSION_MODES).toHaveProperty("bypassPermissions");
 		expect(PERMISSION_MODES).toHaveProperty("plan");
+		expect(PERMISSION_MODES).toHaveProperty("delegate");
+		expect(PERMISSION_MODES).toHaveProperty("dontAsk");
 		expect(PERMISSION_MODES.default).toBe("default");
 		expect(PERMISSION_MODES.acceptEdits).toBe("acceptEdits");
 		expect(PERMISSION_MODES.bypassPermissions).toBe("bypassPermissions");
 		expect(PERMISSION_MODES.plan).toBe("plan");
+		expect(PERMISSION_MODES.delegate).toBe("delegate");
+		expect(PERMISSION_MODES.dontAsk).toBe("dontAsk");
 	});
 
 	test("createAgentQuery is a function", () => {

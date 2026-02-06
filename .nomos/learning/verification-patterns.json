@@ -209,6 +209,36 @@
       "prevention": "Always implement TTL cleanup for in-memory caches",
       "detection": "Search for Map-based stores without setInterval cleanup",
       "fix_pattern": "setInterval(() => { for (const [k, v] of map) { if (expired(v)) map.delete(k); } }, 60000)"
+    },
+    {
+      "id": "VP-015",
+      "name": "SDK safety flag missing for bypassPermissions",
+      "description": "Claude Agent SDK requires allowDangerouslySkipPermissions: true when using permissionMode: 'bypassPermissions', but flag was omitted",
+      "category": "CAT-AGT",
+      "type": "integration",
+      "frequency": 1,
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "features_affected": ["F031"],
+      "root_cause": "SDK contract not fully read — safety flag documented in type declarations but not in primary docs",
+      "prevention": "Always check SDK type declarations (sdk.d.ts) for required companion flags when using non-default modes",
+      "detection": "Search for permissionMode: 'bypassPermissions' without allowDangerouslySkipPermissions",
+      "fix_pattern": "Add conditional spread: ...(mode === 'bypassPermissions' && { allowDangerouslySkipPermissions: true })"
+    },
+    {
+      "id": "VP-016",
+      "name": "Incomplete SDK enum coverage",
+      "description": "Local constant defining SDK enum values missing newer modes (delegate, dontAsk) that SDK supports",
+      "category": "CAT-AGT",
+      "type": "quality",
+      "frequency": 1,
+      "first_seen": "2026-02-06",
+      "last_seen": "2026-02-06",
+      "features_affected": ["F031"],
+      "root_cause": "SDK enum values copied manually instead of imported or derived from SDK types",
+      "prevention": "Import types directly from SDK where possible, or derive local types from const objects",
+      "detection": "Compare local enum/const values against SDK type declarations",
+      "fix_pattern": "Use SDK's exported type or keep local const synced with SDK and derive type via typeof"
     }
   ]
 }

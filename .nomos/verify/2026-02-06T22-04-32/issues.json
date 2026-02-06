@@ -1,0 +1,121 @@
+{
+  "version": "2.0",
+  "timestamp": "2026-02-06T22-04-32",
+  "feature": "F031",
+  "scope": "single",
+  "depth": "standard",
+  "total_findings": 8,
+  "by_severity": {
+    "CRITICAL": 1,
+    "HIGH": 1,
+    "MEDIUM": 3,
+    "LOW": 3
+  },
+  "regressions": 0,
+  "issues": [
+    {
+      "id": "F-001",
+      "severity": "CRITICAL",
+      "dimension": "Bugs",
+      "title": "Missing allowDangerouslySkipPermissions flag",
+      "file": "apps/server/src/lib/agent-client.ts",
+      "line": 39,
+      "description": "bypassPermissions mode requires allowDangerouslySkipPermissions: true per SDK contract",
+      "impact": "SDK contract violation, potential runtime failure in future SDK versions",
+      "regression": false,
+      "fix_effort": "low",
+      "feature": "F031"
+    },
+    {
+      "id": "F-002",
+      "severity": "HIGH",
+      "dimension": "Quality",
+      "title": "permissionMode type not derived from constant + missing SDK modes",
+      "file": "apps/server/src/lib/agent-client.ts",
+      "line": 26,
+      "description": "Hardcoded string union instead of derived type. Missing delegate and dontAsk modes from SDK.",
+      "impact": "DRY violation, callers can't use all SDK modes",
+      "regression": false,
+      "fix_effort": "low",
+      "feature": "F031"
+    },
+    {
+      "id": "F-003",
+      "severity": "MEDIUM",
+      "dimension": "Bugs",
+      "title": "Model fallback skips MODEL_MAP validation",
+      "file": "apps/server/src/lib/agent-client.ts",
+      "line": 28,
+      "description": "env.CLAUDE_MODEL used directly without MODEL_MAP mapping when options.model not provided",
+      "impact": "Invalid model string reaches SDK if env misconfigured",
+      "regression": false,
+      "fix_effort": "low",
+      "feature": "F031"
+    },
+    {
+      "id": "F-004",
+      "severity": "MEDIUM",
+      "dimension": "Quality",
+      "title": "Incomplete test coverage for SDK integration",
+      "file": "apps/server/src/lib/agent-client.test.ts",
+      "line": 41,
+      "description": "Tests only verify function existence, not parameter passing or SDK invocation",
+      "impact": "Behavior changes undetected",
+      "regression": false,
+      "fix_effort": "medium",
+      "feature": "F031"
+    },
+    {
+      "id": "F-005",
+      "severity": "MEDIUM",
+      "dimension": "Quality",
+      "title": "Missing validation for numeric parameters",
+      "file": "apps/server/src/lib/agent-client.ts",
+      "line": 22,
+      "description": "maxTurns and maxBudgetUsd accept negative, NaN, or Infinity without validation",
+      "impact": "Confusing SDK errors instead of clear validation messages",
+      "regression": false,
+      "fix_effort": "low",
+      "feature": "F031"
+    },
+    {
+      "id": "F-006",
+      "severity": "LOW",
+      "dimension": "Quality",
+      "title": "DEFAULT_TOOLS not sealed with as const",
+      "file": "packages/types/src/agent.ts",
+      "line": 15,
+      "description": "Exported as mutable array, should use as const for immutability",
+      "impact": "Accidental mutations possible",
+      "regression": false,
+      "fix_effort": "low",
+      "feature": "F031"
+    },
+    {
+      "id": "F-007",
+      "severity": "LOW",
+      "dimension": "Bugs",
+      "title": "Missing prompt validation",
+      "file": "apps/server/src/lib/agent-client.ts",
+      "line": 19,
+      "description": "Empty or whitespace-only prompts passed directly to SDK",
+      "impact": "Wasted API calls, unclear errors",
+      "regression": false,
+      "fix_effort": "low",
+      "feature": "F031"
+    },
+    {
+      "id": "F-008",
+      "severity": "LOW",
+      "dimension": "Requirements",
+      "title": "Undocumented bypassPermissions default",
+      "file": "apps/server/src/lib/agent-client.ts",
+      "line": 39,
+      "description": "Default to bypassPermissions is intentional but lacks JSDoc explaining security rationale",
+      "impact": "Confusing for future maintainers",
+      "regression": false,
+      "fix_effort": "low",
+      "feature": "F031"
+    }
+  ]
+}

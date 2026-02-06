@@ -10,7 +10,15 @@ export const PERMISSION_MODES = {
 	acceptEdits: "acceptEdits" as const,
 	bypassPermissions: "bypassPermissions" as const,
 	plan: "plan" as const,
+	delegate: "delegate" as const,
+	dontAsk: "dontAsk" as const,
 };
+
+/**
+ * Derived type from PERMISSION_MODES constant
+ */
+export type PermissionMode =
+	(typeof PERMISSION_MODES)[keyof typeof PERMISSION_MODES];
 
 /**
  * Create an agent query with the Claude Agent SDK
@@ -23,9 +31,10 @@ export function createAgentQuery(options: {
 	maxBudgetUsd?: number;
 	cwd?: string;
 	systemPrompt?: string;
-	permissionMode?: "default" | "acceptEdits" | "bypassPermissions" | "plan";
+	permissionMode?: PermissionMode;
 }) {
 	const sdkModel = options.model ? MODEL_MAP[options.model] : env.CLAUDE_MODEL;
+	const effectivePermissionMode = options.permissionMode ?? "bypassPermissions";
 
 	return query({
 		prompt: options.prompt,
@@ -36,7 +45,10 @@ export function createAgentQuery(options: {
 			maxBudgetUsd: options.maxBudgetUsd,
 			cwd: options.cwd,
 			systemPrompt: options.systemPrompt,
-			permissionMode: options.permissionMode ?? "bypassPermissions",
+			permissionMode: effectivePermissionMode,
+			...(effectivePermissionMode === "bypassPermissions" && {
+				allowDangerouslySkipPermissions: true,
+			}),
 		},
 	});
 }

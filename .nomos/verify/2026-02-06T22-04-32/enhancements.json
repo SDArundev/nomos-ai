@@ -1,0 +1,39 @@
+{
+  "version": "2.0",
+  "timestamp": "2026-02-06T22-04-32",
+  "feature": "F031",
+  "enhancements": [
+    {
+      "id": "ENH-001",
+      "category": "type_safety",
+      "title": "Seal DEFAULT_TOOLS with as const",
+      "description": "Add as const to DEFAULT_TOOLS array for compile-time immutability",
+      "source_finding": "F-006",
+      "effort": "low"
+    },
+    {
+      "id": "ENH-002",
+      "category": "resilience",
+      "title": "Add prompt validation",
+      "description": "Validate prompt is non-empty and non-whitespace before passing to SDK",
+      "source_finding": "F-007",
+      "effort": "low"
+    },
+    {
+      "id": "ENH-003",
+      "category": "documentation",
+      "title": "Document bypassPermissions default rationale",
+      "description": "Add JSDoc explaining why bypassPermissions is the default for NOMOS autonomous use case",
+      "source_finding": "F-008",
+      "effort": "low"
+    },
+    {
+      "id": "ENH-004",
+      "category": "testing",
+      "title": "Add SDK integration tests with mocks",
+      "description": "Test parameter passing, default application, and model mapping with mocked SDK query function",
+      "source_finding": "F-004",
+      "effort": "medium"
+    }
+  ]
+}
