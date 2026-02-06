@@ -354,3 +354,19 @@ Refactoring:
 4. **Architecture evolution:** `/refactor -t structure ...`
 
 </integration_with_nomos>
+
+## References
+
+| File | When |
+|------|------|
+| `references/refactor-types.md` | Step 01 — type-specific strategies, agent configs, gotchas |
+| `references/risk-assessment.md` | Step 01 — risk scoring, escalation rules, checkpoint strategy |
+| `references/learning-integration.md` | Step 01, Step 08 — how to read/write learning data |
+
+## Execution Rules
+
+- Load one step at a time (progressive loading)
+- Follow `next_step` directive at end of each step
+- Always read before edit
+- Consult `references/risk-assessment.md` for risk decisions
+- Consult `references/refactor-types.md` for type-specific guidance

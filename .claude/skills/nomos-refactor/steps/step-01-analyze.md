@@ -11,9 +11,17 @@ next_step: steps/step-02-plan.md
 Understand the full scope of the refactoring by finding all usages, dependencies, and potential risks.
 </objective>
 
+<references>
+- `references/refactor-types.md` — Type-specific strategies, agent configs, execution order, gotchas
+- `references/risk-assessment.md` — Risk scoring factors, escalation rules, checkpoint strategy
+- `references/learning-integration.md` — How to load patterns/antipatterns for context
+</references>
+
 <instructions>
 
 ## 0. Load Learning System Context (Graceful)
+
+Read `references/learning-integration.md` for the full guide. Summary below:
 
 Before launching analysis agents, check for relevant patterns and antipatterns:
 
@@ -165,6 +173,8 @@ For `optimize` refactor, analyze:
 ```
 
 ## 6. Calculate Risk Level
+
+Use the scoring matrix from `references/risk-assessment.md`:
 
 ```javascript
 function calculateRisk(analysis) {
