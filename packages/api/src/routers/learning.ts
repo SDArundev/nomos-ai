@@ -3,6 +3,7 @@ import { FeatureIdSchema } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { handleRepositoryError } from "../utils/error-handler";
 import { generateLearningId } from "../utils/id-generation";
 
 const listLearningsInput = z
@@ -89,10 +90,7 @@ export const learningRouter = {
 					...input,
 				});
 			} catch (error) {
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to create learning",
-				});
+				handleRepositoryError(error, "create learning");
 			}
 		}),
 
@@ -102,15 +100,7 @@ export const learningRouter = {
 			try {
 				return await learningRepository.update(input.id, input.data);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to update learning",
-				});
+				handleRepositoryError(error, "update learning");
 			}
 		}),
 
@@ -120,15 +110,7 @@ export const learningRouter = {
 			try {
 				return await learningRepository.delete(input.id);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to delete learning",
-				});
+				handleRepositoryError(error, "delete learning");
 			}
 		}),
 };

@@ -1,14 +1,15 @@
 import { featureRepository } from "@nomos-ai/db";
 import {
 	FEATURE_VALID_TRANSITIONS,
-	type FeatureStatus,
 	FeatureIdSchema,
+	type FeatureStatus,
 	FeatureStatusSchema,
 	PhaseIdSchema,
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { handleRepositoryError } from "../utils/error-handler";
 import { generateFeatureId } from "../utils/id-generation";
 
 const listFeaturesInput = z
@@ -68,6 +69,12 @@ export const featureRouter = {
 	list: protectedProcedure
 		.input(listFeaturesInput)
 		.handler(async ({ input }) => {
+			if (input?.status && input?.phase) {
+				return featureRepository.findByStatusAndPhase(
+					input.status,
+					input.phase,
+				);
+			}
 			if (input?.status) {
 				return featureRepository.findByStatus(input.status);
 			}
@@ -110,10 +117,7 @@ export const featureRouter = {
 					estimatedSize: input.estimatedSize,
 				});
 			} catch (error) {
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to create feature",
-				});
+				handleRepositoryError(error, "create feature");
 			}
 		}),
 
@@ -121,23 +125,12 @@ export const featureRouter = {
 		.input(updateFeatureInput)
 		.handler(async ({ input }) => {
 			try {
-				const updateData: Record<string, unknown> = {};
-				for (const [key, value] of Object.entries(input.data)) {
-					if (value !== undefined) {
-						updateData[key] = value;
-					}
-				}
+				const updateData = Object.fromEntries(
+					Object.entries(input.data).filter(([, v]) => v !== undefined),
+				);
 				return await featureRepository.update(input.id, updateData);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to update feature",
-				});
+				handleRepositoryError(error, "update feature");
 			}
 		}),
 
@@ -147,15 +140,7 @@ export const featureRouter = {
 			try {
 				return await featureRepository.delete(input.id);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to delete feature",
-				});
+				handleRepositoryError(error, "delete feature");
 			}
 		}),
 
@@ -182,25 +167,14 @@ export const featureRouter = {
 	bulkUpdateStatus: protectedProcedure
 		.input(bulkUpdateStatusInput)
 		.handler(async ({ input }) => {
-			const features = await Promise.all(
-				input.ids.map((id) => featureRepository.findById(id)),
-			);
-
-			const invalid: string[] = [];
-			for (const feat of features) {
-				if (!feat) continue;
-				const allowed = FEATURE_VALID_TRANSITIONS[feat.status as FeatureStatus];
-				if (!allowed || !allowed.includes(input.status)) {
-					invalid.push(`${feat.id}: ${feat.status} → ${input.status}`);
-				}
+			try {
+				return await featureRepository.bulkUpdateStatusWithValidation(
+					input.ids,
+					input.status,
+					FEATURE_VALID_TRANSITIONS,
+				);
+			} catch (error) {
+				handleRepositoryError(error, "bulk update feature status");
 			}
-
-			if (invalid.length > 0) {
-				throw new ORPCError("BAD_REQUEST", {
-					message: `Invalid status transitions: ${invalid.join(", ")}`,
-				});
-			}
-
-			return featureRepository.bulkUpdateStatus(input.ids, input.status);
 		}),
 };

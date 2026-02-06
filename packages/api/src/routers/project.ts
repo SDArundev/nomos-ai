@@ -1,8 +1,9 @@
 import { projectRepository } from "@nomos-ai/db";
-import { ProjectIdSchema } from "@nomos-ai/types";
+import { ProjectIdSchema, ProjectStatusSchema } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { handleRepositoryError } from "../utils/error-handler";
 import { generateProjectId } from "../utils/id-generation";
 
 const createProjectInput = z.object({
@@ -13,6 +14,7 @@ const createProjectInput = z.object({
 		.refine((p) => p.startsWith("/") || /^[A-Za-z]:/.test(p), {
 			message: "Path must be an absolute path",
 		}),
+	status: ProjectStatusSchema.optional(),
 	settings: z
 		.object({
 			theme: z.enum(["light", "dark", "system"]).default("system"),
@@ -35,6 +37,7 @@ const updateProjectInput = z.object({
 					message: "Path must be an absolute path",
 				})
 				.optional(),
+			status: ProjectStatusSchema.optional(),
 			settings: z
 				.object({
 					theme: z.enum(["light", "dark", "system"]).optional(),
@@ -75,13 +78,11 @@ export const projectRouter = {
 					userId: context.session.user.id,
 					name: input.name,
 					path: input.path,
+					status: input.status,
 					settings: input.settings as Record<string, unknown> | undefined,
 				});
 			} catch (error) {
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to create project",
-				});
+				handleRepositoryError(error, "create project");
 			}
 		}),
 
@@ -89,22 +90,12 @@ export const projectRouter = {
 		.input(updateProjectInput)
 		.handler(async ({ input }) => {
 			try {
-				const updateData: Record<string, unknown> = {};
-				if (input.data.name !== undefined) updateData.name = input.data.name;
-				if (input.data.path !== undefined) updateData.path = input.data.path;
-				if (input.data.settings !== undefined)
-					updateData.settings = input.data.settings;
+				const updateData = Object.fromEntries(
+					Object.entries(input.data).filter(([, v]) => v !== undefined),
+				);
 				return await projectRepository.update(input.id, updateData);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to update project",
-				});
+				handleRepositoryError(error, "update project");
 			}
 		}),
 
@@ -114,15 +105,7 @@ export const projectRouter = {
 			try {
 				return await projectRepository.delete(input.id);
 			} catch (error) {
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new ORPCError("NOT_FOUND", {
-						message: error.message,
-					});
-				}
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						error instanceof Error ? error.message : "Failed to delete project",
-				});
+				handleRepositoryError(error, "delete project");
 			}
 		}),
 };

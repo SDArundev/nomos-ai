@@ -22,6 +22,9 @@ export {
 	type Feature,
 	type FeatureAsset,
 	FeatureAssetSchema,
+	// Feature categories and phases
+	FEATURE_CATEGORIES,
+	FEATURE_PHASES,
 	// Feature schema and type
 	FeatureSchema,
 	type Files,

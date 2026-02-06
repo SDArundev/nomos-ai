@@ -10,6 +10,7 @@ import {
 	useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { FEATURE_VALID_TRANSITIONS } from "@nomos-ai/types";
 import { useState } from "react";
 import { toast } from "sonner";
 import { FeatureCard } from "./feature-card";
@@ -30,14 +31,8 @@ interface KanbanBoardProps {
 
 // Note: 'failed' is a valid transition target but not shown as a column
 // Features with 'failed' status won't appear on the board (filtered out intentionally)
-const VALID_TRANSITIONS: Record<string, string[]> = {
-	backlog: ["pending", "failed"],
-	pending: ["in_progress", "failed"],
-	in_progress: ["waiting_approval", "failed"],
-	waiting_approval: ["verified", "failed"],
-	verified: [],
-	failed: [],
-};
+// Using FEATURE_VALID_TRANSITIONS from @nomos-ai/types for consistency
+const VALID_TRANSITIONS = FEATURE_VALID_TRANSITIONS as Record<string, string[]>;
 
 const KANBAN_COLUMNS = [
 	{

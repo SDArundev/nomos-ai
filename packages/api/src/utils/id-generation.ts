@@ -5,18 +5,24 @@ import { project } from "@nomos-ai/db/schema/projects";
 import { agentSession } from "@nomos-ai/db/schema/sessions";
 
 async function getNextId(
-	table: typeof feature | typeof project | typeof agentSession | typeof learning,
+	table:
+		| typeof feature
+		| typeof project
+		| typeof agentSession
+		| typeof learning,
 	prefix: string,
 ): Promise<string> {
-	const result = await db
-		.select({ maxId: sql<string>`MAX(${table.id})` })
-		.from(table);
-	const maxId = result[0]?.maxId;
-	if (!maxId) {
-		return `${prefix}001`;
-	}
-	const num = Number.parseInt(maxId.slice(prefix.length), 10);
-	return `${prefix}${String(num + 1).padStart(3, "0")}`;
+	return db.transaction(async (tx) => {
+		const result = await tx
+			.select({ maxId: sql<string>`MAX(${table.id})` })
+			.from(table);
+		const maxId = result[0]?.maxId;
+		if (!maxId) {
+			return `${prefix}001`;
+		}
+		const num = Number.parseInt(maxId.slice(prefix.length), 10);
+		return `${prefix}${String(num + 1).padStart(3, "0")}`;
+	});
 }
 
 export async function generateFeatureId(): Promise<string> {
