@@ -97,7 +97,15 @@ export const sessionRepository = {
 		if (!session.completedAt || !session.startedAt) {
 			return null;
 		}
-		return session.completedAt.getTime() - session.startedAt.getTime();
+		const end =
+			session.completedAt instanceof Date
+				? session.completedAt.getTime()
+				: Number(session.completedAt);
+		const start =
+			session.startedAt instanceof Date
+				? session.startedAt.getTime()
+				: Number(session.startedAt);
+		return end - start;
 	},
 
 	async withTransaction<T>(

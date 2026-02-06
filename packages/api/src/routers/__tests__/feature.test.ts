@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { FEATURE_STATUS } from "@nomos-ai/types";
+import { FEATURE_STATUS, FEATURE_VALID_TRANSITIONS } from "@nomos-ai/types";
 
 interface MockFeature {
 	id: string;
@@ -86,20 +86,7 @@ function createMockFeature(overrides?: Partial<MockFeature>): MockFeature {
 	};
 }
 
-const VALID_TRANSITIONS: Record<string, string[]> = {
-	[FEATURE_STATUS.BACKLOG]: [FEATURE_STATUS.PENDING, FEATURE_STATUS.FAILED],
-	[FEATURE_STATUS.PENDING]: [FEATURE_STATUS.IN_PROGRESS, FEATURE_STATUS.FAILED],
-	[FEATURE_STATUS.IN_PROGRESS]: [
-		FEATURE_STATUS.WAITING_APPROVAL,
-		FEATURE_STATUS.FAILED,
-	],
-	[FEATURE_STATUS.WAITING_APPROVAL]: [
-		FEATURE_STATUS.VERIFIED,
-		FEATURE_STATUS.FAILED,
-	],
-	[FEATURE_STATUS.VERIFIED]: [],
-	[FEATURE_STATUS.FAILED]: [],
-};
+const VALID_TRANSITIONS = FEATURE_VALID_TRANSITIONS;
 
 describe("Feature Router Logic", () => {
 	describe("list operation", () => {

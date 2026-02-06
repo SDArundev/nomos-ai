@@ -107,6 +107,11 @@ export default function FeatureForm({
 				estimatedSize: value.estimatedSize || undefined,
 			};
 
+			if (data.acceptanceCriteria.length === 0) {
+				toast.error("At least one non-empty acceptance criterion is required");
+				return;
+			}
+
 			if (feature) {
 				await updateFeature.mutateAsync({
 					id: feature.id,

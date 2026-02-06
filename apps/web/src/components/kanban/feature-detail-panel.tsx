@@ -1,7 +1,7 @@
 import { FEATURE_VALID_TRANSITIONS, type FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +43,15 @@ export function FeatureDetailPanel({
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedTitle, setEditedTitle] = useState("");
 	const [editedDescription, setEditedDescription] = useState("");
+
+	// Reset edit state when panel closes
+	useEffect(() => {
+		if (!open) {
+			setIsEditing(false);
+			setEditedTitle("");
+			setEditedDescription("");
+		}
+	}, [open]);
 
 	const feature = useQuery({
 		...orpc.features.get.queryOptions({ input: { id: featureId ?? "" } }),
@@ -103,12 +112,22 @@ export function FeatureDetailPanel({
 
 	const handleSave = () => {
 		if (!featureId) return;
-		const updates: { title?: string; description?: string } = {};
-		if (editedTitle !== feature.data?.title) {
-			updates.title = editedTitle;
+		const trimmedTitle = editedTitle.trim();
+		const trimmedDescription = editedDescription.trim();
+		if (trimmedTitle.length < 5 || trimmedTitle.length > 80) {
+			toast.error("Title must be between 5 and 80 characters");
+			return;
 		}
-		if (editedDescription !== feature.data?.description) {
-			updates.description = editedDescription;
+		if (trimmedDescription.length < 20 || trimmedDescription.length > 500) {
+			toast.error("Description must be between 20 and 500 characters");
+			return;
+		}
+		const updates: { title?: string; description?: string } = {};
+		if (trimmedTitle !== feature.data?.title) {
+			updates.title = trimmedTitle;
+		}
+		if (trimmedDescription !== feature.data?.description) {
+			updates.description = trimmedDescription;
 		}
 		if (Object.keys(updates).length > 0) {
 			updateFeature.mutate({ id: featureId, data: updates });

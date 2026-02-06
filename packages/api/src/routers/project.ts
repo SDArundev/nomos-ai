@@ -22,6 +22,7 @@ const createProjectInput = z.object({
 			autoSaveInterval: z.number().int().min(0).default(30),
 			notifications: z.boolean().default(true),
 		})
+		.strict()
 		.optional(),
 });
 
@@ -45,6 +46,7 @@ const updateProjectInput = z.object({
 					autoSaveInterval: z.number().int().min(0).optional(),
 					notifications: z.boolean().optional(),
 				})
+				.strict()
 				.optional(),
 		})
 		.refine((data) => Object.keys(data).length > 0, {
