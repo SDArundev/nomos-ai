@@ -24,6 +24,8 @@ export const env = createEnv({
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),
+		ANTHROPIC_API_KEY: z.string().min(1),
+		CLAUDE_MODEL: z.string().default("claude-sonnet-4-5-20250929"),
 	},
 	runtimeEnv: process.env,
 	emptyStringAsUndefined: true,

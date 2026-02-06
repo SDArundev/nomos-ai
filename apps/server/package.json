@@ -10,17 +10,18 @@
 		"start": "bun run dist/index.js"
 	},
 	"dependencies": {
-		"dotenv": "catalog:",
-		"zod": "catalog:",
-		"@nomos-ai/env": "workspace:*",
+		"@anthropic-ai/claude-agent-sdk": "^0.2.34",
 		"@nomos-ai/api": "workspace:*",
 		"@nomos-ai/auth": "workspace:*",
 		"@nomos-ai/db": "workspace:*",
-		"hono": "catalog:",
-		"@orpc/server": "catalog:",
+		"@nomos-ai/env": "workspace:*",
 		"@orpc/openapi": "catalog:",
+		"@orpc/server": "catalog:",
 		"@orpc/zod": "catalog:",
-		"better-auth": "catalog:"
+		"better-auth": "catalog:",
+		"dotenv": "catalog:",
+		"hono": "catalog:",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"typescript": "catalog:",
