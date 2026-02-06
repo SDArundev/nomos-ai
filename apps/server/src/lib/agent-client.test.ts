@@ -1,10 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import {
-	createAgentQuery,
-	DEFAULT_TOOLS,
-	MODEL_MAP,
-	PERMISSION_MODES,
-} from "./agent-client";
+import { DEFAULT_TOOLS, MODEL_MAP } from "@nomos-ai/types";
+import { createAgentQuery, PERMISSION_MODES } from "./agent-client";
 
 describe("agent-client", () => {
 	test("MODEL_MAP has entries for all Model enum values", () => {
