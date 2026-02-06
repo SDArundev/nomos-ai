@@ -43,12 +43,11 @@ Prompt: |
      - Filter by severity (always include CRITICAL and HIGH)
   5. Check dependencies from features.json
      - Verify all dependencies are verified
-  5b. Load session insights (automated scoring):
-     ```bash
-     bash .claude/skills/nomos/scripts/nomos.sh insights {feature_id}
-     ```
-     This returns top 3 insights sorted by relevance score (scoring: +3 dependency, +2 category, +1 phase).
-     From each returned insight, inject into context:
+  5b. Load session insights (PRE-FILTERED by orchestrator):
+     The orchestrator has already scored and filtered insights.
+     Use the pre-filtered RELEVANT_INSIGHTS passed in the prompt context.
+     Do NOT read all insight files from .nomos/learning/insights/ — only process the top 3 provided.
+     From each provided insight, inject into context:
        * `discoveries` -> things to look for / reuse
        * `what_worked` -> approaches to follow
        * `what_failed` -> approaches to avoid
@@ -166,6 +165,31 @@ Prompt: |
   Focus on CRITICAL and HIGH severity issues first.
   {END IF}
 ```
+
+### Research Docs Agent (ON-DEMAND, optional)
+
+```
+Task agent: research-docs
+Model: haiku
+Prompt: |
+  Look up documentation for: {library_name}
+  Specific question: {api_question}
+  Context: Code-writer encountered an unfamiliar API during {feature_id} implementation.
+
+  Use Context7 MCP to find:
+  1. API signature for {specific_function_or_method}
+  2. Minimal code example
+  3. Common pitfalls
+
+  Return concise answer (under 200 lines). Speed is critical.
+```
+
+**When to launch:** The orchestrator MAY launch this agent between code-writer iterations if:
+- The code-writer reports an error related to unknown API usage
+- The QA reviewer flags incorrect library usage
+- The error signature matches `MODULE_NOT_FOUND` or `TYPE_ERROR` with library types
+
+**When NOT to launch:** For standard stack APIs (React, Hono, Drizzle, TanStack) that the code-writer should already know.
 
 ### QA Reviewer Agent
 

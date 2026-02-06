@@ -36,7 +36,7 @@ Track C: CODE REVIEW (no server needed)
   → security + quality + coverage agents (3-phase: review → fix → re-review)
 ```
 
-**Gate:** ALL 3 tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 5 cycles per track). Recurring issue detection: if same signature appears 3+ times → stop early.
+**Gate:** ALL 3 tracks must pass. Failed tracks use classify→fix→re-verify loop (up to 5 cycles per track). Recurring issue detection: if same signature appears 3+ times → stop early. Track C selective re-review: only re-run reviewers that found blocking issues (see section 3b).
 
 ---
 
@@ -112,6 +112,47 @@ After all 3 tracks complete:
 
 **Gate:** {PASS/FAIL}
 ```
+
+### 3b. Track C Selective Re-Review Optimization
+
+When Track C Phase 1 completes, only re-run reviewers that found blocking issues:
+
+```
+Phase 1 results:
+  security-reviewer: 2 CRITICAL findings  → INCLUDE in Phase 3
+  code-quality-reviewer: 0 blocking       → SKIP Phase 3
+  test-coverage-analyzer: 1 HIGH finding  → INCLUDE in Phase 3
+```
+
+**Rule:** In Phase 3 (re-review), only launch agents that produced CRITICAL or HIGH findings in Phase 1. Agents that passed with no blocking issues do NOT need re-verification.
+
+This optimization reduces Track C agent calls by ~30-40% on average.
+
+### 3c. Write Verification Checkpoint
+
+After all 3 tracks complete (and after each fix cycle), write checkpoint:
+
+```bash
+# Write to output_dir (using Write tool)
+```
+
+```json
+{
+  "feature_id": "{feature_id}",
+  "timestamp": "{ISO}",
+  "tracks": {
+    "A": {"status": "PASS/FAIL", "cycles": 0},
+    "B": {"status": "PASS/FAIL", "cycles": 0},
+    "C": {"status": "PASS/FAIL", "cycles": 0, "phase1_reviewers_with_findings": []}
+  },
+  "gate": "PASS/FAIL/IN_PROGRESS",
+  "total_fix_cycles": 0
+}
+```
+
+File: `{output_dir}/04-checkpoint.json`
+
+This enables resume if step-04 crashes mid-verification.
 
 ### 4. Handle Failures (Classification-Based)
 

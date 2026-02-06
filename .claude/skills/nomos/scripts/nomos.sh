@@ -70,7 +70,7 @@ atomic_update() {
 # ============================================================================
 # SUBCOMMAND: state
 # ============================================================================
-# Actions: start, claim, complete, verify, reset, preverify, get, next
+# Actions: start, claim, complete, verify, reset, fail, retry, preverify, get, next
 
 cmd_state() {
     local action="$1"
@@ -78,7 +78,7 @@ cmd_state() {
 
     if [[ -z "$action" ]]; then
         echo "Usage: $0 state <action> [feature_id]"
-        echo "Actions: start, claim, complete, verify, reset, preverify, get, next"
+        echo "Actions: start, claim, complete, verify, reset, fail, retry, preverify, get, next"
         exit 1
     fi
 
@@ -217,6 +217,41 @@ EOF
             echo "ok $feature_id: status -> pending (reset)"
             ;;
 
+        fail)
+            local failure_reason="${3:-unspecified}"
+            atomic_update "$(cat <<EOF
+                .features |= map(
+                    if .id == "$feature_id" then
+                        .status = "failed" |
+                        .failureReason = "$failure_reason" |
+                        .failedAt = "$TIMESTAMP"
+                    else . end
+                )
+EOF
+)"
+            echo "ok $feature_id: status -> failed (reason: $failure_reason)"
+            ;;
+
+        retry)
+            local current_status
+            current_status=$(jq -r --arg id "$feature_id" '.features[] | select(.id == $id) | .status' "$FEATURES_FILE")
+            if [[ "$current_status" != "failed" ]]; then
+                echo "Error: Can only retry features in 'failed' state (current: $current_status)" >&2
+                exit 1
+            fi
+            atomic_update "$(cat <<EOF
+                .features |= map(
+                    if .id == "$feature_id" then
+                        .status = "in_progress" |
+                        .retries = ((.retries // 0) + 1) |
+                        .startedAt = "$TIMESTAMP"
+                    else . end
+                )
+EOF
+)"
+            echo "ok $feature_id: failed -> in_progress (retry #$(jq -r --arg id "$feature_id" '.features[] | select(.id == $id) | .retries // 1' "$FEATURES_FILE"))"
+            ;;
+
         preverify)
             atomic_update "$(cat <<EOF
                 .features |= map(
@@ -238,7 +273,7 @@ EOF
 
         *)
             echo "Error: Unknown state action '$action'"
-            echo "Actions: start, claim, complete, verify, reset, preverify, get, next"
+            echo "Actions: start, claim, complete, verify, reset, fail, retry, preverify, get, next"
             exit 1
             ;;
     esac
@@ -446,8 +481,16 @@ cmd_init() {
         exit 1
     fi
 
-    # Create output directory
-    local OUTPUT_DIR="${NOMOS_OUTPUT_DIR}/${FEATURE_ID}"
+    # Create output directory with versioned run
+    local FEATURE_OUTPUT_BASE="${NOMOS_OUTPUT_DIR}/${FEATURE_ID}"
+    mkdir -p "$FEATURE_OUTPUT_BASE"
+
+    # Find next run number
+    local run_num=1
+    while [[ -d "${FEATURE_OUTPUT_BASE}/run-$(printf '%03d' $run_num)" ]]; do
+        run_num=$((run_num + 1))
+    done
+    local OUTPUT_DIR="${FEATURE_OUTPUT_BASE}/run-$(printf '%03d' $run_num)"
     mkdir -p "$OUTPUT_DIR"
 
     # Determine status strings based on flags
@@ -500,6 +543,7 @@ cmd_init() {
     echo "FEATURE_ID=${FEATURE_ID}"
     echo "OUTPUT_DIR=${OUTPUT_DIR}"
     echo "WORKTREE_PATH=${PROJECT_ROOT}/.nomos/worktrees/${FEATURE_ID}"
+    echo "RUN_DIR=run-$(printf '%03d' $run_num)"
     echo "ok NOMOS templates initialized: ${OUTPUT_DIR}"
     exit 0
 }
@@ -923,6 +967,86 @@ cmd_metrics_category_stats() {
 }
 
 # ============================================================================
+# SUBCOMMAND: cleanup
+# ============================================================================
+# Clean up stale features: stuck in_progress >24h, orphaned worktrees, leaked ports
+
+cmd_cleanup() {
+    local mode="${1:---stale}"
+
+    case "$mode" in
+        --stale)
+            echo "Checking for stale features (in_progress > 24h)..."
+            local now_epoch
+            now_epoch=$(date +%s)
+            local stale_count=0
+
+            # Find features stuck in in_progress
+            local stale_features
+            stale_features=$(jq -r '.features[] | select(.status == "in_progress" and .startedAt != null) | "\(.id)|\(.startedAt)"' "$FEATURES_FILE" 2>/dev/null)
+
+            while IFS='|' read -r fid started_at; do
+                [[ -z "$fid" ]] && continue
+                local started_epoch
+                started_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$started_at" +%s 2>/dev/null || date -d "$started_at" +%s 2>/dev/null || echo "0")
+                local age_hours=$(( (now_epoch - started_epoch) / 3600 ))
+
+                if [[ $age_hours -gt 24 ]]; then
+                    echo "STALE: $fid (in_progress for ${age_hours}h)"
+
+                    # Release ports
+                    cmd_ports release "$fid" 2>/dev/null || true
+
+                    # Transition to failed
+                    atomic_update "$(cat <<EOF
+                        .features |= map(
+                            if .id == "$fid" then
+                                .status = "failed" |
+                                .failureReason = "stale_timeout_${age_hours}h" |
+                                .failedAt = "$TIMESTAMP"
+                            else . end
+                        )
+EOF
+)"
+                    echo "  → Marked as failed (stale timeout)"
+                    stale_count=$((stale_count + 1))
+                fi
+            done <<< "$stale_features"
+
+            # Also clean up orphaned worktrees without matching in_progress feature
+            echo "Checking for orphaned worktrees..."
+            local worktrees_dir="${PROJECT_ROOT}/.nomos/worktrees"
+            if [[ -d "$worktrees_dir" ]]; then
+                shopt -s nullglob
+                for wt in "${worktrees_dir}"/F*; do
+                    [[ -d "$wt" ]] || continue
+                    local wt_fid
+                    wt_fid=$(basename "$wt")
+                    local wt_status
+                    wt_status=$(jq -r --arg id "$wt_fid" '.features[] | select(.id == $id) | .status // "unknown"' "$FEATURES_FILE" 2>/dev/null)
+
+                    if [[ "$wt_status" == "verified" || "$wt_status" == "pending" || "$wt_status" == "failed" ]]; then
+                        echo "ORPHANED WORKTREE: $wt_fid (status: $wt_status)"
+                        echo "  → Run: git worktree remove .nomos/worktrees/$wt_fid"
+                        stale_count=$((stale_count + 1))
+                    fi
+                done
+            fi
+
+            if [[ $stale_count -eq 0 ]]; then
+                echo "No stale features or orphaned worktrees found"
+            else
+                echo "ok Found $stale_count stale items"
+            fi
+            ;;
+        *)
+            echo "Usage: $0 cleanup [--stale]"
+            exit 1
+            ;;
+    esac
+}
+
+# ============================================================================
 # FUTURE: parallel subcommand (design only, not yet implemented)
 # Usage: nomos.sh parallel <N>
 # - Selects N features using "state next" N times
@@ -969,6 +1093,9 @@ case "$SUBCOMMAND" in
     patterns)
         cmd_patterns "$@"
         ;;
+    cleanup)
+        cmd_cleanup "$@"
+        ;;
     --help|-h|"")
         echo "NOMOS Unified Script v2"
         echo ""
@@ -982,8 +1109,9 @@ case "$SUBCOMMAND" in
         echo "  $0 health <feature_id> [--wait|--check]  Check server health"
         echo "  $0 insights <feature_id>            Top 3 relevant insights (scored)"
         echo "  $0 patterns <feature_id> [--for-plan|--for-code|--for-qa]  Filtered patterns"
+        echo "  $0 cleanup [--stale]                 Clean up stale features and orphaned resources"
         echo ""
-        echo "State actions: start, claim, complete, verify, reset, preverify, get, next"
+        echo "State actions: start, claim, complete, verify, reset, fail, retry, preverify, get, next"
         echo "Port actions:  allocate <fid>, release <fid>, cleanup"
         exit 0
         ;;

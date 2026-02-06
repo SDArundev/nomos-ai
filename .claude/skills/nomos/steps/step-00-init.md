@@ -50,7 +50,7 @@ You MUST follow these steps IN ORDER. Do NOT skip ahead.
 - ALWAYS run commands from PROJECT ROOT (use absolute paths)
 - ALWAYS create worktree FIRST, then output directory
 - ALWAYS use features.json as single source of truth
-- Status values: `pending` (not started), `in_progress`, `waiting_approval`, `verified`
+- Status values: `backlog`, `pending` (ready), `in_progress`, `failed` (with reason), `waiting_approval`, `verified`
 
 ## PROJECT ROOT:
 
@@ -254,6 +254,11 @@ IF {feature_status} == "verified":
 IF {feature_status} == "waiting_approval" AND NOT {verify_only}:
   → Ask: "Feature is waiting approval. Run verify (-v) or reset to pending?"
 
+IF {feature_status} == "failed":
+  → Show previous failure reason: query .failureReason from features.json
+  → Ask: "Feature previously failed. Retry (-r) or reset to pending?"
+  → If retry: `bash .claude/skills/nomos/scripts/nomos.sh state retry {feature_id}`
+
 IF {feature_status} == "in_progress" AND NOT {resume_mode}:
   → Ask: "Feature already in progress. Resume (-r) or start fresh?"
 ```
@@ -291,11 +296,18 @@ jq -r --arg id "{feature_id}" '
 | {blocked_id} | {blocked_title} | {status} |
 ```
 
-**Validation:**
-- All direct dependencies MUST have `passes: true`
-- If any dependency is NOT verified: WARN
-  - In `{auto_mode}`: Continue with warning
-  - Otherwise: Ask user if they want to proceed despite unverified dependency
+**Validation (BLOCKING):**
+- All direct dependencies MUST have `passes: true` (status = verified)
+- If any dependency is NOT verified:
+  - **In `{auto_mode}`:** HALT with error. Do NOT proceed. Transition to failed state:
+    ```bash
+    bash .claude/skills/nomos/scripts/nomos.sh state fail {feature_id} "unverified_dependency"
+    ```
+  - **Otherwise:** Ask user: proceed despite unverified dependency, or abort?
+  - If user says abort:
+    ```bash
+    bash .claude/skills/nomos/scripts/nomos.sh state fail {feature_id} "unverified_dependency_user_abort"
+    ```
 
 ---
 

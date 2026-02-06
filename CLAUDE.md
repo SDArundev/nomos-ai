@@ -73,15 +73,22 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 ## State Machine
 
 ```
-backlog → in_progress → waiting_approval → verified
+backlog → pending → in_progress → waiting_approval → verified
+                        ↓                                ↑
+                      failed ──── retry ─────────────────┘
+```
+
+States: `backlog` (not scheduled) | `pending` (ready) | `in_progress` | `waiting_approval` | `verified` (terminal) | `failed` (with reason, retryable)
+
+---
+
+## Workflow Steps (7-step pipeline)
+
+```
+00-init → 01-context → 02-plan → 03-execute → 04-verify → 05-merge → 06-finish
+          (3 agents)             (loop x3)    (3 tracks)             (2 tracks)
 ```
 
 ---
 
-## Workflow Steps
-
-00-init → 01-context → 02-analyze → 03-plan → 04-execute → 05-validate → 06-review → 07-test → 08-merge → 09-learn → 10-ship
-
----
-
-*NOMOS AI v1.0*
+*NOMOS AI v2.0*

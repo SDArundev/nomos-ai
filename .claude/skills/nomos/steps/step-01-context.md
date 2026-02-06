@@ -106,6 +106,26 @@ Read agent prompts from `references/agent-prompts.md#step-01-context-agents`.
 - NEVER use WebSearch for specific library docs
 </critical>
 
+### 2b. Pre-Filter Learnings (BEFORE agent launch)
+
+Before launching the load-learnings agent, use the existing insights scoring to pre-filter relevant learning data:
+
+```bash
+# Get top relevant insights (scored by dependency +3, category +2, phase +1)
+RELEVANT_INSIGHTS=$(bash .claude/skills/nomos/scripts/nomos.sh insights {feature_id})
+
+# Get category-specific patterns
+RELEVANT_PATTERNS=$(bash .claude/skills/nomos/scripts/nomos.sh patterns {feature_id} --for-code)
+```
+
+Pass ONLY these pre-filtered results to the load-learnings agent prompt, NOT the raw file paths. This prevents the agent from reading ALL learning files (50% of which are typically irrelevant).
+
+The load-learnings agent should still read:
+- `antipatterns.json` (always relevant, small file)
+- `metrics.json` (for threshold calculation)
+- Code knowledge files matching the feature's category ONLY
+- The pre-scored insights (top 3 from above, not all insight files)
+
 ### 3. Pre-Implementation Check (CRITICAL)
 
 After agents return, check if feature is ALREADY IMPLEMENTED:

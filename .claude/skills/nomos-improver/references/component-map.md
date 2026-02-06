@@ -81,6 +81,7 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 | `health <id>` | step-04 | Server health check |
 | `insights <id>` | step-01 | Relevance-scored insights |
 | `patterns <id>` | step-01, step-02 | Filtered patterns |
+| `cleanup [--stale]` | manual | Clean up stale features + orphaned worktrees |
 
 ### nomos-verify.sh (~220 lines)
 
@@ -120,11 +121,12 @@ Complete inventory of all NOMOS system files, their roles, and cross-file relati
 | `agents/qa-smoke-tester.md` | qa-smoke-tester | sonnet | Step 04 Track B | Playwright + Bash |
 | `agents/qa-functional-tester.md` | qa-functional-tester | sonnet | Step 04 Track B | Playwright + Bash |
 | `agents/security-reviewer.md` | security-reviewer | sonnet | Step 04 Track C | Static analysis |
-| `agents/code-quality-reviewer.md` | code-quality-reviewer | sonnet | Step 04 Track C | Static analysis |
-| `agents/test-coverage-analyzer.md` | test-coverage-analyzer | sonnet | Step 04 Track C | Static analysis |
+| `agents/code-quality-reviewer.md` | code-quality-reviewer | haiku | Step 04 Track C | Static analysis |
+| `agents/test-coverage-analyzer.md` | test-coverage-analyzer | haiku | Step 04 Track C | Static analysis |
 | `agents/explore-codebase.md` | explore-codebase | haiku | Step 01 | Grep + Read |
 | `agents/explore-docs.md` | explore-docs | haiku | Step 01 | Context7 MCP |
 | `agents/websearch.md` | websearch | haiku | Step 01 | WebSearch |
+| `agents/research-docs.md` | research-docs | haiku | Step 03 (on-demand) | Context7 API lookup |
 | `agents/action.md` | action | haiku | Step 04 (conditional) | Verify-then-act |
 
 ---

@@ -9,27 +9,31 @@ Features progress through a defined state machine tracked in `.nomos/features.js
 ## States
 
 ```
-+---------------------------------------------------------+
-|                                                         |
-|   pending -------> in_progress -------> waiting_approval|
-|      |                |                      |          |
-|      |                |                      v          |
-|      |                |               +------------+    |
-|      |                |               |  verified  |    |
-|      |                |               +------------+    |
-|      |                |                      |          |
-|      +----------------+----------------------+          |
-|                    (reset)                              |
-|                                                         |
-+---------------------------------------------------------+
++-------------------------------------------------------------------+
+|                                                                   |
+|  backlog --> pending -------> in_progress ----> waiting_approval  |
+|                |                 |    ↑               |           |
+|                |                 |    |               v           |
+|                |                 |  retry      +------------+     |
+|                |                 |    |        |  verified  |     |
+|                |                 v    |        +------------+     |
+|                |              +--------+             |           |
+|                |              | failed |             |           |
+|                |              +--------+             |           |
+|                |                                     |           |
+|                +--------------(reset)----------------+           |
+|                                                                   |
++-------------------------------------------------------------------+
 ```
 
 ### State Definitions
 
 | State | Description | Allowed Actions |
 |-------|-------------|-----------------|
-| `pending` | Feature defined but not started | start, preverify |
-| `in_progress` | Feature being implemented | complete, reset |
+| `backlog` | Feature catalogued, not yet scheduled for work | (manual promotion to pending) |
+| `pending` | Feature scheduled and ready to start | start, preverify |
+| `in_progress` | Feature being implemented | complete, fail, reset |
+| `failed` | Implementation failed with recorded reason | retry, reset |
 | `waiting_approval` | Implementation done, awaiting review | verify, reset |
 | `verified` | Feature approved and merged | (terminal) |
 
@@ -87,9 +91,35 @@ Features progress through a defined state machine tracked in `.nomos/features.js
 - Must be in `waiting_approval` state
 - Final validation must pass
 
+### fail: in_progress → failed
+
+**Trigger:** Pipeline escalation (step-03 or step-04 exhausted retries)
+
+**Actions:**
+1. Set `status` to `failed`
+2. Set `failureReason` to descriptive reason
+3. Set `failedAt` to current timestamp
+4. Preserve all other fields (startedAt, worktree, etc.)
+
+**Guards:**
+- Feature must be in `in_progress` state
+
+### retry: failed → in_progress
+
+**Trigger:** `/nomos -r F016` or manual retry after fixing root cause
+
+**Actions:**
+1. Set `status` to `in_progress`
+2. Increment `retries` counter
+3. Update `startedAt` to current timestamp
+
+**Guards:**
+- Feature must be in `failed` state
+- Previous `failureReason` is preserved for context
+
 ### reset: any → pending
 
-**Trigger:** Manual reset or critical failure
+**Trigger:** Manual reset or clean restart
 
 **Actions:**
 1. Set `status` to `pending`
@@ -212,7 +242,10 @@ jq -r '.state.history[] | select(.feature == "F016")' .nomos/features.json
 | pending | verified | Only preverify |
 | in_progress | pending | Yes (reset) |
 | in_progress | waiting_approval | Yes |
+| in_progress | failed | Yes (escalation) |
 | in_progress | verified | No |
+| failed | in_progress | Yes (retry) |
+| failed | pending | Yes (reset) |
 | waiting_approval | pending | Yes (reset) |
 | waiting_approval | in_progress | No |
 | waiting_approval | verified | Yes |
@@ -228,7 +261,10 @@ validate_transition() {
   case "$from:$to" in
     "pending:in_progress") return 0 ;;
     "in_progress:waiting_approval") return 0 ;;
+    "in_progress:failed") return 0 ;;
     "in_progress:pending") return 0 ;;
+    "failed:in_progress") return 0 ;;
+    "failed:pending") return 0 ;;
     "waiting_approval:verified") return 0 ;;
     "waiting_approval:pending") return 0 ;;
     *) return 1 ;;
@@ -260,4 +296,4 @@ All state operations use the unified script:
 bash .claude/skills/nomos/scripts/nomos.sh state <action> <feature_id>
 ```
 
-Actions: `start`, `claim`, `complete`, `verify`, `reset`, `preverify`, `get`, `next`
+Actions: `start`, `claim`, `complete`, `verify`, `reset`, `fail`, `retry`, `preverify`, `get`, `next`

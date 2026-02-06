@@ -2,7 +2,7 @@
 name: test-coverage-analyzer
 description: Analyzes test coverage and identifies gaps. Use after implementation to ensure adequate testing. Invoked by NOMOS step-04-verify Track C.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: haiku
 ---
 
 <role>

@@ -102,6 +102,16 @@ For each iteration (1 to {max_execute_iterations}):
 Determine mode: Iteration 1 = `INITIAL_IMPLEMENTATION`, Iteration 2+ = `FIX_ISSUES`.
 Read prompt template from `references/agent-prompts.md#code-writer-agent`.
 
+**Context Optimization for Iteration 2+:**
+- Iteration 1: Pass full plan + patterns + antipatterns + codebase context
+- Iteration 2+: Pass ONLY:
+  1. The plan overview (not full file-by-file detail)
+  2. The latest QA issue report (from previous iteration)
+  3. Antipatterns relevant to the reported issues
+  4. Do NOT re-pass: full plan details, previous diffs, previous QA reports
+  - The code-writer already has the codebase in the worktree and can read any file
+  - Cumulative context wastes tokens and can confuse the agent with stale information
+
 **Collect from code writer:**
 - List of files changed
 - Skills invoked
@@ -112,6 +122,14 @@ Read prompt template from `references/agent-prompts.md#code-writer-agent`.
 
 After code writer completes, launch QA reviewer.
 Read prompt template from `references/agent-prompts.md#qa-reviewer-agent`.
+
+**Context Optimization for Iteration 2+:**
+- Iteration 1: Pass plan summary + AC mapping + files changed + antipatterns
+- Iteration 2+: Pass ONLY:
+  1. Previous QA report (to check fixes AND detect regressions)
+  2. Files changed THIS iteration (from code writer report)
+  3. Antipatterns
+  4. Do NOT re-pass: full plan, unchanged files from iteration 1
 
 **Collect from QA reviewer:**
 - Structured JSON issue report
