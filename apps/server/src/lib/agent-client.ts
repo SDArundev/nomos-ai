@@ -1,20 +1,6 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { env } from "@nomos-ai/env/server";
-import type { Model } from "@nomos-ai/types";
-
-/**
- * Map our Model enum values to full SDK model IDs
- */
-export const MODEL_MAP: Record<Model, string> = {
-	opus: "claude-opus-4-20250514",
-	sonnet: "claude-sonnet-4-5-20250929",
-	haiku: "claude-haiku-4-5-20251001",
-};
-
-/**
- * Default tools enabled for agent queries
- */
-export const DEFAULT_TOOLS = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"];
+import { DEFAULT_TOOLS, MODEL_MAP, type Model } from "@nomos-ai/types";
 
 /**
  * Permission modes for agent tool execution

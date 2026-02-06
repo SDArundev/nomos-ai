@@ -1,6 +1,7 @@
 import { sessionRepository } from "@nomos-ai/db";
 import {
 	FeatureIdSchema,
+	ModelSchema,
 	SESSION_STATUS,
 	SESSION_VALID_TRANSITIONS,
 	SessionIdSchema,
@@ -10,6 +11,7 @@ import {
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { createAgentSession } from "../services/agent-service";
 import { handleRepositoryError } from "../utils/error-handler";
 import { generateSessionId } from "../utils/id-generation";
 
@@ -47,6 +49,18 @@ const updateStatusInput = z.object({
 const appendOutputInput = z.object({
 	id: SessionIdSchema,
 	text: z.string().min(1, "Text must not be empty"),
+});
+
+const createAgentSessionInput = z.object({
+	featureId: FeatureIdSchema,
+	model: ModelSchema.optional(),
+	tools: z.array(z.string()).optional(),
+	maxTurns: z.number().int().positive().optional(),
+	maxBudgetUsd: z.number().positive().optional(),
+	cwd: z.string().optional(),
+	permissionMode: z
+		.enum(["default", "acceptEdits", "bypassPermissions", "plan"])
+		.optional(),
 });
 
 export const sessionRouter = {
@@ -175,5 +189,14 @@ export const sessionRouter = {
 				});
 			}
 			return { duration: sessionRepository.calculateDuration(session) };
+		}),
+
+	createAgentSession: protectedProcedure
+		.input(createAgentSessionInput)
+		.handler(async ({ input, context }) => {
+			return createAgentSession({
+				...input,
+				userId: context.session.user.id,
+			});
 		}),
 };

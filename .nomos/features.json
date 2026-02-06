@@ -1078,11 +1078,12 @@
         "Tools configured correctly"
       ],
       "estimatedSize": "M",
-      "status": "pending",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "completedAt": "2026-02-06T19:22:21Z"
     },
     {
       "id": "F033",
