@@ -10,11 +10,13 @@ import {
 	useMatchRoute,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { CommandPalette } from "@/components/command-palette";
 import { ErrorBoundary } from "@/components/error-boundary";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Toaster } from "@/components/ui/sonner";
 import { authClient } from "@/lib/auth-client";
 import { link, type orpc } from "@/utils/orpc";
@@ -57,6 +59,10 @@ function RootComponent() {
 	const isAuthenticated = !!session?.user;
 	const showShell = isAuthenticated && !isLoginRoute;
 
+	const [paletteOpen, setPaletteOpen] = useState(false);
+	const openPalette = useCallback(() => setPaletteOpen(true), []);
+	useKeyboardShortcuts(openPalette);
+
 	return (
 		<>
 			<HeadContent />
@@ -88,6 +94,7 @@ function RootComponent() {
 					</div>
 				)}
 				<Toaster richColors />
+				<CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />
 			<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
