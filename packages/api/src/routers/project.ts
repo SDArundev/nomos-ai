@@ -77,10 +77,10 @@ export const projectRouter = {
 	create: protectedProcedure
 		.input(createProjectInput)
 		.handler(async ({ input, context }) => {
-			const existing = await projectRepository.findByPath(input.path);
+			const existing = await projectRepository.findByPath(context.session.user.id, input.path);
 			if (existing) {
 				throw new ORPCError("CONFLICT", {
-					message: `A project with path "${input.path}" already exists`,
+					message: `You already have a project with path "${input.path}"`,
 				});
 			}
 			try {
