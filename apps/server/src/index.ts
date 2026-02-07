@@ -1,5 +1,7 @@
 import { createContext } from "@nomos-ai/api/context";
 import { appRouter } from "@nomos-ai/api/routers/index";
+import { getEventService } from "@nomos-ai/api/routers/agent";
+import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
 import { auth } from "@nomos-ai/auth";
 import { db, runMigrations, sql } from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
@@ -12,6 +14,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
+import { createWebSocketHandlers, type WSData } from "./lib/websocket";
 
 // Run database migrations on startup
 try {
@@ -72,6 +75,37 @@ app.use("/*", async (c, next) => {
 });
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+
+// WebSocket event service + broadcaster
+const eventService = getEventService();
+const broadcaster = new EventBroadcaster(eventService);
+const wsHandlers = createWebSocketHandlers(broadcaster);
+
+// WebSocket upgrade endpoints
+app.get("/ws/events", (c) => {
+	const server = (c.env as Record<string, unknown>)?.server as
+		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
+		| undefined;
+	if (!server) return c.text("WebSocket not supported", 400);
+	const upgraded = server.upgrade(c.req.raw, {
+		data: { channel: "events" as const, userId: "anonymous" },
+	});
+	if (upgraded) return undefined as unknown as Response;
+	return c.text("WebSocket upgrade failed", 400);
+});
+
+app.get("/ws/terminal", (c) => {
+	const sessionId = c.req.query("sessionId");
+	const server = (c.env as Record<string, unknown>)?.server as
+		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
+		| undefined;
+	if (!server) return c.text("WebSocket not supported", 400);
+	const upgraded = server.upgrade(c.req.raw, {
+		data: { channel: "terminal" as const, sessionId },
+	});
+	if (upgraded) return undefined as unknown as Response;
+	return c.text("WebSocket upgrade failed", 400);
+});
 
 export const apiHandler = new OpenAPIHandler(appRouter, {
 	plugins: [
@@ -169,4 +203,5 @@ console.log(`Server running on port ${env.PORT}`);
 export default {
 	port: env.PORT,
 	fetch: app.fetch,
+	websocket: wsHandlers,
 };
