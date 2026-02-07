@@ -19,6 +19,11 @@ export const projectRepository = {
 		return db.select().from(project).where(eq(project.userId, userId));
 	},
 
+	async findByPath(path: string): Promise<ProjectSelect | null> {
+		const rows = await db.select().from(project).where(eq(project.path, path));
+		return rows[0] ?? null;
+	},
+
 	async create(
 		data: Omit<ProjectInsert, "createdAt" | "updatedAt">,
 	): Promise<ProjectSelect> {

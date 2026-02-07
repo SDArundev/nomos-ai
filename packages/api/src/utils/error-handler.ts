@@ -15,6 +15,11 @@ export function handleRepositoryError(
 	if (error instanceof Error && error.message.includes("not found")) {
 		throw new ORPCError("NOT_FOUND", { message: error.message });
 	}
+	if (error instanceof Error && (error.message.includes("UNIQUE") || error.message.includes("unique"))) {
+		throw new ORPCError("CONFLICT", {
+			message: `A record with that value already exists (${operation})`,
+		});
+	}
 	throw new ORPCError("BAD_REQUEST", {
 		message: error instanceof Error ? error.message : `Failed to ${operation}`,
 	});
