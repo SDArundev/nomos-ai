@@ -15,9 +15,19 @@ export function AgentChat() {
 	const messages = useAgentStore((s) => s.messages);
 	const setMessages = useAgentStore((s) => s.setMessages);
 	const setSessions = useAgentStore((s) => s.setSessions);
+	const isSending = useAgentStore((s) => s.isSending);
+	const setIsSending = useAgentStore((s) => s.setIsSending);
 
-	const { isStreaming, pendingContent, pendingToolCalls, streamingMessages } =
+	const { isStreaming, pendingContent, pendingToolCalls, streamingMessages, error, clearError } =
 		useAgentStream(activeSessionId);
+
+	// Show error toast when agent errors
+	useEffect(() => {
+		if (error) {
+			toast.error(`Agent error: ${error}`);
+			clearError();
+		}
+	}, [error, clearError]);
 
 	// Fetch sessions
 	const sessionsQuery = useQuery(orpc.agent.listSessions.queryOptions());
@@ -74,6 +84,16 @@ export function AgentChat() {
 		}),
 	);
 
+	// Send message mutation
+	const sendMessage = useMutation(
+		orpc.agent.sendMessage.mutationOptions({
+			onError: (err) => {
+				toast.error(`Failed to send: ${err.message}`);
+				setIsSending(false);
+			},
+		}),
+	);
+
 	// Stop session
 	const stopSession = useMutation(
 		orpc.agent.stop.mutationOptions({
@@ -96,6 +116,7 @@ export function AgentChat() {
 				return;
 			}
 
+			// Optimistic: add user message immediately
 			const userMsg: AgentMessage = {
 				id: crypto.randomUUID(),
 				sessionId: activeSessionId,
@@ -104,8 +125,15 @@ export function AgentChat() {
 				createdAt: new Date(),
 			};
 			setMessages([...messages, userMsg]);
+			setIsSending(true);
+
+			// Call RPC — response will stream via WebSocket
+			sendMessage.mutate({
+				sessionId: activeSessionId,
+				content,
+			});
 		},
-		[activeSessionId, messages, setMessages],
+		[activeSessionId, messages, setMessages, setIsSending, sendMessage],
 	);
 
 	const handleStop = useCallback(() => {
@@ -146,6 +174,7 @@ export function AgentChat() {
 							onSend={handleSend}
 							onStop={handleStop}
 							isStreaming={isStreaming}
+							disabled={isSending}
 						/>
 					</>
 				) : (

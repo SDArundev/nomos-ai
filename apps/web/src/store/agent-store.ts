@@ -33,12 +33,14 @@ interface AgentStore {
 	activeSessionId: string | null;
 	messages: AgentMessage[];
 	isStreaming: boolean;
+	isSending: boolean;
 
 	setSessions: (sessions: AgentSession[]) => void;
 	setActiveSession: (id: string | null) => void;
 	setMessages: (messages: AgentMessage[]) => void;
 	addMessage: (message: AgentMessage) => void;
 	setIsStreaming: (streaming: boolean) => void;
+	setIsSending: (sending: boolean) => void;
 	clearMessages: () => void;
 }
 
@@ -49,6 +51,7 @@ export const useAgentStore = create<AgentStore>()(
 			activeSessionId: null,
 			messages: [],
 			isStreaming: false,
+			isSending: false,
 
 			setSessions: (sessions) =>
 				set({ sessions }, undefined, "agent/setSessions"),
@@ -64,6 +67,8 @@ export const useAgentStore = create<AgentStore>()(
 				),
 			setIsStreaming: (streaming) =>
 				set({ isStreaming: streaming }, undefined, "agent/setIsStreaming"),
+			setIsSending: (sending) =>
+				set({ isSending: sending }, undefined, "agent/setIsSending"),
 			clearMessages: () =>
 				set({ messages: [] }, undefined, "agent/clearMessages"),
 		}),

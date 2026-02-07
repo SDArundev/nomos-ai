@@ -1,4 +1,4 @@
-import { Send, Square } from "lucide-react";
+import { Loader2, Send, Square } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,9 +18,11 @@ export function AgentInput({
 }: AgentInputProps) {
 	const [input, setInput] = useState("");
 
+	const isDisabled = disabled || isStreaming;
+
 	const handleSubmit = () => {
 		const trimmed = input.trim();
-		if (!trimmed || disabled) return;
+		if (!trimmed || isDisabled) return;
 		onSend(trimmed);
 		setInput("");
 	};
@@ -41,7 +43,7 @@ export function AgentInput({
 					onKeyDown={handleKeyDown}
 					placeholder="Send a message..."
 					className="min-h-[44px] max-h-32 resize-none"
-					disabled={disabled || isStreaming}
+					disabled={isDisabled}
 					rows={1}
 				/>
 				{isStreaming ? (
@@ -57,10 +59,14 @@ export function AgentInput({
 					<Button
 						size="icon"
 						onClick={handleSubmit}
-						disabled={!input.trim() || disabled}
+						disabled={!input.trim() || isDisabled}
 						className="shrink-0"
 					>
-						<Send className="size-4" />
+						{disabled ? (
+							<Loader2 className="size-4 animate-spin" />
+						) : (
+							<Send className="size-4" />
+						)}
 					</Button>
 				)}
 			</div>

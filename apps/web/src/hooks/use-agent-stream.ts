@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AgentMessage } from "@/store/agent-store";
+import { useAgentStore } from "@/store/agent-store";
 import { getEventsClient } from "@/lib/websocket";
 
 interface ContentBlock {
@@ -43,8 +44,10 @@ export function useAgentStream(sessionId: string | null) {
 	const [streamingMessages, setStreamingMessages] = useState<AgentMessage[]>(
 		[],
 	);
+	const [error, setError] = useState<string | null>(null);
 	const contentRef = useRef("");
 	const toolCallsRef = useRef<StreamState["pendingToolCalls"]>([]);
+	const setIsSending = useAgentStore((s) => s.setIsSending);
 
 	useEffect(() => {
 		if (!sessionId) return;
@@ -124,6 +127,7 @@ export function useAgentStream(sessionId: string | null) {
 						pendingContent: "",
 						pendingToolCalls: [],
 					});
+					setIsSending(false);
 				}
 			}
 
@@ -137,6 +141,22 @@ export function useAgentStream(sessionId: string | null) {
 						pendingContent: "",
 						pendingToolCalls: [],
 					});
+					setIsSending(false);
+				}
+			}
+
+			if (data.type === "agent:error") {
+				const payload = data.payload as { sessionId: string; error: string };
+				if (payload.sessionId === sessionId) {
+					setError(payload.error);
+					contentRef.current = "";
+					toolCallsRef.current = [];
+					setStreamState({
+						isStreaming: false,
+						pendingContent: "",
+						pendingToolCalls: [],
+					});
+					setIsSending(false);
 				}
 			}
 		});
@@ -144,12 +164,14 @@ export function useAgentStream(sessionId: string | null) {
 		return () => {
 			unsubscribe();
 		};
-	}, [sessionId]);
+	}, [sessionId, setIsSending]);
 
 	const clearStreamingMessages = useCallback(
 		() => setStreamingMessages([]),
 		[],
 	);
+
+	const clearError = useCallback(() => setError(null), []);
 
 	return {
 		isStreaming: streamState.isStreaming,
@@ -157,5 +179,7 @@ export function useAgentStream(sessionId: string | null) {
 		pendingToolCalls: streamState.pendingToolCalls,
 		streamingMessages,
 		clearStreamingMessages,
+		error,
+		clearError,
 	};
 }
