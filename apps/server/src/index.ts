@@ -95,10 +95,10 @@ async function extractWsUserId(req: Request): Promise<string> {
 
 // WebSocket upgrade endpoints
 app.get("/ws/events", async (c) => {
-	const server = (c.env as Record<string, unknown>)?.server as
+	const server = c.env as unknown as
 		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
 		| undefined;
-	if (!server) return c.text("WebSocket not supported", 400);
+	if (!server?.upgrade) return c.text("WebSocket not supported", 400);
 	const userId = await extractWsUserId(c.req.raw);
 	const upgraded = server.upgrade(c.req.raw, {
 		data: { channel: "events" as const, userId },
@@ -109,10 +109,10 @@ app.get("/ws/events", async (c) => {
 
 app.get("/ws/terminal", async (c) => {
 	const sessionId = c.req.query("sessionId");
-	const server = (c.env as Record<string, unknown>)?.server as
+	const server = c.env as unknown as
 		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
 		| undefined;
-	if (!server) return c.text("WebSocket not supported", 400);
+	if (!server?.upgrade) return c.text("WebSocket not supported", 400);
 	const userId = await extractWsUserId(c.req.raw);
 	const upgraded = server.upgrade(c.req.raw, {
 		data: { channel: "terminal" as const, sessionId, userId },

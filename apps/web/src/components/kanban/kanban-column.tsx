@@ -104,7 +104,7 @@ export function KanbanColumn({
 					items={features.map((f) => f.id)}
 					strategy={verticalListSortingStrategy}
 				>
-					<div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
 						{features.length === 0 ? (
 							<p className="text-center text-muted-foreground text-sm">
 								No features

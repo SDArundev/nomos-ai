@@ -65,7 +65,7 @@ export function FeatureCard({ feature, onClick, selectable, selected, onSelect }
 		<Card
 			ref={setNodeRef}
 			style={style}
-			className="cursor-grab transition-colors hover:border-primary active:cursor-grabbing"
+			className="shrink-0 cursor-grab transition-colors hover:border-primary active:cursor-grabbing"
 			onClick={handleClick}
 			{...attributes}
 			{...listeners}

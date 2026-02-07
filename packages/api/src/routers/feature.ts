@@ -199,7 +199,7 @@ export const featureRouter = {
 	bulkCreate: protectedProcedure
 		.input(
 			z.object({
-				features: z.array(createFeatureInput).min(1).max(200),
+				features: z.array(createFeatureInput).min(1).max(500),
 			}),
 		)
 		.handler(async ({ input, context }) => {
