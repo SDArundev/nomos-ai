@@ -83,27 +83,39 @@ const broadcaster = new EventBroadcaster(eventService);
 const terminalService = getTerminalService();
 const wsHandlers = createWebSocketHandlers(broadcaster, terminalService);
 
+// Helper to extract userId from session cookie on WebSocket upgrade
+async function extractWsUserId(req: Request): Promise<string> {
+	try {
+		const session = await auth.api.getSession({ headers: req.headers });
+		return session?.user?.id ?? "anonymous";
+	} catch {
+		return "anonymous";
+	}
+}
+
 // WebSocket upgrade endpoints
-app.get("/ws/events", (c) => {
+app.get("/ws/events", async (c) => {
 	const server = (c.env as Record<string, unknown>)?.server as
 		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
 		| undefined;
 	if (!server) return c.text("WebSocket not supported", 400);
+	const userId = await extractWsUserId(c.req.raw);
 	const upgraded = server.upgrade(c.req.raw, {
-		data: { channel: "events" as const, userId: "anonymous" },
+		data: { channel: "events" as const, userId },
 	});
 	if (upgraded) return undefined as unknown as Response;
 	return c.text("WebSocket upgrade failed", 400);
 });
 
-app.get("/ws/terminal", (c) => {
+app.get("/ws/terminal", async (c) => {
 	const sessionId = c.req.query("sessionId");
 	const server = (c.env as Record<string, unknown>)?.server as
 		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
 		| undefined;
 	if (!server) return c.text("WebSocket not supported", 400);
+	const userId = await extractWsUserId(c.req.raw);
 	const upgraded = server.upgrade(c.req.raw, {
-		data: { channel: "terminal" as const, sessionId },
+		data: { channel: "terminal" as const, sessionId, userId },
 	});
 	if (upgraded) return undefined as unknown as Response;
 	return c.text("WebSocket upgrade failed", 400);
