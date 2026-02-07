@@ -35,13 +35,25 @@ export class PipelineService {
 		featureId: string,
 		executeStep: (prompt: string, cwd: string) => Promise<void>,
 		cwd: string,
+		resumeAfterStep?: string,
 	): Promise<void> {
 		const feature = await featureRepository.findById(featureId);
 		if (!feature) throw new Error(`Feature not found: ${featureId}`);
 
 		this.events.emit("feature:started", { featureId });
 
-		for (const step of PIPELINE_STEPS) {
+		// Find the start index for checkpoint resume
+		let startIdx = 0;
+		if (resumeAfterStep) {
+			const resumeIdx = PIPELINE_STEPS.findIndex((s) => s.id === resumeAfterStep);
+			if (resumeIdx >= 0) {
+				startIdx = resumeIdx + 1;
+			}
+		}
+
+		for (let i = startIdx; i < PIPELINE_STEPS.length; i++) {
+			const step = PIPELINE_STEPS[i]!;
+
 			// Emit step started
 			this.events.emit("pipeline:step-started", {
 				featureId,
@@ -62,6 +74,11 @@ export class PipelineService {
 			// Build prompt and execute
 			const prompt = this.promptBuilder.buildStepPrompt(feature, step.id);
 			await executeStep(prompt, cwd);
+
+			// Checkpoint: store last completed step
+			await featureRepository.update(featureId, {
+				lastCompletedStep: step.id,
+			});
 
 			// Emit step completed
 			this.events.emit("pipeline:step-completed", {

@@ -1,3 +1,4 @@
+import { featureRepository } from "@nomos-ai/db";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { AutoModeService } from "../services/auto-mode-service";
@@ -47,7 +48,6 @@ export const autoModeRouter = {
 		)
 		.handler(async ({ input }) => {
 			const service = getAutoModeService();
-			// Start in background (non-blocking)
 			service
 				.start(input.projectId, input.projectRoot)
 				.catch(() => {
@@ -73,5 +73,31 @@ export const autoModeRouter = {
 			const service = getAutoModeService();
 			service.setMaxConcurrency(input.max);
 			return { success: true };
+		}),
+
+	setConfig: protectedProcedure
+		.input(
+			z.object({
+				maxConcurrency: z.number().int().min(1).max(5).optional(),
+				maxRetries: z.number().int().min(0).max(10).optional(),
+			}),
+		)
+		.handler(async ({ input }) => {
+			const service = getAutoModeService();
+			service.setConfig(input);
+			return { success: true, config: service.getConfig() };
+		}),
+
+	getConfig: protectedProcedure.handler(async () => {
+		const service = getAutoModeService();
+		return service.getConfig();
+	}),
+
+	retryFeature: protectedProcedure
+		.input(z.object({ featureId: z.string() }))
+		.handler(async ({ input }) => {
+			await featureRepository.resetRetryCount(input.featureId);
+			await featureRepository.update(input.featureId, { status: "pending" });
+			return { success: true, message: `Reset retry count for ${input.featureId}` };
 		}),
 };

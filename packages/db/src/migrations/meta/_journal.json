@@ -29,6 +29,13 @@
       "when": 1770463172365,
       "tag": "0003_abandoned_phantom_reporter",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1770464129972,
+      "tag": "0004_smooth_wild_pack",
+      "breakpoints": true
     }
   ]
 }
