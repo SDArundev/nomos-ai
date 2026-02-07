@@ -4,10 +4,15 @@ import { agentRouter } from "./agent";
 import { autoModeRouter } from "./auto-mode";
 import { eventsRouter } from "./events";
 import { featureRouter } from "./feature";
+import { fsRouter } from "./fs";
+import { githubRouter } from "./github";
 import { learningRouter } from "./learning";
+import { modelsRouter } from "./models";
+import { notificationsRouter } from "./notifications";
 import { pipelineRouter } from "./pipeline";
 import { projectRouter } from "./project";
 import { sessionRouter } from "./session";
+import { settingsRouter } from "./settings";
 import { terminalRouter } from "./terminal";
 import { worktreeRouter } from "./worktree";
 
@@ -31,6 +36,11 @@ export const appRouter = {
 	worktrees: worktreeRouter,
 	pipeline: pipelineRouter,
 	terminal: terminalRouter,
+	settings: settingsRouter,
+	notifications: notificationsRouter,
+	github: githubRouter,
+	fs: fsRouter,
+	models: modelsRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
