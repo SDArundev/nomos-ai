@@ -19,7 +19,7 @@ CREATE TABLE `__new_agent_session` (
 	FOREIGN KEY (`feature_id`) REFERENCES `feature`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-INSERT INTO `__new_agent_session`("id", "user_id", "feature_id", "project_id", "status", "started_at", "completed_at", "output", "error", "sdk_session_id", "model", "is_running", "working_directory", "message_count", "created_at", "updated_at") SELECT "id", "user_id", "feature_id", "project_id", "status", "started_at", "completed_at", "output", "error", "sdk_session_id", "model", "is_running", "working_directory", "message_count", "created_at", "updated_at" FROM `agent_session`;--> statement-breakpoint
+INSERT INTO `__new_agent_session`("id", "user_id", "feature_id", "project_id", "status", "started_at", "completed_at", "output", "error", "sdk_session_id", "model", "is_running", "working_directory", "message_count", "created_at", "updated_at") SELECT "id", "user_id", "feature_id", NULL, "status", "started_at", "completed_at", "output", "error", "sdk_session_id", "model", "is_running", "working_directory", "message_count", "created_at", "updated_at" FROM `agent_session`;--> statement-breakpoint
 DROP TABLE `agent_session`;--> statement-breakpoint
 ALTER TABLE `__new_agent_session` RENAME TO `agent_session`;--> statement-breakpoint
 PRAGMA foreign_keys=ON;--> statement-breakpoint
