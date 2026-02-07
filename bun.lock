@@ -6,6 +6,7 @@
       "dependencies": {
         "@nomos-ai/env": "workspace:*",
         "@nomos-ai/types": "workspace:*",
+        "@radix-ui/react-dialog": "^1.1.15",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },

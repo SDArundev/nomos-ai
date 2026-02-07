@@ -1,12 +1,24 @@
 import type { FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FeatureDetailPanel } from "@/components/kanban/feature-detail-panel";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { KanbanFilterBar } from "@/components/kanban/kanban-filter-bar";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { authClient } from "@/lib/auth-client";
 import { useAppStore } from "@/store";
 import { orpc } from "@/utils/orpc";
@@ -38,6 +50,14 @@ function KanbanPage() {
 	const setSelectedFeature = useAppStore((state) => state.setSelectedFeature);
 	const detailPanelOpen = useAppStore((state) => state.detailPanelOpen);
 	const setDetailPanelOpen = useAppStore((state) => state.setDetailPanelOpen);
+	const selectedProjectId = useAppStore((state) => state.selectedProjectId);
+
+	const [showNewFeature, setShowNewFeature] = useState(false);
+	const [newTitle, setNewTitle] = useState("");
+	const [newDescription, setNewDescription] = useState("");
+	const [newCategory, setNewCategory] = useState("core");
+	const [newPhase, setNewPhase] = useState("phase-1");
+	const [newAC, setNewAC] = useState("");
 
 	const updateStatus = useMutation(
 		orpc.features.updateStatus.mutationOptions({
@@ -52,6 +72,51 @@ function KanbanPage() {
 			},
 		}),
 	);
+
+	const createFeature = useMutation(
+		orpc.features.create.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.list.queryOptions().queryKey,
+				});
+				toast.success("Feature created");
+				setShowNewFeature(false);
+				setNewTitle("");
+				setNewDescription("");
+				setNewCategory("core");
+				setNewPhase("phase-1");
+				setNewAC("");
+			},
+			onError: (error) => {
+				toast.error(error.message || "Failed to create feature");
+			},
+		}),
+	);
+
+	const handleCreateFeature = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!selectedProjectId) {
+			toast.error("Select a project first");
+			return;
+		}
+		const acList = newAC
+			.split("\n")
+			.map((s) => s.trim())
+			.filter(Boolean);
+		if (acList.length === 0) {
+			toast.error("Add at least one acceptance criterion");
+			return;
+		}
+		createFeature.mutate({
+			projectId: selectedProjectId,
+			title: newTitle.trim(),
+			description: newDescription.trim(),
+			category: newCategory,
+			phase: newPhase,
+			acceptanceCriteria: acList,
+			status: "backlog" as FeatureStatus,
+		});
+	};
 
 	const handleStatusChange = (id: string, status: string) => {
 		updateStatus.mutate({ id, status: status as FeatureStatus });
@@ -160,6 +225,10 @@ function KanbanPage() {
 							Drag and drop features to change their status
 						</p>
 					</div>
+					<Button onClick={() => setShowNewFeature(true)}>
+						<Plus className="mr-2 size-4" />
+						New Feature
+					</Button>
 				</div>
 				<KanbanFilterBar
 					search={searchParams.search}
@@ -183,6 +252,80 @@ function KanbanPage() {
 				open={detailPanelOpen}
 				onOpenChange={setDetailPanelOpen}
 			/>
+
+			{/* New Feature Dialog */}
+			<Dialog open={showNewFeature} onOpenChange={setShowNewFeature}>
+				<DialogContent className="max-w-lg">
+					<DialogHeader>
+						<DialogTitle>New Feature</DialogTitle>
+					</DialogHeader>
+					<form onSubmit={handleCreateFeature} className="grid gap-4">
+						<div className="grid gap-2">
+							<Label htmlFor="feat-title">Title</Label>
+							<Input
+								id="feat-title"
+								value={newTitle}
+								onChange={(e) => setNewTitle(e.target.value)}
+								placeholder="Feature title (min 5 chars)"
+								required
+								minLength={5}
+								maxLength={80}
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="feat-desc">Description</Label>
+							<Textarea
+								id="feat-desc"
+								value={newDescription}
+								onChange={(e) => setNewDescription(e.target.value)}
+								placeholder="Describe the feature (min 20 chars)"
+								required
+								minLength={20}
+								maxLength={500}
+								rows={3}
+							/>
+						</div>
+						<div className="grid grid-cols-2 gap-4">
+							<div className="grid gap-2">
+								<Label htmlFor="feat-cat">Category</Label>
+								<Input
+									id="feat-cat"
+									value={newCategory}
+									onChange={(e) => setNewCategory(e.target.value)}
+									placeholder="e.g. core, ui, infra"
+									required
+								/>
+							</div>
+							<div className="grid gap-2">
+								<Label htmlFor="feat-phase">Phase</Label>
+								<Input
+									id="feat-phase"
+									value={newPhase}
+									onChange={(e) => setNewPhase(e.target.value)}
+									placeholder="e.g. phase-1"
+									required
+								/>
+							</div>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="feat-ac">
+								Acceptance Criteria (one per line)
+							</Label>
+							<Textarea
+								id="feat-ac"
+								value={newAC}
+								onChange={(e) => setNewAC(e.target.value)}
+								placeholder={"App renders without errors\nUnit tests pass\nTypes check clean"}
+								required
+								rows={4}
+							/>
+						</div>
+						<Button type="submit" disabled={createFeature.isPending}>
+							{createFeature.isPending ? "Creating..." : "Create Feature"}
+						</Button>
+					</form>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
