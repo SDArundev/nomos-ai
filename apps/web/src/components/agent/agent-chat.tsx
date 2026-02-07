@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useAgentStream } from "@/hooks/use-agent-stream";
+import { useWebSocket } from "@/hooks/use-websocket";
 import { type AgentMessage, useAgentStore } from "@/store/agent-store";
 import { orpc } from "@/utils/orpc";
 import { AgentInput } from "./agent-input";
@@ -18,6 +19,7 @@ export function AgentChat() {
 	const isSending = useAgentStore((s) => s.isSending);
 	const setIsSending = useAgentStore((s) => s.setIsSending);
 
+	const { connected } = useWebSocket();
 	const { isStreaming, pendingContent, pendingToolCalls, streamingMessages, error, clearError } =
 		useAgentStream(activeSessionId);
 
@@ -214,11 +216,16 @@ export function AgentChat() {
 							pendingContent={pendingContent}
 							pendingToolCalls={pendingToolCalls}
 						/>
+						{!connected && (
+							<div className="border-t bg-destructive/10 px-4 py-2 text-center text-destructive text-sm">
+								Disconnected from server — messages may be missed
+							</div>
+						)}
 						<AgentInput
 							onSend={handleSend}
 							onStop={handleStop}
 							isStreaming={isStreaming}
-							disabled={isSending}
+							disabled={isSending || !connected}
 						/>
 					</>
 				) : (
