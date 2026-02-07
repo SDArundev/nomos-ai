@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { useAppStore } from "@/store";
 import { ModeToggle } from "./mode-toggle";
+import { NotificationBell } from "./notifications/notification-bell";
 import { Button } from "./ui/button";
 import UserMenu from "./user-menu";
 
@@ -14,6 +15,7 @@ export default function Header() {
 					<Menu />
 				</Button>
 				<div className="flex items-center gap-2">
+					<NotificationBell />
 					<ModeToggle />
 					<UserMenu />
 				</div>
