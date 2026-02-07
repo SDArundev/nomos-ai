@@ -12,12 +12,7 @@ interface SessionSidebarProps {
 	onDeleteSession?: (id: string) => void;
 }
 
-const statusColors: Record<string, string> = {
-	pending: "bg-yellow-500",
-	running: "bg-blue-500",
-	completed: "bg-green-500",
-	failed: "bg-red-500",
-};
+import { SESSION_STATUS_COLORS as statusColors } from "@/lib/status-display";
 
 export function SessionSidebar({
 	sessions,

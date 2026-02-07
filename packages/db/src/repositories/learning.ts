@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../index";
+import { generateLearningId } from "../lib/id-generation";
 import { learning } from "../schema/learnings";
 
 export type LearningSelect = typeof learning.$inferSelect;
@@ -24,9 +25,10 @@ export const learningRepository = {
 	},
 
 	async create(
-		data: Omit<LearningInsert, "createdAt" | "updatedAt">,
+		data: Omit<LearningInsert, "id" | "createdAt" | "updatedAt"> & { id?: string },
 	): Promise<LearningSelect> {
-		const rows = await db.insert(learning).values(data).returning();
+		const id = data.id ?? (await generateLearningId());
+		const rows = await db.insert(learning).values({ ...data, id }).returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error("Failed to create learning");

@@ -73,6 +73,13 @@ app.use("/*", async (c, next) => {
 	c.header("X-XSS-Protection", "1; mode=block");
 	c.header("Referrer-Policy", "strict-origin-when-cross-origin");
 	c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+	c.header(
+		"Content-Security-Policy",
+		"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:",
+	);
+	if (process.env.NODE_ENV === "production") {
+		c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+	}
 });
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));

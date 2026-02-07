@@ -14,7 +14,6 @@ import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { handleRepositoryError } from "../utils/error-handler";
-import { generateFeatureId } from "../utils/id-generation";
 
 const listFeaturesInput = z
 	.object({
@@ -108,7 +107,6 @@ export const featureRouter = {
 		.handler(async ({ input, context }) => {
 			try {
 				return await featureRepository.create({
-					id: await generateFeatureId(),
 					userId: context.session.user.id,
 					projectId: input.projectId,
 					title: input.title,
@@ -208,7 +206,6 @@ export const featureRouter = {
 			for (const feat of input.features) {
 				try {
 					const created = await featureRepository.create({
-						id: await generateFeatureId(),
 						userId,
 						projectId: feat.projectId,
 						title: feat.title,

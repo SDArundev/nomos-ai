@@ -13,7 +13,6 @@ import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { createAgentSession } from "../services/agent-service";
 import { handleRepositoryError } from "../utils/error-handler";
-import { generateSessionId } from "../utils/id-generation";
 
 const listSessionsInput = z
 	.object({
@@ -94,7 +93,6 @@ export const sessionRouter = {
 		.handler(async ({ input, context }) => {
 			try {
 				return await sessionRepository.create({
-					id: await generateSessionId(),
 					userId: context.session.user.id,
 					featureId: input.featureId,
 					status: input.status,

@@ -1,5 +1,6 @@
 import {
 	ESTIMATED_SIZE,
+	type EstimatedSize,
 	FEATURE_CATEGORIES,
 	FEATURE_PHASES,
 } from "@nomos-ai/types";
@@ -122,13 +123,7 @@ export default function FeatureForm({
 						phase: data.phase,
 						acceptanceCriteria: data.acceptanceCriteria,
 						priority: data.priority ?? undefined,
-						estimatedSize: data.estimatedSize as
-							| "XS"
-							| "S"
-							| "M"
-							| "L"
-							| "XL"
-							| undefined,
+						estimatedSize: data.estimatedSize as EstimatedSize | undefined,
 					},
 				});
 			} else {
@@ -136,13 +131,7 @@ export default function FeatureForm({
 					...data,
 					priority: data.priority ?? undefined,
 					status: "backlog",
-					estimatedSize: data.estimatedSize as
-						| "XS"
-						| "S"
-						| "M"
-						| "L"
-						| "XL"
-						| undefined,
+					estimatedSize: data.estimatedSize as EstimatedSize | undefined,
 				});
 			}
 		},

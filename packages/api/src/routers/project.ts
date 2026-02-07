@@ -4,7 +4,6 @@ import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { handleRepositoryError } from "../utils/error-handler";
-import { generateProjectId } from "../utils/id-generation";
 
 const createProjectInput = z.object({
 	name: z.string().min(1, "Project name is required").max(100),
@@ -85,7 +84,6 @@ export const projectRouter = {
 			}
 			try {
 				return await projectRepository.create({
-					id: await generateProjectId(),
 					userId: context.session.user.id,
 					name: input.name,
 					path: input.path,

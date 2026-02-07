@@ -49,14 +49,7 @@ export const Route = createFileRoute("/projects/$projectId")({
 	},
 });
 
-const statusColors: Record<string, string> = {
-	backlog: "bg-neutral-500",
-	pending: "bg-yellow-500",
-	in_progress: "bg-blue-500",
-	waiting_approval: "bg-purple-500",
-	verified: "bg-green-500",
-	failed: "bg-red-500",
-};
+import { FEATURE_STATUS_COLORS as statusColors } from "@/lib/status-display";
 
 function ProjectDetail() {
 	const { projectId } = Route.useParams();
