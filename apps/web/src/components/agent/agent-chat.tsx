@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useAgentStream } from "@/hooks/use-agent-stream";
 import { useWebSocket } from "@/hooks/use-websocket";
-import { type AgentMessage, useAgentStore } from "@/store/agent-store";
+import { type AgentMessage, type AgentSession, useAgentStore } from "@/store/agent-store";
 import { orpc } from "@/utils/orpc";
 import { AgentInput } from "./agent-input";
 import { MessageList } from "./message-list";
@@ -50,7 +50,7 @@ export function AgentChat() {
 
 	useEffect(() => {
 		if (sessionsQuery.data) {
-			setSessions(sessionsQuery.data as never[]);
+			setSessions(sessionsQuery.data as AgentSession[]);
 		}
 	}, [sessionsQuery.data, setSessions]);
 
@@ -183,7 +183,7 @@ export function AgentChat() {
 	return (
 		<div className="flex h-full">
 			<SessionSidebar
-				sessions={(sessionsQuery.data as never[]) ?? []}
+				sessions={(sessionsQuery.data as AgentSession[]) ?? []}
 				activeSessionId={activeSessionId}
 				onSelectSession={setActiveSession}
 				onNewSession={handleNewSession}

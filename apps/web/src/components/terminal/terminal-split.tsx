@@ -59,7 +59,7 @@ export function TerminalSplit() {
 	);
 
 	const handleNewTab = () => {
-		createTerminal.mutate({ cwd: process.cwd?.() ?? "." });
+		createTerminal.mutate({ cwd: "." });
 	};
 
 	const handleCloseTab = (id: string) => {
