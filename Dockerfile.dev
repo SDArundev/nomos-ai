@@ -1,0 +1,45 @@
+FROM oven/bun:latest
+
+# Build args for non-root user
+ARG UID=1001
+ARG GID=1001
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    gosu \
+    ca-certificates \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install gh CLI (architecture-aware)
+RUN ARCH=$(dpkg --print-architecture) && \
+    GH_VERSION=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | grep -oP '"tag_name": "v\K[^"]+') && \
+    curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${ARCH}.deb" -o /tmp/gh.deb && \
+    dpkg -i /tmp/gh.deb && \
+    rm /tmp/gh.deb
+
+# Install Claude CLI
+RUN npm install -g @anthropic-ai/claude-code
+
+# Create non-root user
+RUN groupadd --gid ${GID} nomos && \
+    useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/bash nomos
+
+# Configure git for all users
+RUN git config --system --add safe.directory '*'
+
+# Create app and data directories
+WORKDIR /app
+RUN mkdir -p /data /projects && \
+    chown -R nomos:nomos /data /projects /home/nomos
+
+# Copy entrypoint
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+EXPOSE 3000 3001
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["bun", "run", "dev"]
