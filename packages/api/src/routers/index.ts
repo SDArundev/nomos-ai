@@ -14,6 +14,7 @@ import { projectRouter } from "./project";
 import { sessionRouter } from "./session";
 import { settingsRouter } from "./settings";
 import { terminalRouter } from "./terminal";
+import { specRouter } from "./spec";
 import { worktreeRouter } from "./worktree";
 
 export const appRouter = {
@@ -41,6 +42,7 @@ export const appRouter = {
 	github: githubRouter,
 	fs: fsRouter,
 	models: modelsRouter,
+	spec: specRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
