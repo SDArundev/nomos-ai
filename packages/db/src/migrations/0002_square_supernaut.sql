@@ -27,9 +27,9 @@ CREATE UNIQUE INDEX `project_path_unique` ON `project` (`path`);--> statement-br
 CREATE INDEX `project_name_idx` ON `project` (`name`);--> statement-breakpoint
 CREATE INDEX `agent_session_status_idx` ON `agent_session` (`status`);--> statement-breakpoint
 CREATE INDEX `agent_session_feature_id_idx` ON `agent_session` (`feature_id`);--> statement-breakpoint
-ALTER TABLE `project` ADD `user_id` text NOT NULL;--> statement-breakpoint
+ALTER TABLE `project` ADD `user_id` text NOT NULL DEFAULT '';--> statement-breakpoint
 ALTER TABLE `project` ADD `status` text DEFAULT 'draft' NOT NULL;--> statement-breakpoint
-ALTER TABLE `feature` ADD `user_id` text NOT NULL;--> statement-breakpoint
+ALTER TABLE `feature` ADD `user_id` text NOT NULL DEFAULT '';--> statement-breakpoint
 ALTER TABLE `feature` ADD `pre_implemented` integer;--> statement-breakpoint
-ALTER TABLE `learning` ADD `user_id` text NOT NULL;--> statement-breakpoint
-ALTER TABLE `agent_session` ADD `user_id` text NOT NULL;
+ALTER TABLE `learning` ADD `user_id` text NOT NULL DEFAULT '';--> statement-breakpoint
+ALTER TABLE `agent_session` ADD `user_id` text NOT NULL DEFAULT '';
