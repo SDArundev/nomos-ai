@@ -95,7 +95,7 @@ function FeatureDetail() {
 		);
 	}
 
-	if (!feature.data) {
+	if (feature.isError || !feature.data) {
 		return (
 			<div className="container mx-auto max-w-3xl px-4 py-6">
 				<p className="text-muted-foreground">Feature not found.</p>
