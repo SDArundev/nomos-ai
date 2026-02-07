@@ -1,10 +1,15 @@
+import { resolve } from "node:path";
 import { createClient } from "@libsql/client";
 import { env } from "@nomos-ai/env/server";
 import { drizzle } from "drizzle-orm/libsql";
+import { resolveDbUrl } from "./resolve-url";
 import * as schema from "./schema";
 
+const monorepoRoot = resolve(import.meta.dirname, "../../..");
+const resolvedUrl = resolveDbUrl(env.DATABASE_URL, monorepoRoot);
+
 const client = createClient({
-	url: env.DATABASE_URL,
+	url: resolvedUrl,
 });
 
 export const db = drizzle({ client, schema });
