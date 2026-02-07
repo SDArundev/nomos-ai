@@ -1,9 +1,9 @@
-import { execFile, type ChildProcess } from "node:child_process";
+import * as pty from "node-pty";
 import type { EventService } from "./event-service";
 
 interface TerminalSession {
 	id: string;
-	process: ChildProcess;
+	process: pty.IPty;
 	scrollback: string[];
 	cwd: string;
 }
@@ -21,9 +21,12 @@ export class TerminalService {
 		const id = crypto.randomUUID();
 		const shell = process.env.SHELL ?? "/bin/zsh";
 
-		const proc = execFile(shell, ["-i"], {
+		const proc = pty.spawn(shell, [], {
+			name: "xterm-256color",
 			cwd,
-			env: { ...process.env, TERM: "xterm-256color" },
+			env: process.env as Record<string, string>,
+			cols: 80,
+			rows: 24,
 		});
 
 		const session: TerminalSession = {
@@ -37,7 +40,7 @@ export class TerminalService {
 		this.streamOutput(session);
 
 		// Clean up on process exit
-		proc.on("exit", () => {
+		proc.onExit(() => {
 			this.sessions.delete(id);
 		});
 
@@ -47,11 +50,13 @@ export class TerminalService {
 	write(sessionId: string, data: string): void {
 		const session = this.sessions.get(sessionId);
 		if (!session) throw new Error("Terminal session not found");
-		session.process.stdin?.write(data);
+		session.process.write(data);
 	}
 
-	resize(_sessionId: string, _cols: number, _rows: number): void {
-		// resize requires PTY support, no-op for basic shell sessions
+	resize(sessionId: string, cols: number, rows: number): void {
+		const session = this.sessions.get(sessionId);
+		if (!session) throw new Error("Terminal session not found");
+		session.process.resize(cols, rows);
 	}
 
 	kill(sessionId: string): void {
@@ -91,19 +96,16 @@ export class TerminalService {
 			timer = null;
 		};
 
-		const onData = (chunk: Buffer) => {
-			batch += chunk.toString("utf-8");
+		session.process.onData((data: string) => {
+			batch += data;
 			if (batch.length >= BATCH_SIZE) {
 				flush();
 			} else if (!timer) {
 				timer = setTimeout(flush, BATCH_INTERVAL);
 			}
-		};
+		});
 
-		session.process.stdout?.on("data", onData);
-		session.process.stderr?.on("data", onData);
-
-		session.process.on("exit", () => {
+		session.process.onExit(() => {
 			if (timer) clearTimeout(timer);
 			flush();
 		});

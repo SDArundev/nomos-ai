@@ -30,7 +30,7 @@ export class ClaudeProvider implements AgentProvider {
 				allowDangerouslySkipPermissions: true,
 				...(options.allowedTools && { tools: options.allowedTools }),
 				...(options.sdkSessionId && {
-					sdkSessionId: options.sdkSessionId,
+					sessionId: options.sdkSessionId,
 				}),
 				...(thinkingLevel !== "none" && {
 					maxThinkingTokens: THINKING_TOKEN_BUDGET[thinkingLevel],
@@ -45,7 +45,12 @@ export class ClaudeProvider implements AgentProvider {
 		const stream = query(sdkOptions as Parameters<typeof query>[0]);
 
 		for await (const message of stream) {
-			yield message as ProviderMessage;
+			// Only pass through message types our frontend handles
+			const type = (message as { type?: string }).type;
+			if (type === "assistant" || type === "result" || type === "error") {
+				yield message as ProviderMessage;
+			}
+			// Skip: system, user, partial, tool_progress, auth_status, etc.
 		}
 	}
 

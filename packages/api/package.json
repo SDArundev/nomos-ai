@@ -16,16 +16,17 @@
 		"hono": "catalog:"
 	},
 	"dependencies": {
-		"dotenv": "catalog:",
-		"zod": "catalog:",
 		"@anthropic-ai/claude-agent-sdk": "^0.2.34",
-		"@nomos-ai/env": "workspace:*",
 		"@nomos-ai/auth": "workspace:*",
 		"@nomos-ai/db": "workspace:*",
+		"@nomos-ai/env": "workspace:*",
 		"@nomos-ai/types": "workspace:*",
-		"@orpc/server": "catalog:",
 		"@orpc/client": "catalog:",
 		"@orpc/openapi": "catalog:",
-		"@orpc/zod": "catalog:"
+		"@orpc/server": "catalog:",
+		"@orpc/zod": "catalog:",
+		"dotenv": "catalog:",
+		"node-pty": "^1.1.0",
+		"zod": "catalog:"
 	}
 }
