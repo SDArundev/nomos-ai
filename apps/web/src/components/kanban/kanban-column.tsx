@@ -27,6 +27,9 @@ interface KanbanColumnProps {
 	}>;
 	color: string;
 	onFeatureSelect?: (id: string) => void;
+	selectable?: boolean;
+	selectedIds?: Set<string>;
+	onToggleSelect?: (id: string) => void;
 }
 
 export function KanbanColumn({
@@ -35,6 +38,9 @@ export function KanbanColumn({
 	features,
 	color,
 	onFeatureSelect,
+	selectable,
+	selectedIds,
+	onToggleSelect,
 }: KanbanColumnProps) {
 	const { setNodeRef, isOver } = useDroppable({ id: status });
 	const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false);
@@ -98,7 +104,7 @@ export function KanbanColumn({
 					items={features.map((f) => f.id)}
 					strategy={verticalListSortingStrategy}
 				>
-					<div className="flex flex-1 flex-col gap-2 overflow-y-auto">
+					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
 						{features.length === 0 ? (
 							<p className="text-center text-muted-foreground text-sm">
 								No features
@@ -109,6 +115,9 @@ export function KanbanColumn({
 									key={feature.id}
 									feature={feature}
 									onClick={onFeatureSelect}
+									selectable={selectable}
+									selected={selectedIds?.has(feature.id)}
+									onSelect={onToggleSelect}
 								/>
 							))
 						)}

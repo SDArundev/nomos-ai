@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, FolderKanban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,13 +8,14 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppStore } from "@/store";
+import { orpc } from "@/utils/orpc";
 
 interface ProjectSelectorProps {
 	collapsed: boolean;
 }
 
 export function ProjectSelector({ collapsed }: ProjectSelectorProps) {
-	const projects = useAppStore((s) => s.projects);
+	const { data: projects = [] } = useQuery(orpc.projects.list.queryOptions());
 	const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 	const setSelectedProject = useAppStore((s) => s.setSelectedProject);
 

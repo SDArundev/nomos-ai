@@ -15,6 +15,26 @@ export const featureRepository = {
 		return rows[0] ?? null;
 	},
 
+	async findByUser(userId: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(eq(feature.userId, userId));
+	},
+
+	async findByUserAndStatus(userId: string, status: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.status, status)));
+	},
+
+	async findByUserAndPhase(userId: string, phase: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.phase, phase)));
+	},
+
+	async findByUserStatusAndPhase(userId: string, status: string, phase: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.status, status), eq(feature.phase, phase)));
+	},
+
+	async findByUserAndProject(userId: string, projectId: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.projectId, projectId)));
+	},
+
 	async findByProject(projectId: string): Promise<FeatureSelect[]> {
 		return db.select().from(feature).where(eq(feature.projectId, projectId));
 	},
@@ -140,6 +160,38 @@ export const featureRepository = {
 			throw new Error(`Feature not found: ${id}`);
 		}
 		return row;
+	},
+
+	async incrementRetryCount(id: string): Promise<void> {
+		const feat = await this.findById(id);
+		if (!feat) throw new Error(`Feature not found: ${id}`);
+		await db
+			.update(feature)
+			.set({
+				retryCount: (feat.retryCount ?? 0) + 1,
+				lastFailureAt: new Date(),
+			})
+			.where(eq(feature.id, id));
+	},
+
+	async getRetryInfo(id: string): Promise<{ retryCount: number; lastFailureAt: Date | null }> {
+		const feat = await this.findById(id);
+		if (!feat) throw new Error(`Feature not found: ${id}`);
+		return {
+			retryCount: feat.retryCount ?? 0,
+			lastFailureAt: feat.lastFailureAt ?? null,
+		};
+	},
+
+	async resetRetryCount(id: string): Promise<void> {
+		await db
+			.update(feature)
+			.set({ retryCount: 0, lastFailureAt: null })
+			.where(eq(feature.id, id));
+	},
+
+	async findByProjectWithDependencies(projectId: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(eq(feature.projectId, projectId));
 	},
 
 	async findDependencies(id: string): Promise<FeatureSelect[]> {

@@ -7,14 +7,21 @@ export const agentSession = sqliteTable(
 	{
 		id: text("id").primaryKey(),
 		userId: text("user_id").notNull(),
-		featureId: text("feature_id")
-			.notNull()
-			.references(() => feature.id, { onDelete: "cascade" }),
+		featureId: text("feature_id").references(() => feature.id, {
+			onDelete: "cascade",
+		}),
+		projectId: text("project_id"),
 		status: text("status").notNull(),
 		startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
 		completedAt: integer("completed_at", { mode: "timestamp_ms" }),
 		output: text("output"),
 		error: text("error"),
+		// F258: SDK session + model + running state
+		sdkSessionId: text("sdk_session_id"),
+		model: text("model").default("sonnet"),
+		isRunning: integer("is_running", { mode: "boolean" }).default(false),
+		workingDirectory: text("working_directory"),
+		messageCount: integer("message_count").default(0),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),

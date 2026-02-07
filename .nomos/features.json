@@ -7111,49 +7111,467 @@
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "skip"
+    },
+    {
+      "id": "F258",
+      "title": "Types + DB layer for Automaker mirror",
+      "category": "CAT-API",
+      "description": "Create new type modules (events, worktree, settings, message, notification, provider, pipeline, pagination) and Drizzle schemas. Extend feature.ts, session.ts, ids.ts with new fields. Add all repositories and migrations.",
+      "phase": "phase-1",
+      "priority": 258,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "bun run check-types passes with zero errors",
+        "bun run db:generate creates migrations for all new/modified tables",
+        "All new types importable from @nomos/types",
+        "All new schemas importable from @nomos/db",
+        "All repository methods have proper TypeScript signatures",
+        "Branded ID types enforce type safety at compile time"
+      ],
+      "files": {
+        "create": [
+          "packages/types/src/event.ts",
+          "packages/types/src/provider.ts",
+          "packages/types/src/message.ts",
+          "packages/types/src/notification.ts",
+          "packages/types/src/worktree.ts",
+          "packages/types/src/settings.ts",
+          "packages/types/src/pipeline.ts",
+          "packages/types/src/pagination.ts",
+          "packages/db/src/schema/events.ts",
+          "packages/db/src/schema/messages.ts",
+          "packages/db/src/schema/notifications.ts",
+          "packages/db/src/schema/settings.ts",
+          "packages/db/src/schema/worktrees.ts",
+          "packages/db/src/repositories/event.ts",
+          "packages/db/src/repositories/message.ts",
+          "packages/db/src/repositories/notification.ts",
+          "packages/db/src/repositories/setting.ts",
+          "packages/db/src/repositories/worktree.ts"
+        ],
+        "modify": [
+          "packages/types/src/ids.ts",
+          "packages/types/src/feature.ts",
+          "packages/types/src/session.ts",
+          "packages/types/src/agent.ts",
+          "packages/types/src/index.ts",
+          "packages/db/src/schema/features.ts",
+          "packages/db/src/schema/sessions.ts",
+          "packages/db/src/schema/index.ts",
+          "packages/db/src/repositories/index.ts"
+        ]
+      },
+      "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/data-models.md for exact field mappings and Zod/Drizzle definitions.",
+      "estimatedSize": "XL",
+      "status": "verified",
+      "passes": false,
+      "model": "opus",
+      "thinkingLevel": "high",
+      "planningMode": "lite",
+      "tags": [
+        "automaker-mirror",
+        "group-1",
+        "foundation"
+      ]
+    },
+    {
+      "id": "F259",
+      "title": "Agent engine + WebSocket server",
+      "category": "CAT-AGT",
+      "description": "Implement ClaudeProvider wrapper, SDK options factory, EventService, EventBroadcaster, WebSocket server with Bun native upgrade for /ws/events. Rewrite AgentService for full session management with SDK streaming.",
+      "phase": "phase-2",
+      "priority": 259,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Server starts without errors",
+        "WebSocket connection to /ws/events succeeds with auth",
+        "Agent session can be created via oRPC",
+        "Sending a message invokes Claude SDK and streams response",
+        "Events are broadcast to connected WebSocket clients",
+        "SDK session ID is persisted for conversation resumption"
+      ],
+      "files": {
+        "create": [
+          "packages/api/src/services/claude-provider.ts",
+          "packages/api/src/services/sdk-options.ts",
+          "packages/api/src/services/event-service.ts",
+          "packages/api/src/services/event-broadcaster.ts",
+          "packages/api/src/routers/agent.ts",
+          "packages/api/src/routers/events.ts",
+          "apps/server/src/lib/websocket.ts"
+        ],
+        "modify": [
+          "packages/api/src/services/agent-service.ts",
+          "packages/api/src/routers/index.ts",
+          "apps/server/src/index.ts",
+          "packages/api/src/context.ts"
+        ]
+      },
+      "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md sections 1-4 for provider, event, WebSocket, and agent patterns.",
+      "estimatedSize": "XL",
+      "status": "verified",
+      "passes": false,
+      "model": "opus",
+      "thinkingLevel": "high",
+      "planningMode": "lite",
+      "tags": [
+        "automaker-mirror",
+        "group-1",
+        "agent"
+      ]
+    },
+    {
+      "id": "F260",
+      "title": "Autonomous loop + pipeline + worktree",
+      "category": "CAT-AUT",
+      "description": "Implement WorktreeService (git ops via Bun.spawn), PromptBuilder, PipelineService (7-step execution with checkpoint/resume), AutoModeService (feature loop, concurrency, failure tracking). Add worktree and auto-mode routers.",
+      "phase": "phase-3",
+      "priority": 260,
+      "dependencies": [
+        "F258",
+        "F259"
+      ],
+      "acceptanceCriteria": [
+        "Auto-mode starts and emits auto-mode:started event",
+        "Picks next pending feature respecting dependency order",
+        "Creates git worktree for feature isolation",
+        "Runs 7-step pipeline with checkpoint/resume via DB",
+        "Updates feature status through lifecycle",
+        "Stops gracefully with auto-mode:stopped event",
+        "Pauses after 3 consecutive failures"
+      ],
+      "files": {
+        "create": [
+          "packages/api/src/services/worktree-service.ts",
+          "packages/api/src/services/prompt-builder.ts",
+          "packages/api/src/services/pipeline-service.ts",
+          "packages/api/src/services/auto-mode-service.ts",
+          "packages/api/src/routers/auto-mode.ts",
+          "packages/api/src/routers/worktree.ts",
+          "packages/api/src/routers/pipeline.ts",
+          "packages/api/src/lib/git-utils.ts"
+        ],
+        "modify": [
+          "packages/api/src/routers/index.ts",
+          "packages/api/src/context.ts",
+          "packages/db/src/repositories/feature.ts"
+        ]
+      },
+      "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md sections 5-6 for pipeline and worktree patterns.",
+      "estimatedSize": "XL",
+      "status": "verified",
+      "passes": false,
+      "model": "opus",
+      "thinkingLevel": "high",
+      "planningMode": "spec",
+      "tags": [
+        "automaker-mirror",
+        "group-2",
+        "auto-mode"
+      ]
+    },
+    {
+      "id": "F261",
+      "title": "Terminal service with WebSocket streaming",
+      "category": "CAT-TRM",
+      "description": "Implement TerminalService with Bun.spawn shell sessions, output buffering (4KB/4ms batching), 50KB scrollback. Add WebSocket handler for /ws/terminal with session routing. CRUD terminal router.",
+      "phase": "phase-2",
+      "priority": 261,
+      "dependencies": [
+        "F258"
+      ],
+      "acceptanceCriteria": [
+        "Terminal session creates via API",
+        "WebSocket connection to /ws/terminal streams output",
+        "Input sent via WebSocket reaches shell process",
+        "Output is batched (4KB/4ms) to prevent flooding",
+        "50KB scrollback buffer maintained for reconnection",
+        "Session cleanup on disconnect"
+      ],
+      "files": {
+        "create": [
+          "packages/api/src/services/terminal-service.ts",
+          "packages/api/src/routers/terminal.ts"
+        ],
+        "modify": [
+          "packages/api/src/routers/index.ts",
+          "packages/api/src/context.ts",
+          "apps/server/src/lib/websocket.ts",
+          "apps/server/src/index.ts"
+        ]
+      },
+      "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md section 7 for terminal pattern. Use Bun.spawn (not node-pty).",
+      "estimatedSize": "L",
+      "status": "verified",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite",
+      "tags": [
+        "automaker-mirror",
+        "group-2",
+        "terminal"
+      ]
+    },
+    {
+      "id": "F262",
+      "title": "Settings + notifications + GitHub + FS services",
+      "category": "CAT-CFG",
+      "description": "Implement SettingsService (layered config: default/global/project), NotificationService (create/read/mark-read with events), GitHubService (gh CLI wrapper for issues/PRs), FSService (sandboxed file ops). All routers: settings, notifications, github, fs, models, events.",
+      "phase": "phase-2",
+      "priority": 262,
+      "dependencies": [
+        "F258"
+      ],
+      "acceptanceCriteria": [
+        "Settings save/load with layered resolution (default then global then project)",
+        "Notifications created on feature events and retrievable by project",
+        "Mark-read and dismiss work correctly",
+        "GitHub service lists issues and PRs via gh CLI",
+        "FS service validates paths against allowed root preventing traversal",
+        "Models endpoint returns available Claude models"
+      ],
+      "files": {
+        "create": [
+          "packages/api/src/services/settings-service.ts",
+          "packages/api/src/services/notification-service.ts",
+          "packages/api/src/services/github-service.ts",
+          "packages/api/src/services/fs-service.ts",
+          "packages/api/src/routers/settings.ts",
+          "packages/api/src/routers/notifications.ts",
+          "packages/api/src/routers/github.ts",
+          "packages/api/src/routers/fs.ts",
+          "packages/api/src/routers/models.ts"
+        ],
+        "modify": [
+          "packages/api/src/routers/index.ts",
+          "packages/api/src/context.ts"
+        ]
+      },
+      "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md sections 8-9, 12-13 for settings, notification, GitHub, and FS patterns.",
+      "estimatedSize": "XL",
+      "status": "verified",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite",
+      "tags": [
+        "automaker-mirror",
+        "group-2",
+        "services"
+      ]
+    },
+    {
+      "id": "F263",
+      "title": "WebSocket client + agent chat view",
+      "category": "CAT-AGT",
+      "description": "Implement WebSocket client with auto-reconnect and exponential backoff. Create hooks (use-websocket, use-event-stream, use-agent-stream) and agent store. Build agent chat view with message list, tool-call display, streaming indicator, session sidebar.",
+      "phase": "phase-2",
+      "priority": 263,
+      "dependencies": [
+        "F258",
+        "F259",
+        "F260"
+      ],
+      "acceptanceCriteria": [
+        "WebSocket client auto-connects with backoff on failure",
+        "Agent view renders at /agent route",
+        "Real-time streaming of agent output with typing indicator",
+        "Tool calls display with name and input and result",
+        "Session sidebar shows history and allows switching",
+        "Messages persist across page reloads from DB via API"
+      ],
+      "files": {
+        "create": [
+          "apps/web/src/lib/websocket.ts",
+          "apps/web/src/hooks/use-websocket.ts",
+          "apps/web/src/hooks/use-event-stream.ts",
+          "apps/web/src/hooks/use-agent-stream.ts",
+          "apps/web/src/store/agent-store.ts",
+          "apps/web/src/routes/agent.tsx",
+          "apps/web/src/components/agent/agent-chat.tsx",
+          "apps/web/src/components/agent/message-list.tsx",
+          "apps/web/src/components/agent/message-bubble.tsx",
+          "apps/web/src/components/agent/tool-call-display.tsx",
+          "apps/web/src/components/agent/streaming-indicator.tsx",
+          "apps/web/src/components/agent/session-sidebar.tsx",
+          "apps/web/src/components/agent/agent-input.tsx"
+        ],
+        "modify": [
+          "apps/web/src/routes/__root.tsx"
+        ]
+      },
+      "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/architecture-map.md WebSocket section for client patterns. Use TanStack Router for /agent route.",
+      "estimatedSize": "XL",
+      "status": "verified",
+      "passes": false,
+      "model": "opus",
+      "thinkingLevel": "high",
+      "planningMode": "lite",
+      "tags": [
+        "automaker-mirror",
+        "group-3",
+        "frontend"
+      ]
+    },
+    {
+      "id": "F264",
+      "title": "Terminal view + diff viewer + enhanced kanban",
+      "category": "CAT-KAN",
+      "description": "Build terminal view with xterm.js and WebSocket integration, multi-session tabs, split panes. Implement diff viewer with side-by-side syntax highlighting. Enhance kanban with dnd-kit cross-column drag and sortable cards.",
+      "phase": "phase-4",
+      "priority": 264,
+      "dependencies": [
+        "F258",
+        "F261",
+        "F262"
+      ],
+      "acceptanceCriteria": [
+        "Terminal renders at /terminal route with xterm.js",
+        "Multi-session tabs allow switching between terminals",
+        "Input/output flows through WebSocket end-to-end",
+        "Diff viewer renders side-by-side with syntax highlighting",
+        "Kanban board supports cross-column drag-and-drop via dnd-kit",
+        "Feature cards show status and progress"
+      ],
+      "files": {
+        "create": [
+          "apps/web/src/routes/terminal.tsx",
+          "apps/web/src/components/terminal/terminal-view.tsx",
+          "apps/web/src/components/terminal/terminal-tabs.tsx",
+          "apps/web/src/components/terminal/terminal-split.tsx",
+          "apps/web/src/store/terminal-store.ts",
+          "apps/web/src/hooks/use-terminal.ts",
+          "apps/web/src/components/diff/diff-viewer.tsx",
+          "apps/web/src/components/diff/diff-header.tsx",
+          "apps/web/src/components/kanban/kanban-board.tsx",
+          "apps/web/src/components/kanban/kanban-column.tsx",
+          "apps/web/src/components/kanban/kanban-card.tsx",
+          "apps/web/src/components/kanban/kanban-card-detail.tsx"
+        ],
+        "modify": [
+          "apps/web/src/routes/__root.tsx"
+        ]
+      },
+      "technicalNotes": "New deps: @xterm/xterm, @xterm/addon-fit, @xterm/addon-web-links, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, react-diff-viewer-continued. Lazy-load xterm on terminal route.",
+      "estimatedSize": "XL",
+      "status": "verified",
+      "passes": false,
+      "model": "opus",
+      "thinkingLevel": "high",
+      "planningMode": "lite",
+      "tags": [
+        "automaker-mirror",
+        "group-3",
+        "frontend"
+      ]
+    },
+    {
+      "id": "F265",
+      "title": "Settings UI + auto-mode dashboard + notifications + themes",
+      "category": "CAT-CFG",
+      "description": "Build settings pages with tabbed layout (general, model, auto-mode, terminal, integrations). Auto-mode dashboard with start/stop, queue, event feed, pipeline stepper. Notification bell and list. Theme system with 10+ themes via CSS variables.",
+      "phase": "phase-4",
+      "priority": 265,
+      "dependencies": [
+        "F258",
+        "F260",
+        "F262"
+      ],
+      "acceptanceCriteria": [
+        "Settings page with tabbed layout renders correctly",
+        "Settings persist via API with layered resolution",
+        "Auto-mode dashboard shows start/stop and active features and queue",
+        "Pipeline stepper visualizes 7-step progress per feature",
+        "Notification bell shows unread count with dropdown list",
+        "Theme system applies 10+ themes via CSS variables",
+        "All hooks connect to respective backend APIs"
+      ],
+      "files": {
+        "create": [
+          "apps/web/src/routes/settings.tsx",
+          "apps/web/src/components/settings/settings-layout.tsx",
+          "apps/web/src/components/settings/general-tab.tsx",
+          "apps/web/src/components/settings/model-tab.tsx",
+          "apps/web/src/components/settings/auto-mode-tab.tsx",
+          "apps/web/src/components/settings/terminal-tab.tsx",
+          "apps/web/src/components/settings/integration-tab.tsx",
+          "apps/web/src/store/settings-store.ts",
+          "apps/web/src/hooks/use-settings.ts",
+          "apps/web/src/components/auto-mode/auto-mode-dashboard.tsx",
+          "apps/web/src/components/auto-mode/feature-queue.tsx",
+          "apps/web/src/components/auto-mode/event-feed.tsx",
+          "apps/web/src/components/auto-mode/pipeline-stepper.tsx",
+          "apps/web/src/store/auto-mode-store.ts",
+          "apps/web/src/hooks/use-auto-mode.ts",
+          "apps/web/src/components/notifications/notification-bell.tsx",
+          "apps/web/src/components/notifications/notification-list.tsx",
+          "apps/web/src/hooks/use-notifications.ts",
+          "apps/web/src/hooks/use-worktrees.ts",
+          "apps/web/src/hooks/use-github.ts",
+          "apps/web/src/lib/themes/index.ts",
+          "apps/web/src/lib/themes/theme-registry.ts"
+        ],
+        "modify": [
+          "apps/web/src/routes/__root.tsx",
+          "apps/web/src/index.css"
+        ]
+      },
+      "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/architecture-map.md settings hierarchy section. Theme CSS variables should follow Tailwind 4 patterns.",
+      "estimatedSize": "XL",
+      "status": "verified",
+      "passes": false,
+      "model": "opus",
+      "thinkingLevel": "high",
+      "planningMode": "lite",
+      "tags": [
+        "automaker-mirror",
+        "group-3",
+        "frontend"
+      ]
     }
   ],
   "summary": {
-    "totalFeatures": 220,
+    "totalFeatures": 265,
     "byCategory": {
       "CAT-PRJ": 9,
-      "CAT-KAN": 26,
-      "CAT-AGT": 22,
-      "CAT-AUT": 10,
+      "CAT-KAN": 27,
+      "CAT-AGT": 24,
+      "CAT-AUT": 11,
       "CAT-GIT": 15,
-      "CAT-TRM": 10,
+      "CAT-TRM": 11,
       "CAT-GHB": 4,
       "CAT-THM": 8,
       "CAT-DXP": 16,
       "CAT-SEC": 11,
-      "CAT-CFG": 8,
+      "CAT-CFG": 10,
       "CAT-NTF": 8,
       "CAT-SPC": 7,
       "CAT-MEM": 8,
       "CAT-DEP": 3,
       "CAT-DSK": 8,
-      "CAT-API": 6,
+      "CAT-API": 7,
       "CAT-DBS": 10,
       "CAT-TST": 12,
       "CAT-OBS": 9
     },
     "byPhase": {
-      "phase-1": 65,
-      "phase-2": 75,
-      "phase-3": 45,
-      "phase-4": 35
+      "phase-1": 66,
+      "phase-2": 79,
+      "phase-3": 46,
+      "phase-4": 37
     },
     "byStatus": {
-      "backlog": 220,
-      "pending": 0,
+      "backlog": 229,
+      "pending": 3,
       "in_progress": 0,
       "waiting_approval": 0,
-      "verified": 0,
+      "verified": 33,
       "failed": 0
     },
     "byPasses": {
-      "passed": 0,
-      "notPassed": 220
+      "passed": 33,
+      "notPassed": 232
     }
   }
 }

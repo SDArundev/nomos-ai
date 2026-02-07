@@ -10,10 +10,10 @@ import { db } from "./index";
  * 1. Identify the migration to revert in ./migrations/
  * 2. Write a new "down" migration SQL file
  * 3. Apply it via: bun drizzle-kit push
- * 4. Or restore from database backup: cp .nomos/nomos.db.bak .nomos/nomos.db
+ * 4. Or restore from database backup: cp apps/server/data/nomos.db.bak apps/server/data/nomos.db
  *
  * For safety, always backup before migrating:
- *   cp .nomos/nomos.db .nomos/nomos.db.bak
+ *   cp apps/server/data/nomos.db apps/server/data/nomos.db.bak
  */
 
 /**

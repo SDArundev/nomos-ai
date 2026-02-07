@@ -1,8 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { Pencil, Save, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
 
@@ -27,9 +32,57 @@ const statusColors: Record<string, string> = {
 
 function FeatureDetail() {
 	const { featureId } = Route.useParams();
+	const queryClient = useQueryClient();
 	const feature = useQuery(
 		orpc.features.get.queryOptions({ input: { id: featureId } }),
 	);
+
+	const [editing, setEditing] = useState(false);
+	const [editTitle, setEditTitle] = useState("");
+	const [editDescription, setEditDescription] = useState("");
+	const [editCategory, setEditCategory] = useState("");
+	const [editPhase, setEditPhase] = useState("");
+
+	const updateFeature = useMutation(
+		orpc.features.update.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.get.queryOptions({ input: { id: featureId } }).queryKey,
+				});
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.list.queryOptions().queryKey,
+				});
+				toast.success("Feature updated");
+				setEditing(false);
+			},
+			onError: (error) => {
+				toast.error(error.message || "Failed to update feature");
+			},
+		}),
+	);
+
+	const startEditing = () => {
+		if (!feature.data) return;
+		setEditTitle(feature.data.title);
+		setEditDescription(feature.data.description);
+		setEditCategory(feature.data.category);
+		setEditPhase(feature.data.phase);
+		setEditing(true);
+	};
+
+	const handleSave = () => {
+		const data: Record<string, string> = {};
+		if (editTitle !== feature.data?.title) data.title = editTitle;
+		if (editDescription !== feature.data?.description)
+			data.description = editDescription;
+		if (editCategory !== feature.data?.category) data.category = editCategory;
+		if (editPhase !== feature.data?.phase) data.phase = editPhase;
+		if (Object.keys(data).length === 0) {
+			setEditing(false);
+			return;
+		}
+		updateFeature.mutate({ id: featureId, data });
+	};
 
 	if (feature.isLoading) {
 		return (
@@ -42,13 +95,13 @@ function FeatureDetail() {
 		);
 	}
 
-	if (!feature.data) {
+	if (feature.isError || !feature.data) {
 		return (
 			<div className="container mx-auto max-w-3xl px-4 py-6">
 				<p className="text-muted-foreground">Feature not found.</p>
-				<Link to="/projects">
+				<Link to="/kanban">
 					<Button variant="outline" className="mt-4">
-						Back to Projects
+						Back to Kanban
 					</Button>
 				</Link>
 			</div>
@@ -69,7 +122,44 @@ function FeatureDetail() {
 						&larr; Project
 					</Link>
 				)}
-				<h1 className="mt-2 font-bold text-2xl">{feat.title}</h1>
+				<div className="mt-2 flex items-center justify-between">
+					{editing ? (
+						<Input
+							value={editTitle}
+							onChange={(e) => setEditTitle(e.target.value)}
+							className="font-bold text-2xl"
+						/>
+					) : (
+						<h1 className="font-bold text-2xl">{feat.title}</h1>
+					)}
+					<div className="flex gap-2">
+						{editing ? (
+							<>
+								<Button
+									size="sm"
+									variant="ghost"
+									onClick={() => setEditing(false)}
+								>
+									<X className="mr-1 size-4" />
+									Cancel
+								</Button>
+								<Button
+									size="sm"
+									onClick={handleSave}
+									disabled={updateFeature.isPending}
+								>
+									<Save className="mr-1 size-4" />
+									{updateFeature.isPending ? "Saving..." : "Save"}
+								</Button>
+							</>
+						) : (
+							<Button size="sm" variant="outline" onClick={startEditing}>
+								<Pencil className="mr-1 size-4" />
+								Edit
+							</Button>
+						)}
+					</div>
+				</div>
 				<div className="mt-1 flex items-center gap-3">
 					<span className="flex items-center gap-1.5 text-sm">
 						<span
@@ -77,7 +167,29 @@ function FeatureDetail() {
 						/>
 						{feat.status}
 					</span>
-					<span className="text-muted-foreground text-sm">{feat.phase}</span>
+					{editing ? (
+						<>
+							<Input
+								value={editPhase}
+								onChange={(e) => setEditPhase(e.target.value)}
+								className="h-7 w-24 text-xs"
+								placeholder="Phase"
+							/>
+							<Input
+								value={editCategory}
+								onChange={(e) => setEditCategory(e.target.value)}
+								className="h-7 w-24 text-xs"
+								placeholder="Category"
+							/>
+						</>
+					) : (
+						<>
+							<span className="text-muted-foreground text-sm">{feat.phase}</span>
+							<span className="text-muted-foreground text-sm">
+								{feat.category}
+							</span>
+						</>
+					)}
 					{feat.estimatedSize && (
 						<span className="text-muted-foreground text-sm">
 							{feat.estimatedSize}
@@ -97,7 +209,15 @@ function FeatureDetail() {
 						<CardTitle>Description</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-sm">{feat.description}</p>
+						{editing ? (
+							<Textarea
+								value={editDescription}
+								onChange={(e) => setEditDescription(e.target.value)}
+								rows={4}
+							/>
+						) : (
+							<p className="text-sm">{feat.description}</p>
+						)}
 					</CardContent>
 				</Card>
 
@@ -140,6 +260,26 @@ function FeatureDetail() {
 									</li>
 								))}
 							</ul>
+						</CardContent>
+					</Card>
+				)}
+
+				{feat.pipelineStep && (
+					<Card>
+						<CardHeader>
+							<CardTitle>Pipeline Progress</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm">
+								Current step:{" "}
+								<span className="font-mono font-medium">{feat.pipelineStep}</span>
+							</p>
+							{feat.lastCompletedStep && (
+								<p className="text-muted-foreground text-sm">
+									Last completed:{" "}
+									<span className="font-mono">{feat.lastCompletedStep}</span>
+								</p>
+							)}
 						</CardContent>
 					</Card>
 				)}

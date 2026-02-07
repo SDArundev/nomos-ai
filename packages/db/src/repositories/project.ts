@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../index";
 import { project } from "../schema/projects";
 
@@ -12,6 +12,18 @@ export const projectRepository = {
 
 	async findById(id: string): Promise<ProjectSelect | null> {
 		const rows = await db.select().from(project).where(eq(project.id, id));
+		return rows[0] ?? null;
+	},
+
+	async findByUser(userId: string): Promise<ProjectSelect[]> {
+		return db.select().from(project).where(eq(project.userId, userId));
+	},
+
+	async findByPath(userId: string, path: string): Promise<ProjectSelect | null> {
+		const rows = await db
+			.select()
+			.from(project)
+			.where(and(eq(project.userId, userId), eq(project.path, path)));
 		return rows[0] ?? null;
 	},
 

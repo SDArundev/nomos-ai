@@ -27,6 +27,9 @@ interface KanbanBoardProps {
 	}>;
 	onStatusChange: (id: string, status: string) => void;
 	onFeatureSelect?: (id: string) => void;
+	selectable?: boolean;
+	selectedIds?: Set<string>;
+	onToggleSelect?: (id: string) => void;
 }
 
 // Note: 'failed' is a valid transition target but not shown as a column
@@ -66,6 +69,9 @@ export function KanbanBoard({
 	features,
 	onStatusChange,
 	onFeatureSelect,
+	selectable,
+	selectedIds,
+	onToggleSelect,
 }: KanbanBoardProps) {
 	const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -143,6 +149,9 @@ export function KanbanBoard({
 						color={column.color}
 						features={features.filter((f) => f.status === column.status)}
 						onFeatureSelect={onFeatureSelect}
+						selectable={selectable}
+						selectedIds={selectedIds}
+						onToggleSelect={onToggleSelect}
 					/>
 				))}
 			</div>

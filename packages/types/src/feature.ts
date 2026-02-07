@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { FeatureIdSchema } from "./ids";
+import { pipelineStepSchema } from "./pipeline";
 import { FeatureStatusSchema } from "./status";
 
 /**
@@ -312,6 +313,14 @@ export const FeatureSchema = z.object({
 	verifiedAt: z.string().datetime().optional(),
 	completedBy: z.string().optional(),
 	preImplemented: z.boolean().optional(),
+
+	// Worktree + locking fields (F258)
+	useWorktree: z.boolean().default(false),
+	locked: z.boolean().default(false),
+	lockedBy: z.string().nullable().default(null),
+	lockedAt: z.date().nullable().default(null),
+	pipelineStep: z.string().nullable().default(null),
+	pipelineSteps: z.array(pipelineStepSchema).optional(),
 });
 
 export type Feature = z.infer<typeof FeatureSchema>;

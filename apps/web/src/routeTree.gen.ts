@@ -9,14 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TerminalRouteImport } from './routes/terminal'
+import { Route as SpecRouteImport } from './routes/spec'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AgentRouteImport } from './routes/agent'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as FeaturesImportRouteImport } from './routes/features.import'
 import { Route as FeaturesFeatureIdRouteImport } from './routes/features.$featureId'
 
+const TerminalRoute = TerminalRouteImport.update({
+  id: '/terminal',
+  path: '/terminal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpecRoute = SpecRouteImport.update({
+  id: '/spec',
+  path: '/spec',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -30,6 +51,16 @@ const KanbanRoute = KanbanRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentRoute = AgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +78,11 @@ const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeaturesImportRoute = FeaturesImportRouteImport.update({
+  id: '/features/import',
+  path: '/features/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeaturesFeatureIdRoute = FeaturesFeatureIdRouteImport.update({
   id: '/features/$featureId',
   path: '/features/$featureId',
@@ -55,29 +91,47 @@ const FeaturesFeatureIdRoute = FeaturesFeatureIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
+  '/settings': typeof SettingsRoute
+  '/spec': typeof SpecRoute
+  '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
+  '/features/import': typeof FeaturesImportRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
+  '/settings': typeof SettingsRoute
+  '/spec': typeof SpecRoute
+  '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
+  '/features/import': typeof FeaturesImportRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects': typeof ProjectsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
+  '/settings': typeof SettingsRoute
+  '/spec': typeof SpecRoute
+  '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
+  '/features/import': typeof FeaturesImportRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
 }
@@ -85,44 +139,89 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activity'
+    | '/agent'
     | '/dashboard'
     | '/kanban'
     | '/login'
+    | '/settings'
+    | '/spec'
+    | '/terminal'
     | '/features/$featureId'
+    | '/features/import'
     | '/projects/$projectId'
     | '/projects/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activity'
+    | '/agent'
     | '/dashboard'
     | '/kanban'
     | '/login'
+    | '/settings'
+    | '/spec'
+    | '/terminal'
     | '/features/$featureId'
+    | '/features/import'
     | '/projects/$projectId'
     | '/projects'
   id:
     | '__root__'
     | '/'
+    | '/activity'
+    | '/agent'
     | '/dashboard'
     | '/kanban'
     | '/login'
+    | '/settings'
+    | '/spec'
+    | '/terminal'
     | '/features/$featureId'
+    | '/features/import'
     | '/projects/$projectId'
     | '/projects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
+  AgentRoute: typeof AgentRoute
   DashboardRoute: typeof DashboardRoute
   KanbanRoute: typeof KanbanRoute
   LoginRoute: typeof LoginRoute
+  SettingsRoute: typeof SettingsRoute
+  SpecRoute: typeof SpecRoute
+  TerminalRoute: typeof TerminalRoute
   FeaturesFeatureIdRoute: typeof FeaturesFeatureIdRoute
+  FeaturesImportRoute: typeof FeaturesImportRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terminal': {
+      id: '/terminal'
+      path: '/terminal'
+      fullPath: '/terminal'
+      preLoaderRoute: typeof TerminalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spec': {
+      id: '/spec'
+      path: '/spec'
+      fullPath: '/spec'
+      preLoaderRoute: typeof SpecRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -142,6 +241,20 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agent': {
+      id: '/agent'
+      path: '/agent'
+      fullPath: '/agent'
+      preLoaderRoute: typeof AgentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -165,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/features/import': {
+      id: '/features/import'
+      path: '/features/import'
+      fullPath: '/features/import'
+      preLoaderRoute: typeof FeaturesImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/features/$featureId': {
       id: '/features/$featureId'
       path: '/features/$featureId'
@@ -177,10 +297,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
+  AgentRoute: AgentRoute,
   DashboardRoute: DashboardRoute,
   KanbanRoute: KanbanRoute,
   LoginRoute: LoginRoute,
+  SettingsRoute: SettingsRoute,
+  SpecRoute: SpecRoute,
+  TerminalRoute: TerminalRoute,
   FeaturesFeatureIdRoute: FeaturesFeatureIdRoute,
+  FeaturesImportRoute: FeaturesImportRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
 }

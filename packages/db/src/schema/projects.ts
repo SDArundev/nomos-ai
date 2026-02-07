@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const project = sqliteTable(
 	"project",
@@ -7,7 +7,7 @@ export const project = sqliteTable(
 		id: text("id").primaryKey(),
 		userId: text("user_id").notNull(),
 		name: text("name").notNull(),
-		path: text("path").notNull().unique(),
+		path: text("path").notNull(),
 		settings: text("settings", { mode: "json" })
 			.$type<Record<string, unknown>>()
 			.default({ theme: "system", locale: "en", autoSaveInterval: 30, notifications: true })
@@ -21,5 +21,8 @@ export const project = sqliteTable(
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
 	},
-	(table) => [index("project_name_idx").on(table.name)],
+	(table) => [
+		uniqueIndex("project_user_path_unique").on(table.userId, table.path),
+		index("project_name_idx").on(table.name),
+	],
 );

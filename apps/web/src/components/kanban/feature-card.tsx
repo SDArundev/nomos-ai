@@ -18,6 +18,9 @@ interface FeatureCardProps {
 		dependencies?: string[] | null;
 	};
 	onClick?: (id: string) => void;
+	selectable?: boolean;
+	selected?: boolean;
+	onSelect?: (id: string) => void;
 }
 
 const priorityColors: Record<string, string> = {
@@ -33,7 +36,7 @@ function getPriorityLevel(priority: number | null): string {
 	return "low";
 }
 
-export function FeatureCard({ feature, onClick }: FeatureCardProps) {
+export function FeatureCard({ feature, onClick, selectable, selected, onSelect }: FeatureCardProps) {
 	const {
 		attributes,
 		listeners,
@@ -62,16 +65,30 @@ export function FeatureCard({ feature, onClick }: FeatureCardProps) {
 		<Card
 			ref={setNodeRef}
 			style={style}
-			className="cursor-grab transition-colors hover:border-primary active:cursor-grabbing"
+			className="shrink-0 cursor-grab transition-colors hover:border-primary active:cursor-grabbing"
 			onClick={handleClick}
 			{...attributes}
 			{...listeners}
 		>
 			<CardHeader className="p-4">
 				<div className="mb-1 flex items-center justify-between">
-					<span className="font-mono text-muted-foreground text-xs">
-						{feature.id}
-					</span>
+					<div className="flex items-center gap-2">
+						{selectable && (
+							<input
+								type="checkbox"
+								checked={selected}
+								onChange={(e) => {
+									e.stopPropagation();
+									onSelect?.(feature.id);
+								}}
+								onClick={(e) => e.stopPropagation()}
+								className="size-3.5 rounded"
+							/>
+						)}
+						<span className="font-mono text-muted-foreground text-xs">
+							{feature.id}
+						</span>
+					</div>
 					<Badge className={priorityColors[priorityLevel]}>
 						{priorityLevel.toUpperCase()}
 					</Badge>

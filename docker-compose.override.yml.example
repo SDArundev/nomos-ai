@@ -1,0 +1,16 @@
+# =============================================================================
+# Docker Compose Override — Project Workspace Mount
+# =============================================================================
+#
+# SETUP: cp docker-compose.override.yml.example docker-compose.override.yml
+#
+# This file mounts a local project directory into the container at /projects
+# so the agent can operate on real code. Edit the source path below.
+#
+# =============================================================================
+
+services:
+  server:
+    volumes:
+      # Mount your project workspace (edit the left side)
+      - /path/to/your/project:/projects/my-project:cached

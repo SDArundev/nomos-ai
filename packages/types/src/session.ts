@@ -33,6 +33,18 @@ export const SessionSchema = z.object({
 
 	/** Error message if session failed (undefined if successful) */
 	error: z.string().optional(),
+
+	// F258 additions
+	/** Claude SDK session ID for resume */
+	sdkSessionId: z.string().nullable().default(null),
+	/** Model used for this session */
+	model: z.string().default("sonnet"),
+	/** Whether the session is currently running */
+	isRunning: z.boolean().default(false),
+	/** Working directory for agent execution */
+	workingDirectory: z.string().nullable().default(null),
+	/** Number of messages in this session */
+	messageCount: z.number().default(0),
 });
 
 /** Session type inferred from schema */

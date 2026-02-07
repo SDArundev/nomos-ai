@@ -1,5 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Columns3, FolderKanban, Home, LayoutDashboard } from "lucide-react";
+import {
+	Activity,
+	Bot,
+	Columns3,
+	FileJson,
+	FolderKanban,
+	Home,
+	Import,
+	LayoutDashboard,
+	Settings,
+	Terminal,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavLinksProps {
@@ -11,6 +22,12 @@ const navItems = [
 	{ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
 	{ to: "/projects", label: "Projects", icon: FolderKanban },
 	{ to: "/kanban", label: "Kanban", icon: Columns3 },
+	{ to: "/agent", label: "Agent", icon: Bot },
+	{ to: "/activity", label: "Activity", icon: Activity },
+	{ to: "/terminal", label: "Terminal", icon: Terminal },
+	{ to: "/spec", label: "Spec", icon: FileJson },
+	{ to: "/features/import", label: "Import", icon: Import },
+	{ to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function NavLinks({ collapsed }: NavLinksProps) {

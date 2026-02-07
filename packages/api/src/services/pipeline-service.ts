@@ -1,0 +1,120 @@
+import { featureRepository } from "@nomos-ai/db";
+import type { PipelineStep, PipelineStepId, PipelineStepStatus } from "@nomos-ai/types";
+import type { EventService } from "./event-service";
+import { PromptBuilder } from "./prompt-builder";
+
+const PIPELINE_STEPS: Array<{ id: PipelineStepId; name: string; order: number }> = [
+	{ id: "init", name: "Initialize", order: 0 },
+	{ id: "context", name: "Gather Context", order: 1 },
+	{ id: "plan", name: "Plan Implementation", order: 2 },
+	{ id: "execute", name: "Execute", order: 3 },
+	{ id: "verify", name: "Verify", order: 4 },
+	{ id: "merge", name: "Merge", order: 5 },
+	{ id: "finish", name: "Finish", order: 6 },
+];
+
+export class PipelineService {
+	private promptBuilder = new PromptBuilder();
+
+	constructor(private events: EventService) {}
+
+	getSteps(): typeof PIPELINE_STEPS {
+		return PIPELINE_STEPS;
+	}
+
+	buildInitialSteps(): PipelineStep[] {
+		return PIPELINE_STEPS.map((s) => ({
+			id: s.id,
+			name: s.name,
+			order: s.order,
+			status: "pending" as PipelineStepStatus,
+		}));
+	}
+
+	async executeFeature(
+		featureId: string,
+		executeStep: (prompt: string, cwd: string) => Promise<void>,
+		cwd: string,
+		resumeAfterStep?: string,
+	): Promise<void> {
+		const feature = await featureRepository.findById(featureId);
+		if (!feature) throw new Error(`Feature not found: ${featureId}`);
+
+		this.events.emit("feature:started", { featureId });
+
+		// Find the start index for checkpoint resume
+		let startIdx = 0;
+		if (resumeAfterStep) {
+			const resumeIdx = PIPELINE_STEPS.findIndex((s) => s.id === resumeAfterStep);
+			if (resumeIdx >= 0) {
+				startIdx = resumeIdx + 1;
+			}
+		}
+
+		for (let i = startIdx; i < PIPELINE_STEPS.length; i++) {
+			const step = PIPELINE_STEPS[i]!;
+
+			// Emit step started
+			this.events.emit("pipeline:step-started", {
+				featureId,
+				step: step.id,
+				name: step.name,
+			});
+
+			this.events.emit("feature:progress", {
+				featureId,
+				step: step.id,
+				status: "running",
+			});
+
+			await featureRepository.update(featureId, {
+				pipelineStep: step.id,
+			});
+
+			// Build prompt and execute
+			const prompt = this.promptBuilder.buildStepPrompt(feature, step.id);
+			await executeStep(prompt, cwd);
+
+			// Checkpoint: store last completed step
+			await featureRepository.update(featureId, {
+				lastCompletedStep: step.id,
+			});
+
+			// Emit step completed
+			this.events.emit("pipeline:step-completed", {
+				featureId,
+				step: step.id,
+				name: step.name,
+			});
+
+			this.events.emit("feature:progress", {
+				featureId,
+				step: step.id,
+				status: "completed",
+			});
+		}
+
+		this.events.emit("feature:completed", { featureId });
+	}
+
+	async getProgress(featureId: string): Promise<{
+		currentStep: string | null;
+		steps: Array<{ id: string; name: string; status: string }>;
+	}> {
+		const feature = await featureRepository.findById(featureId);
+		if (!feature) throw new Error(`Feature not found: ${featureId}`);
+
+		const currentStep = feature.pipelineStep ?? null;
+		const currentIdx = currentStep
+			? PIPELINE_STEPS.findIndex((s) => s.id === currentStep)
+			: -1;
+
+		const steps = PIPELINE_STEPS.map((s, i) => ({
+			id: s.id,
+			name: s.name,
+			status: i < currentIdx ? "completed" : i === currentIdx ? "running" : "pending",
+		}));
+
+		return { currentStep, steps };
+	}
+}

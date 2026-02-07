@@ -2,12 +2,15 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
+import { resolveDbUrl } from "./src/resolve-url";
 
-// Try multiple .env locations to support both normal dev and worktrees
+const monorepoRoot = resolve(__dirname, "../..");
+
+// Try multiple .env locations — monorepo root first (canonical), then fallbacks
 const envPaths = [
+	resolve(monorepoRoot, ".env"), // Monorepo root (canonical)
 	resolve(process.cwd(), ".env"), // CWD (worktree root)
-	resolve(process.cwd(), "apps/server/.env"), // Monorepo root running db commands
-	resolve(__dirname, "../../apps/server/.env"), // From packages/db directory
+	resolve(monorepoRoot, "apps/server/.env"), // Legacy server .env
 ];
 
 const loadedPath = envPaths.find((p) => {
@@ -21,7 +24,7 @@ const loadedPath = envPaths.find((p) => {
 if (!process.env.DATABASE_URL) {
 	console.error("❌ DATABASE_URL not found. Tried paths:", envPaths);
 	console.error(
-		"💡 Ensure .env file exists with DATABASE_URL=file:/path/to/db.sqlite",
+		"💡 Ensure .env file exists with DATABASE_URL=file:./apps/server/data/nomos.db",
 	);
 	process.exit(1);
 }
@@ -39,15 +42,18 @@ if (
 	process.exit(1);
 }
 
+const resolvedUrl = resolveDbUrl(process.env.DATABASE_URL, monorepoRoot);
+
 if (loadedPath) {
 	console.log(`✅ Loaded env from: ${loadedPath}`);
 }
+console.log(`✅ Resolved DATABASE_URL: ${resolvedUrl}`);
 
 export default defineConfig({
 	schema: "./src/schema",
 	out: "./src/migrations",
 	dialect: "turso",
 	dbCredentials: {
-		url: process.env.DATABASE_URL,
+		url: resolvedUrl,
 	},
 });
