@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
+	Activity,
 	Bot,
 	Columns3,
 	FileJson,
@@ -21,6 +22,7 @@ const navItems = [
 	{ to: "/projects", label: "Projects", icon: FolderKanban },
 	{ to: "/kanban", label: "Kanban", icon: Columns3 },
 	{ to: "/agent", label: "Agent", icon: Bot },
+	{ to: "/activity", label: "Activity", icon: Activity },
 	{ to: "/terminal", label: "Terminal", icon: Terminal },
 	{ to: "/spec", label: "Spec", icon: FileJson },
 	{ to: "/settings", label: "Settings", icon: Settings },

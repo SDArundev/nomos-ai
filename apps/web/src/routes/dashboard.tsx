@@ -5,10 +5,10 @@ import {
 	GitBranch,
 	CheckCircle2,
 	Clock,
-	AlertCircle,
 	Layers,
 	Plus,
 } from "lucide-react";
+import { ActivityFeed } from "@/components/activity/activity-feed";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -144,28 +144,11 @@ function DashboardComponent() {
 
 						<Card>
 							<CardHeader>
-								<CardTitle className="text-base">Quick Actions</CardTitle>
-								<CardDescription>Jump to common tasks</CardDescription>
+								<CardTitle className="text-base">Recent Activity</CardTitle>
+								<CardDescription>Latest events in your workspace</CardDescription>
 							</CardHeader>
-							<CardContent className="grid gap-2">
-								<Link to="/kanban">
-									<Button variant="outline" className="w-full justify-start">
-										<Layers className="mr-2 size-4" />
-										Kanban Board
-									</Button>
-								</Link>
-								<Link to="/projects">
-									<Button variant="outline" className="w-full justify-start">
-										<FolderOpen className="mr-2 size-4" />
-										Manage Projects
-									</Button>
-								</Link>
-								<Link to="/agent">
-									<Button variant="outline" className="w-full justify-start">
-										<Clock className="mr-2 size-4" />
-										Agent Chat
-									</Button>
-								</Link>
+							<CardContent>
+								<ActivityFeed limit={10} />
 							</CardContent>
 						</Card>
 					</div>

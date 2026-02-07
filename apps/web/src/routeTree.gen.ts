@@ -10,11 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TerminalRouteImport } from './routes/terminal'
+import { Route as SpecRouteImport } from './routes/spec'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AgentRouteImport } from './routes/agent'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
@@ -23,6 +25,11 @@ import { Route as FeaturesFeatureIdRouteImport } from './routes/features.$featur
 const TerminalRoute = TerminalRouteImport.update({
   id: '/terminal',
   path: '/terminal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpecRoute = SpecRouteImport.update({
+  id: '/spec',
+  path: '/spec',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -50,6 +57,11 @@ const AgentRoute = AgentRouteImport.update({
   path: '/agent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -73,11 +85,13 @@ const FeaturesFeatureIdRoute = FeaturesFeatureIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/spec': typeof SpecRoute
   '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -85,11 +99,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/spec': typeof SpecRoute
   '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -98,11 +114,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/spec': typeof SpecRoute
   '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -112,11 +130,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activity'
     | '/agent'
     | '/dashboard'
     | '/kanban'
     | '/login'
     | '/settings'
+    | '/spec'
     | '/terminal'
     | '/features/$featureId'
     | '/projects/$projectId'
@@ -124,11 +144,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activity'
     | '/agent'
     | '/dashboard'
     | '/kanban'
     | '/login'
     | '/settings'
+    | '/spec'
     | '/terminal'
     | '/features/$featureId'
     | '/projects/$projectId'
@@ -136,11 +158,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/activity'
     | '/agent'
     | '/dashboard'
     | '/kanban'
     | '/login'
     | '/settings'
+    | '/spec'
     | '/terminal'
     | '/features/$featureId'
     | '/projects/$projectId'
@@ -149,11 +173,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
   AgentRoute: typeof AgentRoute
   DashboardRoute: typeof DashboardRoute
   KanbanRoute: typeof KanbanRoute
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
+  SpecRoute: typeof SpecRoute
   TerminalRoute: typeof TerminalRoute
   FeaturesFeatureIdRoute: typeof FeaturesFeatureIdRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
@@ -167,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/terminal'
       fullPath: '/terminal'
       preLoaderRoute: typeof TerminalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spec': {
+      id: '/spec'
+      path: '/spec'
+      fullPath: '/spec'
+      preLoaderRoute: typeof SpecRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -204,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -237,11 +277,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
   AgentRoute: AgentRoute,
   DashboardRoute: DashboardRoute,
   KanbanRoute: KanbanRoute,
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
+  SpecRoute: SpecRoute,
   TerminalRoute: TerminalRoute,
   FeaturesFeatureIdRoute: FeaturesFeatureIdRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
