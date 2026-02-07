@@ -1,6 +1,7 @@
 import { createContext } from "@nomos-ai/api/context";
 import { appRouter } from "@nomos-ai/api/routers/index";
 import { getEventService } from "@nomos-ai/api/routers/agent";
+import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
 import { auth } from "@nomos-ai/auth";
 import { db, runMigrations, sql } from "@nomos-ai/db";
@@ -76,10 +77,11 @@ app.use("/*", async (c, next) => {
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
-// WebSocket event service + broadcaster
+// WebSocket event service + broadcaster + terminal
 const eventService = getEventService();
 const broadcaster = new EventBroadcaster(eventService);
-const wsHandlers = createWebSocketHandlers(broadcaster);
+const terminalService = getTerminalService();
+const wsHandlers = createWebSocketHandlers(broadcaster, terminalService);
 
 // WebSocket upgrade endpoints
 app.get("/ws/events", (c) => {

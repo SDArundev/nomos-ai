@@ -13,7 +13,6 @@ export class AutoModeService {
 	private runningFeatures = new Map<string, AbortController>();
 	private consecutiveFailures = 0;
 	private readonly MAX_FAILURES = 3;
-	private projectRoot: string | null = null;
 
 	constructor(
 		private events: EventService,
@@ -31,7 +30,6 @@ export class AutoModeService {
 		}
 
 		this.isRunning = true;
-		this.projectRoot = projectRoot;
 		this.consecutiveFailures = 0;
 		this.events.emit("auto-mode:started", { projectId });
 

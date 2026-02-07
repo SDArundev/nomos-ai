@@ -1,5 +1,6 @@
 import type { ServerWebSocket } from "bun";
 import type { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
+import type { TerminalService } from "@nomos-ai/api/services/terminal-service";
 
 export interface WSData {
 	channel: "events" | "terminal";
@@ -7,7 +8,10 @@ export interface WSData {
 	userId?: string;
 }
 
-export function createWebSocketHandlers(broadcaster: EventBroadcaster) {
+export function createWebSocketHandlers(
+	broadcaster: EventBroadcaster,
+	terminalService?: TerminalService,
+) {
 	return {
 		open(ws: ServerWebSocket<WSData>) {
 			if (ws.data.channel === "events") {
@@ -17,8 +21,14 @@ export function createWebSocketHandlers(broadcaster: EventBroadcaster) {
 				ws.subscribe(`terminal:${ws.data.sessionId}`);
 			}
 		},
-		message(_ws: ServerWebSocket<WSData>, _message: string | Buffer) {
-			// Terminal input handling will be added in F261
+		message(ws: ServerWebSocket<WSData>, message: string | Buffer) {
+			if (ws.data.channel === "terminal" && ws.data.sessionId && terminalService) {
+				try {
+					terminalService.write(ws.data.sessionId, String(message));
+				} catch {
+					// Session may have been killed
+				}
+			}
 		},
 		close(ws: ServerWebSocket<WSData>) {
 			if (ws.data.channel === "events") {

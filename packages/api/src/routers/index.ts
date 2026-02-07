@@ -8,6 +8,7 @@ import { learningRouter } from "./learning";
 import { pipelineRouter } from "./pipeline";
 import { projectRouter } from "./project";
 import { sessionRouter } from "./session";
+import { terminalRouter } from "./terminal";
 import { worktreeRouter } from "./worktree";
 
 export const appRouter = {
@@ -29,6 +30,7 @@ export const appRouter = {
 	autoMode: autoModeRouter,
 	worktrees: worktreeRouter,
 	pipeline: pipelineRouter,
+	terminal: terminalRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
