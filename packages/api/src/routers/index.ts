@@ -1,11 +1,14 @@
 import type { RouterClient } from "@orpc/server";
 import { protectedProcedure, publicProcedure } from "../index";
 import { agentRouter } from "./agent";
+import { autoModeRouter } from "./auto-mode";
 import { eventsRouter } from "./events";
 import { featureRouter } from "./feature";
 import { learningRouter } from "./learning";
+import { pipelineRouter } from "./pipeline";
 import { projectRouter } from "./project";
 import { sessionRouter } from "./session";
+import { worktreeRouter } from "./worktree";
 
 export const appRouter = {
 	healthCheck: publicProcedure.handler(() => {
@@ -23,6 +26,9 @@ export const appRouter = {
 	sessions: sessionRouter,
 	agent: agentRouter,
 	events: eventsRouter,
+	autoMode: autoModeRouter,
+	worktrees: worktreeRouter,
+	pipeline: pipelineRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
