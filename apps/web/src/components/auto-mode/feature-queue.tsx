@@ -1,19 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Clock, Loader2 } from "lucide-react";
+import { ArrowRight, Clock, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { orpc } from "@/utils/orpc";
 
-export function FeatureQueue() {
+interface FeatureQueueProps {
+	onRetry?: (featureId: string) => void;
+	retrying?: boolean;
+}
+
+export function FeatureQueue({ onRetry, retrying }: FeatureQueueProps) {
 	const featuresQuery = useQuery(
 		orpc.features.list.queryOptions({ input: { status: "pending" } }),
 	);
 	const inProgressQuery = useQuery(
 		orpc.features.list.queryOptions({ input: { status: "in_progress" } }),
 	);
+	const failedQuery = useQuery(
+		orpc.features.list.queryOptions({ input: { status: "failed" } }),
+	);
 
 	const pending = featuresQuery.data ?? [];
 	const inProgress = inProgressQuery.data ?? [];
+	const failed = failedQuery.data ?? [];
 
 	return (
 		<Card>
@@ -41,6 +51,37 @@ export function FeatureQueue() {
 								)}
 							</div>
 						))}
+					</div>
+				)}
+
+				{failed.length > 0 && (
+					<div>
+						<h4 className="mb-1 flex items-center gap-1 text-red-500 text-xs font-medium">
+							<XCircle className="size-3" />
+							Failed ({failed.length})
+						</h4>
+						<div className="space-y-1">
+							{failed.map((f) => (
+								<div
+									key={f.id}
+									className="flex items-center gap-2 rounded bg-red-500/10 px-2 py-1 text-sm"
+								>
+									<span className="font-mono text-xs">{f.id}</span>
+									<span className="flex-1 truncate">{f.title}</span>
+									{onRetry && (
+										<Button
+											variant="ghost"
+											size="sm"
+											className="h-6 px-2"
+											onClick={() => onRetry(f.id)}
+											disabled={retrying}
+										>
+											<RefreshCw className="size-3" />
+										</Button>
+									)}
+								</div>
+							))}
+						</div>
 					</div>
 				)}
 
