@@ -84,7 +84,12 @@ export class WebSocketClient {
 			this.ws.close();
 		}
 
-		const wsUrl = env.VITE_SERVER_URL.replace(/^http/, "ws");
+		// In development, use same-origin WebSocket (Vite proxies /ws/* to backend)
+		// In production, connect directly to the server URL
+		const isDev = import.meta.env.DEV;
+		const wsUrl = isDev
+			? `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}`
+			: env.VITE_SERVER_URL.replace(/^http/, "ws");
 		this.ws = new WebSocket(`${wsUrl}/ws/${this.channel}`);
 
 		this.ws.onopen = () => {

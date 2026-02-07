@@ -15,6 +15,25 @@ export default defineConfig(({ mode }) => {
 		},
 		server: {
 			port: Number(env.VITE_PORT) || 3001,
+			proxy: {
+				"/ws": {
+					target: env.VITE_SERVER_URL || "http://localhost:3008",
+					ws: true,
+					changeOrigin: true,
+				},
+				"/rpc": {
+					target: env.VITE_SERVER_URL || "http://localhost:3008",
+					changeOrigin: true,
+				},
+				"/api": {
+					target: env.VITE_SERVER_URL || "http://localhost:3008",
+					changeOrigin: true,
+				},
+				"/health": {
+					target: env.VITE_SERVER_URL || "http://localhost:3008",
+					changeOrigin: true,
+				},
+			},
 		},
 	};
 });

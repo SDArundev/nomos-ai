@@ -81,7 +81,7 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 const eventService = getEventService();
 const broadcaster = new EventBroadcaster(eventService);
 const terminalService = getTerminalService();
-const wsHandlers = createWebSocketHandlers(broadcaster, terminalService);
+const wsHandlers = createWebSocketHandlers(broadcaster, terminalService, eventService);
 
 // Helper to extract userId from session cookie on WebSocket upgrade
 async function extractWsUserId(req: Request): Promise<string> {

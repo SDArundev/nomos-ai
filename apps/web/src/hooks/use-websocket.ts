@@ -5,6 +5,7 @@ import { getEventsClient, WebSocketClient } from "@/lib/websocket";
 export function useWebSocket() {
 	const [connected, setConnected] = useState(false);
 	const clientRef = useRef<WebSocketClient | null>(null);
+	const hasEverConnectedRef = useRef(false);
 	const wasConnectedRef = useRef(false);
 
 	useEffect(() => {
@@ -14,13 +15,15 @@ export function useWebSocket() {
 		const unsubscribe = client.onConnectionChange((isConnected) => {
 			setConnected(isConnected);
 
-			if (isConnected && wasConnectedRef.current === false && wasConnectedRef.current !== undefined) {
-				// Only show reconnected toast if we were previously disconnected (not first connect)
-				if (wasConnectedRef.current === false && clientRef.current) {
-					toast.success("Reconnected to server");
+			if (isConnected) {
+				// Only show "Reconnected" if we previously had a connection that dropped
+				if (hasEverConnectedRef.current && !wasConnectedRef.current) {
+					toast.success("Reconnected to server", { id: "ws-status" });
 				}
-			} else if (!isConnected && wasConnectedRef.current) {
-				toast.warning("Connection lost — reconnecting...");
+				hasEverConnectedRef.current = true;
+			} else if (!isConnected && hasEverConnectedRef.current && wasConnectedRef.current) {
+				// Only show "Connection lost" if we had a stable connection before
+				toast.warning("Connection lost — reconnecting...", { id: "ws-status" });
 			}
 			wasConnectedRef.current = isConnected;
 		});
