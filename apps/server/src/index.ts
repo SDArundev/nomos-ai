@@ -166,6 +166,12 @@ app.use("/*", async (c, next) => {
 	await next();
 });
 
+// Serve static web assets in production
+if (process.env.NODE_ENV === "production") {
+	const { serveStatic } = await import("hono/bun");
+	app.use("/*", serveStatic({ root: "./public" }));
+}
+
 app.get("/", (c) => {
 	return c.text("OK");
 });
@@ -217,7 +223,14 @@ app.get("/ready", async (c) => {
 	return c.json({ ready, checks }, ready ? 200 : 503);
 });
 
-app.notFound((c) => {
+app.notFound(async (c) => {
+	// SPA fallback: serve index.html for non-API routes in production
+	if (process.env.NODE_ENV === "production" && !c.req.path.startsWith("/rpc") && !c.req.path.startsWith("/api")) {
+		const file = Bun.file("./public/index.html");
+		if (await file.exists()) {
+			return c.html(await file.text());
+		}
+	}
 	return c.json({ error: "Not Found" }, 404);
 });
 
