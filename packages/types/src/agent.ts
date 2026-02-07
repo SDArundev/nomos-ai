@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { Model } from "./feature";
 
 /**
@@ -13,3 +14,14 @@ export const MODEL_MAP: Record<Model, string> = {
  * Default tools enabled for agent sessions
  */
 export const DEFAULT_TOOLS = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"];
+
+/**
+ * Agent definition schema for defining reusable agent configurations
+ */
+export const agentDefinitionSchema = z.object({
+	description: z.string(),
+	prompt: z.string(),
+	tools: z.array(z.string()).optional(),
+	model: z.enum(["sonnet", "opus", "haiku"]).optional(),
+});
+export type AgentDefinition = z.infer<typeof agentDefinitionSchema>;

@@ -83,6 +83,12 @@ export const feature = sqliteTable(
 			};
 		}>(),
 		branchName: text("branch_name"),
+		// F258: worktree + locking + pipeline fields
+		useWorktree: integer("use_worktree", { mode: "boolean" }).default(false),
+		locked: integer("locked", { mode: "boolean" }).default(false),
+		lockedBy: text("locked_by"),
+		lockedAt: integer("locked_at", { mode: "timestamp_ms" }),
+		pipelineStep: text("pipeline_step"),
 		tags: text("tags", { mode: "json" }).$type<string[]>(),
 		titleGenerating: integer("title_generating", { mode: "boolean" }),
 		startedAt: integer("started_at", { mode: "timestamp_ms" }),

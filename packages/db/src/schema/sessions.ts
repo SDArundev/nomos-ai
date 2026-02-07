@@ -15,6 +15,12 @@ export const agentSession = sqliteTable(
 		completedAt: integer("completed_at", { mode: "timestamp_ms" }),
 		output: text("output"),
 		error: text("error"),
+		// F258: SDK session + model + running state
+		sdkSessionId: text("sdk_session_id"),
+		model: text("model").default("sonnet"),
+		isRunning: integer("is_running", { mode: "boolean" }).default(false),
+		workingDirectory: text("working_directory"),
+		messageCount: integer("message_count").default(0),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),

@@ -1,44 +1,44 @@
-export { DEFAULT_TOOLS, MODEL_MAP } from "./agent";
+export {
+	type AgentDefinition,
+	agentDefinitionSchema,
+	DEFAULT_TOOLS,
+	MODEL_MAP,
+} from "./agent";
+export {
+	type EventCallback,
+	type EventType,
+	eventTypeSchema,
+} from "./event";
 export {
 	type BranchName,
 	BranchNameSchema,
 	type CategoryId,
-	// ID patterns
 	CategoryIdSchema,
-	// Description source
 	DESCRIPTION_SOURCE,
 	type DescriptionHistoryEntry,
-	// Supporting schemas
 	DescriptionHistoryEntrySchema,
 	type DescriptionSource,
 	DescriptionSourceSchema,
-	// Enhancement mode
 	ENHANCEMENT_MODE,
 	type EnhancementMode,
 	EnhancementModeSchema,
-	// Estimated size
 	ESTIMATED_SIZE,
 	type EstimatedSize,
 	EstimatedSizeSchema,
-	// Feature categories and phases
 	FEATURE_CATEGORIES,
 	FEATURE_PHASES,
 	type Feature,
 	type FeatureAsset,
 	FeatureAssetSchema,
-	// Feature schema and type
 	FeatureSchema,
 	type Files,
 	FilesSchema,
-	// Model
 	MODEL,
 	type Model,
 	ModelSchema,
 	type PhaseId,
 	PhaseIdSchema,
-	// Plan status
 	PLAN_STATUS,
-	// Planning mode
 	PLANNING_MODE,
 	type PlanningMode,
 	PlanningModeSchema,
@@ -50,28 +50,84 @@ export {
 	RequirementIdSchema,
 	type TestingRequirements,
 	TestingRequirementsSchema,
-	// Thinking level
 	THINKING_LEVEL,
 	type ThinkingLevel,
 	ThinkingLevelSchema,
 } from "./feature";
 export {
+	type EventId,
+	EventIdSchema,
 	type FeatureId,
 	FeatureIdSchema,
+	type MessageId,
+	MessageIdSchema,
+	type NotificationId,
+	NotificationIdSchema,
 	type ProjectId,
 	ProjectIdSchema,
 	type SessionId,
 	SessionIdSchema,
+	type SettingId,
+	SettingIdSchema,
 	type UserId,
 	UserIdSchema,
+	type WorktreeId,
+	WorktreeIdSchema,
 } from "./ids";
+export {
+	type ConversationMessage,
+	conversationMessageSchema,
+	type Message,
+	messageSchema,
+} from "./message";
+export {
+	type Notification,
+	notificationSchema,
+	type NotificationType,
+	notificationTypeSchema,
+} from "./notification";
+export {
+	type PaginatedResult,
+	type PaginationParams,
+	paginationParamsSchema,
+} from "./pagination";
+export {
+	type PipelineStep,
+	type PipelineStepId,
+	pipelineStepIdSchema,
+	pipelineStepSchema,
+	type PipelineStepStatus,
+	pipelineStepStatusSchema,
+} from "./pipeline";
 export {
 	type Project,
 	ProjectSchema,
 	type ProjectSettings,
 	ProjectSettingsSchema,
 } from "./project";
+export {
+	type ContentBlock,
+	contentBlockSchema,
+	type ExecuteOptions,
+	executeOptionsSchema,
+	type ProviderMessage,
+	providerMessageSchema,
+	type ProviderThinkingLevel,
+	THINKING_TOKEN_BUDGET,
+	thinkingLevelSchema,
+} from "./provider";
 export { type Session, SessionSchema } from "./session";
+export {
+	type Setting,
+	SETTING_KEYS,
+	settingSchema,
+	type SettingScope,
+	settingScopeSchema,
+	type ThemeMode,
+	themeModeSchema,
+	type PlanningModeSetting,
+	planningModeSettingSchema,
+} from "./settings";
 export {
 	FEATURE_STATUS,
 	FEATURE_VALID_TRANSITIONS,
@@ -85,3 +141,11 @@ export {
 	type SessionStatus,
 	SessionStatusSchema,
 } from "./status";
+export {
+	type PRState,
+	prStateSchema,
+	type WorktreeInfo,
+	worktreeInfoSchema,
+	type WorktreePRInfo,
+	worktreePRInfoSchema,
+} from "./worktree";
