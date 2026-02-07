@@ -97,11 +97,24 @@ jobs:
       - name: Build all packages
         run: bun run build
 
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [check-scaffold, build]
+    if: needs.check-scaffold.outputs.scaffolded == 'true'
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t nomos-ai:ci --no-cache .
+
   # This job always runs and reports success when project is not scaffolded
   ci-complete:
     name: CI Complete
     runs-on: ubuntu-latest
-    needs: [check-scaffold, lint, typecheck, test, build]
+    needs: [check-scaffold, lint, typecheck, test, build, docker]
     if: always()
     steps:
       - name: Check results
@@ -114,7 +127,8 @@ jobs:
           if [ "${{ needs.lint.result }}" == "failure" ] || \
              [ "${{ needs.typecheck.result }}" == "failure" ] || \
              [ "${{ needs.test.result }}" == "failure" ] || \
-             [ "${{ needs.build.result }}" == "failure" ]; then
+             [ "${{ needs.build.result }}" == "failure" ] || \
+             [ "${{ needs.docker.result }}" == "failure" ]; then
             echo "❌ CI failed"
             exit 1
           fi
