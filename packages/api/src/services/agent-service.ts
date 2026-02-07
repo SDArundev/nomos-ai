@@ -14,6 +14,7 @@ import {
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { generateSessionId } from "../utils/id-generation";
+import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
 
 interface CreateAgentSessionInput {
@@ -164,7 +165,10 @@ export async function createAgentSession(
 export class AgentService {
 	private runningSessions = new Map<string, AbortController>();
 
-	constructor(private events: EventService) {}
+	constructor(
+		private events: EventService,
+		private provider: AgentProvider,
+	) {}
 
 	async createSession(input: {
 		name: string;
@@ -191,9 +195,6 @@ export class AgentService {
 	async sendMessage(
 		sessionId: string,
 		content: string,
-		executeQuery: (
-			options: Record<string, unknown>,
-		) => AsyncIterable<Record<string, unknown>>,
 	): Promise<void> {
 		const session = await sessionRepository.findById(sessionId);
 		if (!session) throw new ORPCError("NOT_FOUND", { message: "Session not found" });
@@ -216,11 +217,13 @@ export class AgentService {
 
 		try {
 			let fullResponse = "";
-			const stream = executeQuery({
+			const stream = this.provider.executeQuery({
 				prompt: content,
 				cwd: session.workingDirectory ?? process.cwd(),
 				sdkSessionId: session.sdkSessionId ?? undefined,
 				model: session.model ?? "sonnet",
+				maxTurns: 10,
+				thinkingLevel: "standard",
 				abortController,
 			});
 
@@ -232,17 +235,11 @@ export class AgentService {
 				});
 
 				// Accumulate text for persistence
-				const typedMsg = msg as {
-					type?: string;
-					session_id?: string;
-					message?: { content?: Array<{ type?: string; text?: string }> };
-				};
-
 				if (
-					typedMsg.type === "assistant" &&
-					typedMsg.message?.content
+					msg.type === "assistant" &&
+					msg.message?.content
 				) {
-					for (const block of typedMsg.message.content) {
+					for (const block of msg.message.content) {
 						if (block.type === "text" && block.text) {
 							fullResponse += block.text;
 						}
@@ -250,9 +247,9 @@ export class AgentService {
 				}
 
 				// Capture SDK session ID for resumption
-				if (typedMsg.session_id) {
+				if (msg.session_id) {
 					await sessionRepository.update(sessionId, {
-						sdkSessionId: typedMsg.session_id,
+						sdkSessionId: msg.session_id,
 					});
 				}
 			}

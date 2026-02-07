@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { AgentService } from "../services/agent-service";
+import { ClaudeProvider } from "../services/claude-provider";
 import { EventService } from "../services/event-service";
 
 // Singleton instances shared across routers
@@ -16,7 +17,8 @@ export function getEventService(): EventService {
 
 export function getAgentService(): AgentService {
 	if (!agentServiceInstance) {
-		agentServiceInstance = new AgentService(getEventService());
+		const provider = ClaudeProvider.create();
+		agentServiceInstance = new AgentService(getEventService(), provider);
 	}
 	return agentServiceInstance;
 }
@@ -37,6 +39,22 @@ export const agentRouter = {
 				...input,
 				userId: context.session.user.id,
 			});
+		}),
+
+	sendMessage: protectedProcedure
+		.input(
+			z.object({
+				sessionId: z.string(),
+				content: z.string().min(1),
+			}),
+		)
+		.handler(async ({ input }) => {
+			const service = getAgentService();
+			// Start in background (non-blocking) — events stream via WebSocket
+			service.sendMessage(input.sessionId, input.content).catch(() => {
+				// Errors handled via agent:error events
+			});
+			return { success: true };
 		}),
 
 	stop: protectedProcedure

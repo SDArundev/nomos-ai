@@ -8,7 +8,11 @@ const MODEL_ALIASES: Record<string, string> = {
 	opus: "claude-opus-4-6",
 };
 
-export class ClaudeProvider {
+export interface AgentProvider {
+	executeQuery(options: ExecuteOptions): AsyncGenerator<ProviderMessage>;
+}
+
+export class ClaudeProvider implements AgentProvider {
 	async *executeQuery(
 		options: ExecuteOptions,
 	): AsyncGenerator<ProviderMessage> {
@@ -47,5 +51,9 @@ export class ClaudeProvider {
 
 	resolveModel(alias: string): string {
 		return MODEL_ALIASES[alias] ?? alias;
+	}
+
+	static create(): AgentProvider {
+		return new ClaudeProvider();
 	}
 }
