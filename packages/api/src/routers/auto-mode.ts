@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { AutoModeService } from "../services/auto-mode-service";
+import { ClaudeProvider } from "../services/claude-provider";
 import { PipelineService } from "../services/pipeline-service";
 import { WorktreeService } from "../services/worktree-service";
 import { getEventService } from "./agent";
@@ -12,7 +13,8 @@ export function getAutoModeService(): AutoModeService {
 		const events = getEventService();
 		const pipeline = getPipelineService();
 		const worktree = getWorktreeService();
-		autoModeServiceInstance = new AutoModeService(events, pipeline, worktree);
+		const provider = ClaudeProvider.create();
+		autoModeServiceInstance = new AutoModeService(events, pipeline, worktree, provider);
 	}
 	return autoModeServiceInstance;
 }
@@ -46,12 +48,8 @@ export const autoModeRouter = {
 		.handler(async ({ input }) => {
 			const service = getAutoModeService();
 			// Start in background (non-blocking)
-			const noopExecuteStep = async (_prompt: string, _cwd: string) => {
-				// In production, this would invoke the Claude SDK agent
-				// For now, it's a placeholder that consumers must wire up
-			};
 			service
-				.start(input.projectId, input.projectRoot, noopExecuteStep)
+				.start(input.projectId, input.projectRoot)
 				.catch(() => {
 					// Errors handled via events
 				});

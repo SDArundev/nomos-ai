@@ -58,16 +58,30 @@ Create an implementation plan with:
 	}
 
 	buildStepPrompt(feature: FeatureSelect, stepId: string): string {
+		const featureContext = [
+			`Feature: ${feature.id} — ${feature.title}`,
+			`Description: ${feature.description}`,
+		];
+
+		if (Array.isArray(feature.acceptanceCriteria) && feature.acceptanceCriteria.length > 0) {
+			featureContext.push(
+				"Acceptance Criteria:",
+				...feature.acceptanceCriteria.map((ac: string, i: number) => `  ${i + 1}. ${ac}`),
+			);
+		}
+
+		const featureBlock = featureContext.join("\n");
+
 		const stepInstructions: Record<string, string> = {
-			init: "Initialize the feature workspace. Read CLAUDE.md and understand the project structure.",
-			context: "Gather context about the codebase relevant to this feature. Identify existing patterns and dependencies.",
-			plan: "Create a detailed implementation plan. Identify files to create/modify.",
+			init: `Initialize the feature workspace. Read CLAUDE.md and understand the project structure.\n\n${featureBlock}`,
+			context: `Gather context about the codebase relevant to this feature. Identify existing patterns and dependencies.\n\n${featureBlock}`,
+			plan: `Create a detailed implementation plan. Identify files to create/modify.\n\n${featureBlock}`,
 			execute: `Implement the feature:\n\n${this.buildFeaturePrompt(feature)}`,
-			verify: "Verify the implementation: run type checks, tests, and validate against acceptance criteria.",
-			merge: "Prepare for merge: ensure all changes are committed, create PR if needed.",
-			finish: "Finalize: update feature status, record learnings.",
+			verify: `Verify the implementation: run type checks, tests, and validate against acceptance criteria.\n\n${featureBlock}`,
+			merge: `Prepare for merge: ensure all changes are committed, create PR if needed.\n\n${featureBlock}`,
+			finish: `Finalize: update feature status, record learnings.\n\n${featureBlock}`,
 		};
 
-		return stepInstructions[stepId] ?? `Execute step: ${stepId}`;
+		return stepInstructions[stepId] ?? `Execute step: ${stepId}\n\n${featureBlock}`;
 	}
 }

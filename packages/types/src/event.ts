@@ -12,6 +12,9 @@ export const eventTypeSchema = z.enum([
 	"feature:completed",
 	"feature:error",
 	"feature:verified",
+	// Pipeline events
+	"pipeline:step-started",
+	"pipeline:step-completed",
 	// Auto-mode events
 	"auto-mode:started",
 	"auto-mode:stopped",

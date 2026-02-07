@@ -39,8 +39,16 @@ export class PipelineService {
 		const feature = await featureRepository.findById(featureId);
 		if (!feature) throw new Error(`Feature not found: ${featureId}`);
 
+		this.events.emit("feature:started", { featureId });
+
 		for (const step of PIPELINE_STEPS) {
-			// Emit running
+			// Emit step started
+			this.events.emit("pipeline:step-started", {
+				featureId,
+				step: step.id,
+				name: step.name,
+			});
+
 			this.events.emit("feature:progress", {
 				featureId,
 				step: step.id,
@@ -55,13 +63,21 @@ export class PipelineService {
 			const prompt = this.promptBuilder.buildStepPrompt(feature, step.id);
 			await executeStep(prompt, cwd);
 
-			// Emit completed
+			// Emit step completed
+			this.events.emit("pipeline:step-completed", {
+				featureId,
+				step: step.id,
+				name: step.name,
+			});
+
 			this.events.emit("feature:progress", {
 				featureId,
 				step: step.id,
 				status: "completed",
 			});
 		}
+
+		this.events.emit("feature:completed", { featureId });
 	}
 
 	async getProgress(featureId: string): Promise<{
