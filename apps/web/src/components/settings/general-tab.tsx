@@ -1,7 +1,8 @@
 import { Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
-import { applyTheme, themes } from "@/lib/themes";
+import { applyTheme, resetTheme, themes } from "@/lib/themes";
 
 interface GeneralTabProps {
 	settings: Record<string, unknown>;
@@ -10,10 +11,17 @@ interface GeneralTabProps {
 
 export function GeneralTab({ settings, onUpdate }: GeneralTabProps) {
 	const currentTheme = (settings.theme as string) ?? "default";
+	const { setTheme } = useTheme();
 
 	const handleThemeChange = (themeId: string) => {
 		onUpdate("theme", themeId);
-		applyTheme(themeId);
+		if (themeId === "default") {
+			resetTheme();
+			setTheme("dark");
+		} else {
+			applyTheme(themeId);
+			setTheme("dark");
+		}
 	};
 
 	return (
