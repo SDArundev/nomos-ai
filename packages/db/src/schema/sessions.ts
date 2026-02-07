@@ -7,9 +7,10 @@ export const agentSession = sqliteTable(
 	{
 		id: text("id").primaryKey(),
 		userId: text("user_id").notNull(),
-		featureId: text("feature_id")
-			.notNull()
-			.references(() => feature.id, { onDelete: "cascade" }),
+		featureId: text("feature_id").references(() => feature.id, {
+			onDelete: "cascade",
+		}),
+		projectId: text("project_id"),
 		status: text("status").notNull(),
 		startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
 		completedAt: integer("completed_at", { mode: "timestamp_ms" }),
