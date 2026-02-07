@@ -54,6 +54,12 @@ export class ClaudeProvider implements AgentProvider {
 	}
 
 	static create(): AgentProvider {
+		const isMock = process.env.NOMOS_MOCK_AGENT === "true" || process.env.NOMOS_MOCK_AGENT === "1";
+		if (isMock) {
+			// Lazy import to avoid loading mock in production
+			const { MockProvider } = require("./mock-provider") as typeof import("./mock-provider");
+			return new MockProvider();
+		}
 		return new ClaudeProvider();
 	}
 }

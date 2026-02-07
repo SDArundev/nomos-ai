@@ -1,32 +1,33 @@
-import "dotenv/config";
 import { createEnv } from "@t3-oss/env-core";
+import "dotenv/config";
 import { z } from "zod";
 
 export const env = createEnv({
-	server: {
-		DATABASE_URL: z
-			.string()
-			.min(1)
-			.refine(
-				(url) =>
-					url.startsWith("file:") ||
-					url.startsWith("libsql://") ||
-					url.startsWith("http"),
-				{
-					message:
-						'DATABASE_URL must start with "file:" for SQLite, "libsql://" for Turso, or "http" for remote',
-				},
-			),
-		BETTER_AUTH_SECRET: z.string().min(32),
-		BETTER_AUTH_URL: z.url(),
-		CORS_ORIGIN: z.string().min(1),
-		PORT: z.coerce.number().int().default(3000),
-		NODE_ENV: z
-			.enum(["development", "production", "test"])
-			.default("development"),
-		ANTHROPIC_API_KEY: z.string().min(1),
-		CLAUDE_MODEL: z.string().default("claude-sonnet-4-5-20250929"),
-	},
-	runtimeEnv: process.env,
-	emptyStringAsUndefined: true,
+  server: {
+    DATABASE_URL: z
+      .string()
+      .min(1)
+      .refine(
+        (url) =>
+          url.startsWith("file:") ||
+          url.startsWith("libsql://") ||
+          url.startsWith("http"),
+        {
+          message:
+            'DATABASE_URL must start with "file:" for SQLite, "libsql://" for Turso, or "http" for remote',
+        },
+      ),
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.url(),
+    CORS_ORIGIN: z.string().min(1),
+    PORT: z.coerce.number().int().default(3000),
+    NODE_ENV: z
+      .enum(["development", "production", "test"])
+      .default("development"),
+    ANTHROPIC_API_KEY: z.string().optional(),
+    CLAUDE_MODEL: z.string().default("claude-sonnet-4-5-20250929"),
+    NOMOS_MOCK_AGENT: z.coerce.boolean().default(false),
+  },
+  runtimeEnv: process.env,
+  emptyStringAsUndefined: true,
 });
