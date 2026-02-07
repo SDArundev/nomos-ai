@@ -55,18 +55,21 @@ const updateProjectInput = z.object({
 });
 
 export const projectRouter = {
-	list: protectedProcedure.handler(async () => {
-		return projectRepository.findAll();
+	list: protectedProcedure.handler(async ({ context }) => {
+		return projectRepository.findByUser(context.session.user.id);
 	}),
 
 	get: protectedProcedure
 		.input(z.object({ id: ProjectIdSchema }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const project = await projectRepository.findById(input.id);
 			if (!project) {
 				throw new ORPCError("NOT_FOUND", {
 					message: `Project not found: ${input.id}`,
 				});
+			}
+			if (project.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
 			}
 			return project;
 		}),
@@ -90,7 +93,11 @@ export const projectRouter = {
 
 	update: protectedProcedure
 		.input(updateProjectInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const existing = await projectRepository.findById(input.id);
+			if (!existing || existing.userId !== context.session.user.id) {
+				throw new ORPCError("NOT_FOUND", { message: `Project not found: ${input.id}` });
+			}
 			try {
 				const updateData = Object.fromEntries(
 					Object.entries(input.data).filter(([, v]) => v !== undefined),
@@ -103,7 +110,11 @@ export const projectRouter = {
 
 	delete: protectedProcedure
 		.input(z.object({ id: ProjectIdSchema }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const existing = await projectRepository.findById(input.id);
+			if (!existing || existing.userId !== context.session.user.id) {
+				throw new ORPCError("NOT_FOUND", { message: `Project not found: ${input.id}` });
+			}
 			try {
 				return await projectRepository.delete(input.id);
 			} catch (error) {

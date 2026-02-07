@@ -15,6 +15,10 @@ export const projectRepository = {
 		return rows[0] ?? null;
 	},
 
+	async findByUser(userId: string): Promise<ProjectSelect[]> {
+		return db.select().from(project).where(eq(project.userId, userId));
+	},
+
 	async create(
 		data: Omit<ProjectInsert, "createdAt" | "updatedAt">,
 	): Promise<ProjectSelect> {

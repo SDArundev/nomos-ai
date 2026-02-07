@@ -15,6 +15,26 @@ export const featureRepository = {
 		return rows[0] ?? null;
 	},
 
+	async findByUser(userId: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(eq(feature.userId, userId));
+	},
+
+	async findByUserAndStatus(userId: string, status: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.status, status)));
+	},
+
+	async findByUserAndPhase(userId: string, phase: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.phase, phase)));
+	},
+
+	async findByUserStatusAndPhase(userId: string, status: string, phase: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.status, status), eq(feature.phase, phase)));
+	},
+
+	async findByUserAndProject(userId: string, projectId: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.projectId, projectId)));
+	},
+
 	async findByProject(projectId: string): Promise<FeatureSelect[]> {
 		return db.select().from(feature).where(eq(feature.projectId, projectId));
 	},

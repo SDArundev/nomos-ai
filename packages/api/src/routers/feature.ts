@@ -72,29 +72,32 @@ const bulkUpdateStatusInput = z.object({
 export const featureRouter = {
 	list: protectedProcedure
 		.input(listFeaturesInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
 			if (input?.status && input?.phase) {
-				return featureRepository.findByStatusAndPhase(
-					input.status,
-					input.phase,
-				);
+				return featureRepository.findByUserStatusAndPhase(userId, input.status, input.phase);
 			}
 			if (input?.status) {
-				return featureRepository.findByStatus(input.status);
+				return featureRepository.findByUserAndStatus(userId, input.status);
 			}
 			if (input?.phase) {
-				return featureRepository.findByPhase(input.phase);
+				return featureRepository.findByUserAndPhase(userId, input.phase);
 			}
-			return featureRepository.findAll();
+			return featureRepository.findByUser(userId);
 		}),
 
 	get: protectedProcedure
 		.input(z.object({ id: FeatureIdSchema }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const feat = await featureRepository.findById(input.id);
 			if (!feat) {
 				throw new ORPCError("NOT_FOUND", {
 					message: `Feature not found: ${input.id}`,
+				});
+			}
+			if (feat.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "Access denied",
 				});
 			}
 			return feat;
@@ -127,7 +130,11 @@ export const featureRouter = {
 
 	update: protectedProcedure
 		.input(updateFeatureInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const feat = await featureRepository.findById(input.id);
+			if (!feat || feat.userId !== context.session.user.id) {
+				throw new ORPCError("NOT_FOUND", { message: `Feature not found: ${input.id}` });
+			}
 			try {
 				const updateData = Object.fromEntries(
 					Object.entries(input.data).filter(([, v]) => v !== undefined),
@@ -140,7 +147,11 @@ export const featureRouter = {
 
 	delete: protectedProcedure
 		.input(z.object({ id: FeatureIdSchema }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const feat = await featureRepository.findById(input.id);
+			if (!feat || feat.userId !== context.session.user.id) {
+				throw new ORPCError("NOT_FOUND", { message: `Feature not found: ${input.id}` });
+			}
 			try {
 				return await featureRepository.delete(input.id);
 			} catch (error) {
@@ -150,12 +161,15 @@ export const featureRouter = {
 
 	updateStatus: protectedProcedure
 		.input(updateStatusInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const feat = await featureRepository.findById(input.id);
 			if (!feat) {
 				throw new ORPCError("NOT_FOUND", {
 					message: `Feature not found: ${input.id}`,
 				});
+			}
+			if (feat.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
 			}
 
 			const allowed = FEATURE_VALID_TRANSITIONS[feat.status as FeatureStatus];
@@ -170,8 +184,8 @@ export const featureRouter = {
 
 	getDependencyOrder: protectedProcedure
 		.input(z.object({ projectId: z.string() }))
-		.handler(async ({ input }) => {
-			const features = await featureRepository.findByProjectWithDependencies(input.projectId);
+		.handler(async ({ input, context }) => {
+			const features = await featureRepository.findByUserAndProject(context.session.user.id, input.projectId);
 			const ordered = resolveDependencies(features);
 			return ordered.map((f) => ({
 				id: f.id,
@@ -184,7 +198,15 @@ export const featureRouter = {
 
 	bulkUpdateStatus: protectedProcedure
 		.input(bulkUpdateStatusInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			// Verify all features belong to the user
+			const userId = context.session.user.id;
+			const userFeatures = await featureRepository.findByUser(userId);
+			const userIds = new Set(userFeatures.map((f) => f.id));
+			const unauthorized = input.ids.filter((id) => !userIds.has(id));
+			if (unauthorized.length > 0) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied to some features" });
+			}
 			try {
 				return await featureRepository.bulkUpdateStatusWithValidation(
 					input.ids,
