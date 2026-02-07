@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useAgentStream } from "@/hooks/use-agent-stream";
 import { type AgentMessage, useAgentStore } from "@/store/agent-store";
@@ -28,6 +28,20 @@ export function AgentChat() {
 			clearError();
 		}
 	}, [error, clearError]);
+
+	// Refetch history when streaming finishes to get persisted messages
+	const wasStreaming = useRef(false);
+	useEffect(() => {
+		if (wasStreaming.current && !isStreaming && activeSessionId) {
+			queryClient.invalidateQueries({
+				queryKey: orpc.agent.getHistory.queryOptions({
+					input: { sessionId: activeSessionId },
+				}).queryKey,
+			});
+			setIsSending(false);
+		}
+		wasStreaming.current = isStreaming;
+	}, [isStreaming, activeSessionId, queryClient, setIsSending]);
 
 	// Fetch sessions
 	const sessionsQuery = useQuery(orpc.agent.listSessions.queryOptions());
@@ -102,6 +116,28 @@ export function AgentChat() {
 		}),
 	);
 
+	// Clear history
+	const clearHistory = useMutation(
+		orpc.agent.clearHistory.mutationOptions({
+			onSuccess: () => {
+				useAgentStore.getState().clearMessages();
+				queryClient.invalidateQueries({
+					queryKey: orpc.agent.getHistory.queryOptions({
+						input: { sessionId: activeSessionId ?? "" },
+					}).queryKey,
+				});
+				toast.success("History cleared");
+			},
+			onError: (err) => toast.error(err.message),
+		}),
+	);
+
+	const handleClearHistory = useCallback(() => {
+		if (activeSessionId) {
+			clearHistory.mutate({ sessionId: activeSessionId });
+		}
+	}, [activeSessionId, clearHistory]);
+
 	const handleNewSession = useCallback(() => {
 		createSession.mutate({
 			name: `Session ${Date.now()}`,
@@ -163,6 +199,14 @@ export function AgentChat() {
 									<span className="text-blue-500 text-xs">streaming</span>
 								)}
 							</div>
+							<button
+								type="button"
+								onClick={handleClearHistory}
+								disabled={clearHistory.isPending || messages.length === 0}
+								className="text-muted-foreground text-xs hover:text-foreground disabled:opacity-50"
+							>
+								Clear History
+							</button>
 						</div>
 						<MessageList
 							messages={messages}
