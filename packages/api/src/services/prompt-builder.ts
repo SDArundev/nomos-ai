@@ -1,7 +1,17 @@
 import type { FeatureSelect } from "@nomos-ai/db";
+import { loadProjectContext } from "../lib/context-loader";
 
 export class PromptBuilder {
-	buildFeaturePrompt(feature: FeatureSelect, context?: string): string {
+	private projectContext: string | null = null;
+
+	/**
+	 * Load project context from disk. Call once, reuse for all features.
+	 */
+	async loadContext(projectRoot: string): Promise<void> {
+		this.projectContext = await loadProjectContext(projectRoot);
+	}
+
+	buildFeaturePrompt(feature: FeatureSelect, context?: string | null): string {
 		const parts: string[] = [
 			`You are implementing feature ${feature.id}: ${feature.title}`,
 			"",
@@ -25,8 +35,9 @@ export class PromptBuilder {
 			parts.push("", "## Technical Notes", feature.technicalNotes);
 		}
 
-		if (context) {
-			parts.push("", "## Project Context", context);
+		const effectiveContext = context ?? this.projectContext;
+		if (effectiveContext) {
+			parts.push("", "## Project Context", effectiveContext);
 		}
 
 		parts.push(

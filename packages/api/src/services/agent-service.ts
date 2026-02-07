@@ -14,6 +14,7 @@ import {
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { generateSessionId } from "../utils/id-generation";
+import { loadProjectContext } from "../lib/context-loader";
 import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
 
@@ -216,10 +217,18 @@ export class AgentService {
 		});
 
 		try {
+			// Load project context for system prompt
+			const cwd = session.workingDirectory ?? process.cwd();
+			const projectContext = await loadProjectContext(cwd);
+			const systemPrompt = projectContext
+				? `# Project Context\n\n${projectContext}`
+				: undefined;
+
 			let fullResponse = "";
 			const stream = this.provider.executeQuery({
 				prompt: content,
-				cwd: session.workingDirectory ?? process.cwd(),
+				cwd,
+				systemPrompt,
 				sdkSessionId: session.sdkSessionId ?? undefined,
 				model: session.model ?? "sonnet",
 				maxTurns: 10,
