@@ -7,6 +7,7 @@ import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
+	useMatchRoute,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useState } from "react";
@@ -14,6 +15,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { authClient } from "@/lib/auth-client";
 import { link, type orpc } from "@/utils/orpc";
 import "../index.css";
 
@@ -46,6 +48,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 function RootComponent() {
 	const [client] = useState<AppRouterClient>(() => createORPCClient(link));
 	const [_orpcUtils] = useState(() => createTanstackQueryUtils(client));
+	const matchRoute = useMatchRoute();
+	const isLoginRoute = matchRoute({ to: "/login" });
+	const { data: session, isPending } = authClient.useSession();
+
+	const isAuthenticated = !!session?.user;
+	const showShell = isAuthenticated && !isLoginRoute;
 
 	return (
 		<>
@@ -56,15 +64,25 @@ function RootComponent() {
 				disableTransitionOnChange
 				storageKey="vite-ui-theme"
 			>
-				<div className="flex h-svh overflow-hidden">
-					<AppSidebar />
-					<div className="flex min-w-0 flex-1 flex-col">
-						<Header />
-						<main className="flex-1 overflow-auto">
-							<Outlet />
-						</main>
+				{showShell ? (
+					<div className="flex h-svh overflow-hidden">
+						<AppSidebar />
+						<div className="flex min-w-0 flex-1 flex-col">
+							<Header />
+							<main className="flex-1 overflow-auto">
+								<Outlet />
+							</main>
+						</div>
 					</div>
-				</div>
+				) : (
+					<div className="flex h-svh items-center justify-center">
+						{isPending ? (
+							<div className="text-muted-foreground text-sm">Loading...</div>
+						) : (
+							<Outlet />
+						)}
+					</div>
+				)}
 				<Toaster richColors />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />
