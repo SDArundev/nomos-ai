@@ -159,7 +159,7 @@ app.get("/", (c) => {
 });
 
 app.get("/health", async (c) => {
-	let database = "connected";
+	let database: "connected" | "disconnected" = "connected";
 	try {
 		await db.run(sql`SELECT 1`);
 	} catch {
@@ -167,7 +167,7 @@ app.get("/health", async (c) => {
 		return c.json(
 			{
 				status: "unhealthy",
-				version: "1.0.0",
+				version: "0.1.0",
 				database,
 				uptime: process.uptime(),
 				timestamp: new Date().toISOString(),
@@ -176,12 +176,33 @@ app.get("/health", async (c) => {
 		);
 	}
 	return c.json({
-		status: "healthy",
-		version: "1.0.0",
+		status: "ok",
+		version: "0.1.0",
 		database,
 		uptime: process.uptime(),
 		timestamp: new Date().toISOString(),
 	});
+});
+
+app.get("/ready", async (c) => {
+	const checks: Record<string, boolean> = {
+		db: false,
+		websocket: false,
+	};
+
+	// Check DB connectivity
+	try {
+		await db.run(sql`SELECT 1`);
+		checks.db = true;
+	} catch {
+		// DB not ready
+	}
+
+	// Check WebSocket broadcaster initialized (clientCount getter exists)
+	checks.websocket = broadcaster.clientCount !== undefined;
+
+	const ready = Object.values(checks).every(Boolean);
+	return c.json({ ready, checks }, ready ? 200 : 503);
 });
 
 app.notFound((c) => {
@@ -200,7 +221,7 @@ app.onError((err, c) => {
 	return c.json({ error: message }, 500);
 });
 
-console.log(`Server running on port ${env.PORT}`);
+console.log(`Server ready on port ${env.PORT}`);
 
 export default {
 	port: env.PORT,

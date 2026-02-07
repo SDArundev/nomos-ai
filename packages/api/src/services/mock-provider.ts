@@ -15,7 +15,7 @@ const MOCK_RESPONSES = [
 
 export class MockProvider implements AgentProvider {
 	async *executeQuery(
-		options: ExecuteOptions,
+		_options: ExecuteOptions,
 	): AsyncGenerator<ProviderMessage> {
 		const sessionId = `mock-${crypto.randomUUID().slice(0, 8)}`;
 
