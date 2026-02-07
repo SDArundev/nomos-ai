@@ -20,6 +20,7 @@ import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as FeaturesImportRouteImport } from './routes/features.import'
 import { Route as FeaturesFeatureIdRouteImport } from './routes/features.$featureId'
 
 const TerminalRoute = TerminalRouteImport.update({
@@ -77,6 +78,11 @@ const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeaturesImportRoute = FeaturesImportRouteImport.update({
+  id: '/features/import',
+  path: '/features/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeaturesFeatureIdRoute = FeaturesFeatureIdRouteImport.update({
   id: '/features/$featureId',
   path: '/features/$featureId',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/spec': typeof SpecRoute
   '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
+  '/features/import': typeof FeaturesImportRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
 }
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/spec': typeof SpecRoute
   '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
+  '/features/import': typeof FeaturesImportRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects': typeof ProjectsIndexRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/spec': typeof SpecRoute
   '/terminal': typeof TerminalRoute
   '/features/$featureId': typeof FeaturesFeatureIdRoute
+  '/features/import': typeof FeaturesImportRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
 }
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/spec'
     | '/terminal'
     | '/features/$featureId'
+    | '/features/import'
     | '/projects/$projectId'
     | '/projects/'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/spec'
     | '/terminal'
     | '/features/$featureId'
+    | '/features/import'
     | '/projects/$projectId'
     | '/projects'
   id:
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/spec'
     | '/terminal'
     | '/features/$featureId'
+    | '/features/import'
     | '/projects/$projectId'
     | '/projects/'
   fileRoutesById: FileRoutesById
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   SpecRoute: typeof SpecRoute
   TerminalRoute: typeof TerminalRoute
   FeaturesFeatureIdRoute: typeof FeaturesFeatureIdRoute
+  FeaturesImportRoute: typeof FeaturesImportRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/features/import': {
+      id: '/features/import'
+      path: '/features/import'
+      fullPath: '/features/import'
+      preLoaderRoute: typeof FeaturesImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/features/$featureId': {
       id: '/features/$featureId'
       path: '/features/$featureId'
@@ -286,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   SpecRoute: SpecRoute,
   TerminalRoute: TerminalRoute,
   FeaturesFeatureIdRoute: FeaturesFeatureIdRoute,
+  FeaturesImportRoute: FeaturesImportRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
 }

@@ -27,6 +27,9 @@ interface KanbanColumnProps {
 	}>;
 	color: string;
 	onFeatureSelect?: (id: string) => void;
+	selectable?: boolean;
+	selectedIds?: Set<string>;
+	onToggleSelect?: (id: string) => void;
 }
 
 export function KanbanColumn({
@@ -35,6 +38,9 @@ export function KanbanColumn({
 	features,
 	color,
 	onFeatureSelect,
+	selectable,
+	selectedIds,
+	onToggleSelect,
 }: KanbanColumnProps) {
 	const { setNodeRef, isOver } = useDroppable({ id: status });
 	const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false);
@@ -109,6 +115,9 @@ export function KanbanColumn({
 									key={feature.id}
 									feature={feature}
 									onClick={onFeatureSelect}
+									selectable={selectable}
+									selected={selectedIds?.has(feature.id)}
+									onSelect={onToggleSelect}
 								/>
 							))
 						)}

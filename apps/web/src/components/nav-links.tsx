@@ -6,6 +6,7 @@ import {
 	FileJson,
 	FolderKanban,
 	Home,
+	Import,
 	LayoutDashboard,
 	Settings,
 	Terminal,
@@ -25,6 +26,7 @@ const navItems = [
 	{ to: "/activity", label: "Activity", icon: Activity },
 	{ to: "/terminal", label: "Terminal", icon: Terminal },
 	{ to: "/spec", label: "Spec", icon: FileJson },
+	{ to: "/features/import", label: "Import", icon: Import },
 	{ to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 

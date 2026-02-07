@@ -1,8 +1,8 @@
 import type { FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { CheckSquare, Plus, Trash2 } from "lucide-react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FeatureDetailPanel } from "@/components/kanban/feature-detail-panel";
@@ -52,6 +52,8 @@ function KanbanPage() {
 	const setDetailPanelOpen = useAppStore((state) => state.setDetailPanelOpen);
 	const selectedProjectId = useAppStore((state) => state.selectedProjectId);
 
+	const [selectable, setSelectable] = useState(false);
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [showNewFeature, setShowNewFeature] = useState(false);
 	const [newTitle, setNewTitle] = useState("");
 	const [newDescription, setNewDescription] = useState("");
@@ -92,6 +94,47 @@ function KanbanPage() {
 			},
 		}),
 	);
+
+	const bulkUpdateStatus = useMutation(
+		orpc.features.bulkUpdateStatus.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.list.queryOptions().queryKey,
+				});
+				toast.success(`Updated ${selectedIds.size} features`);
+				setSelectedIds(new Set());
+				setSelectable(false);
+			},
+			onError: (error) => {
+				toast.error(error.message || "Bulk update failed");
+			},
+		}),
+	);
+
+	const bulkDelete = useMutation(
+		orpc.features.bulkDelete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.list.queryOptions().queryKey,
+				});
+				toast.success(`Deleted ${selectedIds.size} features`);
+				setSelectedIds(new Set());
+				setSelectable(false);
+			},
+			onError: (error) => {
+				toast.error(error.message || "Bulk delete failed");
+			},
+		}),
+	);
+
+	const handleToggleSelect = useCallback((id: string) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			return next;
+		});
+	}, []);
 
 	const handleCreateFeature = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -143,6 +186,26 @@ function KanbanPage() {
 		}
 		return true;
 	});
+
+	const handleSelectAll = useCallback(() => {
+		const allIds = filteredFeatures.map((f) => f.id);
+		setSelectedIds((prev) => {
+			if (prev.size === allIds.length) return new Set();
+			return new Set(allIds);
+		});
+	}, [filteredFeatures]);
+
+	const handleBulkStatusChange = (status: string) => {
+		bulkUpdateStatus.mutate({
+			ids: Array.from(selectedIds),
+			status: status as FeatureStatus,
+		});
+	};
+
+	const handleBulkDelete = () => {
+		if (!confirm(`Delete ${selectedIds.size} features? This cannot be undone.`)) return;
+		bulkDelete.mutate({ ids: Array.from(selectedIds) });
+	};
 
 	const handleSearchChange = (value: string) => {
 		navigate({
@@ -225,10 +288,22 @@ function KanbanPage() {
 							Drag and drop features to change their status
 						</p>
 					</div>
-					<Button onClick={() => setShowNewFeature(true)}>
-						<Plus className="mr-2 size-4" />
-						New Feature
-					</Button>
+					<div className="flex gap-2">
+						<Button
+							variant={selectable ? "secondary" : "outline"}
+							onClick={() => {
+								setSelectable(!selectable);
+								if (selectable) setSelectedIds(new Set());
+							}}
+						>
+							<CheckSquare className="mr-2 size-4" />
+							{selectable ? "Cancel Select" : "Select"}
+						</Button>
+						<Button onClick={() => setShowNewFeature(true)}>
+							<Plus className="mr-2 size-4" />
+							New Feature
+						</Button>
+					</div>
 				</div>
 				<KanbanFilterBar
 					search={searchParams.search}
@@ -239,12 +314,41 @@ function KanbanPage() {
 					onPhaseChange={handlePhaseChange}
 					onClear={handleClearFilters}
 				/>
+			{selectable && selectedIds.size > 0 && (
+					<div className="mx-6 mb-2 flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2">
+						<span className="text-sm font-medium">{selectedIds.size} selected</span>
+						<Button size="sm" variant="outline" onClick={handleSelectAll}>
+							{selectedIds.size === filteredFeatures.length ? "Deselect All" : "Select All"}
+						</Button>
+						<select
+							className="h-8 rounded border bg-background px-2 text-sm"
+							defaultValue=""
+							onChange={(e) => {
+								if (e.target.value) handleBulkStatusChange(e.target.value);
+								e.target.value = "";
+							}}
+						>
+							<option value="" disabled>Move to...</option>
+							<option value="backlog">Backlog</option>
+							<option value="pending">Pending</option>
+							<option value="in_progress">In Progress</option>
+							<option value="verified">Verified</option>
+						</select>
+						<Button size="sm" variant="destructive" onClick={handleBulkDelete}>
+							<Trash2 className="mr-1 size-3.5" />
+							Delete
+						</Button>
+					</div>
+				)}
 			</div>
 			<div className="flex-1 overflow-hidden">
 				<KanbanBoard
 					features={filteredFeatures}
 					onStatusChange={handleStatusChange}
 					onFeatureSelect={handleFeatureSelect}
+					selectable={selectable}
+					selectedIds={selectedIds}
+					onToggleSelect={handleToggleSelect}
 				/>
 			</div>
 			<FeatureDetailPanel

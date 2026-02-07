@@ -196,6 +196,63 @@ export const featureRouter = {
 			}));
 		}),
 
+	bulkCreate: protectedProcedure
+		.input(
+			z.object({
+				features: z.array(createFeatureInput).min(1).max(200),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+			const results = [];
+			for (const feat of input.features) {
+				try {
+					const created = await featureRepository.create({
+						id: await generateFeatureId(),
+						userId,
+						projectId: feat.projectId,
+						title: feat.title,
+						category: feat.category,
+						description: feat.description,
+						phase: feat.phase,
+						status: feat.status,
+						passes: false,
+						acceptanceCriteria: feat.acceptanceCriteria,
+						priority: feat.priority,
+						requirements: feat.requirements,
+						dependencies: feat.dependencies,
+						estimatedSize: feat.estimatedSize,
+					});
+					results.push({ id: created.id, success: true });
+				} catch {
+					results.push({ id: feat.title, success: false });
+				}
+			}
+			return results;
+		}),
+
+	bulkDelete: protectedProcedure
+		.input(z.object({ ids: z.array(FeatureIdSchema).min(1) }))
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+			const userFeatures = await featureRepository.findByUser(userId);
+			const userIds = new Set(userFeatures.map((f) => f.id));
+			const unauthorized = input.ids.filter((id) => !userIds.has(id));
+			if (unauthorized.length > 0) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied to some features" });
+			}
+			const results = [];
+			for (const id of input.ids) {
+				try {
+					await featureRepository.delete(id);
+					results.push({ id, success: true });
+				} catch {
+					results.push({ id, success: false });
+				}
+			}
+			return results;
+		}),
+
 	bulkUpdateStatus: protectedProcedure
 		.input(bulkUpdateStatusInput)
 		.handler(async ({ input, context }) => {
