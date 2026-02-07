@@ -1,5 +1,9 @@
 import { featureRepository } from "@nomos-ai/db";
 import {
+	resolveDependencies,
+	getBlockingDependencies,
+} from "../lib/dependency-resolver";
+import {
 	FEATURE_VALID_TRANSITIONS,
 	FeatureIdSchema,
 	type FeatureStatus,
@@ -162,6 +166,20 @@ export const featureRouter = {
 			}
 
 			return featureRepository.update(input.id, { status: input.status });
+		}),
+
+	getDependencyOrder: protectedProcedure
+		.input(z.object({ projectId: z.string() }))
+		.handler(async ({ input }) => {
+			const features = await featureRepository.findByProjectWithDependencies(input.projectId);
+			const ordered = resolveDependencies(features);
+			return ordered.map((f) => ({
+				id: f.id,
+				title: f.title,
+				status: f.status,
+				dependencies: f.dependencies ?? [],
+				blocking: getBlockingDependencies(f, features).map((b) => b.id),
+			}));
 		}),
 
 	bulkUpdateStatus: protectedProcedure

@@ -142,6 +142,10 @@ export const featureRepository = {
 		return row;
 	},
 
+	async findByProjectWithDependencies(projectId: string): Promise<FeatureSelect[]> {
+		return db.select().from(feature).where(eq(feature.projectId, projectId));
+	},
+
 	async findDependencies(id: string): Promise<FeatureSelect[]> {
 		const parent = await this.findById(id);
 		if (!parent) {
