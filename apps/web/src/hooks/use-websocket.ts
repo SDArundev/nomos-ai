@@ -1,38 +1,36 @@
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { getEventsClient, WebSocketClient } from "@/lib/websocket";
 
 export function useWebSocket() {
 	const [connected, setConnected] = useState(false);
 	const clientRef = useRef<WebSocketClient | null>(null);
+	const wasConnectedRef = useRef(false);
 
 	useEffect(() => {
 		const client = getEventsClient();
 		clientRef.current = client;
 
-		const unsubOpen = () => setConnected(true);
-		const unsubClose = () => setConnected(false);
+		const unsubscribe = client.onConnectionChange((isConnected) => {
+			setConnected(isConnected);
 
-		// Create a new client with callbacks
-		client.disconnect();
-		Object.assign(client, {
-			connect: client.connect.bind(client),
+			if (isConnected && wasConnectedRef.current === false && wasConnectedRef.current !== undefined) {
+				// Only show reconnected toast if we were previously disconnected (not first connect)
+				if (wasConnectedRef.current === false && clientRef.current) {
+					toast.success("Reconnected to server");
+				}
+			} else if (!isConnected && wasConnectedRef.current) {
+				toast.warning("Connection lost — reconnecting...");
+			}
+			wasConnectedRef.current = isConnected;
 		});
 
-		// Subscribe to connection state via a lightweight approach
-		const originalConnect = client.connect.bind(client);
-		const wrappedClient = getEventsClient();
-		wrappedClient.connect();
+		if (!client.connected) {
+			client.connect();
+		}
+		setConnected(client.connected);
 
-		// Poll connection state
-		const interval = setInterval(() => {
-			setConnected(wrappedClient.connected);
-		}, 1000);
-
-		setConnected(wrappedClient.connected);
-
-		return () => {
-			clearInterval(interval);
-		};
+		return unsubscribe;
 	}, []);
 
 	return { connected, client: clientRef.current };

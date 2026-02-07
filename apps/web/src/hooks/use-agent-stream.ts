@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import type { AgentMessage } from "@/store/agent-store";
 import { useAgentStore } from "@/store/agent-store";
 import { getEventsClient } from "@/lib/websocket";
@@ -149,6 +150,7 @@ export function useAgentStream(sessionId: string | null) {
 				const payload = data.payload as { sessionId: string; error: string };
 				if (payload.sessionId === sessionId) {
 					setError(payload.error);
+					toast.error("Agent error", { description: payload.error });
 					contentRef.current = "";
 					toolCallsRef.current = [];
 					setStreamState({

@@ -19,6 +19,7 @@ export class WebSocketClient {
 	private reconnectDelay = INITIAL_RECONNECT_DELAY;
 	private shouldReconnect = true;
 	private handlers: EventHandler[] = [];
+	private connectionHandlers: Array<(connected: boolean) => void> = [];
 	private options: WebSocketClientOptions;
 
 	constructor(
@@ -55,6 +56,19 @@ export class WebSocketClient {
 		};
 	}
 
+	onConnectionChange(handler: (connected: boolean) => void): () => void {
+		this.connectionHandlers.push(handler);
+		return () => {
+			this.connectionHandlers = this.connectionHandlers.filter((h) => h !== handler);
+		};
+	}
+
+	private notifyConnectionChange(connected: boolean): void {
+		for (const handler of this.connectionHandlers) {
+			handler(connected);
+		}
+	}
+
 	send(data: unknown): void {
 		if (this.ws?.readyState === WebSocket.OPEN) {
 			this.ws.send(typeof data === "string" ? data : JSON.stringify(data));
@@ -76,6 +90,7 @@ export class WebSocketClient {
 		this.ws.onopen = () => {
 			this.reconnectDelay = INITIAL_RECONNECT_DELAY;
 			this.options.onOpen?.();
+			this.notifyConnectionChange(true);
 		};
 
 		this.ws.onmessage = (event) => {
@@ -91,6 +106,7 @@ export class WebSocketClient {
 
 		this.ws.onclose = () => {
 			this.options.onClose?.();
+			this.notifyConnectionChange(false);
 			this.scheduleReconnect();
 		};
 

@@ -12,6 +12,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ErrorBoundary } from "@/components/error-boundary";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -71,7 +72,9 @@ function RootComponent() {
 						<div className="flex min-w-0 flex-1 flex-col">
 							<Header />
 							<main className="flex-1 overflow-auto">
-								<Outlet />
+								<ErrorBoundary>
+									<Outlet />
+								</ErrorBoundary>
 							</main>
 						</div>
 					</div>
