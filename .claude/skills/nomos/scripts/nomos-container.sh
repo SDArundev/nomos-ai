@@ -6,8 +6,9 @@
 #   nomos-container.sh <FEATURE_ID>
 #
 # Environment variables:
-#   ANTHROPIC_API_KEY        — Claude API key (required if no OAuth)
-#   CLAUDE_OAUTH_CREDENTIALS — JSON string of OAuth credentials (alternative)
+#   CLAUDE_CODE_OAUTH_TOKEN  — OAuth token from `claude setup-token` (recommended for Max)
+#   ANTHROPIC_API_KEY        — Claude API key (alternative)
+#   CLAUDE_OAUTH_CREDENTIALS — JSON string of OAuth credentials (legacy)
 #   REPO_URL                 — Git remote URL to clone (if not bind-mounted)
 #   REPO_BRANCH              — Branch to clone from (default: main)
 #   GH_TOKEN                 — GitHub token for push + gh CLI auth
@@ -85,15 +86,27 @@ log "Phase 1: Setting up authentication..."
 
 mkdir -p /home/${NOMOS_USER}/.claude
 
-if [ -n "$CLAUDE_OAUTH_CREDENTIALS" ]; then
-    # Write OAuth credentials (with leading dot — matches existing docker-entrypoint.sh)
-    (umask 077 && echo "$CLAUDE_OAUTH_CREDENTIALS" > /home/${NOMOS_USER}/.claude/.credentials.json)
-    log "  Auth: OAuth credentials configured"
+if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    # Claude Max subscription — token from `claude setup-token`
+    # Also need ~/.claude.json with hasCompletedOnboarding to skip interactive prompts
+    log "  Auth: OAuth token detected (Claude Max)"
 elif [ -n "$ANTHROPIC_API_KEY" ]; then
     log "  Auth: API key detected"
+elif [ -n "$CLAUDE_OAUTH_CREDENTIALS" ]; then
+    # Legacy: raw OAuth credentials JSON
+    (umask 077 && echo "$CLAUDE_OAUTH_CREDENTIALS" > /home/${NOMOS_USER}/.claude/.credentials.json)
+    log "  Auth: OAuth credentials file configured (legacy)"
 else
-    fail "No authentication configured. Set ANTHROPIC_API_KEY or CLAUDE_OAUTH_CREDENTIALS"
+    fail "No authentication configured. Set CLAUDE_CODE_OAUTH_TOKEN, ANTHROPIC_API_KEY, or CLAUDE_OAUTH_CREDENTIALS"
 fi
+
+# Create ~/.claude.json to skip onboarding prompts (required for headless)
+(umask 077 && cat > /home/${NOMOS_USER}/.claude.json << 'CLAUDEJSON'
+{
+  "hasCompletedOnboarding": true
+}
+CLAUDEJSON
+)
 
 chown -R ${NOMOS_USER}:${NOMOS_USER} /home/${NOMOS_USER}
 
@@ -240,11 +253,20 @@ chown -R ${NOMOS_USER}:${NOMOS_USER} /home/${NOMOS_USER}/.claude
 log "  Prompt: ${PROMPT}"
 log "  === Claude Code output begins ==="
 
+# Build env vars for Claude Code
+CLAUDE_ENV=(
+    HOME="/home/${NOMOS_USER}"
+)
+
+if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    CLAUDE_ENV+=(CLAUDE_CODE_OAUTH_TOKEN="${CLAUDE_CODE_OAUTH_TOKEN}")
+elif [ -n "$ANTHROPIC_API_KEY" ]; then
+    CLAUDE_ENV+=(ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}")
+fi
+
 # Run Claude Code with timeout
 set +e
-timeout "${TIMEOUT}" gosu ${NOMOS_USER} env \
-    ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
-    HOME="/home/${NOMOS_USER}" \
+timeout "${TIMEOUT}" gosu ${NOMOS_USER} env "${CLAUDE_ENV[@]}" \
     claude -p "$PROMPT" \
     --dangerously-skip-permissions \
     --model "$MODEL" \

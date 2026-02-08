@@ -66,8 +66,8 @@ Options:
   -h, --help        Show this help
 
 Environment:
-  ANTHROPIC_API_KEY         Required (unless CLAUDE_OAUTH_CREDENTIALS set)
-  CLAUDE_OAUTH_CREDENTIALS  Alternative auth (JSON string)
+  CLAUDE_CODE_OAUTH_TOKEN   Recommended for Claude Max (from `claude setup-token`)
+  ANTHROPIC_API_KEY         Alternative: direct API key
   GH_TOKEN                  Required for git push and PR creation
 
 Examples:
@@ -191,9 +191,9 @@ for fid in "${FEATURES[@]}"; do
 done
 
 # Validate auth
-if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$CLAUDE_OAUTH_CREDENTIALS" ]; then
+if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ] && [ -z "$ANTHROPIC_API_KEY" ]; then
     err "No authentication configured"
-    err "Set ANTHROPIC_API_KEY or CLAUDE_OAUTH_CREDENTIALS"
+    err "Set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token') or ANTHROPIC_API_KEY"
     exit 1
 fi
 
@@ -280,6 +280,7 @@ for FEATURE_ID in "${FEATURES[@]}"; do
     DOCKER_ARGS=(
         run -d
         --name "$CONTAINER_NAME"
+        -e "CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}"
         -e "ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}"
         -e "CLAUDE_MODEL=${MODEL}"
         -e "MAX_BUDGET_USD=${BUDGET}"
@@ -289,11 +290,6 @@ for FEATURE_ID in "${FEATURES[@]}"; do
         -e "GIT_USER_NAME=${GIT_NAME}"
         -e "GIT_USER_EMAIL=${GIT_EMAIL}"
     )
-
-    # OAuth credentials (if set)
-    if [ -n "$CLAUDE_OAUTH_CREDENTIALS" ]; then
-        DOCKER_ARGS+=(-e "CLAUDE_OAUTH_CREDENTIALS=${CLAUDE_OAUTH_CREDENTIALS}")
-    fi
 
     # GitHub token (for push)
     if [ -n "$GH_TOKEN" ]; then
