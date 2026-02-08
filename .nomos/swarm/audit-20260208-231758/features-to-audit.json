@@ -1,0 +1,686 @@
+[
+  {
+    "id": "F001",
+    "title": "Monorepo scaffold with Turborepo",
+    "description": "Initialize monorepo structure with Turborepo for build orchestration. Setup apps/web, apps/server, apps/desktop, packages/types, packages/db directories with proper tsconfig paths.",
+    "ac": [
+      "turbo.json configured with build, dev, check pipelines",
+      "Package workspaces defined in root package.json",
+      "TypeScript project references working",
+      "bun run dev starts all apps concurrently"
+    ]
+  },
+  {
+    "id": "F002",
+    "title": "Shared types package with branded types",
+    "description": "Create packages/types with branded types for FeatureId, ProjectId, SessionId using Zod. Export type inference utilities and shared constants.",
+    "ac": [
+      "Branded types prevent mixing IDs at compile time",
+      "Zod schemas validate runtime data",
+      "Types importable from @nomos/types",
+      "Constants exported for status enums"
+    ]
+  },
+  {
+    "id": "F003",
+    "title": "Feature Zod schema with validation",
+    "description": "Define Feature Zod schema matching feature.schema.json. Include all fields: id, title, category, description, status, passes, acceptanceCriteria, dependencies.",
+    "ac": [
+      "Schema validates all required fields",
+      "Status enum matches state machine",
+      "Feature ID pattern validated (F001-F999)",
+      "Type inference works correctly"
+    ]
+  },
+  {
+    "id": "F005",
+    "title": "Session Zod schema for agent sessions",
+    "description": "Define Session Zod schema for tracking agent execution sessions. Include sessionId, featureId, status, startedAt, completedAt, output fields.",
+    "ac": [
+      "Schema validates session lifecycle",
+      "Status tracks pending/running/completed/failed",
+      "Output stores agent response",
+      "Timestamps track duration"
+    ]
+  },
+  {
+    "id": "F006",
+    "title": "Database package with Drizzle ORM",
+    "description": "Setup packages/db with Drizzle ORM and SQLite (libSQL). Configure drizzle.config.ts, create initial schema file, setup migration system.",
+    "ac": [
+      "Drizzle configured with libSQL driver",
+      "Migration folder structure created",
+      "drizzle-kit commands work (generate, migrate)",
+      "Database file persists in .nomos/data/"
+    ]
+  },
+  {
+    "id": "F007",
+    "title": "Projects table schema",
+    "description": "Create Drizzle schema for projects table with id, name, path, settings (JSON), createdAt, updatedAt columns. Add indexes for name lookup.",
+    "ac": [
+      "Table created with all columns",
+      "Primary key on id",
+      "Unique constraint on path",
+      "JSON column for flexible settings"
+    ]
+  },
+  {
+    "id": "F008",
+    "title": "Features table schema",
+    "description": "Create Drizzle schema for features table mirroring feature.schema.json. Include all fields with proper SQLite types, foreign key to projects.",
+    "ac": [
+      "All feature fields mapped to columns",
+      "Foreign key to projects table",
+      "Index on status for filtering",
+      "Index on phase for grouping"
+    ]
+  },
+  {
+    "id": "F009",
+    "title": "Sessions table schema",
+    "description": "Create Drizzle schema for sessions table tracking agent executions. Include foreign keys to features and projects, output storage.",
+    "ac": [
+      "Session lifecycle columns present",
+      "Foreign key to features table",
+      "Output stored as TEXT (large content)",
+      "Index on status and featureId"
+    ]
+  },
+  {
+    "id": "F010",
+    "title": "Learning table schema",
+    "description": "Create Drizzle schema for learnings table storing patterns extracted from feature implementations. Include category, pattern, antiPattern, context fields.",
+    "ac": [
+      "Learnings stored with metadata",
+      "Category for filtering patterns",
+      "Source featureId tracked",
+      "Timestamp for recency"
+    ]
+  },
+  {
+    "id": "F011",
+    "title": "Database migrations initial setup",
+    "description": "Generate and run initial migrations for all tables. Setup migration runner in server startup, handle schema versioning.",
+    "ac": [
+      "Migrations generated successfully",
+      "Migrations run on server start",
+      "Schema version tracked",
+      "Rollback capability exists"
+    ]
+  },
+  {
+    "id": "F012",
+    "title": "Repository pattern for projects",
+    "description": "Implement ProjectRepository with CRUD operations using Drizzle. Include findAll, findById, create, update, delete methods with proper typing.",
+    "ac": [
+      "All CRUD methods implemented",
+      "Type-safe return values",
+      "Error handling for not found",
+      "Transaction support"
+    ]
+  },
+  {
+    "id": "F013",
+    "title": "Repository pattern for features",
+    "description": "Implement FeatureRepository with CRUD and query operations. Include findByProject, findByStatus, updateStatus, bulk operations.",
+    "ac": [
+      "CRUD methods implemented",
+      "Query by project and status",
+      "Bulk status updates work",
+      "Dependency resolution query"
+    ]
+  },
+  {
+    "id": "F014",
+    "title": "Repository pattern for sessions",
+    "description": "Implement SessionRepository for agent session tracking. Include create, update, findByFeature, findActive methods.",
+    "ac": [
+      "Session CRUD implemented",
+      "Active session query works",
+      "Output append capability",
+      "Duration calculation"
+    ]
+  },
+  {
+    "id": "F015",
+    "title": "Hono server setup with oRPC",
+    "description": "Setup apps/server with Hono framework and oRPC for type-safe APIs. Configure middleware stack, CORS, error handling.",
+    "ac": [
+      "Hono server starts on configured port",
+      "oRPC router configured",
+      "CORS allows frontend origin",
+      "Error middleware catches exceptions"
+    ]
+  },
+  {
+    "id": "F016",
+    "title": "Health check endpoint",
+    "description": "Implement /health endpoint returning server status, database connection, and version info. Used by Tauri to verify backend is running.",
+    "ac": [
+      "GET /health returns 200",
+      "Response includes version",
+      "Database connectivity checked",
+      "Response time under 100ms"
+    ]
+  },
+  {
+    "id": "F017",
+    "title": "Projects oRPC router",
+    "description": "Implement oRPC router for project CRUD operations. Include list, get, create, update, delete procedures with Zod validation.",
+    "ac": [
+      "All CRUD procedures implemented",
+      "Input validated with Zod",
+      "Type-safe client generated",
+      "Errors return proper codes"
+    ]
+  },
+  {
+    "id": "F018",
+    "title": "Features oRPC router",
+    "description": "Implement oRPC router for feature operations. Include list, get, create, update, delete, updateStatus, bulkUpdate procedures.",
+    "ac": [
+      "All feature procedures work",
+      "Status transitions validated",
+      "Bulk operations efficient",
+      "Filtering by status/phase"
+    ]
+  },
+  {
+    "id": "F020",
+    "title": "React app with TanStack Router",
+    "description": "Setup apps/web with React 19, Vite 6, TanStack Router. Configure routes for dashboard, project, feature detail pages.",
+    "ac": [
+      "Vite dev server starts",
+      "TanStack Router configured",
+      "Routes render correctly",
+      "Type-safe route params"
+    ]
+  },
+  {
+    "id": "F021",
+    "title": "Tailwind CSS 4 setup with shadcn/ui",
+    "description": "Configure Tailwind CSS 4 with shadcn/ui component library. Setup theme tokens, dark mode support, component directory structure.",
+    "ac": [
+      "Tailwind classes working",
+      "shadcn/ui components available",
+      "Dark mode toggle works",
+      "Theme tokens defined"
+    ]
+  },
+  {
+    "id": "F022",
+    "title": "Zustand store for global state",
+    "description": "Setup Zustand store for application state. Create slices for projects, features, sessions, UI state with proper typing.",
+    "ac": [
+      "Store created with slices",
+      "Actions type-safe",
+      "Selectors optimized",
+      "DevTools integration"
+    ]
+  },
+  {
+    "id": "F023",
+    "title": "TanStack Query setup for API calls",
+    "description": "Configure TanStack Query with oRPC client. Setup query keys, default options, error handling, optimistic updates.",
+    "ac": [
+      "Query client configured",
+      "oRPC hooks generated",
+      "Caching works correctly",
+      "Invalidation on mutations"
+    ]
+  },
+  {
+    "id": "F024",
+    "title": "App layout with sidebar navigation",
+    "description": "Create main app layout with collapsible sidebar, header, and content area. Include project selector, navigation links, user menu.",
+    "ac": [
+      "Sidebar collapses/expands",
+      "Navigation links work",
+      "Project selector dropdown",
+      "Responsive on resize"
+    ]
+  },
+  {
+    "id": "F025",
+    "title": "Kanban board component",
+    "description": "Create Kanban board with columns for each status (backlog, in_progress, waiting_approval, verified). Use dnd-kit for drag-drop.",
+    "ac": [
+      "Columns render by status",
+      "Features display as cards",
+      "Drag-drop changes status",
+      "Smooth animations"
+    ]
+  },
+  {
+    "id": "F026",
+    "title": "Feature card component",
+    "description": "Create feature card showing id, title, priority badge, size indicator, dependency count. Compact view for Kanban column.",
+    "ac": [
+      "Card shows key info",
+      "Priority color-coded",
+      "Size badge visible",
+      "Click opens detail"
+    ]
+  },
+  {
+    "id": "F027",
+    "title": "Feature detail panel",
+    "description": "Create slide-out panel for feature details. Show all fields, acceptance criteria checklist, dependencies graph, action buttons.",
+    "ac": [
+      "Panel slides from right",
+      "All fields displayed",
+      "Edit mode works",
+      "Actions trigger correctly"
+    ]
+  },
+  {
+    "id": "F028",
+    "title": "Feature create/edit form",
+    "description": "Create form for adding/editing features using TanStack Form. Validate with Zod schema, handle acceptance criteria array.",
+    "ac": [
+      "Form validates input",
+      "Create saves to DB",
+      "Edit updates existing",
+      "Array fields work"
+    ]
+  },
+  {
+    "id": "F029",
+    "title": "Kanban column header with count",
+    "description": "Create column header showing status name, feature count, optional actions menu. Include collapse/expand toggle.",
+    "ac": [
+      "Count updates on change",
+      "Actions menu works",
+      "Collapse hides cards",
+      "Visual feedback"
+    ]
+  },
+  {
+    "id": "F030",
+    "title": "Kanban filters and search",
+    "description": "Add filter bar above Kanban with search, category filter, phase filter, priority filter. Persist filter state.",
+    "ac": [
+      "Search filters by title",
+      "Category dropdown works",
+      "Phase dropdown works",
+      "Filters persist in URL"
+    ]
+  },
+  {
+    "id": "F033",
+    "title": "Agent execution with streaming",
+    "description": "Implement agent execution with streaming output. Capture text, tool calls, tool results, and thinking tokens in real-time.",
+    "ac": [
+      "Agent runs in worktree",
+      "Output streams in real-time",
+      "Tool calls captured",
+      "Thinking tokens tracked"
+    ]
+  },
+  {
+    "id": "F035",
+    "title": "Agent output WebSocket streaming",
+    "description": "Stream agent output to connected clients via WebSocket. Emit events for text chunks, tool calls, completion, errors.",
+    "ac": [
+      "Output streams to clients",
+      "Events typed correctly",
+      "Backpressure handled",
+      "Errors propagated"
+    ]
+  },
+  {
+    "id": "F036",
+    "title": "Agent output viewer component",
+    "description": "Create React component to display streaming agent output. Show markdown formatted text, collapsible tool calls, thinking indicator.",
+    "ac": [
+      "Markdown renders correctly",
+      "Tool calls collapsible",
+      "Auto-scroll to bottom",
+      "Copy output button"
+    ]
+  },
+  {
+    "id": "F037",
+    "title": "Tool call visualization",
+    "description": "Create component to display tool calls with name, input, output, duration. Color-code by tool type, show file diffs.",
+    "ac": [
+      "Tool name displayed",
+      "Input/output collapsible",
+      "Duration shown",
+      "File diffs rendered"
+    ]
+  },
+  {
+    "id": "F039",
+    "title": "Start feature execution button",
+    "description": "Add button to feature detail to start agent execution. Show confirmation dialog with options for model, thinking level, planning mode.",
+    "ac": [
+      "Button visible on detail",
+      "Confirmation shows options",
+      "Execution starts on confirm",
+      "Status updates to in_progress"
+    ]
+  },
+  {
+    "id": "F040",
+    "title": "Stop feature execution",
+    "description": "Add ability to stop running agent execution. Send cancel signal, cleanup resources, update session status.",
+    "ac": [
+      "Stop button visible during run",
+      "Agent receives cancel",
+      "Resources cleaned up",
+      "Session marked cancelled"
+    ]
+  },
+  {
+    "id": "F221",
+    "title": "Fix: entity IDs use randomUUID instead of branded format (F###, P###, S###)",
+    "description": "crypto.randomUUID() used for entity IDs instead of branded format (F###, P###, S###). Suggested fix: Implement branded ID generation: query max(id), increment, format with prefix",
+    "ac": [
+      "Branded ID generation (F###, P###, S###) replaces crypto.randomUUID()",
+      "Existing entities remain accessible after migration"
+    ]
+  },
+  {
+    "id": "F222",
+    "title": "Fix: bulkUpdateStatus validates then updates without transaction wrapping",
+    "description": "bulkUpdateStatus validates then updates without transaction wrapping. Suggested fix: Wrap validation + update in featureRepository.withTransaction()",
+    "ac": [
+      "bulkUpdateStatus wraps validation + update in a single transaction",
+      "Partial failures roll back cleanly"
+    ]
+  },
+  {
+    "id": "F223",
+    "title": "Fix: Projects table missing status column defined in ProjectSchema Zod type",
+    "description": "Projects table missing status column defined in ProjectSchema Zod type. Suggested fix: Add status text column + migration",
+    "ac": [
+      "Projects table includes status column matching ProjectSchema Zod type",
+      "Migration runs without data loss"
+    ]
+  },
+  {
+    "id": "F225",
+    "title": "Fix: No rate limiting on any routes",
+    "description": "No rate limiting on any routes. Suggested fix: Add hono-rate-limiter middleware",
+    "ac": [
+      "Rate limiting middleware active on all routes",
+      "429 response returned when limit exceeded"
+    ]
+  },
+  {
+    "id": "F226",
+    "title": "Fix: F031 SDK client needs error handling and retry logic",
+    "description": "F031 Claude Agent SDK client is verified but lacks robust error handling, retry logic, and connection timeout configuration. Originally flagged when F031 was in_progress with no code.",
+    "ac": [
+      "SDK client has error handling for API failures",
+      "Retry logic with exponential backoff configured",
+      "Connection timeout settings documented"
+    ]
+  },
+  {
+    "id": "F227",
+    "title": "Fix: F032 agent service needs input validation and limits",
+    "description": "F032 agent session creation service is verified but lacks input validation for session parameters and resource limits. Originally flagged when F032 was in_progress with no code.",
+    "ac": [
+      "Session creation validates all input parameters",
+      "Resource limits prevent unbounded session creation",
+      "Invalid inputs return clear error messages"
+    ]
+  },
+  {
+    "id": "F228",
+    "title": "Fix: F033 in_progress but no streaming implementation exists",
+    "description": "F033 in_progress but no streaming implementation exists. Suggested fix: Update status to pending or implement streaming",
+    "ac": [
+      "Streaming implementation exists for agent execution",
+      "Server-sent events or WebSocket delivers output chunks"
+    ]
+  },
+  {
+    "id": "F229",
+    "title": "Fix: F011 AC 'Rollback capability exists' — no rollback mechanism",
+    "description": "F011 AC 'Rollback capability exists' — no rollback mechanism. Suggested fix: Document rollback strategy or implement manual rollback",
+    "ac": [
+      "Database migration rollback mechanism exists",
+      "Rollback restores previous schema state"
+    ]
+  },
+  {
+    "id": "F230",
+    "title": "Fix: F001 AC 'TypeScript project references working' — no references configured",
+    "description": "F001 AC 'TypeScript project references working' — no references configured. Suggested fix: Add references array to root tsconfig.json",
+    "ac": [
+      "TypeScript project references configured in tsconfig.json",
+      "Cross-package type checking works via references"
+    ]
+  },
+  {
+    "id": "F231",
+    "title": "Fix: bulkUpdateStatus silently skips non-existent feature IDs",
+    "description": "bulkUpdateStatus silently skips non-existent feature IDs. Suggested fix: Collect missing IDs and throw ORPCError NOT_FOUND",
+    "ac": [
+      "bulkUpdateStatus returns error for non-existent feature IDs",
+      "No silent skips on invalid IDs"
+    ]
+  },
+  {
+    "id": "F232",
+    "title": "Fix: DB stores {} for settings, Zod expects undefined to apply defaults",
+    "description": "DB stores {} for settings, Zod expects undefined to apply defaults. Suggested fix: Handle empty object in Zod transform",
+    "ac": [
+      "DB default for settings compatible with Zod schema defaults",
+      "Empty settings object applies Zod defaults correctly"
+    ]
+  },
+  {
+    "id": "F233",
+    "title": "Fix: VALID_TRANSITIONS duplicated in 4 files",
+    "description": "VALID_TRANSITIONS duplicated in 4 files. Suggested fix: Extract to @nomos-ai/types as centralized constant",
+    "ac": [
+      "VALID_TRANSITIONS defined in single source of truth",
+      "All 4 files import from shared location"
+    ]
+  },
+  {
+    "id": "F234",
+    "title": "Fix: No X-Frame-Options, CSP, HSTS, X-Content-Type-Options",
+    "description": "No X-Frame-Options, CSP, HSTS, X-Content-Type-Options. Suggested fix: Add Hono secureHeaders middleware",
+    "ac": [
+      "X-Frame-Options, CSP, HSTS, X-Content-Type-Options headers set",
+      "Security headers pass OWASP check"
+    ]
+  },
+  {
+    "id": "F235",
+    "title": "Fix: sameSite:none disables CSRF, secure:true breaks dev",
+    "description": "sameSite:none disables CSRF, secure:true breaks dev. Suggested fix: Make cookie settings environment-aware",
+    "ac": [
+      "sameSite cookie attribute uses 'lax' or 'strict'",
+      "secure flag respects NODE_ENV for dev/prod"
+    ]
+  },
+  {
+    "id": "F236",
+    "title": "Fix: Error handlers expose internal details to clients",
+    "description": "Error handlers expose internal details to clients. Suggested fix: Sanitize error messages in production",
+    "ac": [
+      "Error responses return generic messages to clients",
+      "Internal details logged server-side only"
+    ]
+  },
+  {
+    "id": "F237",
+    "title": "Fix: CATEGORIES, PHASES, SIZES hardcoded instead of imported from types",
+    "description": "CATEGORIES, PHASES, SIZES hardcoded instead of imported from types. Suggested fix: Export arrays from types package, import in components",
+    "ac": [
+      "CATEGORIES, PHASES, SIZES imported from @nomos/types",
+      "No hardcoded duplicates in component files"
+    ]
+  },
+  {
+    "id": "F238",
+    "title": "Fix: Identical try-catch error pattern duplicated 15+ times",
+    "description": "Identical try-catch error pattern duplicated 15+ times. Suggested fix: Create handleRepositoryError utility",
+    "ac": [
+      "Shared error handler replaces 15+ identical try-catch blocks",
+      "Error behavior unchanged after refactor"
+    ]
+  },
+  {
+    "id": "F239",
+    "title": "Fix: ID generation in router handlers — should be in repository layer",
+    "description": "ID generation in router handlers — should be in repository layer. Suggested fix: Move ID generation into repository create methods",
+    "ac": [
+      "ID generation moved to repository layer",
+      "Router handlers no longer generate IDs directly"
+    ]
+  },
+  {
+    "id": "F240",
+    "title": "Fix: Status colors + display metadata duplicated across components",
+    "description": "Status colors + display metadata duplicated across components. Suggested fix: Create shared FEATURE_STATUS_METADATA constant",
+    "ac": [
+      "Status colors and display metadata in single shared module",
+      "All components import from shared source"
+    ]
+  },
+  {
+    "id": "F241",
+    "title": "Fix: Dark mode toggle exists but no Tailwind 4 theme tokens defined",
+    "description": "Dark mode toggle exists but no Tailwind 4 theme tokens defined. Suggested fix: Add Tailwind 4 CSS variables for dark mode",
+    "ac": [
+      "Tailwind 4 theme tokens defined for dark/light modes",
+      "Dark mode toggle applies tokens correctly"
+    ]
+  },
+  {
+    "id": "F242",
+    "title": "Fix: Learning table exists but no repository implementation",
+    "description": "Learning table exists but no repository implementation. Suggested fix: Create learningRepository with CRUD methods",
+    "ac": [
+      "Learning repository implementation exists",
+      "CRUD operations work against learning table"
+    ]
+  },
+  {
+    "id": "F243",
+    "title": "Fix: No learning oRPC router — frontend can't query learnings",
+    "description": "No learning oRPC router — frontend can't query learnings. Suggested fix: Create learning router + add to appRouter",
+    "ac": [
+      "Learning oRPC router exposes query endpoints",
+      "Frontend can fetch learnings via API"
+    ]
+  },
+  {
+    "id": "F244",
+    "title": "Fix: Project status field in Zod but missing from DB table",
+    "description": "Project status field in Zod but missing from DB table. Suggested fix: Add status column + migration (same as BUG-003)",
+    "ac": [
+      "Project status column in DB matches Zod schema",
+      "Migration adds column without data loss"
+    ]
+  },
+  {
+    "id": "F245",
+    "title": "Fix: Feature IDs generated as UUID, breaks F001-F999 pattern",
+    "description": "Feature IDs generated as UUID, breaks F001-F999 pattern. Suggested fix: Generate sequential F### IDs (same as BUG-001)",
+    "ac": [
+      "Feature IDs follow F001-F999 branded format",
+      "New features get sequential branded IDs"
+    ]
+  },
+  {
+    "id": "F258",
+    "title": "Types + DB layer for Automaker mirror",
+    "description": "Create new type modules (events, worktree, settings, message, notification, provider, pipeline, pagination) and Drizzle schemas. Extend feature.ts, session.ts, ids.ts with new fields. Add all repositories and migrations.",
+    "ac": [
+      "bun run check-types passes with zero errors",
+      "bun run db:generate creates migrations for all new/modified tables",
+      "All new types importable from @nomos/types",
+      "All new schemas importable from @nomos/db",
+      "All repository methods have proper TypeScript signatures",
+      "Branded ID types enforce type safety at compile time"
+    ]
+  },
+  {
+    "id": "F259",
+    "title": "Agent engine + WebSocket server",
+    "description": "Implement ClaudeProvider wrapper, SDK options factory, EventService, EventBroadcaster, WebSocket server with Bun native upgrade for /ws/events. Rewrite AgentService for full session management with SDK streaming.",
+    "ac": [
+      "Server starts without errors",
+      "WebSocket connection to /ws/events succeeds with auth",
+      "Agent session can be created via oRPC",
+      "Sending a message invokes Claude SDK and streams response",
+      "Events are broadcast to connected WebSocket clients",
+      "SDK session ID is persisted for conversation resumption"
+    ]
+  },
+  {
+    "id": "F261",
+    "title": "Terminal service with WebSocket streaming",
+    "description": "Implement TerminalService with Bun.spawn shell sessions, output buffering (4KB/4ms batching), 50KB scrollback. Add WebSocket handler for /ws/terminal with session routing. CRUD terminal router.",
+    "ac": [
+      "Terminal session creates via API",
+      "WebSocket connection to /ws/terminal streams output",
+      "Input sent via WebSocket reaches shell process",
+      "Output is batched (4KB/4ms) to prevent flooding",
+      "50KB scrollback buffer maintained for reconnection",
+      "Session cleanup on disconnect"
+    ]
+  },
+  {
+    "id": "F262",
+    "title": "Settings + notifications + GitHub + FS services",
+    "description": "Implement SettingsService (layered config: default/global/project), NotificationService (create/read/mark-read with events), GitHubService (gh CLI wrapper for issues/PRs), FSService (sandboxed file ops). All routers: settings, notifications, github, fs, models, events.",
+    "ac": [
+      "Settings save/load with layered resolution (default then global then project)",
+      "Notifications created on feature events and retrievable by project",
+      "Mark-read and dismiss work correctly",
+      "GitHub service lists issues and PRs via gh CLI",
+      "FS service validates paths against allowed root preventing traversal",
+      "Models endpoint returns available Claude models"
+    ]
+  },
+  {
+    "id": "F263",
+    "title": "WebSocket client + agent chat view",
+    "description": "Implement WebSocket client with auto-reconnect and exponential backoff. Create hooks (use-websocket, use-event-stream, use-agent-stream) and agent store. Build agent chat view with message list, tool-call display, streaming indicator, session sidebar.",
+    "ac": [
+      "WebSocket client auto-connects with backoff on failure",
+      "Agent view renders at /agent route",
+      "Real-time streaming of agent output with typing indicator",
+      "Tool calls display with name and input and result",
+      "Session sidebar shows history and allows switching",
+      "Messages persist across page reloads from DB via API"
+    ]
+  },
+  {
+    "id": "F264",
+    "title": "Terminal view + diff viewer + enhanced kanban",
+    "description": "Build terminal view with xterm.js and WebSocket integration, multi-session tabs, split panes. Implement diff viewer with side-by-side syntax highlighting. Enhance kanban with dnd-kit cross-column drag and sortable cards.",
+    "ac": [
+      "Terminal renders at /terminal route with xterm.js",
+      "Multi-session tabs allow switching between terminals",
+      "Input/output flows through WebSocket end-to-end",
+      "Diff viewer renders side-by-side with syntax highlighting",
+      "Kanban board supports cross-column drag-and-drop via dnd-kit",
+      "Feature cards show status and progress"
+    ]
+  },
+  {
+    "id": "F265",
+    "title": "Settings UI + auto-mode dashboard + notifications + themes",
+    "description": "Build settings pages with tabbed layout (general, model, auto-mode, terminal, integrations). Auto-mode dashboard with start/stop, queue, event feed, pipeline stepper. Notification bell and list. Theme system with 10+ themes via CSS variables.",
+    "ac": [
+      "Settings page with tabbed layout renders correctly",
+      "Settings persist via API with layered resolution",
+      "Auto-mode dashboard shows start/stop and active features and queue",
+      "Pipeline stepper visualizes 7-step progress per feature",
+      "Notification bell shows unread count with dropdown list",
+      "Theme system applies 10+ themes via CSS variables",
+      "All hooks connect to respective backend APIs"
+    ]
+  }
+]
