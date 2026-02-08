@@ -1146,12 +1146,13 @@
         "Reconnection handled"
       ],
       "estimatedSize": "M",
-      "status": "in_progress",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
-      "startedAt": "2026-02-08T08:26:35Z"
+      "preImplemented": true,
+      "verifiedAt": "2026-02-08T09:27:52Z"
     },
     {
       "id": "F035",
@@ -1174,12 +1175,11 @@
         "Errors propagated"
       ],
       "estimatedSize": "M",
-      "status": "in_progress",
+      "status": "pending",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite",
-      "startedAt": "2026-02-08T08:25:52Z"
+      "planningMode": "lite"
     },
     {
       "id": "F036",
@@ -1202,7 +1202,7 @@
         "Copy output button"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
+      "status": "pending",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",

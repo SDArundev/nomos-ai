@@ -75,16 +75,15 @@ PR_NUMBER=$(gh pr view --json number -q '.number')
 
 ---
 
-## 5.5 State Transition
+## 5.5 Record PR URL
+
+State is already `waiting_approval` (set by phase 4). Record the PR URL on the feature:
 
 ```bash
-bash .claude/skills/nomos/scripts/nomos.sh state pr {feature_id}
+jq --arg id "{feature_id}" --arg url "$PR_URL" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+  .features |= map(if .id == $id then .prUrl = $url | .prCreatedAt = $ts else . end)
+' .nomos/features.json > .nomos/features.json.tmp && mv .nomos/features.json.tmp .nomos/features.json
 ```
-
-This sets:
-- `status` -> `waiting_approval`
-- `prUrl` -> PR URL
-- `prCreatedAt` -> timestamp
 
 ---
 
