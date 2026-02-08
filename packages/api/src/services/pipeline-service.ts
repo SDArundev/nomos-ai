@@ -40,7 +40,7 @@ export class PipelineService {
 		const feature = await featureRepository.findById(featureId);
 		if (!feature) throw new Error(`Feature not found: ${featureId}`);
 
-		this.events.emit("feature:started", { featureId });
+		this.events.emit("feature:started", { featureId, userId: feature.userId });
 
 		// Find the start index for checkpoint resume
 		let startIdx = 0;
@@ -59,12 +59,14 @@ export class PipelineService {
 				featureId,
 				step: step.id,
 				name: step.name,
+				userId: feature.userId,
 			});
 
 			this.events.emit("feature:progress", {
 				featureId,
 				step: step.id,
 				status: "running",
+				userId: feature.userId,
 			});
 
 			await featureRepository.update(featureId, {
@@ -85,16 +87,18 @@ export class PipelineService {
 				featureId,
 				step: step.id,
 				name: step.name,
+				userId: feature.userId,
 			});
 
 			this.events.emit("feature:progress", {
 				featureId,
 				step: step.id,
 				status: "completed",
+				userId: feature.userId,
 			});
 		}
 
-		this.events.emit("feature:completed", { featureId });
+		this.events.emit("feature:completed", { featureId, userId: feature.userId });
 	}
 
 	async getProgress(featureId: string): Promise<{

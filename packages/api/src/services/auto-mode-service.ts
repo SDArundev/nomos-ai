@@ -50,7 +50,7 @@ export class AutoModeService {
 		this.isRunning = true;
 		this.consecutiveFailures = 0;
 		this.currentUserId = userId;
-		this.events.emit("auto-mode:started", { projectId });
+		this.events.emit("auto-mode:started", { projectId, userId });
 
 		// Load context once for all features
 		this.projectContext = await loadProjectContext(projectRoot);
@@ -77,6 +77,7 @@ export class AutoModeService {
 						type: "auto-mode:feature-skipped",
 						featureId: f.id,
 						reason: "dependencies_not_satisfied",
+						userId: this.currentUserId!,
 					});
 					return false;
 				}
@@ -86,6 +87,7 @@ export class AutoModeService {
 						type: "auto-mode:feature-skipped",
 						featureId: f.id,
 						reason: "max_retries_exceeded",
+						userId: this.currentUserId!,
 					});
 					return false;
 				}
@@ -93,7 +95,7 @@ export class AutoModeService {
 			});
 
 			if (!feature) {
-				this.events.emit("auto-mode:idle", { projectId });
+				this.events.emit("auto-mode:idle", { projectId, userId: this.currentUserId! });
 				await sleep(5000);
 				continue;
 			}
@@ -101,6 +103,7 @@ export class AutoModeService {
 			this.events.emit("auto-mode:event", {
 				type: "auto-mode:feature-queued",
 				featureId: feature.id,
+				userId: this.currentUserId!,
 			});
 
 			// Execute feature in background
@@ -110,12 +113,14 @@ export class AutoModeService {
 					this.events.emit("auto-mode:error", {
 						featureId: feature.id,
 						error: err instanceof Error ? err.message : String(err),
+						userId: this.currentUserId!,
 					});
 					if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
 						this.events.emit("auto-mode:event", {
 							type: "auto-mode:paused",
 							reason: "consecutive_failures",
 							count: this.consecutiveFailures,
+							userId: this.currentUserId!,
 						});
 						this.stop();
 					}
@@ -140,7 +145,7 @@ export class AutoModeService {
 				lockedAt: new Date(),
 			});
 
-			this.events.emit("feature:started", { featureId });
+			this.events.emit("feature:started", { featureId, userId: this.currentUserId! });
 
 			// Create a tracked agent session
 			const session = await sessionRepository.create({
@@ -188,6 +193,7 @@ export class AutoModeService {
 					this.events.emit("agent:stream", {
 						sessionId: session.id,
 						message: msg,
+						userId: this.currentUserId!,
 					});
 				}
 			};
@@ -215,7 +221,7 @@ export class AutoModeService {
 				completedAt: new Date(),
 			});
 
-			this.events.emit("feature:completed", { featureId });
+			this.events.emit("feature:completed", { featureId, userId: this.currentUserId! });
 		} catch (err) {
 			// Increment retry count
 			await featureRepository.incrementRetryCount(featureId);
@@ -232,6 +238,7 @@ export class AutoModeService {
 			this.events.emit("feature:error", {
 				featureId,
 				error: err instanceof Error ? err.message : String(err),
+				userId: this.currentUserId!,
 			});
 
 			// Schedule retry if under limit
@@ -242,6 +249,7 @@ export class AutoModeService {
 					featureId,
 					attempt: retryInfo.retryCount,
 					nextRetryMs: backoffMs,
+					userId: this.currentUserId!,
 				});
 
 				// Reset to pending after backoff so it gets picked up again
@@ -266,7 +274,9 @@ export class AutoModeService {
 			abort.abort();
 		}
 		this.runningFeatures.clear();
-		this.events.emit("auto-mode:stopped", {});
+		if (this.currentUserId) {
+			this.events.emit("auto-mode:stopped", { userId: this.currentUserId });
+		}
 	}
 
 	getStatus(): {
