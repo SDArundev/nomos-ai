@@ -32,3 +32,6 @@ export const eventTypeSchema = z.enum([
 
 export type EventType = z.infer<typeof eventTypeSchema>;
 export type EventCallback = (type: EventType, payload: unknown) => void;
+
+// Export all event types as a constant array for subscription purposes
+export const ALL_EVENT_TYPES: EventType[] = eventTypeSchema.options;

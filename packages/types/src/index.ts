@@ -5,6 +5,7 @@ export {
 	MODEL_MAP,
 } from "./agent";
 export {
+	ALL_EVENT_TYPES,
 	type EventCallback,
 	type EventType,
 	eventTypeSchema,
@@ -149,3 +150,18 @@ export {
 	type WorktreePRInfo,
 	worktreePRInfoSchema,
 } from "./worktree";
+export {
+	type SubscriptionFilter,
+	type WsClientMessage,
+	wsClientMessageSchema,
+	wsClientPingSchema,
+	wsClientSubscribeSchema,
+	wsClientUnsubscribeSchema,
+	type WsServerMessage,
+	wsServerErrorSchema,
+	wsServerEventSchema,
+	wsServerMessageSchema,
+	wsServerPongSchema,
+	wsServerSubscribedSchema,
+	wsServerWelcomeSchema,
+} from "./websocket";
