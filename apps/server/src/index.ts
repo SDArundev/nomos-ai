@@ -1,5 +1,6 @@
 import { createContext } from "@nomos-ai/api/context";
 import { appRouter } from "@nomos-ai/api/routers/index";
+import { createRestAdapter } from "@nomos-ai/api/rest-adapter";
 import { getEventService } from "@nomos-ai/api/routers/agent";
 import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
@@ -25,7 +26,7 @@ try {
 	process.exit(1);
 }
 
-const app = new Hono();
+const app = new Hono<{ Variables: { orpcContext: any } }>();
 
 app.use(logger());
 
@@ -168,8 +169,18 @@ export const rpcHandler = new RPCHandler(appRouter, {
 	],
 });
 
+// Create REST adapter for /api/* routes
+const restAdapter = createRestAdapter(rpcHandler);
+
 app.use("/*", async (c, next) => {
 	const context = await createContext({ context: c });
+
+	// Handle REST API routes first
+	if (c.req.path.startsWith("/api/")) {
+		// Pass oRPC context to REST adapter
+		c.set("orpcContext", context);
+		return restAdapter.fetch(c.req.raw, c.env);
+	}
 
 	const rpcResult = await rpcHandler.handle(c.req.raw, {
 		prefix: "/rpc",
