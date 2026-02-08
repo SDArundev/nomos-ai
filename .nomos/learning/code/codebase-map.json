@@ -973,6 +973,21 @@
         "Type-safe SDK integration with TypeScript generics",
         "Tool set configuration with granular control (tools vs allowedTools)"
       ]
+    },
+    "packages/types/src/websocket.ts": {
+      "purpose": "WebSocket protocol types (Zod schemas)",
+      "category": "types",
+      "feature": "F034"
+    },
+    "apps/server/src/lib/websocket.ts": {
+      "purpose": "WebSocket handlers (open/message/close)",
+      "category": "server-lib",
+      "feature": "F034"
+    },
+    "apps/web/src/lib/websocket.ts": {
+      "purpose": "WebSocket client (connection/reconnection)",
+      "category": "client-lib",
+      "feature": "F034"
     }
   },
   "lastUpdated": "2026-02-04T21:50:00Z",

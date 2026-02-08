@@ -1146,12 +1146,12 @@
         "Reconnection handled"
       ],
       "estimatedSize": "M",
-      "status": "pending",
+      "status": "in_progress",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
-      "startedAt": "2026-02-06T14:01:42Z"
+      "startedAt": "2026-02-08T08:26:35Z"
     },
     {
       "id": "F035",
@@ -1174,11 +1174,12 @@
         "Errors propagated"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
+      "status": "in_progress",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-02-08T08:25:52Z"
     },
     {
       "id": "F036",

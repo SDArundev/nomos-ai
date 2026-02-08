@@ -1,0 +1,93 @@
+{
+  "feature_id": "F034",
+  "title": "WebSocket server for real-time events",
+  "category": "CAT-AGT",
+  "phase": "phase-2",
+  "status": "waiting_approval",
+  "completed_at": "2026-02-08T09:08:00Z",
+  "retrospective": {
+    "duration_hours": 0.66,
+    "iterations": 3,
+    "fix_cycles": 1,
+    "files_changed": 12,
+    "lines_added": 414,
+    "lines_removed": 113,
+    "tests_added": 24,
+    "all_tests_passed": true
+  },
+  "patterns_extracted": [
+    {
+      "pattern_id": "PAT-029",
+      "name": "ZOD_DISCRIMINATED_UNION_MESSAGES",
+      "evidence": "WebSocket protocol uses z.discriminatedUnion('action', [wsClientSubscribeSchema, wsClientUnsubscribeSchema, wsClientPingSchema]) for type-safe client->server messages. Server responses use z.discriminatedUnion('type', [...]) with welcome/subscribed/error/pong/event types.",
+      "impact": "Eliminates runtime type errors in message routing, enables exhaustive type checking at compile time"
+    },
+    {
+      "pattern_id": "PAT-030",
+      "name": "PER_CLIENT_SUBSCRIPTION_STATE",
+      "evidence": "EventBroadcaster tracks subscriptions per client via Map<clientId, Set<EventType>>. subscribe() and unsubscribe() operations are atomic. broadcast() filters clients by subscription before sending.",
+      "impact": "Clients only receive events they care about, reducing network load. Subscription state persists across message handling."
+    }
+  ],
+  "antipatterns_found": [
+    {
+      "antipattern_id": "ANTI-010",
+      "name": "NON_FUNCTIONAL_OWNERSHIP_FILTERING",
+      "evidence": "Iterations 1-2 included userId filtering logic in WebSocket message validation, checking 'userId in payload'. However, no events actually included userId (terminal:output has {sessionId, data}, feature:* events are just action objects). Dead code was removed in iteration 3.",
+      "root_cause": "Premature optimization: assumed multi-user filtering model without business requirement or supporting data",
+      "resolution": "Simplified to all-authenticated-users model appropriate for single-user desktop app"
+    }
+  ],
+  "key_insights": [
+    {
+      "insight": "Type-safe message protocols reduce iteration cycles",
+      "details": "Discriminated unions caught message shape mismatches early. Only 3 iterations (2 on requirements, 1 on implementation details)."
+    },
+    {
+      "insight": "Subscription model validated during Phase 4 review",
+      "details": "Code review findings (4 non-blocking) included verifying per-client filtering works correctly. No security issues detected."
+    },
+    {
+      "insight": "Unit test coverage at 100% for WebSocket handlers",
+      "details": "24 tests cover open, message routing (subscribe/unsubscribe/ping), error handling, client removal. Terminal WebSocket integration handled separately in F092."
+    },
+    {
+      "insight": "Client reconnection requires manual resubscribe",
+      "details": "useWebSocket hook sends full subscription list on reconnect. Server responds with 'subscribed' confirmation. Prevents silent subscription loss."
+    }
+  ],
+  "architecture_notes": {
+    "server_layer": "Hono WebSocket handler with auth enforcement (401 reject on upgrade if not authenticated)",
+    "broadcaster": "EventBroadcaster service (packages/api/services/event-broadcaster.ts) manages per-client subscriptions",
+    "client_lib": "WebSocketClient singleton in apps/web/src/lib/websocket.ts with auto-reconnection and heartbeat (ping/pong)",
+    "react_hooks": "useWebSocket for connection state, useEventSubscription for typed event listeners"
+  },
+  "recommendations_for_downstream": [
+    {
+      "feature": "F035 (Agent output WebSocket streaming)",
+      "recommendation": "Reuse WsClientMessage and WsServerMessage schemas from F034. Define new event types in event.ts (e.g., 'agent:chunk', 'agent:tool-call'). Client can subscribe to these via existing useEventSubscription hook."
+    },
+    {
+      "feature": "F092 (Terminal WebSocket endpoint)",
+      "recommendation": "Current WebSocket handler separates 'events' and 'terminal' channels. Terminal channel uses sessionId-based client grouping. Can extend with 'terminal:input' client message type for bidirectional input."
+    },
+    {
+      "feature": "F078 (Event history log)",
+      "recommendation": "Subscribe to all event types via useEventSubscription. Filter/store in local state or Zustand. EventBroadcaster does not persist history (by design for memory efficiency)."
+    }
+  ],
+  "metrics": {
+    "code_quality": {
+      "typecheck": "PASS",
+      "tests": "PASS (24/24)",
+      "code_review_findings": 4,
+      "security_findings": 7,
+      "blocking_issues": 0
+    },
+    "efficiency": {
+      "phase_3_iterations": 3,
+      "phase_4_fix_cycles": 1,
+      "total_duration": "0.66 hours"
+    }
+  }
+}

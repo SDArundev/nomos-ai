@@ -101,6 +101,19 @@
       "lesson": "Source of truth for entity shapes must be single location (database schema or shared package). Frontend should import and extend, never redefine.",
       "fix_approach": "Create FeatureSelect export in packages/db/src/schema/features.ts using getTableColumns(features), export from @nomos-ai/db. Import in components as: import { type FeatureSelect } from \"@nomos-ai/db\";",
       "estimated_impact": "MEDIUM - inconsistency risk if entity shape changes in API but frontend type diverges"
+    },
+    {
+      "id": "ANTI-010",
+      "name": "NON_FUNCTIONAL_OWNERSHIP_FILTERING",
+      "description": "Implemented ownership-based event filtering logic (checking userId in message payloads) without actual event payloads containing userId. Creates dead code and confusion about filtering model.",
+      "category": "premature-optimization",
+      "evidence_count": 1,
+      "last_seen": "F034",
+      "severity": "LOW",
+      "prevention": "For single-user desktop app, keep all-authenticated-users-subscribe-all model. Only add per-event filtering if: (1) multi-user backend sends userId in payload AND (2) business requirement demands it.",
+      "what_went_wrong": "F034 iterations 1-2 included ownership checks for userId in WsServerMessage.payload, but terminal:output and feature:* events never included userId. Simplified in iteration 3.",
+      "lesson": "Avoid filtering logic without supporting data. Single-user desktop app has simpler auth model: authenticate connection, allow all subscriptions.",
+      "fix_applied": "Removed userId filtering, kept authenticate-on-upgrade requirement"
     }
   ],
   "last_updated": "2026-02-04T21:30:00Z"

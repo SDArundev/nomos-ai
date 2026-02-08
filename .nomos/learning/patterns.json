@@ -1,6 +1,62 @@
 {
   "patterns": [
     {
+      "name": "SHARED_CONSTANTS_IN_TYPES",
+      "description": "Move cross-package constants (MODEL_MAP, DEFAULT_TOOLS) to @nomos-ai/types to avoid duplication",
+      "confidence": 0.9,
+      "code_example": "// packages/types/src/agent.ts\nexport const MODEL_MAP: Record<Model, string> = { ... };\nexport const DEFAULT_TOOLS = [\"Read\", \"Write\", \"Edit\", \"Bash\", \"Glob\", \"Grep\"];",
+      "category": "typescript",
+      "source": "learning",
+      "first_seen": "F032",
+      "last_seen": "F032"
+    },
+    {
+      "id": "AGT-001",
+      "name": "SDK_OPTION_PROPERTY_NAMES",
+      "description": "Claude Agent SDK has `tools` (base tool set) vs `allowedTools` (auto-allowed without prompting). These are DIFFERENT properties with different purposes.",
+      "category": "server",
+      "evidence_count": 1,
+      "last_seen": "F031",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "When creating agent queries, pass tools in options: query({ prompt, options: { tools: [...], allowedTools: [...] } })",
+      "code_example": "const result = await agentQuery({\n  prompt: \"Build a feature\",\n  options: {\n    tools: DEFAULT_TOOLS,\n    allowedTools: [\"execute_code\", \"read_file\"]\n  }\n});",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F031"
+      ],
+      "features_succeeded": [
+        "F031"
+      ]
+    },
+    {
+      "id": "AGT-002",
+      "name": "SDK_MODEL_ID_FORMAT",
+      "description": "Claude Agent SDK uses dated model IDs (claude-opus-4-20250514, claude-sonnet-4-5-20250929, claude-haiku-4-5-20251001). Map short names to full IDs via MODEL_MAP.",
+      "category": "server",
+      "evidence_count": 1,
+      "last_seen": "F031",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "Create MODEL_MAP object mapping short names (opus, sonnet, haiku) to dated model IDs. Use as lookup table for model selection.",
+      "code_example": "const MODEL_MAP = {\n  \"opus\": \"claude-opus-4-20250514\",\n  \"sonnet\": \"claude-sonnet-4-5-20250929\",\n  \"haiku\": \"claude-haiku-4-5-20251001\",\n} as const;\n\nconst getModel = (shortName: string) => MODEL_MAP[shortName as keyof typeof MODEL_MAP];",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F031"
+      ],
+      "features_succeeded": [
+        "F031"
+      ]
+    },
+    {
       "id": "PAT-001",
       "name": "CLI_SCAFFOLD_FIRST",
       "description": "Use established CLI scaffolds (better-t-stack, create-next-app, etc.) for initial project setup rather than manual configuration",
@@ -399,6 +455,202 @@
       ]
     },
     {
+      "id": "PAT-015",
+      "name": "DEPENDENCY_VERIFICATION",
+      "description": "Always verify external packages are installed before marking feature complete. After adding imports, check package.json and run dev server.",
+      "category": "dependencies",
+      "evidence_count": 1,
+      "last_seen": "F024",
+      "applies_to": [
+        "all",
+        "all-phases"
+      ],
+      "recommendation": "Before completing any feature: 1) List all new imports added, 2) For each external package import, verify it exists in package.json, 3) Run 'bun add <pkg>' for missing deps, 4) Run 'bun run dev' and verify no 'Failed to resolve import' errors",
+      "checklist": [
+        "Identify all new imports in changed files",
+        "Separate internal imports (./*, @nomos-ai/*) from external packages",
+        "Check package.json for each external import",
+        "Run 'bun add <missing>' for any not found",
+        "Start dev server and check browser console for resolve errors",
+        "Verify feature works in browser before completing"
+      ],
+      "gotcha": "Easy to miss when copying code from other projects or using AI suggestions - packages may exist in source but not in target package.json",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH - feature will crash at runtime even if TypeScript passes",
+      "features_applied": [
+        "F024"
+      ],
+      "features_succeeded": []
+    },
+    {
+      "id": "PAT-022",
+      "name": "TANSTACK_FORM_ARRAY_FIELDS",
+      "description": "Use TanStack Form mode=\"array\" for dynamic list fields (e.g., acceptance criteria). Fields support pushValue()/removeValue() for add/remove buttons with validation on array length.",
+      "category": "react-forms",
+      "evidence_count": 1,
+      "last_seen": "F028",
+      "applies_to": [
+        "CAT-KAN",
+        "CAT-FE",
+        "form-handling"
+      ],
+      "recommendation": "For list fields in forms, use form.Field(name=\"arrayField\", mode=\"array\") to get field.pushValue(value) and field.removeValue(index) methods. Apply validation on field.state.value.length for min/max constraints.",
+      "code_example": "form.Field(name=\"acceptanceCriteria\", mode=\"array\", validators={{onChange: ({value}) => {if (value.length < 1) return \"Minimum 1 required\"; if (value.length > 10) return \"Max 10\";}}}) renders array field with pushValue/removeValue.",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F028"
+      ],
+      "features_succeeded": [
+        "F028"
+      ]
+    },
+    {
+      "id": "PAT-023",
+      "name": "SHEET_FORM_INTEGRATION_PATTERN",
+      "description": "Combine Sheet (sidebar modal) with form components for create/edit workflows. Sheet holds form, handles open state via Zustand UI store. Form prop controls edit vs create mode with conditional mutations.",
+      "category": "react-components",
+      "evidence_count": 1,
+      "last_seen": "F028",
+      "applies_to": [
+        "CAT-KAN",
+        "CAT-FE",
+        "modal-forms"
+      ],
+      "recommendation": "Use Sheet component to wrap form: <Sheet><SheetContent><FeatureForm feature={selectedFeature} projectId={projectId} onSuccess={() => setSheetOpen(false)} /></SheetContent></Sheet>. Form detects feature prop to conditionally call create or update mutation.",
+      "code_example": "feature ? updateFeature.mutateAsync({id: feature.id, data: {...}}) : createFeature.mutateAsync({...data, status: \"backlog\"}). Mutations both invalidate query key to refresh list.",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F028"
+      ],
+      "features_succeeded": [
+        "F028"
+      ]
+    },
+    {
+      "id": "PAT-024",
+      "name": "ZUSTAND_MULTI_ITEM_BOOLEAN_STATE",
+      "description": "Extend Zustand UISlice to manage multi-item boolean state (e.g., collapsed columns) using Record<string, boolean>. Use spread operator with computed key to update individual items without replacing entire object.",
+      "category": "state-management",
+      "evidence_count": 1,
+      "last_seen": "F029",
+      "applies_to": [
+        "CAT-FE",
+        "zustand",
+        "ui-state"
+      ],
+      "recommendation": "Pattern: collapsedColumns: Record<string, boolean> = {}. Toggle with: set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]} })). Consumer: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false)",
+      "code_example": "toggleColumnCollapsed: (status) => set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]}, }), undefined, 'ui/toggleColumnCollapsed'). In component: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false); const toggle = useAppStore((s) => s.toggleColumnCollapsed);",
+      "confidence": 0.7,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F029"
+      ],
+      "features_succeeded": [
+        "F029"
+      ]
+    },
+    {
+      "id": "PAT-025",
+      "name": "ICON_BUTTON_ACCESSIBILITY_LABELS",
+      "description": "Icon-only buttons require context-aware aria-labels that describe the action and reflect current state. Labels should change based on state (e.g., 'Expand column' when collapsed, 'Collapse column' when expanded).",
+      "category": "accessibility",
+      "evidence_count": 1,
+      "last_seen": "F029",
+      "applies_to": [
+        "CAT-FE",
+        "accessibility",
+        "ui-components"
+      ],
+      "recommendation": "Always pair icon-only buttons with aria-label. For toggle buttons, use state-aware label: aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}. For menu buttons, use consistent description: aria-label='Column options'",
+      "code_example": "<Button variant='ghost' size='icon-xs' aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}><ChevronDown className={isCollapsed && '-rotate-90'} /></Button>. Or for menu: <DropdownMenuTrigger render={<Button variant='ghost' size='icon-xs' aria-label='Column options' />}><MoreHorizontal /></DropdownMenuTrigger>",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F029"
+      ],
+      "features_succeeded": [
+        "F029"
+      ]
+    },
+    {
+      "id": "PAT-029",
+      "name": "ZOD_DISCRIMINATED_UNION_MESSAGES",
+      "description": "Use Zod discriminatedUnion for polymorphic message types in WebSocket protocols. Define separate schemas per message type, then union with discriminator field for type-safe routing and validation.",
+      "category": "typescript-validation",
+      "evidence_count": 1,
+      "last_seen": "F034",
+      "applies_to": [
+        "CAT-AGT",
+        "protocols",
+        "validation"
+      ],
+      "recommendation": "For WebSocket/message protocols with multiple message types, define each as separate Zod schema (wsClientSubscribeSchema, wsClientUnsubscribeSchema, etc.) then use z.discriminatedUnion(\"action\" | \"type\", [...])",
+      "code_example": "const wsClientMessageSchema = z.discriminatedUnion(\"action\", [wsClientSubscribeSchema, wsClientUnsubscribeSchema, wsClientPingSchema]);",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F034"
+      ],
+      "features_succeeded": [
+        "F034"
+      ]
+    },
+    {
+      "id": "PAT-030",
+      "name": "PER_CLIENT_SUBSCRIPTION_STATE",
+      "description": "Track per-client subscription state in broadcaster using client ID + Set<EventType> map. Handle subscribe/unsubscribe atomically, prevent duplicate subscriptions.",
+      "category": "architecture",
+      "evidence_count": 1,
+      "last_seen": "F034",
+      "applies_to": [
+        "CAT-AGT",
+        "event-streaming",
+        "server"
+      ],
+      "recommendation": "For event broadcasters: 1) Map<clientId, Set<eventTypes>> for subscriptions, 2) subscribe() checks Set.has() before adding, 3) broadcast() filters by client subscriptions",
+      "code_example": "const subscriptions = new Map<string, Set<EventType>>(); subscriptions.has(clientId) ? subscriptions.get(clientId).add(type) : subscriptions.set(clientId, new Set([type]))",
+      "confidence": 0.85,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F034"
+      ],
+      "features_succeeded": [
+        "F034"
+      ]
+    },
+    {
+      "id": "PAT-031",
+      "name": "WEBSOCKET_RECONNECTION_RESUBSCRIBE",
+      "description": "On WebSocket reconnect, client automatically resends full subscription list. Server sends \"subscribed\" response confirming subscriptions. Prevents subscription loss on temporary disconnection.",
+      "category": "resilience",
+      "evidence_count": 1,
+      "last_seen": "F034",
+      "applies_to": [
+        "CAT-AGT",
+        "event-streaming",
+        "client-side"
+      ],
+      "recommendation": "In client hook: onConnectionChange -> if reconnected, call client.sendSubscription(previousSubscriptions). Server sends back {type:\"subscribed\", eventTypes:[...]}",
+      "confidence": 0.85,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F034"
+      ],
+      "features_succeeded": [
+        "F034"
+      ]
+    },
+    {
       "id": "SRV-006",
       "name": "HEALTH_CHECK_PATTERN",
       "description": "Async health check endpoint with actual external dependency verification (database connectivity). Returns 200 with healthy status and 503 with unhealthy status.",
@@ -572,6 +824,31 @@
       ]
     },
     {
+      "id": "TS-015",
+      "name": "TEST_ENV_SETUP_PATTERN",
+      "description": "Server tests importing env module trigger Zod validation at import time. Need bunfig.toml with [test] preload to set env vars before test imports.",
+      "category": "testing",
+      "evidence_count": 1,
+      "last_seen": "F031",
+      "applies_to": [
+        "CAT-AGT",
+        "testing",
+        "environment"
+      ],
+      "recommendation": "Create bunfig.toml with [test] section: preload = [\"./test-setup.ts\"] and test-setup.ts that assigns process.env vars",
+      "code_example": "// bunfig.toml:\n[test]\npreload = [\"./test-setup.ts\"]\n\n// test-setup.ts:\nprocess.env.ANTHROPIC_API_KEY = \"test-key\";\nprocess.env.CLAUDE_MODEL = \"claude-opus-4-20250514\";",
+      "gotcha": "If env vars are not set before imports, Zod validation fails at module load time, causing all tests to fail with cryptic errors",
+      "confidence": 0.8,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F031"
+      ],
+      "features_succeeded": [
+        "F031"
+      ]
+    },
+    {
       "id": "WEB-008",
       "name": "FLEX_SIDEBAR_LAYOUT",
       "description": "Collapsible sidebar using flex layout with width transitions. Sidebar takes fixed width (w-16 collapsed, w-64 expanded), main content uses flex-1 to fill remaining space. Smooth transition with transition-[width] duration-300.",
@@ -672,35 +949,6 @@
       "features_succeeded": [
         "F024"
       ]
-    },
-    {
-      "id": "PAT-015",
-      "name": "DEPENDENCY_VERIFICATION",
-      "description": "Always verify external packages are installed before marking feature complete. After adding imports, check package.json and run dev server.",
-      "category": "dependencies",
-      "evidence_count": 1,
-      "last_seen": "F024",
-      "applies_to": [
-        "all",
-        "all-phases"
-      ],
-      "recommendation": "Before completing any feature: 1) List all new imports added, 2) For each external package import, verify it exists in package.json, 3) Run 'bun add <pkg>' for missing deps, 4) Run 'bun run dev' and verify no 'Failed to resolve import' errors",
-      "checklist": [
-        "Identify all new imports in changed files",
-        "Separate internal imports (./*, @nomos-ai/*) from external packages",
-        "Check package.json for each external import",
-        "Run 'bun add <missing>' for any not found",
-        "Start dev server and check browser console for resolve errors",
-        "Verify feature works in browser before completing"
-      ],
-      "gotcha": "Easy to miss when copying code from other projects or using AI suggestions - packages may exist in source but not in target package.json",
-      "confidence": 0.8,
-      "success_rate": 1.0,
-      "risk_if_ignored": "HIGH - feature will crash at runtime even if TypeScript passes",
-      "features_applied": [
-        "F024"
-      ],
-      "features_succeeded": []
     },
     {
       "id": "WEB-011",
@@ -825,203 +1073,6 @@
       "features_succeeded": [
         "F025"
       ]
-    },
-    {
-      "id": "PAT-022",
-      "name": "TANSTACK_FORM_ARRAY_FIELDS",
-      "description": "Use TanStack Form mode=\"array\" for dynamic list fields (e.g., acceptance criteria). Fields support pushValue()/removeValue() for add/remove buttons with validation on array length.",
-      "category": "react-forms",
-      "evidence_count": 1,
-      "last_seen": "F028",
-      "applies_to": [
-        "CAT-KAN",
-        "CAT-FE",
-        "form-handling"
-      ],
-      "recommendation": "For list fields in forms, use form.Field(name=\"arrayField\", mode=\"array\") to get field.pushValue(value) and field.removeValue(index) methods. Apply validation on field.state.value.length for min/max constraints.",
-      "code_example": "form.Field(name=\"acceptanceCriteria\", mode=\"array\", validators={{onChange: ({value}) => {if (value.length < 1) return \"Minimum 1 required\"; if (value.length > 10) return \"Max 10\";}}}) renders array field with pushValue/removeValue.",
-      "confidence": 0.9,
-      "success_rate": 1.0,
-      "risk_if_ignored": "LOW",
-      "features_applied": [
-        "F028"
-      ],
-      "features_succeeded": [
-        "F028"
-      ]
-    },
-    {
-      "id": "PAT-023",
-      "name": "SHEET_FORM_INTEGRATION_PATTERN",
-      "description": "Combine Sheet (sidebar modal) with form components for create/edit workflows. Sheet holds form, handles open state via Zustand UI store. Form prop controls edit vs create mode with conditional mutations.",
-      "category": "react-components",
-      "evidence_count": 1,
-      "last_seen": "F028",
-      "applies_to": [
-        "CAT-KAN",
-        "CAT-FE",
-        "modal-forms"
-      ],
-      "recommendation": "Use Sheet component to wrap form: <Sheet><SheetContent><FeatureForm feature={selectedFeature} projectId={projectId} onSuccess={() => setSheetOpen(false)} /></SheetContent></Sheet>. Form detects feature prop to conditionally call create or update mutation.",
-      "code_example": "feature ? updateFeature.mutateAsync({id: feature.id, data: {...}}) : createFeature.mutateAsync({...data, status: \"backlog\"}). Mutations both invalidate query key to refresh list.",
-      "confidence": 0.8,
-      "success_rate": 1.0,
-      "risk_if_ignored": "LOW",
-      "features_applied": [
-        "F028"
-      ],
-      "features_succeeded": [
-        "F028"
-      ]
-    },
-    {
-      "id": "PAT-024",
-      "name": "ZUSTAND_MULTI_ITEM_BOOLEAN_STATE",
-      "description": "Extend Zustand UISlice to manage multi-item boolean state (e.g., collapsed columns) using Record<string, boolean>. Use spread operator with computed key to update individual items without replacing entire object.",
-      "category": "state-management",
-      "evidence_count": 1,
-      "last_seen": "F029",
-      "applies_to": [
-        "CAT-FE",
-        "zustand",
-        "ui-state"
-      ],
-      "recommendation": "Pattern: collapsedColumns: Record<string, boolean> = {}. Toggle with: set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]} })). Consumer: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false)",
-      "code_example": "toggleColumnCollapsed: (status) => set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]}, }), undefined, 'ui/toggleColumnCollapsed'). In component: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false); const toggle = useAppStore((s) => s.toggleColumnCollapsed);",
-      "confidence": 0.7,
-      "success_rate": 1.0,
-      "risk_if_ignored": "LOW",
-      "features_applied": [
-        "F029"
-      ],
-      "features_succeeded": [
-        "F029"
-      ]
-    },
-    {
-      "id": "PAT-025",
-      "name": "ICON_BUTTON_ACCESSIBILITY_LABELS",
-      "description": "Icon-only buttons require context-aware aria-labels that describe the action and reflect current state. Labels should change based on state (e.g., 'Expand column' when collapsed, 'Collapse column' when expanded).",
-      "category": "accessibility",
-      "evidence_count": 1,
-      "last_seen": "F029",
-      "applies_to": [
-        "CAT-FE",
-        "accessibility",
-        "ui-components"
-      ],
-      "recommendation": "Always pair icon-only buttons with aria-label. For toggle buttons, use state-aware label: aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}. For menu buttons, use consistent description: aria-label='Column options'",
-      "code_example": "<Button variant='ghost' size='icon-xs' aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}><ChevronDown className={isCollapsed && '-rotate-90'} /></Button>. Or for menu: <DropdownMenuTrigger render={<Button variant='ghost' size='icon-xs' aria-label='Column options' />}><MoreHorizontal /></DropdownMenuTrigger>",
-      "confidence": 0.8,
-      "success_rate": 1.0,
-      "risk_if_ignored": "MEDIUM",
-      "features_applied": [
-        "F029"
-      ],
-      "features_succeeded": [
-        "F029"
-      ]
-    },
-    {
-      "id": "AGT-001",
-      "name": "SDK_OPTION_PROPERTY_NAMES",
-      "description": "Claude Agent SDK has `tools` (base tool set) vs `allowedTools` (auto-allowed without prompting). These are DIFFERENT properties with different purposes.",
-      "category": "server",
-      "evidence_count": 1,
-      "last_seen": "F031",
-      "applies_to": [
-        "CAT-AGT",
-        "phase-2"
-      ],
-      "recommendation": "When creating agent queries, pass tools in options: query({ prompt, options: { tools: [...], allowedTools: [...] } })",
-      "code_example": "const result = await agentQuery({\n  prompt: \"Build a feature\",\n  options: {\n    tools: DEFAULT_TOOLS,\n    allowedTools: [\"execute_code\", \"read_file\"]\n  }\n});",
-      "confidence": 0.9,
-      "success_rate": 1.0,
-      "risk_if_ignored": "MEDIUM",
-      "features_applied": [
-        "F031"
-      ],
-      "features_succeeded": [
-        "F031"
-      ]
-    },
-    {
-      "id": "TS-015",
-      "name": "TEST_ENV_SETUP_PATTERN",
-      "description": "Server tests importing env module trigger Zod validation at import time. Need bunfig.toml with [test] preload to set env vars before test imports.",
-      "category": "testing",
-      "evidence_count": 1,
-      "last_seen": "F031",
-      "applies_to": [
-        "CAT-AGT",
-        "testing",
-        "environment"
-      ],
-      "recommendation": "Create bunfig.toml with [test] section: preload = [\"./test-setup.ts\"] and test-setup.ts that assigns process.env vars",
-      "code_example": "// bunfig.toml:\n[test]\npreload = [\"./test-setup.ts\"]\n\n// test-setup.ts:\nprocess.env.ANTHROPIC_API_KEY = \"test-key\";\nprocess.env.CLAUDE_MODEL = \"claude-opus-4-20250514\";",
-      "gotcha": "If env vars are not set before imports, Zod validation fails at module load time, causing all tests to fail with cryptic errors",
-      "confidence": 0.8,
-      "success_rate": 1.0,
-      "risk_if_ignored": "HIGH",
-      "features_applied": [
-        "F031"
-      ],
-      "features_succeeded": [
-        "F031"
-      ]
-    },
-    {
-      "id": "AGT-002",
-      "name": "SDK_MODEL_ID_FORMAT",
-      "description": "Claude Agent SDK uses dated model IDs (claude-opus-4-20250514, claude-sonnet-4-5-20250929, claude-haiku-4-5-20251001). Map short names to full IDs via MODEL_MAP.",
-      "category": "server",
-      "evidence_count": 1,
-      "last_seen": "F031",
-      "applies_to": [
-        "CAT-AGT",
-        "phase-2"
-      ],
-      "recommendation": "Create MODEL_MAP object mapping short names (opus, sonnet, haiku) to dated model IDs. Use as lookup table for model selection.",
-      "code_example": "const MODEL_MAP = {\n  \"opus\": \"claude-opus-4-20250514\",\n  \"sonnet\": \"claude-sonnet-4-5-20250929\",\n  \"haiku\": \"claude-haiku-4-5-20251001\",\n} as const;\n\nconst getModel = (shortName: string) => MODEL_MAP[shortName as keyof typeof MODEL_MAP];",
-      "confidence": 0.8,
-      "success_rate": 1.0,
-      "risk_if_ignored": "MEDIUM",
-      "features_applied": [
-        "F031"
-      ],
-      "features_succeeded": [
-        "F031"
-      ]
-    },
-    {
-      "name": "SHARED_CONSTANTS_IN_TYPES",
-      "description": "Move cross-package constants (MODEL_MAP, DEFAULT_TOOLS) to @nomos-ai/types to avoid duplication",
-      "confidence": 0.9,
-      "code_example": "// packages/types/src/agent.ts\nexport const MODEL_MAP: Record<Model, string> = { ... };\nexport const DEFAULT_TOOLS = [\"Read\", \"Write\", \"Edit\", \"Bash\", \"Glob\", \"Grep\"];",
-      "category": "typescript",
-      "source": "learning",
-      "first_seen": "F032",
-      "last_seen": "F032"
-    },
-    {
-      "name": "SERVICE_LAYER_IN_API_PACKAGE",
-      "description": "Service functions that bridge multiple repositories belong in packages/api/src/services/. Routers are thin wrappers.",
-      "confidence": 0.85,
-      "code_example": "// packages/api/src/services/agent-service.ts\nexport async function createAgentSession(input) { ... }\n\n// packages/api/src/routers/session.ts\ncreateAgentSession: protectedProcedure.input(schema).handler(({ input, context }) => createAgentSession({ ...input, userId: context.session.user.id }))",
-      "category": "server",
-      "source": "learning",
-      "first_seen": "F032",
-      "last_seen": "F032"
-    },
-    {
-      "name": "DRIZZLE_JSON_MODE_NO_PARSE",
-      "description": "Drizzle columns with mode:\"json\" are already parsed objects at runtime. Do NOT add manual JSON.parse().",
-      "confidence": 0.9,
-      "code_example": "// WRONG: const criteria = JSON.parse(feature.acceptanceCriteria)\n// RIGHT: const criteria = feature.acceptanceCriteria // already an array/object",
-      "category": "database",
-      "source": "learning",
-      "first_seen": "F032",
-      "last_seen": "F032"
     }
   ],
   "last_updated": "2026-02-06T14:20:00Z",
