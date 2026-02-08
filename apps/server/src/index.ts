@@ -29,24 +29,41 @@ const app = new Hono();
 
 app.use(logger());
 
-// Simple in-memory rate limiter
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 100; // 100 requests per minute
+// Sliding window rate limiter
+const rateLimitStore = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 100;
 
 app.use("/*", async (c, next) => {
 	const ip =
 		c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
 	const now = Date.now();
-	const entry = rateLimitStore.get(ip);
+	const cutoff = now - RATE_LIMIT_WINDOW_MS;
 
-	if (!entry || now > entry.resetAt) {
-		rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-	} else {
-		entry.count++;
-		if (entry.count > RATE_LIMIT_MAX) {
-			c.header("Retry-After", String(Math.ceil((entry.resetAt - now) / 1000)));
-			return c.json({ error: "Too Many Requests" }, 429);
+	let timestamps = rateLimitStore.get(ip) ?? [];
+	timestamps = timestamps.filter((t) => t > cutoff);
+
+	if (timestamps.length >= RATE_LIMIT_MAX) {
+		const oldestInWindow = timestamps[0] ?? now;
+		const retryAfter = Math.ceil(
+			(oldestInWindow + RATE_LIMIT_WINDOW_MS - now) / 1000,
+		);
+		c.header("Retry-After", String(Math.max(1, retryAfter)));
+		return c.json({ error: "Too Many Requests" }, 429);
+	}
+
+	timestamps.push(now);
+	rateLimitStore.set(ip, timestamps);
+
+	// Periodic cleanup: remove IPs with no recent activity
+	if (Math.random() < 0.01) {
+		for (const [key, ts] of rateLimitStore) {
+			const filtered = ts.filter((t) => t > cutoff);
+			if (filtered.length === 0) {
+				rateLimitStore.delete(key);
+			} else {
+				rateLimitStore.set(key, filtered);
+			}
 		}
 	}
 
@@ -75,7 +92,7 @@ app.use("/*", async (c, next) => {
 	c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 	c.header(
 		"Content-Security-Policy",
-		"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:",
+		"default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data: https://cdn.jsdelivr.net",
 	);
 	if (process.env.NODE_ENV === "production") {
 		c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
@@ -91,12 +108,12 @@ const terminalService = getTerminalService();
 const wsHandlers = createWebSocketHandlers(broadcaster, terminalService, eventService);
 
 // Helper to extract userId from session cookie on WebSocket upgrade
-async function extractWsUserId(req: Request): Promise<string> {
+async function extractWsUserId(req: Request): Promise<string | null> {
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });
-		return session?.user?.id ?? "anonymous";
+		return session?.user?.id ?? null;
 	} catch {
-		return "anonymous";
+		return null;
 	}
 }
 
@@ -107,6 +124,7 @@ app.get("/ws/events", async (c) => {
 		| undefined;
 	if (!server?.upgrade) return c.text("WebSocket not supported", 400);
 	const userId = await extractWsUserId(c.req.raw);
+	if (!userId) return c.text("Unauthorized", 401);
 	const upgraded = server.upgrade(c.req.raw, {
 		data: { channel: "events" as const, userId },
 	});
@@ -121,6 +139,7 @@ app.get("/ws/terminal", async (c) => {
 		| undefined;
 	if (!server?.upgrade) return c.text("WebSocket not supported", 400);
 	const userId = await extractWsUserId(c.req.raw);
+	if (!userId) return c.text("Unauthorized", 401);
 	const upgraded = server.upgrade(c.req.raw, {
 		data: { channel: "terminal" as const, sessionId, userId },
 	});
