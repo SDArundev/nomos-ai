@@ -1,3 +1,5 @@
+import { projectRepository } from "@nomos-ai/db";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { NotificationService } from "../services/notification-service";
@@ -12,6 +14,14 @@ export function getNotificationService(): NotificationService {
 	return notificationServiceInstance;
 }
 
+async function verifyProjectOwnership(projectId: string, userId: string) {
+	const project = await projectRepository.findById(projectId);
+	if (!project || project.userId !== userId) {
+		throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+	}
+	return project;
+}
+
 export const notificationsRouter = {
 	list: protectedProcedure
 		.input(
@@ -20,14 +30,16 @@ export const notificationsRouter = {
 				unreadOnly: z.boolean().optional(),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifyProjectOwnership(input.projectId, context.session.user.id);
 			const service = getNotificationService();
 			return service.getByProject(input.projectId, input.unreadOnly);
 		}),
 
 	countUnread: protectedProcedure
 		.input(z.object({ projectId: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifyProjectOwnership(input.projectId, context.session.user.id);
 			const service = getNotificationService();
 			const count = await service.countUnread(input.projectId);
 			return { count };
@@ -43,7 +55,8 @@ export const notificationsRouter = {
 
 	markAllRead: protectedProcedure
 		.input(z.object({ projectId: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifyProjectOwnership(input.projectId, context.session.user.id);
 			const service = getNotificationService();
 			await service.markAllRead(input.projectId);
 			return { success: true };

@@ -66,7 +66,7 @@ describe("ProjectSettingsSchema", () => {
 
 describe("ProjectSchema", () => {
 	const minimalValidProject = {
-		id: "proj-001",
+		id: "P001",
 		name: "My Project",
 		path: "/Users/test/projects/my-project",
 		createdAt: "2026-01-28T10:00:00Z",
@@ -245,7 +245,7 @@ describe("ProjectSchema", () => {
 		it("infers Project type correctly", () => {
 			const parsed = ProjectSchema.parse(minimalValidProject);
 			const _typed: Project = parsed;
-			expect(_typed.id).toBe("proj-001");
+			expect(_typed.id).toBe("P001");
 		});
 
 		it("infers ProjectSettings type correctly", () => {

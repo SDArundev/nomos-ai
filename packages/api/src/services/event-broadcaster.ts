@@ -6,8 +6,13 @@ export interface WebSocketClient {
 	bufferedAmount?: number;
 }
 
+interface TrackedClient {
+	ws: WebSocketClient;
+	userId: string;
+}
+
 export class EventBroadcaster {
-	private clients = new Set<WebSocketClient>();
+	private clients = new Map<WebSocketClient, TrackedClient>();
 	private unsubscribe: (() => void) | null = null;
 
 	constructor(private events: EventService) {
@@ -20,24 +25,35 @@ export class EventBroadcaster {
 				return;
 			}
 
-			for (const ws of this.clients) {
+			// Determine if this event is user-scoped
+			const eventPayload = payload as Record<string, unknown> | undefined;
+			const eventUserId = eventPayload?.userId as string | undefined;
+
+			for (const [, tracked] of this.clients) {
 				try {
-					if (ws.readyState === 1) {
-						// Check backpressure: skip if buffered data exceeds 1MB
-						if (ws.bufferedAmount && ws.bufferedAmount > 1024 * 1024) {
+					if (tracked.ws.readyState === 1) {
+						// Check backpressure
+						if (
+							tracked.ws.bufferedAmount &&
+							tracked.ws.bufferedAmount > 1024 * 1024
+						) {
 							continue;
 						}
-						ws.send(data);
+						// If event has userId, only send to matching client
+						if (eventUserId && eventUserId !== tracked.userId) {
+							continue;
+						}
+						tracked.ws.send(data);
 					}
 				} catch {
-					this.clients.delete(ws);
+					this.clients.delete(tracked.ws);
 				}
 			}
 		});
 	}
 
-	addClient(ws: WebSocketClient): void {
-		this.clients.add(ws);
+	addClient(ws: WebSocketClient, userId: string): void {
+		this.clients.set(ws, { ws, userId });
 	}
 
 	removeClient(ws: WebSocketClient): void {

@@ -95,7 +95,7 @@ describe("Branded ID Schemas", () => {
 
 	describe("SessionIdSchema", () => {
 		it("accepts valid string IDs", () => {
-			const result = SessionIdSchema.safeParse("sess-abc123");
+			const result = SessionIdSchema.safeParse("S001");
 			expect(result.success).toBe(true);
 		});
 

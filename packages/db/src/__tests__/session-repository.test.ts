@@ -85,6 +85,14 @@ CREATE TABLE IF NOT EXISTS \`feature\` (
 	\`summary\` text,
 	\`plan_spec\` text,
 	\`branch_name\` text,
+	\`use_worktree\` integer DEFAULT false,
+	\`locked\` integer DEFAULT false,
+	\`locked_by\` text,
+	\`locked_at\` integer,
+	\`pipeline_step\` text,
+	\`last_completed_step\` text,
+	\`retry_count\` integer DEFAULT 0,
+	\`last_failure_at\` integer,
 	\`tags\` text,
 	\`title_generating\` integer,
 	\`started_at\` integer,
@@ -100,12 +108,18 @@ const CREATE_AGENT_SESSION_TABLE = `
 CREATE TABLE IF NOT EXISTS \`agent_session\` (
 	\`id\` text PRIMARY KEY NOT NULL,
 	\`user_id\` text NOT NULL,
-	\`feature_id\` text NOT NULL,
+	\`feature_id\` text,
+	\`project_id\` text,
 	\`status\` text NOT NULL,
 	\`started_at\` integer NOT NULL,
 	\`completed_at\` integer,
 	\`output\` text,
 	\`error\` text,
+	\`sdk_session_id\` text,
+	\`model\` text DEFAULT 'sonnet',
+	\`is_running\` integer DEFAULT false,
+	\`working_directory\` text,
+	\`message_count\` integer DEFAULT 0,
 	\`created_at\` integer DEFAULT (cast(unixepoch('subsec') * 1000 as integer)) NOT NULL,
 	\`updated_at\` integer DEFAULT (cast(unixepoch('subsec') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (\`feature_id\`) REFERENCES \`feature\`(\`id\`) ON UPDATE no action ON DELETE cascade
@@ -696,21 +710,19 @@ describe("Database Package - Session Repository", () => {
 	});
 
 	describe("Schema constraints via DB", () => {
-		it("enforces NOT NULL on featureId", async () => {
+		it("allows null featureId (nullable foreign key)", async () => {
 			const now = new Date();
-			let threw = false;
-			try {
-				await testDb.insert(agentSession).values({
+			const rows = await testDb
+				.insert(agentSession)
+				.values({
 					id: "sess_null1",
-				userId: "user_test1",
-					featureId: null as unknown as string,
+					userId: "user_test1",
+					featureId: null,
 					status: "pending",
 					startedAt: now,
-				});
-			} catch {
-				threw = true;
-			}
-			expect(threw).toBe(true);
+				})
+				.returning();
+			expect(rows[0]?.featureId).toBeNull();
 		});
 
 		it("enforces NOT NULL on status", async () => {

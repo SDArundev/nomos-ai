@@ -1,3 +1,5 @@
+import { featureRepository } from "@nomos-ai/db";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { getPipelineService } from "./auto-mode";
@@ -10,7 +12,11 @@ export const pipelineRouter = {
 
 	progress: protectedProcedure
 		.input(z.object({ featureId: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const feature = await featureRepository.findById(input.featureId);
+			if (!feature || feature.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
 			const service = getPipelineService();
 			return service.getProgress(input.featureId);
 		}),

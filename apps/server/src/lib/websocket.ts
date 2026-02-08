@@ -6,7 +6,7 @@ import type { TerminalService } from "@nomos-ai/api/services/terminal-service";
 export interface WSData {
 	channel: "events" | "terminal";
 	sessionId?: string;
-	userId?: string;
+	userId: string;
 }
 
 export function createWebSocketHandlers(
@@ -40,7 +40,7 @@ export function createWebSocketHandlers(
 	return {
 		open(ws: ServerWebSocket<WSData>) {
 			if (ws.data.channel === "events") {
-				broadcaster.addClient(ws as unknown as Parameters<typeof broadcaster.addClient>[0]);
+				broadcaster.addClient(ws as unknown as Parameters<typeof broadcaster.addClient>[0], ws.data.userId);
 				ws.subscribe("events");
 			} else if (ws.data.channel === "terminal" && ws.data.sessionId) {
 				let clients = terminalClients.get(ws.data.sessionId);
