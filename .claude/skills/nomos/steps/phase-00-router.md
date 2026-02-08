@@ -25,6 +25,12 @@ Parse the FIRST positional argument (non-flag) from the user's input:
 -> Pass remaining arguments as-is
 -> **STOP processing this file entirely**
 
+**IF first argument is `swarm`:**
+-> Remove "swarm" from argument list
+-> Load `.claude/skills/nomos-swarm/steps/phase-00-router.md`
+-> Pass remaining arguments as-is
+-> **STOP processing this file entirely**
+
 **OTHERWISE:** Continue with v4 feature implementation below.
 </critical>
 

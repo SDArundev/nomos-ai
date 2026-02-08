@@ -48,8 +48,9 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 │   ├── nomos/             # Core: feature implementation (v4 6-phase pipeline)
 │   ├── nomos-verify/      # Verification & analysis (5-step)
 │   ├── nomos-refactor/    # Safe refactoring (9-step)
-│   └── nomos-improve/     # System self-improvement (5-step)
-└── agents/                # 9 active agents (+ 5 deprecated v3 agents)
+│   ├── nomos-improve/     # System self-improvement (5-step)
+│   └── nomos-swarm/       # Multi-agent collaborative sessions (4-phase)
+└── agents/                # 11 active agents (+ 5 deprecated v3 agents)
 ```
 
 ---
@@ -65,6 +66,10 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 | `/nomos verify --audit` | Full codebase health audit |
 | `/nomos refactor -t rename X Y` | Safe codebase refactoring (9-step) |
 | `/nomos improve` | NOMOS system self-improvement |
+| `/nomos swarm audit` | Multi-agent collaborative feature audit |
+| `/nomos swarm research F045` | Deep research before implementing |
+| `/nomos swarm discuss "topic"` | Multi-perspective architecture debate |
+| `/nomos swarm learn` | Learning system audit and improvement |
 | `nomos.sh ingest [--dry-run]` | Ingest verification findings into features |
 | `nomos.sh tmux <action>` | tmux session management |
 

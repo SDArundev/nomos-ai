@@ -11,9 +11,13 @@
 | `/nomos verify --audit` | 5-step analysis | Full codebase health audit (deep + all) |
 | `/nomos refactor -t rename X Y` | 9-step refactor | Safe systematic refactoring |
 | `/nomos improve` | 5-step meta | NOMOS system self-improvement |
+| `/nomos swarm audit` | 4-phase swarm | Multi-agent collaborative feature audit |
+| `/nomos swarm research F045` | 4-phase swarm | Deep research before implementing |
+| `/nomos swarm discuss "topic"` | 4-phase swarm | Multi-perspective architecture debate |
+| `/nomos swarm learn` | 4-phase swarm | Learning system audit and improvement |
 | `/nomos -s` | — | Session dashboard (status + recommendations) |
 
-Sub-commands are routed in `phase-00-router.md` before flag parsing. The first positional argument (`verify`, `refactor`, `improve`) determines which sub-skill pipeline loads.
+Sub-commands are routed in `phase-00-router.md` before flag parsing. The first positional argument (`verify`, `refactor`, `improve`, `swarm`) determines which sub-skill pipeline loads.
 
 ---
 
@@ -144,6 +148,17 @@ bash .claude/skills/nomos/scripts/nomos.sh ingest
 | | `--include-planned` | Include pending features in scope (normally excluded from `all`) |
 
 > **Scope note:** `all` means **implemented features only** (verified + in_progress + failed). Pending features with no code are excluded by default. Use `--include-planned` to explicitly include them.
+
+### nomos-swarm Flags
+
+| Short | Long | Description |
+|-------|------|-------------|
+| `-a` | `--auto` | Auto-apply recommended actions without confirmation |
+| `-f` | `--fix` | Create fix tasks in features.json for broken features |
+| `-b N` | `--batch N` | Features per batch (audit mode, default: 5) |
+| `-r N` | `--rounds N` | Discussion rounds (discuss mode, default: 2) |
+| `-q` | `--quick` | Quick mode: fewer agents (skip tester in audit) |
+| | `--prune` | Remove stale entries (learn mode) |
 
 ### nomos-refactor Flags
 

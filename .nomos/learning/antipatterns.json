@@ -166,7 +166,55 @@
       "what_went_wrong": "handleConfirm chained createSession -> updateStatus -> sendMessage without try/catch. If updateStatus fails after session created, session orphaned.",
       "lesson": "Multi-step workflows need error recovery planning. MVP acceptable with caveat, but document limitation and plan compensation logic for v2.",
       "fix_applied": "Wrapped in try/catch with specific toast message for which mutation failed. Documented as MVP limitation in comments."
+    },
+    {
+      "id": "ANTI-015",
+      "name": "PARTIAL_AUTH_FIX",
+      "description": "Applying authorization fixes to some routers but not others. F224 fixed feature + project routers but left 7 other routers unprotected.",
+      "category": "security",
+      "evidence_count": 1,
+      "last_seen": "F224",
+      "severity": "CRITICAL",
+      "prevention": "When fixing cross-cutting concerns (auth, validation, logging), enumerate ALL affected surfaces first. Create checklist of every router/endpoint. Verify fix covers 100% before marking complete.",
+      "what_went_wrong": "Session, agent, learning, settings, notifications, worktree routers missing userId checks while feature + project routers are properly secured",
+      "lesson": "Creates false sense of security — feature appears fixed but most endpoints remain vulnerable. Cross-cutting fixes must be exhaustive."
+    },
+    {
+      "id": "ANTI-016",
+      "name": "ANONYMOUS_WEBSOCKET_FALLBACK",
+      "description": "WebSocket auth that falls back to 'anonymous' on failure instead of rejecting the connection",
+      "category": "security",
+      "evidence_count": 1,
+      "last_seen": "F034",
+      "severity": "HIGH",
+      "prevention": "WebSocket upgrade handlers must reject connection on auth failure. Never default to anonymous. Use ws.close(4401, 'Unauthorized') pattern.",
+      "what_went_wrong": "extractWsUserId defaults to 'anonymous' when session extraction fails",
+      "lesson": "Unauthenticated clients can establish persistent connections and receive all broadcast events. Auth failures should be hard failures."
+    },
+    {
+      "id": "ANTI-017",
+      "name": "HARDCODED_PERMISSION_BYPASS",
+      "description": "SDK/provider code that hardcodes permissionMode to bypassPermissions regardless of user configuration",
+      "category": "security",
+      "evidence_count": 1,
+      "last_seen": "F031",
+      "severity": "HIGH",
+      "prevention": "Provider/SDK wrappers must pass through user-configured permission settings. Never hardcode bypass. Default to most restrictive mode.",
+      "what_went_wrong": "ClaudeProvider always sets bypassPermissions:true in SDK options",
+      "lesson": "Agent runs with full filesystem access even when user configured restricted permissions. Violates principle of least privilege."
+    },
+    {
+      "id": "ANTI-018",
+      "name": "TEST_RUNNER_MISMATCH",
+      "description": "Tests written for one test runner (bun:test) but CI configured for another (vitest). Tests exist but never execute.",
+      "category": "testing",
+      "evidence_count": 1,
+      "last_seen": "F004",
+      "severity": "HIGH",
+      "prevention": "Standardize on one test runner across the monorepo. Verify test scripts in package.json match import statements. CI must fail if zero tests run.",
+      "what_went_wrong": "packages/types tests use bun:test imports but vitest is the configured runner",
+      "lesson": "Broken tests go undetected, giving false confidence in code quality. Invisible tests are worse than no tests."
     }
   ],
-  "last_updated": "2026-02-08T14:45:00Z"
+  "last_updated": "2026-02-08T21:42:00Z"
 }

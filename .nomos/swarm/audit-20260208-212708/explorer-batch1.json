@@ -1,0 +1,178 @@
+{
+  "agent": "explorer",
+  "batch": 1,
+  "features": ["F001", "F002", "F003", "F004", "F005"],
+  "timestamp": "2026-02-08T21:30:00Z",
+  "results": {
+    "F001": {
+      "classification": "SOUND",
+      "summary": "Monorepo scaffold with Turborepo is properly configured",
+      "ac_results": {
+        "turbo.json configured with build, dev, check pipelines": {
+          "status": "PARTIAL",
+          "detail": "turbo.json has build, dev, lint, check-types, test, db:* tasks. No 'check' task — root package.json maps 'check' to 'turbo lint'. AC says 'check' but actual config has 'check-types' and 'lint' as separate tasks. Functionally equivalent but naming doesn't match AC literally.",
+          "evidence": "turbo.json:10-15 (lint, check-types tasks), package.json:37 ('check': 'turbo lint')"
+        },
+        "Package workspaces defined in root package.json": {
+          "status": "PASS",
+          "detail": "Workspaces defined as ['apps/*', 'packages/*'] with catalog dependencies. 2 apps (server, web) and 6 packages (config, auth, env, db, types, api) found.",
+          "evidence": "package.json:6-8"
+        },
+        "TypeScript project references working": {
+          "status": "PASS",
+          "detail": "packages/types/tsconfig.json extends @nomos-ai/config/tsconfig.base.json with composite: true, declaration: true. Base config in packages/config/tsconfig.base.json is well-configured with strict mode, ESNext target, bundler resolution.",
+          "evidence": "packages/types/tsconfig.json:1-10, packages/config/tsconfig.base.json:1-22"
+        },
+        "bun run dev starts all apps concurrently": {
+          "status": "PASS",
+          "detail": "Root package.json has 'dev': 'turbo dev'. turbo.json configures dev as persistent with no cache. Both apps have dev scripts: server uses 'bun run --hot src/index.ts', web uses 'vite dev'. Turborepo handles concurrent execution.",
+          "evidence": "package.json:26, turbo.json:21-24, apps/server/package.json:9, apps/web/package.json:7"
+        }
+      },
+      "issues": [
+        {
+          "severity": "LOW",
+          "type": "NAMING_MISMATCH",
+          "description": "AC says 'check pipelines' but turbo.json has 'check-types' and 'lint' as separate tasks instead of a single 'check' task"
+        }
+      ]
+    },
+    "F002": {
+      "classification": "SOUND",
+      "summary": "Shared types package with branded types is well-implemented with comprehensive Zod schemas",
+      "ac_results": {
+        "Branded types prevent mixing IDs at compile time": {
+          "status": "PASS",
+          "detail": "ids.ts defines branded types using Zod .brand<>() for FeatureId, ProjectId, SessionId, UserId, WorktreeId, EventId, MessageId, NotificationId, SettingId. Test at ids.test.ts:128-135 uses @ts-expect-error to verify compile-time type safety between FeatureId and ProjectId.",
+          "evidence": "packages/types/src/ids.ts:1-59, packages/types/src/__tests__/ids.test.ts:128-135"
+        },
+        "Zod schemas validate runtime data": {
+          "status": "PASS",
+          "detail": "FeatureIdSchema uses regex ^F[0-9]{3}$ for runtime validation. ProjectIdSchema uses ^P[0-9]{3}$. SessionIdSchema and UserIdSchema are string-only (no regex). All schemas use safeParse for runtime validation tested in ids.test.ts.",
+          "evidence": "packages/types/src/ids.ts:9-12 (regex), packages/types/src/__tests__/ids.test.ts:11-81 (tests)"
+        },
+        "Types importable from @nomos/types": {
+          "status": "PASS",
+          "detail": "Package named @nomos-ai/types (not @nomos/types but consistent with project namespace). package.json exports '.': './src/index.ts' and './*': './src/*.ts'. index.ts re-exports all types from all modules. Root package.json has '@nomos-ai/types': 'workspace:*' as dependency.",
+          "evidence": "packages/types/package.json:6-9, packages/types/src/index.ts:1-151"
+        },
+        "Constants exported for status enums": {
+          "status": "PASS",
+          "detail": "FEATURE_STATUS, PROJECT_STATUS, SESSION_STATUS constants exported from status.ts with 'as const' for compile-time literal types. ESTIMATED_SIZE, MODEL, THINKING_LEVEL, PLANNING_MODE, etc. also exported from feature.ts. All re-exported via index.ts.",
+          "evidence": "packages/types/src/status.ts:8-73, packages/types/src/feature.ts:9-139, packages/types/src/index.ts:131-143"
+        }
+      },
+      "issues": []
+    },
+    "F003": {
+      "classification": "SOUND",
+      "summary": "Feature Zod schema with comprehensive validation — all ACs met with thorough test coverage",
+      "ac_results": {
+        "Schema validates all required fields": {
+          "status": "PASS",
+          "detail": "FeatureSchema requires: id (FeatureIdSchema), title (string 5-80), category (CategoryIdSchema), description (string 20-500), phase (PhaseIdSchema), acceptanceCriteria (array 1-10), status (FeatureStatusSchema), passes (boolean). Tests verify rejection of missing/invalid required fields.",
+          "evidence": "packages/types/src/feature.ts:274-324, packages/types/src/__tests__/feature.test.ts:282-341"
+        },
+        "Status enum matches state machine": {
+          "status": "PASS",
+          "detail": "FeatureStatusSchema accepts exactly 6 values: backlog, pending, in_progress, waiting_approval, verified, failed. Matches the NOMOS state machine documented in CLAUDE.md. FEATURE_VALID_TRANSITIONS defines valid state transitions. Test verifies exactly 6 statuses.",
+          "evidence": "packages/types/src/status.ts:8-83, packages/types/src/__tests__/status.test.ts:139-149"
+        },
+        "Feature ID pattern validated (F001-F999)": {
+          "status": "PASS",
+          "detail": "FeatureIdSchema uses regex ^F[0-9]{3}$ with brand<'FeatureId'>. Tests verify F001, F123, F999 accepted; rejects F0001, F00, F1, f001, A001, numbers, objects, null, undefined.",
+          "evidence": "packages/types/src/ids.ts:9-12, packages/types/src/__tests__/ids.test.ts:13-81"
+        },
+        "Type inference works correctly": {
+          "status": "PASS",
+          "detail": "Feature type is inferred via z.infer<typeof FeatureSchema>. Test at feature.test.ts:406-411 verifies type inference works. Branded types are properly inferred through the schema chain.",
+          "evidence": "packages/types/src/feature.ts:326, packages/types/src/__tests__/feature.test.ts:405-411"
+        }
+      },
+      "issues": []
+    },
+    "F004": {
+      "classification": "BROKEN",
+      "summary": "Project schema is well-implemented but test data uses invalid ID format — tests should be FAILING",
+      "ac_results": {
+        "Schema validates project structure": {
+          "status": "PASS",
+          "detail": "ProjectSchema validates id (ProjectIdSchema), name (1-100), path (absolute path), settings (optional with defaults), status (default 'draft'), createdAt/updatedAt (datetime).",
+          "evidence": "packages/types/src/project.ts:26-51"
+        },
+        "Path validation ensures valid directory": {
+          "status": "PASS",
+          "detail": "Path uses .refine() to check startsWith('/') or Windows drive letter /^[A-Za-z]:/ pattern. Tests verify rejection of empty, relative, and dot-relative paths. Windows paths accepted.",
+          "evidence": "packages/types/src/project.ts:32-37, packages/types/src/__tests__/project.test.ts:200-217"
+        },
+        "Settings object typed correctly": {
+          "status": "PASS",
+          "detail": "ProjectSettingsSchema has theme (enum light/dark/system), locale (string), autoSaveInterval (int min 0), notifications (boolean). All have defaults. Transform merges partial settings with defaults.",
+          "evidence": "packages/types/src/project.ts:8-17"
+        },
+        "Timestamps validated as ISO strings": {
+          "status": "PASS",
+          "detail": "createdAt and updatedAt use z.string().datetime() which enforces ISO 8601 format. Tests verify rejection of 'not-a-date' and '2026-01-28' (missing time), acceptance of Z suffix timestamps.",
+          "evidence": "packages/types/src/project.ts:48-50, packages/types/src/__tests__/project.test.ts:220-242"
+        }
+      },
+      "issues": [
+        {
+          "severity": "HIGH",
+          "type": "BROKEN_TEST",
+          "description": "Test fixture uses id: 'proj-001' but ProjectIdSchema requires ^P[0-9]{3}$ format (e.g., 'P001'). The test 'accepts minimal valid project' at line 77 should FAIL. This affects 14+ test cases that use the same minimalValidProject fixture. Either tests are not being run or this was never caught.",
+          "evidence": "packages/types/src/__tests__/project.test.ts:69 vs packages/types/src/ids.ts:14-18"
+        }
+      ]
+    },
+    "F005": {
+      "classification": "SOUND",
+      "summary": "Session schema properly validates lifecycle with all ACs met, minor inconsistency in timestamp handling",
+      "ac_results": {
+        "Schema validates session lifecycle": {
+          "status": "PASS",
+          "detail": "SessionSchema validates id (SessionIdSchema), featureId (FeatureIdSchema), status (SessionStatusSchema), startedAt (date), optional completedAt, output, error. F258 additions include sdkSessionId, model, isRunning, workingDirectory, messageCount.",
+          "evidence": "packages/types/src/session.ts:15-48"
+        },
+        "Status tracks pending/running/completed/failed": {
+          "status": "PASS",
+          "detail": "SESSION_STATUS defines exactly 4 values: pending, running, completed, failed. SessionStatusSchema validates against these. SESSION_VALID_TRANSITIONS defines valid transitions. Tests verify all 4 statuses and reject old values (active, paused).",
+          "evidence": "packages/types/src/status.ts:56-73, packages/types/src/__tests__/session.test.ts:64-72"
+        },
+        "Output stores agent response": {
+          "status": "PASS",
+          "detail": "output field is z.string().optional(). Tests verify completed session can store output string.",
+          "evidence": "packages/types/src/session.ts:32, packages/types/src/__tests__/session.test.ts:38-49"
+        },
+        "Timestamps track duration": {
+          "status": "PASS",
+          "detail": "startedAt (required, z.coerce.date()) and completedAt (optional, z.coerce.date()) track duration. Tests verify lifecycle: pending has no completedAt, running has no completedAt, completed/failed can have completedAt.",
+          "evidence": "packages/types/src/session.ts:26-29, packages/types/src/__tests__/session.test.ts:197-244"
+        }
+      },
+      "issues": [
+        {
+          "severity": "LOW",
+          "type": "INCONSISTENCY",
+          "description": "Session uses z.coerce.date() for timestamps while Project (F004) uses z.string().datetime(). Coerce accepts loose formats (epoch numbers, various date strings). Not broken but inconsistent API surface — session dates are Date objects while project dates are ISO strings.",
+          "evidence": "packages/types/src/session.ts:26-29 vs packages/types/src/project.ts:48-50"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_features": 5,
+    "sound": 4,
+    "broken": 1,
+    "partial": 0,
+    "fragile": 0,
+    "misleading": 0,
+    "critical_issues": [
+      "F004: Test fixture uses 'proj-001' but schema requires P[0-9]{3} format — 14+ tests should be failing"
+    ],
+    "minor_issues": [
+      "F001: turbo.json has 'check-types' and 'lint' instead of 'check' pipeline as AC states",
+      "F005: Timestamp handling (z.coerce.date) inconsistent with F004 pattern (z.string().datetime)"
+    ]
+  }
+}

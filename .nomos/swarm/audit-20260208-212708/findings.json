@@ -1,0 +1,216 @@
+{
+  "session": {
+    "mode": "audit",
+    "team": "nomos-audit-20260208-212708",
+    "timestamp": "2026-02-08T21:27:08Z",
+    "duration_minutes": 18,
+    "agents": ["explorer", "skeptic", "tester"],
+    "scope": {
+      "type": "all",
+      "features": [
+        "F001", "F002", "F003", "F004", "F005", "F006", "F007", "F008", "F009", "F010",
+        "F011", "F012", "F013", "F014", "F015", "F016", "F017", "F018", "F019", "F020",
+        "F021", "F022", "F023", "F024", "F025", "F026", "F027", "F028", "F029", "F030",
+        "F031", "F032", "F033", "F034", "F035", "F036", "F037", "F039", "F040",
+        "F221", "F222", "F223", "F224", "F225", "F226", "F227", "F228", "F229", "F230",
+        "F231", "F232", "F233", "F234", "F235", "F236", "F237", "F238", "F239", "F240",
+        "F241", "F242", "F243", "F244", "F245",
+        "F258", "F259", "F260", "F261", "F262", "F263", "F264", "F265"
+      ],
+      "total": 72
+    }
+  },
+  "findings": [
+    {
+      "id": "SW-001",
+      "feature_id": "F004",
+      "classification": "BROKEN",
+      "severity": "HIGH",
+      "description": "Project Zod schema tests use wrong ID format — test fixture uses 'proj-001' but ProjectIdSchema requires P[0-9]{3} pattern. 14+ tests should be failing.",
+      "evidence": [
+        {"agent": "explorer", "detail": "Test fixture at packages/types/src/__tests__/project.test.ts:69 uses id: 'proj-001' but ProjectIdSchema at packages/types/src/ids.ts:14-18 requires ^P[0-9]{3}$"},
+        {"agent": "skeptic", "detail": "Confirmed: test runner mismatch (bun:test vs vitest) means CI never catches this. Tests are invisible to the configured runner."}
+      ],
+      "suggested_action": "fail",
+      "notes": "Tests technically pass in isolation with bun test but are never run in CI"
+    },
+    {
+      "id": "SW-002",
+      "feature_id": "F224",
+      "classification": "PARTIAL",
+      "severity": "CRITICAL",
+      "description": "F224 claimed to fix userId/ownerId authorization but only 2 of 9 API routers actually enforce userId checks. Session, agent, learning, settings, notifications, and worktree routers allow any authenticated user to access any user's data.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "Session router: 8/10 endpoints missing userId checks (packages/api/src/routers/session.ts)"},
+        {"agent": "skeptic", "detail": "Agent router: 4/6 endpoints missing userId checks (packages/api/src/routers/agent.ts)"},
+        {"agent": "skeptic", "detail": "Learning router: 4/5 endpoints missing userId checks (packages/api/src/routers/learning.ts)"},
+        {"agent": "skeptic", "detail": "Settings router: 0/3 endpoints have userId scoping (packages/api/src/routers/settings.ts)"},
+        {"agent": "skeptic", "detail": "Notifications router: 0/5 endpoints have userId scoping (packages/api/src/routers/notifications.ts)"},
+        {"agent": "skeptic", "detail": "Worktree router: 0/4 endpoints have userId checks (packages/api/src/routers/worktree.ts)"},
+        {"agent": "explorer", "detail": "Feature + Project routers properly secured with full userId checks — fix was incomplete, not absent"}
+      ],
+      "suggested_action": "fail",
+      "notes": "Root cause: session repository missing findByUser() method. Fix only covered feature + project routers."
+    },
+    {
+      "id": "SW-003",
+      "feature_id": "F034",
+      "classification": "FRAGILE",
+      "severity": "HIGH",
+      "description": "WebSocket server falls back to 'anonymous' userId on auth failure. Any unauthenticated client can establish WebSocket connections and receive all broadcast events.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "apps/server/src/index.ts:94-101 — extractWsUserId defaults to 'anonymous' on session extraction failure"},
+        {"agent": "skeptic", "detail": "apps/server/src/lib/websocket.ts — no per-message authentication, no userId-based event filtering"},
+        {"agent": "skeptic", "detail": "EventBroadcaster sends ALL events to ALL connected clients — client-side useAgentStream filters by sessionId but all data flows over the wire"}
+      ],
+      "suggested_action": "fail",
+      "notes": "Affects F034, F035, F259. Client filters mask the issue but data is exposed on the wire."
+    },
+    {
+      "id": "SW-004",
+      "feature_id": "F225",
+      "classification": "FRAGILE",
+      "severity": "MEDIUM",
+      "description": "Rate limiter is in-memory only with no cleanup mechanism. Map grows unboundedly. Uses spoofable x-forwarded-for. WebSocket connections bypass rate limiting entirely.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "apps/server/src/index.ts:33-54 — in-memory rateLimitStore Map with no TTL/cleanup"},
+        {"agent": "skeptic", "detail": "WebSocket upgrade path bypasses HTTP middleware chain including rate limiter"}
+      ],
+      "suggested_action": "backlog",
+      "notes": "Functional for development but not production-ready"
+    },
+    {
+      "id": "SW-005",
+      "feature_id": "F221",
+      "classification": "FRAGILE",
+      "severity": "MEDIUM",
+      "description": "ID generation uses MAX(id) query with retry on UNIQUE constraint violation. Race condition possible under concurrent bulk operations.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "packages/db/src/lib/id-generation.ts:8-46 — getNextId uses MAX(id) + increment. Retry catches collisions but only 3 attempts with 10ms*attempt delay."}
+      ],
+      "suggested_action": "backlog",
+      "notes": "Low risk for current single-user usage, problematic at scale"
+    },
+    {
+      "id": "SW-006",
+      "feature_id": "F262",
+      "classification": "FRAGILE",
+      "severity": "MEDIUM",
+      "description": "FS router scoped to process.cwd() — any authenticated user can read/write any file under the server's working directory with no per-user or per-project restriction.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "packages/api/src/routers/fs.ts:9 — FSService root defaults to process.cwd()"},
+        {"agent": "skeptic", "detail": "Path traversal IS protected via validatePath() but no per-user scoping"}
+      ],
+      "suggested_action": "backlog",
+      "notes": "Path traversal protection exists but authorization is too broad"
+    },
+    {
+      "id": "SW-007",
+      "feature_id": "F230",
+      "classification": "PARTIAL",
+      "severity": "LOW",
+      "description": "Root tsconfig.json references include types, db, auth, api, env, server but not apps/web. Root-level tsc --build won't check the web app.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "tsconfig.json — references array missing apps/web entry"}
+      ],
+      "suggested_action": "backlog",
+      "notes": "Web app still compiles via its own tsconfig, just not checked at root level"
+    },
+    {
+      "id": "SW-008",
+      "feature_id": "F234",
+      "classification": "PARTIAL",
+      "severity": "MEDIUM",
+      "description": "CSP header blocks Scalar API reference CDN script. The /api-reference page renders as blank white page.",
+      "evidence": [
+        {"agent": "tester", "detail": "http://localhost:3008/api-reference — blank page. Console: CSP violation blocking https://cdn.jsdelivr.net/npm/@scalar/api-reference"},
+        {"agent": "tester", "detail": "Current CSP script-src: 'self' 'unsafe-inline' — missing cdn.jsdelivr.net whitelist"},
+        {"agent": "tester", "detail": "Screenshot: screenshots/api-reference-broken.png"}
+      ],
+      "suggested_action": "backlog",
+      "notes": "Fix: add https://cdn.jsdelivr.net to script-src directive, or bundle @scalar locally"
+    },
+    {
+      "id": "SW-009",
+      "feature_id": "F031",
+      "classification": "FRAGILE",
+      "severity": "HIGH",
+      "description": "ClaudeProvider hardcodes bypassPermissions: true in SDK options, overriding the user's configured permissionMode.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "packages/api/src/services/claude-provider.ts — permissionMode always set to bypassPermissions regardless of input config"}
+      ],
+      "suggested_action": "fail",
+      "notes": "Agent runs with full filesystem access regardless of user settings"
+    },
+    {
+      "id": "SW-010",
+      "feature_id": "F019",
+      "classification": "FRAGILE",
+      "severity": "HIGH",
+      "description": "Session router has 8 of 10 endpoints without userId authorization. Any authenticated user can list, read, modify, or delete any other user's sessions.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "packages/api/src/routers/session.ts — list, get, update, delete, updateStatus, appendOutput, getDuration, listActive all lack userId checks"},
+        {"agent": "skeptic", "detail": "Root cause: session repository has no findByUser() method (unlike feature/project repos)"}
+      ],
+      "suggested_action": "fail",
+      "notes": "Part of the systemic auth gap (SW-002). Only create and createAgentSession use userId."
+    },
+    {
+      "id": "SW-011",
+      "feature_id": "F032",
+      "classification": "FRAGILE",
+      "severity": "HIGH",
+      "description": "Agent sendMessage endpoint has no session ownership check. Any authenticated user can send messages to any agent session, potentially triggering code execution in another user's worktree.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "packages/api/src/routers/agent.ts:54 — sendMessage does not verify session belongs to requesting user"},
+        {"agent": "skeptic", "detail": "agent.stop (line 65-82) DOES properly check userId — inconsistent implementation"}
+      ],
+      "suggested_action": "fail",
+      "notes": "Security risk: could trigger agent execution in another user's context"
+    },
+    {
+      "id": "SW-012",
+      "feature_id": "F260",
+      "classification": "FRAGILE",
+      "severity": "HIGH",
+      "description": "Auto-mode service uses hardcoded userId: 'auto-mode' instead of the actual user's ID. Sessions created by auto-mode are not tied to real users.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "packages/api/src/services/auto-mode-service.ts — creates sessions with userId: 'auto-mode' literal string"}
+      ],
+      "suggested_action": "fail",
+      "notes": "Auto-mode sessions invisible to normal user queries, no ownership trail"
+    },
+    {
+      "id": "SW-013",
+      "feature_id": "F260",
+      "classification": "FRAGILE",
+      "severity": "MEDIUM",
+      "description": "Auto-mode operates on all features in the database regardless of userId. In multi-user scenario, auto-mode could process another user's features.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "Auto-mode feature queue queries not scoped to requesting user's features"}
+      ],
+      "suggested_action": "backlog",
+      "notes": "Low risk in single-user deployment, problematic in multi-user"
+    },
+    {
+      "id": "SW-014",
+      "feature_id": "F004",
+      "classification": "PARTIAL",
+      "severity": "MEDIUM",
+      "description": "Test runner mismatch — packages use bun:test but CI/scripts may run vitest. Tests exist but may never execute in automated pipelines.",
+      "evidence": [
+        {"agent": "skeptic", "detail": "packages/types tests use bun:test imports but project has vitest as dev dependency. F004's broken test fixture was never caught because tests aren't running in CI."}
+      ],
+      "suggested_action": "backlog",
+      "notes": "Affects confidence in all test results across the project"
+    }
+  ],
+  "summary": {
+    "total_audited": 72,
+    "broken": 1,
+    "partial": 4,
+    "fragile": 8,
+    "misleading": 0,
+    "sound": 59
+  }
+}

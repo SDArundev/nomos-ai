@@ -272,13 +272,15 @@
         "Timestamps validated as ISO strings"
       ],
       "estimatedSize": "S",
-      "status": "verified",
-      "passes": true,
+      "status": "failed",
+      "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "startedAt": "2026-01-28T15:34:57Z",
-      "verifiedAt": "2026-01-28T16:16:02Z"
+      "verifiedAt": "2026-01-28T16:16:02Z",
+      "failedReason": "swarm_audit: test fixtures use wrong ID format (proj-001 vs P[0-9]{3}), 14+ tests should be failing (SW-001)",
+      "failedAt": "2026-02-08T21:42:00Z"
     },
     {
       "id": "F005",
@@ -719,13 +721,15 @@
         "Duration tracking"
       ],
       "estimatedSize": "M",
-      "status": "verified",
-      "passes": true,
+      "status": "failed",
+      "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "startedAt": "2026-01-29T15:43:30Z",
-      "verifiedAt": "2026-01-29T16:41:47Z"
+      "verifiedAt": "2026-01-29T16:41:47Z",
+      "failedReason": "swarm_audit: 8/10 session router endpoints lack userId authorization (SW-010)",
+      "failedAt": "2026-02-08T21:42:00Z"
     },
     {
       "id": "F020",
@@ -1061,13 +1065,15 @@
         "Tool permissions set"
       ],
       "estimatedSize": "M",
-      "status": "verified",
-      "passes": true,
+      "status": "failed",
+      "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "completedAt": "2026-02-06T14:29:06Z",
-      "verifiedAt": "2026-02-06T14:30:42Z"
+      "verifiedAt": "2026-02-06T14:30:42Z",
+      "failedReason": "swarm_audit: ClaudeProvider hardcodes bypassPermissions:true, overrides user config (SW-009)",
+      "failedAt": "2026-02-08T21:42:00Z"
     },
     {
       "id": "F032",
@@ -1090,13 +1096,15 @@
         "Tools configured correctly"
       ],
       "estimatedSize": "M",
-      "status": "verified",
-      "passes": true,
+      "status": "failed",
+      "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "startedAt": "2026-02-06T18:08:51Z",
-      "verifiedAt": "2026-02-06T19:38:51Z"
+      "verifiedAt": "2026-02-06T19:38:51Z",
+      "failedReason": "swarm_audit: agent sendMessage has no session ownership check (SW-011)",
+      "failedAt": "2026-02-08T21:42:00Z"
     },
     {
       "id": "F033",
@@ -1146,13 +1154,15 @@
         "Reconnection handled"
       ],
       "estimatedSize": "M",
-      "status": "verified",
-      "passes": true,
+      "status": "failed",
+      "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "preImplemented": true,
-      "verifiedAt": "2026-02-08T09:27:52Z"
+      "verifiedAt": "2026-02-08T09:27:52Z",
+      "failedReason": "swarm_audit: WebSocket accepts anonymous connections, broadcasts all events to all clients (SW-003)",
+      "failedAt": "2026-02-08T21:42:00Z"
     },
     {
       "id": "F035",
@@ -1175,7 +1185,7 @@
         "Errors propagated"
       ],
       "estimatedSize": "M",
-      "status": "in_progress",
+      "status": "verified",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -1289,7 +1299,7 @@
         "Status updates to in_progress"
       ],
       "estimatedSize": "S",
-      "status": "waiting_approval",
+      "status": "verified",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -6154,7 +6164,7 @@
       "id": "F224",
       "title": "Fix: No userId/ownerId column — any auth user can CRUD any entity",
       "description": "No userId/ownerId column — any auth user can CRUD any entity. Suggested fix: Add userId columns, enforce ownership in all repository methods",
-      "status": "verified",
+      "status": "failed",
       "priority": 1,
       "category": "CAT-FIX",
       "passes": false,
@@ -6177,7 +6187,9 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "skip"
+      "planningMode": "skip",
+      "failedReason": "swarm_audit: userId authorization only enforced in 2/9 routers — fix incomplete (SW-002)",
+      "failedAt": "2026-02-08T21:42:00Z"
     },
     {
       "id": "F225",
@@ -7273,7 +7285,7 @@
       },
       "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md sections 5-6 for pipeline and worktree patterns.",
       "estimatedSize": "XL",
-      "status": "verified",
+      "status": "failed",
       "passes": false,
       "model": "opus",
       "thinkingLevel": "high",
@@ -7282,7 +7294,9 @@
         "automaker-mirror",
         "group-2",
         "auto-mode"
-      ]
+      ],
+      "failedReason": "swarm_audit: auto-mode uses hardcoded userId auto-mode, sessions not tied to real users (SW-012)",
+      "failedAt": "2026-02-08T21:42:00Z"
     },
     {
       "id": "F261",
@@ -7543,6 +7557,305 @@
         "group-3",
         "frontend"
       ]
+    },
+    {
+      "id": "F266",
+      "title": "Fix userId authorization in 7 remaining API routers",
+      "description": "Session, agent, learning, settings, notifications, worktree, and terminal routers need userId scoping on all endpoints. Add findByUser() to session repository. Model after feature/project router pattern.",
+      "status": "backlog",
+      "priority": 1,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F224",
+        "security"
+      ],
+      "sourceIssue": "SW-002",
+      "relatedFeature": "F224",
+      "effort": "high",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Session router: all 10 endpoints enforce userId ownership",
+        "Agent router: all 6 endpoints enforce userId ownership",
+        "Learning router: all 5 endpoints enforce userId scoping",
+        "Settings router: all 3 endpoints scoped to userId",
+        "Notifications router: all 5 endpoints scoped to userId",
+        "Worktree router: all 4 endpoints enforce userId checks",
+        "Session repository has findByUser() method"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "L",
+      "requirements": [],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "standard"
+    },
+    {
+      "id": "F267",
+      "title": "Fix WebSocket authentication — reject anonymous connections",
+      "description": "Remove anonymous fallback in extractWsUserId. Reject WebSocket upgrade if auth fails. Add per-user event filtering in EventBroadcaster.",
+      "status": "backlog",
+      "priority": 1,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F034",
+        "security"
+      ],
+      "sourceIssue": "SW-003",
+      "relatedFeature": "F034",
+      "effort": "medium",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "WebSocket rejects connection when auth fails (no anonymous fallback)",
+        "EventBroadcaster filters events by userId",
+        "Clients only receive events for their own sessions"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "M",
+      "requirements": [],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "standard"
+    },
+    {
+      "id": "F268",
+      "title": "Fix ClaudeProvider bypassPermissions override",
+      "description": "ClaudeProvider should respect the permissionMode from AgentConfig instead of hardcoding bypassPermissions:true.",
+      "status": "backlog",
+      "priority": 2,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F031",
+        "security"
+      ],
+      "sourceIssue": "SW-009",
+      "relatedFeature": "F031",
+      "effort": "low",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "ClaudeProvider reads permissionMode from AgentConfig",
+        "bypassPermissions only used when explicitly configured",
+        "Default permissionMode is not bypass"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "S",
+      "requirements": [],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F269",
+      "title": "Fix agent sendMessage ownership check",
+      "description": "Add userId ownership verification to agent.sendMessage, agent.getHistory, agent.clearHistory, agent.listSessions. Follow the pattern used in agent.stop.",
+      "status": "backlog",
+      "priority": 2,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F032",
+        "security"
+      ],
+      "sourceIssue": "SW-011",
+      "relatedFeature": "F032",
+      "effort": "medium",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "sendMessage verifies session belongs to requesting user",
+        "getHistory verifies session ownership",
+        "clearHistory verifies session ownership",
+        "listSessions scoped to requesting user",
+        "Follows same pattern as agent.stop"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "S",
+      "requirements": [],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F270",
+      "title": "Fix auto-mode userId to use actual user context",
+      "description": "Auto-mode service should accept and use the requesting users ID instead of hardcoded auto-mode. Feature queue should be scoped to users features.",
+      "status": "backlog",
+      "priority": 3,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F260"
+      ],
+      "sourceIssue": "SW-012",
+      "relatedFeature": "F260",
+      "effort": "medium",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Auto-mode sessions use actual user ID",
+        "Feature queue scoped to requesting users features",
+        "No hardcoded userId strings"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "S",
+      "requirements": [],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F271",
+      "title": "Fix F004 project test fixtures to use P[0-9]{3} format",
+      "description": "Update test fixture minimalValidProject to use id P001 instead of proj-001. Verify all 14+ test cases pass with correct ID format.",
+      "status": "backlog",
+      "priority": 3,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F004"
+      ],
+      "sourceIssue": "SW-001",
+      "relatedFeature": "F004",
+      "effort": "low",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Test fixtures use P[0-9]{3} ID format",
+        "All 14+ project schema tests pass",
+        "Tests run via configured test runner"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "XS",
+      "requirements": [],
+      "model": "haiku",
+      "thinkingLevel": "none",
+      "planningMode": "skip"
+    },
+    {
+      "id": "F272",
+      "title": "Fix CSP header to whitelist Scalar CDN",
+      "description": "Add https://cdn.jsdelivr.net to script-src directive in CSP header at apps/server/src/index.ts, or bundle @scalar/api-reference locally.",
+      "status": "backlog",
+      "priority": 5,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F234"
+      ],
+      "sourceIssue": "SW-008",
+      "relatedFeature": "F234",
+      "effort": "low",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "API reference page renders without CSP violation",
+        "Scalar UI loads and displays endpoints"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "XS",
+      "requirements": [],
+      "model": "haiku",
+      "thinkingLevel": "none",
+      "planningMode": "skip"
+    },
+    {
+      "id": "F273",
+      "title": "Fix test runner alignment — bun:test vs vitest",
+      "description": "Align test runner across all packages. Either convert all tests to vitest or ensure bun test is the CI runner. Current mismatch means tests may not run in automated pipelines.",
+      "status": "backlog",
+      "priority": 5,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F004"
+      ],
+      "sourceIssue": "SW-014",
+      "relatedFeature": "F004",
+      "effort": "medium",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Single test runner across all packages",
+        "CI pipeline runs all tests",
+        "No invisible/skipped test files"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "M",
+      "requirements": [],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F274",
+      "title": "Upgrade rate limiter for production readiness",
+      "description": "Add TTL/cleanup to in-memory rate limit store. Consider WebSocket rate limiting. Do not trust x-forwarded-for without trusted proxy config.",
+      "status": "backlog",
+      "priority": 8,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F225"
+      ],
+      "sourceIssue": "SW-004",
+      "relatedFeature": "F225",
+      "effort": "medium",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Rate limit store has TTL-based cleanup",
+        "Memory usage bounded over time",
+        "WebSocket connections rate limited",
+        "IP extraction uses trusted proxy config"
+      ],
+      "phase": "phase-2",
+      "estimatedSize": "M",
+      "requirements": [],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F275",
+      "title": "Add apps/web to root tsconfig references",
+      "description": "Add apps/web to the references array in root tsconfig.json so root-level tsc --build checks the web app.",
+      "status": "backlog",
+      "priority": 10,
+      "category": "CAT-FIX",
+      "passes": false,
+      "tags": [
+        "swarm-audit",
+        "fix:F230"
+      ],
+      "sourceIssue": "SW-007",
+      "relatedFeature": "F230",
+      "effort": "low",
+      "createdAt": "2026-02-08T21:42:00Z",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Root tsconfig.json includes apps/web in references",
+        "tsc --build from root checks web app"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "XS",
+      "requirements": [],
+      "model": "haiku",
+      "thinkingLevel": "none",
+      "planningMode": "skip"
     }
   ],
   "summary": {

@@ -21,6 +21,10 @@ Autonomous development ecosystem with JSON checkpoints, native agent swarm, and 
 /nomos verify --audit           # Full codebase audit
 /nomos refactor -t rename X Y   # Safe refactoring
 /nomos improve                  # Improve NOMOS system
+/nomos swarm audit              # Multi-agent feature audit
+/nomos swarm research F045      # Deep research before implementing
+/nomos swarm discuss "topic"    # Multi-perspective debate
+/nomos swarm learn              # Learning system audit
 ```
 
 **Feature flags:** `-a` (auto), `-t` (test), `-m` (merge), `-r` (resume), `-i` (interactive), `-p` (plan-only), `-v` (verify-only), `-l` (learn-only), `-c` (cleanup), `-f N` (from-phase N)

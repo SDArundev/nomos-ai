@@ -1,0 +1,72 @@
+{
+  "agent": "explorer",
+  "batch": 7,
+  "features": ["F039", "F040"],
+  "timestamp": "2026-02-08T22:10:00Z",
+  "results": {
+    "F039": {
+      "classification": "SOUND",
+      "summary": "Start execution dialog with model/thinking/planning options, mutation-based execution, and status update",
+      "ac_results": {
+        "Button visible on detail": {
+          "status": "PASS",
+          "detail": "StartExecutionDialog imported and used in feature-detail-panel.tsx. Play icon button triggers dialog open.",
+          "evidence": "apps/web/src/components/kanban/feature-detail-panel.tsx:19, apps/web/src/components/kanban/start-execution-dialog.tsx:35-43"
+        },
+        "Confirmation shows options": {
+          "status": "PASS",
+          "detail": "Dialog with Select components for model (opus/sonnet/haiku), thinking level (none/standard/extended/ultrathink), and planning mode (skip/lite/spec/full). Uses typed constants from @nomos-ai/types.",
+          "evidence": "apps/web/src/components/kanban/start-execution-dialog.tsx:3, 40-48"
+        },
+        "Execution starts on confirm": {
+          "status": "PASS",
+          "detail": "useMutation with orpc.agent.createSession creates agent session. Toast on error. QueryClient invalidation on success.",
+          "evidence": "apps/web/src/components/kanban/start-execution-dialog.tsx:50-56"
+        },
+        "Status updates to in_progress": {
+          "status": "PASS",
+          "detail": "useMutation with orpc.features.updateStatus. Updates feature status as part of execution flow.",
+          "evidence": "apps/web/src/components/kanban/start-execution-dialog.tsx:58-60"
+        }
+      },
+      "issues": []
+    },
+    "F040": {
+      "classification": "SOUND",
+      "summary": "Stop execution dialog with session lookup, agent cancellation, resource cleanup, and status update",
+      "ac_results": {
+        "Stop button visible during run": {
+          "status": "PASS",
+          "detail": "StopExecutionDialog imported in feature-detail-panel.tsx. Square icon button visible conditionally.",
+          "evidence": "apps/web/src/components/kanban/feature-detail-panel.tsx:20, apps/web/src/components/kanban/stop-execution-dialog.tsx:22-26"
+        },
+        "Agent receives cancel": {
+          "status": "PASS",
+          "detail": "useMutation with orpc.agent.stop sends stop command. Finds active session for feature via sessionsQuery.",
+          "evidence": "apps/web/src/components/kanban/stop-execution-dialog.tsx:37-43, 53-60"
+        },
+        "Resources cleaned up": {
+          "status": "PASS",
+          "detail": "Stop mutation handles cleanup. QueryClient invalidation ensures UI refreshes. Session data re-fetched with staleTime: 0.",
+          "evidence": "apps/web/src/components/kanban/stop-execution-dialog.tsx:30-35"
+        },
+        "Session marked cancelled": {
+          "status": "PASS",
+          "detail": "updateStatus mutation updates feature status via orpc.features.updateStatus after stopping.",
+          "evidence": "apps/web/src/components/kanban/stop-execution-dialog.tsx:45-51"
+        }
+      },
+      "issues": []
+    }
+  },
+  "summary": {
+    "total_features": 2,
+    "sound": 2,
+    "broken": 0,
+    "partial": 0,
+    "fragile": 0,
+    "misleading": 0,
+    "critical_issues": [],
+    "minor_issues": []
+  }
+}

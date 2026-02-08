@@ -1,0 +1,207 @@
+{
+  "agent": "explorer",
+  "batch": 6,
+  "features": ["F031", "F032", "F033", "F034", "F035", "F036", "F037"],
+  "timestamp": "2026-02-08T22:05:00Z",
+  "results": {
+    "F031": {
+      "classification": "SOUND",
+      "summary": "Claude Agent SDK client configured with model aliases, retry logic, error classification, and connection timeout",
+      "ac_results": {
+        "SDK client setup": {
+          "status": "PASS",
+          "detail": "Uses @anthropic-ai/claude-agent-sdk's query function. ClaudeProvider class implements AgentProvider interface with executeQuery AsyncGenerator.",
+          "evidence": "packages/api/src/services/claude-provider.ts:1, 67-70"
+        },
+        "Model selection": {
+          "status": "PASS",
+          "detail": "MODEL_ALIASES maps haiku/sonnet/opus to full model IDs (claude-haiku-4-5, claude-sonnet-4-5, claude-opus-4-6). Falls back to raw model string if no alias match.",
+          "evidence": "packages/api/src/services/claude-provider.ts:5-9, 71"
+        },
+        "Tool permissions configured": {
+          "status": "PASS",
+          "detail": "SDK options include cwd, maxTurns, permissionMode. DEFAULT_TOOLS exported from @nomos-ai/types. Permission modes: default, acceptEdits, bypassPermissions, plan.",
+          "evidence": "packages/api/src/services/claude-provider.ts:76-80, packages/api/src/services/agent-service.ts:35"
+        },
+        "Error handling": {
+          "status": "PASS",
+          "detail": "classifyError categorizes errors into auth/rate_limit/timeout/network/server/validation/unknown with retryable flags. MAX_RETRIES=3 with exponential backoff and jitter.",
+          "evidence": "packages/api/src/services/claude-provider.ts:12-61"
+        }
+      },
+      "issues": []
+    },
+    "F032": {
+      "classification": "SOUND",
+      "summary": "Agent session creation service initializes sessions in DB with feature context, system prompt, and tool config",
+      "ac_results": {
+        "Session created in DB": {
+          "status": "PASS",
+          "detail": "createAgentSession creates session via sessionRepository.create with userId, featureId, status, model, etc.",
+          "evidence": "packages/api/src/services/agent-service.ts:43-51"
+        },
+        "Agent initialized with context": {
+          "status": "PASS",
+          "detail": "loadProjectContext loads project context. AgentConfig includes model, tools, systemPrompt, maxTurns, cwd, permissionMode.",
+          "evidence": "packages/api/src/services/agent-service.ts:16, 38-46"
+        },
+        "System prompt includes feature": {
+          "status": "PASS",
+          "detail": "buildSystemPrompt constructs detailed prompt with feature ID, title, description, acceptance criteria, spec, technical notes, testing requirements.",
+          "evidence": "packages/api/src/services/agent-service.ts:53-100"
+        },
+        "Concurrency limits": {
+          "status": "PASS",
+          "detail": "MAX_CONCURRENT_SESSIONS=5 limit enforced. MAX_MESSAGE_LENGTH=100KB. MAX_SESSION_NAME_LENGTH=200.",
+          "evidence": "packages/api/src/services/agent-service.ts:21-25"
+        }
+      },
+      "issues": []
+    },
+    "F033": {
+      "classification": "SOUND",
+      "summary": "Agent execution with streaming via AsyncGenerator, capturing text/tool calls/thinking tokens in real-time",
+      "ac_results": {
+        "Agent runs in worktree": {
+          "status": "PASS",
+          "detail": "cwd option in SDKOptions passed to query(). Agent execution supports custom working directory for worktree isolation.",
+          "evidence": "packages/api/src/services/claude-provider.ts:80"
+        },
+        "Output streams in real-time": {
+          "status": "PASS",
+          "detail": "ClaudeProvider.executeQuery returns AsyncGenerator<ProviderMessage>. Yields messages as they arrive from SDK stream.",
+          "evidence": "packages/api/src/services/claude-provider.ts:68-70"
+        },
+        "Tool calls captured": {
+          "status": "PASS",
+          "detail": "ProviderMessage type includes tool call events. Agent output viewer and tool-call-display components handle rendering.",
+          "evidence": "packages/api/src/services/claude-provider.ts:64, apps/web/src/components/agent/tool-call-display.tsx"
+        },
+        "Thinking tokens tracked": {
+          "status": "PASS",
+          "detail": "THINKING_TOKEN_BUDGET from @nomos-ai/types. ThinkingLevel configuration (none/standard/extended/ultrathink). ThinkingBlock component renders thinking content.",
+          "evidence": "packages/api/src/services/claude-provider.ts:3, 72, apps/web/src/components/agent/thinking-block.tsx"
+        }
+      },
+      "issues": []
+    },
+    "F034": {
+      "classification": "SOUND",
+      "summary": "WebSocket server with events and terminal channels, connection management, and authentication",
+      "ac_results": {
+        "WebSocket server setup": {
+          "status": "PASS",
+          "detail": "Bun native WebSocket via createWebSocketHandlers. Two channels: 'events' (broadcast) and 'terminal' (per-session). Server exports websocket handlers.",
+          "evidence": "apps/server/src/lib/websocket.ts:12-75, apps/server/src/index.ts:258-261"
+        },
+        "Connection handling": {
+          "status": "PASS",
+          "detail": "open/message/close handlers. Events channel uses broadcaster pub/sub. Terminal channel tracks clients per sessionId in Map<string, Set<WebSocket>>.",
+          "evidence": "apps/server/src/lib/websocket.ts:41-73"
+        },
+        "Authentication": {
+          "status": "PASS",
+          "detail": "extractWsUserId reads session from auth cookie on WebSocket upgrade. Falls back to 'anonymous'. userId attached to WSData.",
+          "evidence": "apps/server/src/index.ts:94-101"
+        },
+        "Message routing": {
+          "status": "PASS",
+          "detail": "Events broadcast to all event subscribers. Terminal input routed to correct session via terminalService.write(). Terminal output forwarded to session-specific WebSocket clients.",
+          "evidence": "apps/server/src/lib/websocket.ts:21-37, 54-61"
+        }
+      },
+      "issues": []
+    },
+    "F035": {
+      "classification": "SOUND",
+      "summary": "Agent output WebSocket streaming via EventBroadcaster with typed events, backpressure handling, and error cleanup",
+      "ac_results": {
+        "Output streams to clients": {
+          "status": "PASS",
+          "detail": "EventBroadcaster subscribes to EventService. Serializes events to JSON and broadcasts to all connected WebSocket clients.",
+          "evidence": "packages/api/src/services/event-broadcaster.ts:14-36"
+        },
+        "Events typed correctly": {
+          "status": "PASS",
+          "detail": "Events include type and payload. Client-side WebSocketClient parses JSON and distributes to typed handlers.",
+          "evidence": "packages/api/src/services/event-broadcaster.ts:15-16, apps/web/src/lib/websocket.ts:101-110"
+        },
+        "Backpressure handled": {
+          "status": "PASS",
+          "detail": "EventBroadcaster checks ws.bufferedAmount > 1MB before sending. Skips clients with high buffer. Client-side uses exponential backoff for reconnection (1s-30s).",
+          "evidence": "packages/api/src/services/event-broadcaster.ts:27-29, apps/web/src/lib/websocket.ts:12-14, 123-132"
+        },
+        "Errors propagated": {
+          "status": "PASS",
+          "detail": "Failed sends cause client removal. JSON serialization errors caught. Client-side has onError handler and automatic reconnection on close.",
+          "evidence": "packages/api/src/services/event-broadcaster.ts:18-20, 32-34, apps/web/src/lib/websocket.ts:112-120"
+        }
+      },
+      "issues": []
+    },
+    "F036": {
+      "classification": "SOUND",
+      "summary": "Agent output viewer with markdown rendering, collapsible tool calls, thinking blocks, streaming indicator, and auto-scroll",
+      "ac_results": {
+        "Markdown formatted text": {
+          "status": "PASS",
+          "detail": "Uses react-markdown with rehype-sanitize for safe HTML rendering. Messages rendered as formatted markdown.",
+          "evidence": "apps/web/src/components/agent/agent-output-viewer.tsx:3-4"
+        },
+        "Collapsible tool calls": {
+          "status": "PASS",
+          "detail": "ToolCallDisplay component imported and used for each tool call in messages. Pending tool calls also rendered.",
+          "evidence": "apps/web/src/components/agent/agent-output-viewer.tsx:9, 15-22"
+        },
+        "Thinking indicator": {
+          "status": "PASS",
+          "detail": "ThinkingBlock component renders thinking content. StreamingIndicator shows when agent is actively streaming.",
+          "evidence": "apps/web/src/components/agent/agent-output-viewer.tsx:7-8"
+        },
+        "Auto-scroll and copy": {
+          "status": "PASS",
+          "detail": "bottomRef auto-scrolls to bottom on content changes. Copy button extracts all text content including thinking blocks.",
+          "evidence": "apps/web/src/components/agent/agent-output-viewer.tsx:31-38, 41-50"
+        }
+      },
+      "issues": []
+    },
+    "F037": {
+      "classification": "SOUND",
+      "summary": "Tool call visualization with category badges, duration formatting, diff viewer for file operations, and collapsible details",
+      "ac_results": {
+        "Tool calls displayed": {
+          "status": "PASS",
+          "detail": "ToolCallDisplay renders tool name, input, result, duration. Uses Wrench icon, ChevronDown/Right for expand/collapse.",
+          "evidence": "apps/web/src/components/agent/tool-call-display.tsx:1-16"
+        },
+        "Duration tracking": {
+          "status": "PASS",
+          "detail": "formatDuration converts ms to human-readable (e.g., '1.2s'). Uses startedAt/completedAt from tool call data.",
+          "evidence": "apps/web/src/components/agent/tool-call-display.tsx:21-26"
+        },
+        "Diff viewer for file ops": {
+          "status": "PASS",
+          "detail": "extractDiffData extracts old/new values from Write and Edit tool calls. DiffViewer component shows file changes. isFileModifyingTool from tool-categories lib.",
+          "evidence": "apps/web/src/components/agent/tool-call-display.tsx:31-50"
+        },
+        "Category badges": {
+          "status": "PASS",
+          "detail": "getToolCategory from tool-categories lib categorizes tools. Badge component displays category.",
+          "evidence": "apps/web/src/components/agent/tool-call-display.tsx:5"
+        }
+      },
+      "issues": []
+    }
+  },
+  "summary": {
+    "total_features": 7,
+    "sound": 7,
+    "broken": 0,
+    "partial": 0,
+    "fragile": 0,
+    "misleading": 0,
+    "critical_issues": [],
+    "minor_issues": []
+  }
+}
