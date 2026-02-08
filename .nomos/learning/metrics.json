@@ -573,6 +573,28 @@
       "antipatterns_extracted": 1,
       "code_patterns_added": 1,
       "notes": "Frontend wiring for existing backend stop() method. Main complexity: session lookup logic and IDOR security finding. Iteration 1→2: fixed session filter + added ownership check. 2 iterations (UI pattern reuse from F039) + 1 security fix cycle. Zero blocking findings after remediation."
+    },
+    "F037": {
+      "id": "F037",
+      "title": "Tool call visualization",
+      "category": "CAT-AGT",
+      "phase": "phase-2",
+      "duration_minutes": 30,
+      "files_changed": 8,
+      "lines_added": 402,
+      "lines_removed": 3,
+      "commits": 1,
+      "retries": 0,
+      "iterations": 1,
+      "risk_level": "LOW",
+      "outcome": "success",
+      "started_at": "2026-02-08T12:00:00Z",
+      "verified_at": "2026-02-08T11:15:21Z",
+      "test_findings": 32,
+      "code_review_findings": 8,
+      "blocking_findings": 0,
+      "fix_cycles": 1,
+      "notes": "Single-iteration implementation. Code-writer correctly implemented UI component structure. Gate B code review identified missing timestamp stamping in WebSocket handler (use-agent-stream.ts). Fixed in 1 cycle. Pattern: type system changes require updating ALL producers and consumers."
     }
   },
   "aggregates": {

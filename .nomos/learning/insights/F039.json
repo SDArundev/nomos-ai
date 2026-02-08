@@ -1,0 +1,213 @@
+{
+  "feature_id": "F039",
+  "title": "Start feature execution button",
+  "category": "CAT-AGT",
+  "completed_at": "2026-02-08T10:45:06Z",
+  "summary": "Efficient dialog-based UI feature with 2 iterations during implementation and 1 fix cycle during review. Clear requirements enabled focused scope (5 files, 461 lines added). All acceptance criteria met with zero blocking findings after fix cycle.",
+  "metrics": {
+    "duration_minutes": 35,
+    "files_changed": 5,
+    "lines_added": 461,
+    "lines_removed": 6,
+    "commits": 1,
+    "iterations": 2,
+    "retries": 0,
+    "phase_3_iterations": 2,
+    "phase_3_fix_cycles": 1,
+    "risk_level": "LOW",
+    "verdict": "PASS",
+    "test_count": 437,
+    "all_tests_passed": true
+  },
+  "key_findings": [
+    {
+      "iteration": 1,
+      "issue": "Initial implementation with untested mutations",
+      "root_cause": "Incomplete mutation integration and missing featureId in createSession parameters",
+      "resolution": "Fixed sequential mutation chaining: createSession -> updateStatus -> sendMessage with proper prop threading"
+    },
+    {
+      "iteration": 2,
+      "issue": "QA findings: hardcoded projectId, VALID_TRANSITIONS duplication, mutation ordering issues",
+      "root_cause": "First iteration bypassed prop drilling for dependencies, VALID_TRANSITIONS array duplicated in multiple files, mutation sequence could orphan session if updateStatus fails",
+      "resolution": "Extracted featureId/projectId from feature prop, centralized VALID_TRANSITIONS reference, verified mutation error handling"
+    },
+    {
+      "phase_4_cycle": 1,
+      "issue": "Code review findings: 12 findings total (0 blocking after remediation)",
+      "items": [
+        "Missing featureId parameter in agent-service.createSession call",
+        "Redundant safeParse call after mutation validation",
+        "Incorrect invalidation pattern: fetchQuery vs queryClient.invalidateQueries",
+        "Dialog state management improvements for error handling"
+      ],
+      "resolution": "Updated all mutation calls with complete parameters, removed redundant validation, standardized cache invalidation pattern"
+    }
+  ],
+  "patterns_extracted": [
+    {
+      "id": "PAT-032",
+      "name": "SEQUENTIAL_MUTATION_CHAINING_WITH_FALLBACK",
+      "description": "For complex workflows requiring multiple mutations (createSession -> updateStatus -> sendMessage), chain with .mutateAsync() and error boundaries. If intermediate mutation fails, previous changes may be orphaned—acceptable for MVP with caveat in documentation.",
+      "category": "react-mutations",
+      "evidence_count": 1,
+      "first_seen": "F039",
+      "applies_to": [
+        "CAT-AGT",
+        "CAT-FE",
+        "mutations"
+      ],
+      "recommendation": "Use async/await pattern with try/catch for clarity: await createSession.mutateAsync(input); await updateStatus.mutateAsync({id, status}); await sendMessage.mutateAsync(...). On error, show toast with specific mutation that failed. For production, consider transaction wrappers or Saga pattern.",
+      "code_example": "try {\n  const session = await createSession.mutateAsync({\n    featureId: feature.id,\n    projectId: feature.projectId,\n    model,\n    thinkingLevel,\n    planningMode\n  });\n  await updateStatus.mutateAsync({ id: feature.id, status: 'in_progress' });\n  await sendMessage.mutateAsync({ sessionId: session.id, message: 'start' });\n  queryClient.invalidateQueries({...});\n} catch (error) {\n  toast.error(`Failed at: ${error.message}`);\n}",
+      "gotcha": "Session created but updateStatus fails = orphaned session. Document this limitation or add cleanup handler.",
+      "confidence": 0.85,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F039"
+      ],
+      "features_succeeded": [
+        "F039"
+      ]
+    },
+    {
+      "id": "PAT-033",
+      "name": "DIALOG_WITH_ENUM_SELECT_DROPDOWNS",
+      "description": "Confirmation dialogs with multiple Select dropdowns for enum options (Model, ThinkingLevel, PlanningMode). Each Select uses Base-UI pattern with form state management. Defaults from parent feature data.",
+      "category": "react-forms",
+      "evidence_count": 1,
+      "first_seen": "F039",
+      "applies_to": [
+        "CAT-AGT",
+        "CAT-FE",
+        "dialog-forms"
+      ],
+      "recommendation": "Create dialog component that accepts feature data prop and spreads defaults to each Select. Use useState for local form state (model, thinkingLevel, planningMode). On confirm, call mutation with values. Pattern matches F028 form architecture.",
+      "code_example": "interface StartExecutionDialogProps {\n  feature: Feature;\n  open: boolean;\n  onOpenChange: (open: boolean) => void;\n}\n\nexport function StartExecutionDialog({ feature, open, onOpenChange }: StartExecutionDialogProps) {\n  const [model, setModel] = useState(feature.model || 'sonnet');\n  const [thinkingLevel, setThinkingLevel] = useState(feature.thinkingLevel || 'standard');\n  const [planningMode, setPlanningMode] = useState(feature.planningMode || 'lite');\n  \n  const handleConfirm = async () => {\n    try {\n      const session = await createSession.mutateAsync({...});\n      // sequential mutations\n    } catch (error) {\n      toast.error(error.message);\n    }\n  };\n  \n  return (\n    <Dialog open={open} onOpenChange={onOpenChange}>\n      <DialogContent>\n        <Select value={model} onValueChange={setModel}>\n          {MODEL_OPTIONS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}\n        </Select>\n        {/* repeat for thinkingLevel, planningMode */}\n        <DialogFooter>\n          <Button onClick={() => onOpenChange(false)}>Cancel</Button>\n          <Button onClick={handleConfirm}>Confirm</Button>\n        </DialogFooter>\n      </DialogContent>\n    </Dialog>\n  );\n}",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F039"
+      ],
+      "features_succeeded": [
+        "F039"
+      ]
+    },
+    {
+      "id": "PAT-034",
+      "name": "CONDITIONAL_BUTTON_VISIBILITY_BY_STATUS",
+      "description": "Action buttons in detail panels visible only for specific statuses (Start Execution visible when status=pending). Use status check in render logic with conditional className to match panel styling.",
+      "category": "react-components",
+      "evidence_count": 1,
+      "first_seen": "F039",
+      "applies_to": [
+        "CAT-FE",
+        "CAT-KAN",
+        "conditional-rendering"
+      ],
+      "recommendation": "In FeatureDetailPanel or similar detail view, check feature.status === 'pending' before rendering button. Apply consistent styling with other action buttons (Play icon, same button variant). Group with other available actions.",
+      "code_example": "export function FeatureDetailPanel({ feature }: { feature: Feature }) {\n  const canExecute = feature.status === 'pending';\n  return (\n    <div>\n      {/* header, content */}\n      <div className=\"flex gap-2\">\n        {canExecute && (\n          <Button\n            variant=\"outline\"\n            size=\"sm\"\n            onClick={() => setStartDialogOpen(true)}\n            className=\"gap-2\"\n          >\n            <Play className=\"h-4 w-4\" />\n            Start Execution\n          </Button>\n        )}\n        {/* other action buttons */}\n      </div>\n      <StartExecutionDialog\n        feature={feature}\n        open={startDialogOpen}\n        onOpenChange={setStartDialogOpen}\n      />\n    </div>\n  );\n}",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F039"
+      ],
+      "features_succeeded": [
+        "F039"
+      ]
+    }
+  ],
+  "antipatterns_found": [
+    {
+      "id": "ANTI-012",
+      "name": "HARDCODED_PROJECTID_IN_DIALOG",
+      "description": "Dialog mutation parameters included hardcoded projectId instead of extracting from feature prop",
+      "category": "react-patterns",
+      "evidence_count": 1,
+      "first_seen": "F039",
+      "severity": "MEDIUM",
+      "prevention": "Always thread required context properties (projectId, featureId) as props through dialog hierarchy. Extract from parent feature object and pass to mutation explicitly.",
+      "what_went_wrong": "First iteration hardcoded projectId = 'hardcoded-id' in handleConfirm instead of using feature.projectId",
+      "lesson": "Dialog components working with domain objects must extract IDs and context from props, never hardcode. Prevents runtime failures when feature context changes.",
+      "fix_applied": "Updated mutation calls: createSession({ featureId: feature.id, projectId: feature.projectId, ... })"
+    },
+    {
+      "id": "ANTI-013",
+      "name": "VALID_TRANSITIONS_DUPLICATION_IN_COMPONENTS",
+      "description": "VALID_TRANSITIONS state machine definition duplicated in component files instead of imported from single source (backend router)",
+      "category": "code-duplication",
+      "evidence_count": 1,
+      "first_seen": "F039",
+      "severity": "HIGH",
+      "prevention": "Define VALID_TRANSITIONS once in backend router (packages/api/src/routers/feature.ts). For client-side validation before mutations, either: (1) Export from @nomos-ai/types and import in components, or (2) Query VALID_TRANSITIONS via API endpoint, or (3) Accept that client has optimistic validation and server is source of truth.",
+      "what_went_wrong": "Second iteration had VALID_TRANSITIONS defined in both feature-detail-panel.tsx and start-execution-dialog.tsx. If state machine changes, must update 3 places.",
+      "lesson": "State machines are business logic—single source of truth in backend. Frontend can reference for UX validation but should not own copies.",
+      "fix_applied": "Removed frontend VALID_TRANSITIONS duplication. Server enforces transitions; client shows toast on mutation error."
+    },
+    {
+      "id": "ANTI-014",
+      "name": "MUTATION_ORDER_DEPENDENCIES_WITHOUT_ERROR_HANDLING",
+      "description": "Sequential mutations without proper error boundaries create orphaned state if intermediate mutation fails",
+      "category": "error-handling",
+      "evidence_count": 1,
+      "first_seen": "F039",
+      "severity": "MEDIUM",
+      "prevention": "For any sequential mutation chain, wrap in try/catch with descriptive error messages. Consider: (1) Compensating transactions to clean up on failure, (2) Idempotent operation sequencing, (3) Transaction wrappers on backend.",
+      "what_went_wrong": "handleConfirm chained createSession -> updateStatus -> sendMessage without try/catch. If updateStatus fails after session created, session orphaned.",
+      "lesson": "Multi-step workflows need error recovery planning. MVP acceptable with caveat, but document limitation and plan compensation logic for v2.",
+      "fix_applied": "Wrapped in try/catch with specific toast message for which mutation failed. Documented as MVP limitation in comments."
+    }
+  ],
+  "process_insights": [
+    {
+      "insight": "2 iterations for dialog-based feature indicates good requirements clarity",
+      "observation": "First iteration tested happy path. Second iteration addressed QA findings on hardcoded values and property threading. No scope creep beyond acceptance criteria.",
+      "lesson": "Clear AC definitions + good scout/plan phases minimize iteration count. F039 hit sweet spot: specific enough to implement in 1 pass, but 1 refinement for prop threading and edge cases."
+    },
+    {
+      "insight": "Enum validation via types prevents Select dropdown errors at compile time",
+      "observation": "MODEL, THINKING_LEVEL, PLANNING_MODE imported from @nomos-ai/types and used in Select. TypeScript ensures component never renders invalid option.",
+      "lesson": "Reuse enums from shared types package. Prevents runtime surprises with Select dropdowns."
+    },
+    {
+      "insight": "Feature dependencies (F027, F032) integration worked smoothly",
+      "observation": "Feature detail panel (F027) provided baseline. Agent session service (F032) provided createSession API. Dialog component integrated both with clear prop interface.",
+      "lesson": "Dependency features well-scoped reduce integration friction. F027 + F032 ready meant F039 could focus purely on dialog UX."
+    },
+    {
+      "insight": "Fix cycle revealed mutation parameter inconsistencies",
+      "observation": "Phase 4 code review found missing featureId in createSession, redundant safeParse, wrong cache invalidation pattern. All fixable in 1 cycle.",
+      "lesson": "Parameter threading bugs common in component-to-service code. Code review gate effective for catching them. Add prop-type tests for this pattern."
+    }
+  ],
+  "recommendations_for_future_features": [
+    "Use PAT-032 (sequential mutation chaining) for any multi-step workflows (F040+)",
+    "Apply PAT-033 (dialog enum selects) to agent options dialogs (thinking level, model selection in other features)",
+    "Apply PAT-034 (conditional button visibility) to all status-dependent actions",
+    "Extract VALID_TRANSITIONS to shared @nomos-ai/types to prevent ANTI-013 duplication",
+    "Add integration tests for dialog prop threading to catch ANTI-012 early",
+    "Document sequential mutation error handling expectations (compensating transactions vs MVP orphaned state)"
+  ],
+  "verification_notes": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "tests": "PASS (437 tests, 0 failures)",
+    "code_review": "PASS (12 findings, 0 blocking after fix cycle)",
+    "security_review": "PASS (4 findings, 0 blocking)",
+    "ac_coverage": "4/4 (100%)",
+    "verdict": "PASS - All acceptance criteria met, zero blocking findings"
+  },
+  "code_patterns_added": [
+    "apps/web/src/components/kanban/start-execution-dialog.tsx — Dialog with enum selects + sequential mutations",
+    "apps/web/src/components/kanban/feature-detail-panel.tsx — Conditional button rendering + dialog integration",
+    "apps/web/src/store/agent-store.ts — Session state management (existing, enhanced)",
+    "Test patterns: Dialog event handling, Select dropdown selection, mutation error handling"
+  ],
+  "related_features": {
+    "dependencies": ["F027", "F032"],
+    "dependents": [],
+    "similar_patterns": ["F028 (form with Select dropdowns)", "F034 (WebSocket message handling)", "F036 (UI component integration)"]
+  }
+}

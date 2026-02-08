@@ -1386,6 +1386,29 @@
       "related_files": [
         "stop-execution-dialog.tsx"
       ]
+    },
+    {
+      "id": "PAT-017",
+      "name": "TYPE_SYSTEM_PRODUCER_CONSUMER_SYNC",
+      "description": "When adding new fields to shared types (e.g., toolCalls interface), ALL producers AND consumers must be updated. Adding timestamps to tool call types requires updates at 3 levels: database schema, shared types, WebSocket stream handler, UI component.",
+      "category": "typescript",
+      "evidence_count": 1,
+      "last_seen": "F037",
+      "applies_to": [
+        "CAT-AGT",
+        "CAT-OBS"
+      ],
+      "recommendation": "When modifying type definitions: 1) Update shared type package first, 2) Update database schema, 3) Update ALL producers (API, stream handlers, mutations), 4) Update ALL consumers (UI, display components), 5) Run tests to verify data flow",
+      "code_example": "// BAD: Only updated UI consumer\ninterface ToolCall { id: string; name: string; startedAt?: number; }\n// Forgot to update handler\nexport const handleToolCall = (tool) => { /* no stamping */ }\n\n// GOOD: Update handler too\nexport const handleToolCall = (tool) => { \n  return { ...tool, startedAt: Date.now() };\n}",
+      "confidence": 0.95,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F037"
+      ],
+      "features_succeeded": [
+        "F037"
+      ]
     }
   ],
   "last_updated": "2026-02-08T15:30:00Z",

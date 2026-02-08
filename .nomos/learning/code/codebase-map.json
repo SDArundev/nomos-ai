@@ -1032,27 +1032,14 @@
       ]
     },
     "apps/web/src/components/agent/agent-output-viewer.tsx": {
-      "purpose": "Main AgentOutputViewer component for streaming agent output. Renders markdown with rehype-sanitize XSS protection, collapsible tool calls via ToolCallDisplay, auto-scroll to bottom, copy button with pending content support.",
-      "layer": "frontend",
-      "category": "agent-ui",
-      "exports": [
-        "AgentOutputViewer"
-      ],
+      "path": "apps/web/src/components/agent/agent-output-viewer.tsx",
+      "type": "component",
+      "purpose": "Parent component managing agent messages and tool calls display",
+      "modified_in": "F037",
       "imports_from": [
-        "react",
-        "react-markdown",
-        "rehype-sanitize",
-        "lucide-react",
-        "@nomos-ai/types"
+        "apps/web/src/components/agent/tool-call-display.tsx"
       ],
-      "lastTouchedBy": "F036",
-      "key_features": [
-        "markdown-rendering",
-        "xss-protection",
-        "auto-scroll",
-        "copy-to-clipboard",
-        "pending-content-support"
-      ]
+      "type_updates": "pendingToolCalls now includes startedAt/completedAt timestamps"
     },
     "apps/web/src/hooks/use-copy-to-clipboard.ts": {
       "purpose": "Custom hook for clipboard operations with visual feedback. Handles navigator.clipboard.writeText(), timeout cleanup to prevent memory leaks, copy/check icon state toggle.",
@@ -1131,18 +1118,81 @@
       "conditionalRendering": "status === \"pending\" controls Start Execution button visibility"
     },
     "apps/web/src/store/agent-store.ts": {
-      "purpose": "Zustand store for agent sessions and execution state. Updated for F039 with session creation and status tracking.",
-      "layer": "frontend",
-      "category": "state-management",
-      "exports": [
-        "useAgentStore"
+      "path": "apps/web/src/store/agent-store.ts",
+      "type": "store",
+      "purpose": "Zustand store for agent output state management",
+      "modified_in": "F037",
+      "schema_updates": [
+        "toolCalls type now includes optional startedAt/completedAt fields"
+      ]
+    },
+    "apps/web/src/lib/tool-categories.ts": {
+      "path": "apps/web/src/lib/tool-categories.ts",
+      "type": "utility",
+      "purpose": "Maps tool names to categories (Read, Write, Bash) and Tailwind color classes for display",
+      "added_in": "F037",
+      "dependencies": [
+        "apps/web/src/lib/tool-types.ts"
       ],
-      "lastTouchedBy": "F039",
-      "methods": {
-        "setSessions": "Update session list",
-        "setActiveSession": "Set current execution session",
-        "setIsStreaming": "Track streaming status"
-      }
+      "exports": [
+        "TOOL_CATEGORIES",
+        "getToolColor",
+        "getToolIcon"
+      ],
+      "test_coverage": true
+    },
+    "apps/web/src/lib/__tests__/tool-categories.test.ts": {
+      "path": "apps/web/src/lib/__tests__/tool-categories.test.ts",
+      "type": "test",
+      "purpose": "Unit tests for tool category mapping and color generation",
+      "added_in": "F037",
+      "coverage": "all tool types"
+    },
+    "apps/web/src/components/agent/tool-call-display.tsx": {
+      "path": "apps/web/src/components/agent/tool-call-display.tsx",
+      "type": "component",
+      "purpose": "Displays individual tool call with name, input/output collapsible sections, duration, and file diffs",
+      "modified_in": "F037",
+      "dependencies": [
+        "apps/web/src/lib/tool-categories.ts",
+        "apps/web/src/components/diff/diff-viewer.tsx"
+      ],
+      "features": [
+        "color-coded badges",
+        "duration display",
+        "diff viewer integration"
+      ],
+      "test_coverage": true
+    },
+    "packages/types/src/message.ts": {
+      "path": "packages/types/src/message.ts",
+      "type": "shared-types",
+      "purpose": "Shared type definitions for agent messages and tool calls",
+      "modified_in": "F037",
+      "schema_updates": [
+        "ToolCall interface: added startedAt: number (epoch ms), completedAt: number (epoch ms)"
+      ]
+    },
+    "packages/db/src/schema/messages.ts": {
+      "path": "packages/db/src/schema/messages.ts",
+      "type": "db-schema",
+      "purpose": "Database schema for persisting agent messages and tool calls",
+      "modified_in": "F037",
+      "schema_updates": [
+        "toolCalls JSON field expanded to include timestamp fields"
+      ]
+    },
+    "apps/web/src/components/agent/__tests__/tool-call-display.test.tsx": {
+      "path": "apps/web/src/components/agent/__tests__/tool-call-display.test.tsx",
+      "type": "test",
+      "purpose": "Component tests covering all 4 acceptance criteria",
+      "added_in": "F037",
+      "test_cases": [
+        "AC1: Tool name displayed",
+        "AC2: Input/output collapsible",
+        "AC3: Duration shown",
+        "AC4: File diffs rendered"
+      ]
     }
   },
   "lastUpdated": "2026-02-04T21:50:00Z",

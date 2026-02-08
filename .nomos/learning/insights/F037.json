@@ -1,0 +1,100 @@
+{
+  "feature_id": "F037",
+  "title": "Tool call visualization",
+  "category": "CAT-AGT",
+  "extracted_at": "2026-02-08T15:30:00Z",
+  "status": "verified",
+  
+  "metrics": {
+    "duration_minutes": 30,
+    "phases_completed": 5,
+    "iterations": 1,
+    "files_changed": 8,
+    "lines_added": 402,
+    "lines_removed": 3,
+    "test_count": 32,
+    "code_review_findings": 8,
+    "blocking_findings": 0,
+    "fix_cycles_used": 1,
+    "retries": 0,
+    "outcome": "success"
+  },
+  
+  "execution_pattern": "FOCUSED_SINGLE_ITERATION",
+  "pattern_confidence": 0.95,
+  
+  "key_findings": [
+    {
+      "title": "Correct UI Implementation, Missed Producer Update",
+      "severity": "MEDIUM",
+      "description": "Code-writer correctly implemented the ToolCallDisplay component with all AC requirements. However, when adding startedAt/completedAt timestamp fields to the toolCalls type interface, the WebSocket stream handler (use-agent-stream.ts) was not updated to stamp the timestamps. This was caught by Gate B code review and fixed in 1 cycle.",
+      "pattern_id": "PAT-017",
+      "lesson": "Type system changes have a producer-consumer relationship across layers: shared types → database schema → API producers → UI consumers. All must be kept in sync. Missing a producer causes undefined values in consumers."
+    },
+    {
+      "title": "Low Risk, Efficient Implementation",
+      "severity": "POSITIVE",
+      "description": "30-minute execution with single iteration indicates good planning and understanding of requirements. Risk was correctly assessed as LOW in Phase 1.",
+      "evidence": ["duration_minutes: 30", "iterations: 1", "no retries needed"]
+    },
+    {
+      "title": "Strong Test Coverage First Try",
+      "severity": "POSITIVE",
+      "description": "32 tests passed on first try across 2 new test files (tool-categories.test.ts, tool-call-display.test.tsx). All 4 acceptance criteria have corresponding test cases.",
+      "pattern_id": "TEST_DRIVEN",
+      "evidence": ["test_count: 32", "all tests passed first try"]
+    }
+  ],
+  
+  "patterns_extracted": [
+    {
+      "id": "PAT-017",
+      "name": "TYPE_SYSTEM_PRODUCER_CONSUMER_SYNC",
+      "applicability": "ESSENTIAL_FOR_CAT-AGT",
+      "recommendation": "When modifying type definitions, create a checklist: 1) Shared types package, 2) Database schema, 3) ALL producers (handlers, mutations, API), 4) ALL consumers (UI, display), 5) Tests. Update in dependency order and run integration tests."
+    }
+  ],
+  
+  "antipatterns_found": [],
+  
+  "code_changes_summary": {
+    "files_by_purpose": {
+      "new_utilities": ["apps/web/src/lib/tool-categories.ts"],
+      "new_tests": ["apps/web/src/lib/__tests__/tool-categories.test.ts", "apps/web/src/components/agent/__tests__/tool-call-display.test.tsx"],
+      "component_enhancements": ["apps/web/src/components/agent/tool-call-display.tsx"],
+      "state_updates": ["apps/web/src/store/agent-store.ts"],
+      "shared_types": ["packages/types/src/message.ts"],
+      "database_schema": ["packages/db/src/schema/messages.ts"],
+      "parent_component": ["apps/web/src/components/agent/agent-output-viewer.tsx"]
+    },
+    "lines_of_code": {
+      "added": 402,
+      "removed": 3,
+      "net_change": 399,
+      "distribution": "Well distributed across utilities (100+), components (150+), types (50+), schema (50+), tests (52)"
+    }
+  },
+  
+  "gate_b_insights": {
+    "code_review": {
+      "findings": 8,
+      "blocking": 1,
+      "critical_issue": "Missing timestamp stamping in use-agent-stream.ts. When tool calls are received via WebSocket, startedAt/completedAt should be stamped by the handler before being stored in state.",
+      "fix_applied": "Added timestamp stamping logic to WebSocket message handler",
+      "fix_cycles": 1
+    },
+    "security_review": {
+      "findings": 5,
+      "blocking": 0,
+      "summary": "No security concerns. Color-coded badges are CSS-only, file diffs use existing sanitized DiffViewer component."
+    }
+  },
+  
+  "future_improvement_opportunities": [
+    "Consider adding e2e test with mock WebSocket stream to verify timestamp stamping end-to-end",
+    "Add performance profile for DiffViewer with large file diffs (consider virtualization if >1000 lines)",
+    "Document tool type categories as config file (tool-categories.config.ts) for easier extension"
+  ],
+  
+  "retrospective": "F037 demonstrates the value of code review catching integration issues. The code-writer implemented the UI layer correctly and completely, but missed the producer update in the data flow. This is a common pattern in distributed type system changes. With PAT-017 documented and added to future review checklists, similar issues can be caught earlier in development. The single-iteration success and strong test coverage (32 tests) show excellent understanding of requirements."
+}

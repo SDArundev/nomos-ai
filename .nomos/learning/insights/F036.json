@@ -1,0 +1,105 @@
+{
+  "feature_id": "F036",
+  "title": "Agent output viewer component",
+  "completion_date": "2026-02-08T10:38:40Z",
+  "execution_summary": {
+    "duration_minutes": 39,
+    "status": "verified",
+    "pr_url": "https://github.com/SDArundev/nomos-ai/pull/9",
+    "phase_3_iterations": 3,
+    "phase_4_fix_cycles": 1,
+    "files_changed": 7,
+    "lines_added": 596,
+    "lines_removed": 81
+  },
+  "patterns_extracted": [
+    {
+      "pattern_id": "PAT-016",
+      "name": "REHYPE_SANITIZE_WITH_REACT_MARKDOWN",
+      "lesson": "XSS protection for markdown rendering requires explicit rehype-sanitize configuration. Sanitization is not automatic in react-markdown."
+    },
+    {
+      "pattern_id": "PAT-017",
+      "name": "CLIPBOARD_TIMEOUT_CLEANUP",
+      "lesson": "Custom clipboard hooks must clean up timeouts in useEffect return. Memory leaks occur when timeout fires after component unmounts."
+    },
+    {
+      "pattern_id": "PAT-018",
+      "name": "COPY_PENDING_CONTENT_NOT_FINAL",
+      "lesson": "Streaming UX requires concatenating both finalized content AND pending content before copy. Users expect complete output even while streaming."
+    }
+  ],
+  "antipatterns_found": [
+    {
+      "antipattern_id": "ANTI-011",
+      "name": "COMPONENT_DUPLICATION_BEFORE_EXTRACTION",
+      "evidence": "ThinkingBlock logic appeared in message-bubble, thinking-block, and agent-output-viewer before extraction. Required iteration 3 to consolidate."
+    }
+  ],
+  "key_decisions": {
+    "xss_protection": {
+      "decision": "Use rehype-sanitize plugin with react-markdown",
+      "rationale": "Agent output is untrusted (comes from Claude API). XSS attack surface includes markdown injection with script tags.",
+      "confidence": 0.95,
+      "applied_in": "AgentOutputViewer.tsx"
+    },
+    "memory_leak_fix": {
+      "decision": "Return cleanup function from useEffect in useCopyToClipboard",
+      "rationale": "setTimeout without cleanup accumulates if component re-renders during feedback period. Long-running app will leak memory.",
+      "confidence": 0.9,
+      "applied_in": "use-copy-to-clipboard.ts"
+    },
+    "pending_content_copy": {
+      "decision": "Include both msg.content + msg.pendingContent in copy operation",
+      "rationale": "If user copies while message is streaming, they expect partial output + what's been streamed so far. Copy(finalized only) loses user's streaming context.",
+      "confidence": 0.85,
+      "applied_in": "AgentOutputViewer.handleCopy()"
+    }
+  },
+  "quality_metrics": {
+    "gate_a": {
+      "status": "PASS",
+      "typecheck": "PASS",
+      "lint": "PASS",
+      "tests": "PASS",
+      "test_count": 25
+    },
+    "gate_b": {
+      "code_review": "PASS (10 findings, 0 blocking)",
+      "security_review": "PASS (5 findings, 0 blocking after XSS fix with rehype-sanitize)"
+    },
+    "gate_c": {
+      "ac_coverage": "2 PASS, 2 SKIP (require active agent session)"
+    }
+  },
+  "dependencies_and_patterns": {
+    "built_upon": ["F035 (WebSocket streaming)", "F021 (Agent message types)"],
+    "pattern_reuse": [
+      "PAT-013 — PATTERN_REUSE successfully applied from F035 MessageBubble",
+      "WEB-010 — ZUSTAND_DROPDOWN_INTEGRATION for agent store messaging"
+    ],
+    "new_dependencies": ["rehype-sanitize (security plugin for react-markdown)"]
+  },
+  "retrospective": {
+    "what_went_well": [
+      "Pattern reuse from F035 reduced planning time significantly (LOW risk assessed in Phase 1)",
+      "Focused scope (7 files, 39 minutes) indicates clear requirements",
+      "Security review caught XSS vulnerability before merge — rehype-sanitize is non-negotiable for agent output",
+      "Memory leak fix in Phase 4 prevents production issues in long-running UI"
+    ],
+    "what_could_improve": [
+      "Component duplication (ThinkingBlock) should have been extracted in iteration 2, not iteration 3. Early pattern recognition saves iterations.",
+      "Phase 3 iteration 1: Initial implementation didn't anticipate memory leak in clipboard timeout. Consider lint rules to catch missing cleanup functions."
+    ],
+    "next_time": [
+      "For streaming UI components, always include pending content in copy/export operations before first submission",
+      "Always run rehype-sanitize with react-markdown when rendering untrusted content (agent output, user input, API responses)",
+      "In Phase 3 iteration 1, extract any JSX pattern that appears in 2+ components into a shared file immediately"
+    ]
+  },
+  "system_confidence": {
+    "reliability": 0.95,
+    "applicability": 0.9,
+    "urgency": "HIGH (XSS protection is critical for agent output features)"
+  }
+}

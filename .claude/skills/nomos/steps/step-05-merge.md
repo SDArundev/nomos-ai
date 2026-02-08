@@ -54,7 +54,7 @@ git status
 **If uncommitted changes exist:**
 ```bash
 git add -A
-git reset HEAD -- .nomos/features.json 2>/dev/null || true
+git reset HEAD -- .nomos/features.json .nomos/learning/ 2>/dev/null || true
 git commit -m "chore({feature_id}): final changes before merge"
 ```
 

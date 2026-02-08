@@ -23,7 +23,7 @@ Read `cp-04.json`. Extract:
 ```bash
 cd {env.worktree_path}
 git add -A
-git reset HEAD -- .nomos/features.json 2>/dev/null || true
+git reset HEAD -- .nomos/features.json .nomos/learning/ 2>/dev/null || true
 git status
 ```
 
@@ -111,8 +111,8 @@ If validation passes:
 cd {env.project_root}
 git checkout main
 git merge --no-ff nomos/{feature_id} -m "merge: {feature_id} — {feature_summary.title}"
-# Include current features.json state in the merge
-git add .nomos/features.json
+# Include current features.json and learning data in the merge
+git add .nomos/features.json .nomos/learning/
 git commit --amend --no-edit
 git push origin main
 ```
