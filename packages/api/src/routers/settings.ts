@@ -1,3 +1,5 @@
+import { projectRepository } from "@nomos-ai/db";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { SettingsService } from "../services/settings-service";
@@ -11,6 +13,14 @@ export function getSettingsService(): SettingsService {
 	return settingsServiceInstance;
 }
 
+async function verifyProjectOwnership(projectId: string, userId: string) {
+	const project = await projectRepository.findById(projectId);
+	if (!project || project.userId !== userId) {
+		throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+	}
+	return project;
+}
+
 export const settingsRouter = {
 	get: protectedProcedure
 		.input(
@@ -19,7 +29,10 @@ export const settingsRouter = {
 				projectId: z.string().optional(),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			if (input.projectId) {
+				await verifyProjectOwnership(input.projectId, context.session.user.id);
+			}
 			const service = getSettingsService();
 			const value = await service.get(input.key, input.projectId);
 			return { key: input.key, value };
@@ -34,7 +47,10 @@ export const settingsRouter = {
 				scopeId: z.string().optional(),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			if (input.scope === "project" && input.scopeId) {
+				await verifyProjectOwnership(input.scopeId, context.session.user.id);
+			}
 			const service = getSettingsService();
 			await service.set(input.key, input.value, input.scope, input.scopeId);
 			return { success: true };
@@ -47,7 +63,10 @@ export const settingsRouter = {
 				scopeId: z.string().optional(),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			if (input.scope === "project" && input.scopeId) {
+				await verifyProjectOwnership(input.scopeId, context.session.user.id);
+			}
 			const service = getSettingsService();
 			return service.getAll(input.scope, input.scopeId);
 		}),

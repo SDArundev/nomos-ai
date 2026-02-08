@@ -62,28 +62,43 @@ const createAgentSessionInput = z.object({
 		.optional(),
 });
 
+async function verifySessionOwnership(sessionId: string, userId: string) {
+	const session = await sessionRepository.findById(sessionId);
+	if (!session) {
+		throw new ORPCError("NOT_FOUND", {
+			message: `Session not found: ${sessionId}`,
+		});
+	}
+	if (session.userId !== userId) {
+		throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+	}
+	return session;
+}
+
 export const sessionRouter = {
 	list: protectedProcedure
 		.input(listSessionsInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
 			if (input?.status) {
-				return sessionRepository.findByStatus(input.status);
+				const sessions = await sessionRepository.findByStatus(input.status);
+				return sessions.filter((s) => s.userId === userId);
 			}
 			if (input?.featureId) {
-				return sessionRepository.findByFeature(input.featureId);
+				const sessions = await sessionRepository.findByFeature(input.featureId);
+				return sessions.filter((s) => s.userId === userId);
 			}
-			return sessionRepository.findAll();
+			const sessions = await sessionRepository.findAll();
+			return sessions.filter((s) => s.userId === userId);
 		}),
 
 	get: protectedProcedure
 		.input(z.object({ id: SessionIdSchema }))
-		.handler(async ({ input }) => {
-			const session = await sessionRepository.findById(input.id);
-			if (!session) {
-				throw new ORPCError("NOT_FOUND", {
-					message: `Session not found: ${input.id}`,
-				});
-			}
+		.handler(async ({ input, context }) => {
+			const session = await verifySessionOwnership(
+				input.id,
+				context.session.user.id,
+			);
 			const duration = sessionRepository.calculateDuration(session);
 			return { ...session, duration };
 		}),
@@ -105,7 +120,8 @@ export const sessionRouter = {
 
 	update: protectedProcedure
 		.input(updateSessionInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifySessionOwnership(input.id, context.session.user.id);
 			try {
 				const updateData = Object.fromEntries(
 					Object.entries(input.data).filter(([, v]) => v !== undefined),
@@ -118,7 +134,8 @@ export const sessionRouter = {
 
 	delete: protectedProcedure
 		.input(z.object({ id: SessionIdSchema }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifySessionOwnership(input.id, context.session.user.id);
 			try {
 				return await sessionRepository.delete(input.id);
 			} catch (error) {
@@ -126,19 +143,19 @@ export const sessionRouter = {
 			}
 		}),
 
-	listActive: protectedProcedure.handler(async () => {
-		return sessionRepository.findActive();
+	listActive: protectedProcedure.handler(async ({ context }) => {
+		const userId = context.session.user.id;
+		const sessions = await sessionRepository.findActive();
+		return sessions.filter((s) => s.userId === userId);
 	}),
 
 	updateStatus: protectedProcedure
 		.input(updateStatusInput)
-		.handler(async ({ input }) => {
-			const session = await sessionRepository.findById(input.id);
-			if (!session) {
-				throw new ORPCError("NOT_FOUND", {
-					message: `Session not found: ${input.id}`,
-				});
-			}
+		.handler(async ({ input, context }) => {
+			const session = await verifySessionOwnership(
+				input.id,
+				context.session.user.id,
+			);
 
 			const allowed =
 				SESSION_VALID_TRANSITIONS[session.status as SessionStatus];
@@ -153,7 +170,8 @@ export const sessionRouter = {
 
 	appendOutput: protectedProcedure
 		.input(appendOutputInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifySessionOwnership(input.id, context.session.user.id);
 			try {
 				return await sessionRepository.appendOutput(input.id, input.text);
 			} catch (error) {
@@ -171,13 +189,11 @@ export const sessionRouter = {
 
 	getDuration: protectedProcedure
 		.input(z.object({ id: SessionIdSchema }))
-		.handler(async ({ input }) => {
-			const session = await sessionRepository.findById(input.id);
-			if (!session) {
-				throw new ORPCError("NOT_FOUND", {
-					message: `Session not found: ${input.id}`,
-				});
-			}
+		.handler(async ({ input, context }) => {
+			const session = await verifySessionOwnership(
+				input.id,
+				context.session.user.id,
+			);
 			return { duration: sessionRepository.calculateDuration(session) };
 		}),
 
