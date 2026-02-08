@@ -6,9 +6,10 @@ import { describe, expect, it } from "vitest";
  *
  * These tests validate:
  * - Start Execution button visibility logic based on feature status
+ * - Stop Execution button visibility logic based on feature status
  */
 
-describe("FeatureDetailPanel button visibility", () => {
+describe("FeatureDetailPanel Start Execution button visibility", () => {
 	it("should show Start Execution button when status is pending", () => {
 		const status = FEATURE_STATUS.PENDING;
 		const shouldShowButton = status === "pending";
@@ -47,6 +48,50 @@ describe("FeatureDetailPanel button visibility", () => {
 	it("should not show Start Execution button when status is failed", () => {
 		const status = FEATURE_STATUS.FAILED;
 		const shouldShowButton = status === "pending";
+
+		expect(shouldShowButton).toBe(false);
+	});
+});
+
+describe("FeatureDetailPanel Stop Execution button visibility", () => {
+	it("should show Stop Execution button when status is in_progress", () => {
+		const status = FEATURE_STATUS.IN_PROGRESS;
+		const shouldShowButton = status === "in_progress";
+
+		expect(shouldShowButton).toBe(true);
+	});
+
+	it("should not show Stop Execution button when status is backlog", () => {
+		const status = FEATURE_STATUS.BACKLOG;
+		const shouldShowButton = status === "in_progress";
+
+		expect(shouldShowButton).toBe(false);
+	});
+
+	it("should not show Stop Execution button when status is pending", () => {
+		const status = FEATURE_STATUS.PENDING;
+		const shouldShowButton = status === "in_progress";
+
+		expect(shouldShowButton).toBe(false);
+	});
+
+	it("should not show Stop Execution button when status is waiting_approval", () => {
+		const status = FEATURE_STATUS.WAITING_APPROVAL;
+		const shouldShowButton = status === "in_progress";
+
+		expect(shouldShowButton).toBe(false);
+	});
+
+	it("should not show Stop Execution button when status is verified", () => {
+		const status = FEATURE_STATUS.VERIFIED;
+		const shouldShowButton = status === "in_progress";
+
+		expect(shouldShowButton).toBe(false);
+	});
+
+	it("should not show Stop Execution button when status is failed", () => {
+		const status = FEATURE_STATUS.FAILED;
+		const shouldShowButton = status === "in_progress";
 
 		expect(shouldShowButton).toBe(false);
 	});

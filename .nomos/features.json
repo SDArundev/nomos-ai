@@ -1314,11 +1314,13 @@
         "Session marked cancelled"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-02-08T10:51:04Z",
+      "completedAt": "2026-02-08T11:08:29Z"
     },
     {
       "id": "F041",
