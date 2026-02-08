@@ -338,14 +338,19 @@ export class AgentService {
 
 			this.events.emit("agent:complete", { sessionId });
 		} catch (error) {
-			await sessionRepository.update(sessionId, {
-				isRunning: false,
-				status: SESSION_STATUS.FAILED,
-				error: error instanceof Error ? error.message : String(error),
-			});
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			try {
+				await sessionRepository.update(sessionId, {
+					isRunning: false,
+					status: SESSION_STATUS.FAILED,
+					error: errorMessage,
+				});
+			} catch (dbError) {
+				console.error("Failed to update session after error:", dbError);
+			}
 			this.events.emit("agent:error", {
 				sessionId,
-				error: error instanceof Error ? error.message : String(error),
+				error: errorMessage,
 			});
 		} finally {
 			this.runningSessions.delete(sessionId);
@@ -361,6 +366,7 @@ export class AgentService {
 		await sessionRepository.update(sessionId, {
 			isRunning: false,
 		});
+		this.events.emit("agent:complete", { sessionId });
 	}
 
 	async listSessions() {
