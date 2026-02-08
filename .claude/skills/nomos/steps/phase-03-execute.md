@@ -43,6 +43,7 @@ FOR iteration = 1 to 3:
 ```
 writer_result = Task(
   subagent_type = "code-writer",
+  mode = "bypassPermissions",
   model = "sonnet",
   description = "Implement {feature_id} iter 1",
   prompt = """
@@ -80,6 +81,7 @@ writer_agent_id = writer_result.agentId
 ```
 writer_result = Task(
   resume = writer_agent_id,
+  mode = "bypassPermissions",
   description = "Fix {feature_id} iter {iteration}",
   prompt = """
     ## Code Writer: {feature_id} — Iteration {iteration}

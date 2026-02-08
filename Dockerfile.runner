@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gosu \
     unzip \
     gnupg \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bun (system-wide)

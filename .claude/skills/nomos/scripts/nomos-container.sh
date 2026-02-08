@@ -262,17 +262,51 @@ elif [ -n "$ANTHROPIC_API_KEY" ]; then
     CLAUDE_ENV+=(ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}")
 fi
 
-# Run Claude Code with timeout
+# Build Claude CLI args
+CLAUDE_ARGS=(
+    -p "$PROMPT"
+    --dangerously-skip-permissions
+    --model "$MODEL"
+    --output-format stream-json
+    --verbose
+)
+
+# Budget cap only works with API key, not with subscription OAuth
+if [ -n "$ANTHROPIC_API_KEY" ]; then
+    CLAUDE_ARGS+=(--max-budget-usd "$BUDGET")
+fi
+
+# Stream JSON parser — extracts readable text from Claude's NDJSON stream.
+# Outputs assistant text and results in real-time instead of buffering.
+parse_stream_json() {
+    while IFS= read -r line; do
+        # Skip empty lines
+        [ -z "$line" ] && continue
+        # Extract type field
+        type=$(echo "$line" | jq -r '.type // empty' 2>/dev/null) || { echo "$line"; continue; }
+        case "$type" in
+            assistant)
+                echo "$line" | jq -r '(.message.content // [])[] | select(.type == "text") | .text' 2>/dev/null || true
+                ;;
+            result)
+                result=$(echo "$line" | jq -r '.result // empty' 2>/dev/null) || true
+                if [ -n "$result" ]; then
+                    echo ""
+                    echo "=== RESULT ==="
+                    echo "$result"
+                fi
+                ;;
+        esac
+    done
+}
+
+# Run Claude Code with timeout, streaming output through parser
 set +e
 timeout "${TIMEOUT}" gosu ${NOMOS_USER} env "${CLAUDE_ENV[@]}" \
-    claude -p "$PROMPT" \
-    --dangerously-skip-permissions \
-    --model "$MODEL" \
-    --max-budget-usd "$BUDGET" \
-    --verbose \
-    2>&1
+    claude "${CLAUDE_ARGS[@]}" \
+    2>&1 | parse_stream_json
 
-CLAUDE_EXIT=$?
+CLAUDE_EXIT=${PIPESTATUS[0]}
 set -e
 
 if [ $CLAUDE_EXIT -eq 124 ]; then
