@@ -1175,11 +1175,13 @@
         "Errors propagated"
       ],
       "estimatedSize": "M",
-      "status": "pending",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-02-08T09:39:42Z",
+      "completedAt": "2026-02-08T09:50:05Z"
     },
     {
       "id": "F036",
