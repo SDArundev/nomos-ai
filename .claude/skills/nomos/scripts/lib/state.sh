@@ -112,12 +112,13 @@ EOF
                 .features |= map(
                     if .id == "$feature_id" then
                         .status = "waiting_approval" |
+                        .passes = true |
                         .completedAt = "$TIMESTAMP"
                     else . end
                 )
 EOF
 )"
-            echo "ok $feature_id: status -> waiting_approval"
+            echo "ok $feature_id: status -> waiting_approval, passes -> true"
             ;;
 
         verify)

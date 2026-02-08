@@ -988,8 +988,205 @@
       "purpose": "WebSocket client (connection/reconnection)",
       "category": "client-lib",
       "feature": "F034"
+    },
+    "packages/api/src/services/event-broadcaster.ts": {
+      "purpose": "EventBroadcaster class for fan-out WebSocket message broadcasting. Manages subscriptions, batches messages, detects backpressure via bufferedAmount, and provides cleanup via destroy(). Handles JSON serialization safely.",
+      "layer": "server",
+      "exports": [
+        "EventBroadcaster"
+      ],
+      "imports_from": [
+        "packages/types/src/event.ts"
+      ],
+      "lastTouchedBy": "F035",
+      "methods": {
+        "subscribe": "Add listener, returns unsubscribe function",
+        "broadcast": "Send JSON payload to all subscribed ws connections with backpressure check",
+        "destroy": "Clean up all subscriptions (CRITICAL for memory management)"
+      },
+      "patterns_applied": [
+        "WS-001",
+        "WS-003",
+        "WS-004"
+      ]
+    },
+    "packages/api/src/services/agent-service.ts": {
+      "purpose": "AgentService for streaming Claude Agent SDK outputs. Manages agent lifecycle (run, stop, abort), emits typed events (agent:stream, agent:complete, agent:error), captures error messages before async operations, and emits completion event on stop.",
+      "layer": "server",
+      "exports": [
+        "agentService"
+      ],
+      "imports_from": [
+        "packages/types/src/event.ts",
+        "@anthropic-ai/sdk"
+      ],
+      "lastTouchedBy": "F035",
+      "methods": {
+        "run": "Execute agent with prompt/tools, stream output via emitEvent(agent:stream)",
+        "stop": "Abort agent execution and emit agent:complete for frontend cleanup",
+        "onError": "Catch handler that captures error message BEFORE DB updates"
+      },
+      "patterns_applied": [
+        "WS-002",
+        "AGT-003"
+      ]
+    },
+    "apps/web/src/components/agent/agent-output-viewer.tsx": {
+      "purpose": "Main AgentOutputViewer component for streaming agent output. Renders markdown with rehype-sanitize XSS protection, collapsible tool calls via ToolCallDisplay, auto-scroll to bottom, copy button with pending content support.",
+      "layer": "frontend",
+      "category": "agent-ui",
+      "exports": [
+        "AgentOutputViewer"
+      ],
+      "imports_from": [
+        "react",
+        "react-markdown",
+        "rehype-sanitize",
+        "lucide-react",
+        "@nomos-ai/types"
+      ],
+      "lastTouchedBy": "F036",
+      "key_features": [
+        "markdown-rendering",
+        "xss-protection",
+        "auto-scroll",
+        "copy-to-clipboard",
+        "pending-content-support"
+      ]
+    },
+    "apps/web/src/hooks/use-copy-to-clipboard.ts": {
+      "purpose": "Custom hook for clipboard operations with visual feedback. Handles navigator.clipboard.writeText(), timeout cleanup to prevent memory leaks, copy/check icon state toggle.",
+      "layer": "frontend",
+      "exports": [
+        "useCopyToClipboard"
+      ],
+      "lastTouchedBy": "F036",
+      "key_features": [
+        "clipboard-api",
+        "timeout-cleanup",
+        "loading-state",
+        "error-handling"
+      ],
+      "pattern": "PAT-017 — CLIPBOARD_TIMEOUT_CLEANUP"
+    },
+    "apps/web/src/components/agent/thinking-block.tsx": {
+      "purpose": "Shared component for rendering collapsible thinking/extended thinking content. Extracted from duplication in iteration 3.",
+      "layer": "frontend",
+      "category": "agent-ui",
+      "exports": [
+        "ThinkingBlock"
+      ],
+      "lastTouchedBy": "F036",
+      "key_features": [
+        "collapsible",
+        "token-count-display",
+        "thinking-content"
+      ]
+    },
+    "apps/web/src/components/agent/message-bubble.tsx": {
+      "purpose": "Updated to work with AgentOutputViewer. Renders individual agent message with markdown, thinking indicator, tool calls.",
+      "layer": "frontend",
+      "lastTouchedBy": "F036"
+    },
+    "apps/web/src/components/kanban/start-execution-dialog.tsx": {
+      "purpose": "Dialog component for starting feature execution with model/thinking level/planning mode selection. Sequential mutations: createSession -> updateStatus -> sendMessage. Handles error cases with try/catch.",
+      "layer": "frontend",
+      "category": "dialog-forms",
+      "exports": [
+        "StartExecutionDialog"
+      ],
+      "imports_from": [
+        "apps/web/src/components/ui/dialog.tsx",
+        "apps/web/src/components/ui/select.tsx",
+        "apps/web/src/store/agent-store.ts",
+        "@nomos-ai/types"
+      ],
+      "lastTouchedBy": "F039",
+      "pattern_ids": [
+        "PAT-032",
+        "PAT-033"
+      ],
+      "methods": {
+        "handleConfirm": "Sequential mutation chain with error handling",
+        "defaultModel": "Spreads from feature.model",
+        "defaultThinkingLevel": "Spreads from feature.thinkingLevel",
+        "defaultPlanningMode": "Spreads from feature.planningMode"
+      }
+    },
+    "apps/web/src/components/kanban/feature-detail-panel.tsx": {
+      "purpose": "Feature detail view with conditional action buttons. Start Execution button visible when status===pending. Integrates with StartExecutionDialog.",
+      "layer": "frontend",
+      "category": "detail-panels",
+      "exports": [
+        "FeatureDetailPanel"
+      ],
+      "imports_from": [
+        "apps/web/src/components/kanban/start-execution-dialog.tsx",
+        "@nomos-ai/types"
+      ],
+      "lastTouchedBy": "F039",
+      "pattern_ids": [
+        "PAT-034"
+      ],
+      "conditionalRendering": "status === \"pending\" controls Start Execution button visibility"
+    },
+    "apps/web/src/store/agent-store.ts": {
+      "purpose": "Zustand store for agent sessions and execution state. Updated for F039 with session creation and status tracking.",
+      "layer": "frontend",
+      "category": "state-management",
+      "exports": [
+        "useAgentStore"
+      ],
+      "lastTouchedBy": "F039",
+      "methods": {
+        "setSessions": "Update session list",
+        "setActiveSession": "Set current execution session",
+        "setIsStreaming": "Track streaming status"
+      }
     }
   },
   "lastUpdated": "2026-02-04T21:50:00Z",
-  "lastUpdatedBy": "F025"
+  "lastUpdatedBy": "F025",
+  "last_updated": "2026-02-08T15:30:00Z",
+  "modules": {
+    "stop-execution-dialog.tsx": {
+      "path": "apps/web/src/components/kanban/stop-execution-dialog.tsx",
+      "module": "kanban-ui",
+      "type": "component",
+      "purpose": "Dialog component for confirming feature execution stop",
+      "introduced": "F040",
+      "dependencies": [
+        "@tanstack/react-query",
+        "sonner",
+        "orpc"
+      ],
+      "exports": [
+        "StopExecutionDialog"
+      ],
+      "patterns": [
+        "PAT-036",
+        "PAT-037"
+      ],
+      "related_components": [
+        "feature-detail-panel.tsx"
+      ],
+      "test_coverage": "unit tests for mutation, error handling, query invalidation"
+    },
+    "feature-detail-panel.tsx": {
+      "path": "apps/web/src/components/kanban/feature-detail-panel.tsx",
+      "module": "kanban-ui",
+      "type": "component",
+      "purpose": "Feature detail view with start/stop execution buttons",
+      "introduced": "F027",
+      "modified": [
+        "F040"
+      ],
+      "patterns": [
+        "PAT-034",
+        "PAT-035"
+      ],
+      "last_updated": "2026-02-08T11:00:00Z",
+      "note": "Added Stop button conditional on status=in_progress"
+    }
+  }
 }

@@ -1233,12 +1233,13 @@
         "File diffs rendered"
       ],
       "estimatedSize": "M",
-      "status": "waiting_approval",
+      "status": "backlog",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
-      "completedAt": "2026-02-08T11:13:06Z"
+      "prUrl": "https://github.com/SDArundev/nomos-ai/pull/12",
+      "prCreatedAt": "2026-02-08T11:14:35Z"
     },
     {
       "id": "F038",
@@ -1315,13 +1316,14 @@
         "Session marked cancelled"
       ],
       "estimatedSize": "S",
-      "status": "waiting_approval",
-      "passes": false,
+      "status": "verified",
+      "passes": true,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "startedAt": "2026-02-08T10:51:04Z",
-      "completedAt": "2026-02-08T11:08:29Z"
+      "completedAt": "2026-02-08T11:08:29Z",
+      "verifiedAt": "2026-02-08T11:09:38Z"
     },
     {
       "id": "F041",

@@ -23,6 +23,7 @@ Read `cp-04.json`. Extract:
 ```bash
 cd {env.worktree_path}
 git add -A
+git reset HEAD -- .nomos/features.json 2>/dev/null || true
 git status
 ```
 
@@ -82,7 +83,8 @@ State is already `waiting_approval` (set by phase 4). Record the PR URL on the f
 ```bash
 jq --arg id "{feature_id}" --arg url "$PR_URL" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
   .features |= map(if .id == $id then .prUrl = $url | .prCreatedAt = $ts else . end)
-' .nomos/features.json > .nomos/features.json.tmp && mv .nomos/features.json.tmp .nomos/features.json
+' {env.project_root}/.nomos/features.json > {env.project_root}/.nomos/features.json.tmp \
+  && mv {env.project_root}/.nomos/features.json.tmp {env.project_root}/.nomos/features.json
 ```
 
 ---
@@ -109,6 +111,9 @@ If validation passes:
 cd {env.project_root}
 git checkout main
 git merge --no-ff nomos/{feature_id} -m "merge: {feature_id} — {feature_summary.title}"
+# Include current features.json state in the merge
+git add .nomos/features.json
+git commit --amend --no-edit
 git push origin main
 ```
 

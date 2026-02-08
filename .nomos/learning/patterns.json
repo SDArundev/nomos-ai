@@ -1073,8 +1073,321 @@
       "features_succeeded": [
         "F025"
       ]
+    },
+    {
+      "id": "WS-001",
+      "name": "EVENT_BROADCASTER_CLEANUP",
+      "description": "EventBroadcaster must provide destroy() method and track unsubscribe functions for proper cleanup. Memory leak occurs when subscribers are not removed.",
+      "category": "websocket",
+      "evidence_count": 1,
+      "last_seen": "F035",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "Implement pattern: (1) Track all subscriptions in Set or Map, (2) subscribe() returns unsubscribe function, (3) destroy() iterates all subscriptions and calls cleanup",
+      "code_example": "class EventBroadcaster {\n  private subscriptions = new Set<() => void>();\n  subscribe(callback: (data: T) => void) {\n    const unsub = () => listeners.delete(callback);\n    subscriptions.add(unsub);\n    return unsub;\n  }\n  destroy() {\n    subscriptions.forEach(unsub => unsub());\n    subscriptions.clear();\n  }\n}",
+      "confidence": 0.95,
+      "success_rate": 1.0,
+      "risk_if_ignored": "CRITICAL",
+      "features_applied": [
+        "F035"
+      ],
+      "features_succeeded": [
+        "F035"
+      ]
+    },
+    {
+      "id": "WS-002",
+      "name": "ASYNC_ERROR_MESSAGE_CAPTURE",
+      "description": "In async error handlers, capture error message/stack BEFORE attempting any async operations. Async operations (like DB updates) may fail, masking the original error.",
+      "category": "error-handling",
+      "evidence_count": 1,
+      "last_seen": "F035",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "Pattern: (1) catch(error) immediately, (2) extract message/stack synchronously, (3) THEN perform async operations, (4) use captured message in response",
+      "code_example": "try {\n  // async work\n} catch (error) {\n  const errorMessage = error instanceof Error ? error.message : String(error);\n  await db.insert(...);\n  return { error: errorMessage };\n}",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F035"
+      ],
+      "features_succeeded": [
+        "F035"
+      ]
+    },
+    {
+      "id": "WS-003",
+      "name": "WEBSOCKET_BACKPRESSURE_DETECTION",
+      "description": "Check ws.bufferedAmount before sending data to prevent buffer overflow and connection drops. High bufferedAmount indicates client cannot consume data fast enough.",
+      "category": "websocket",
+      "evidence_count": 1,
+      "last_seen": "F035",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "Before each ws.send(data): (1) check if ws.bufferedAmount > THRESHOLD (e.g., 1MB), (2) if exceeded, implement backoff (exponential delay) or queueing, (3) log warning",
+      "code_example": "const THRESHOLD = 1024 * 1024;\nif (ws.bufferedAmount > THRESHOLD) {\n  logger.warn('Backpressure detected', { bufferedAmount: ws.bufferedAmount });\n  await sleep(exponentialBackoff());\n}\nws.send(JSON.stringify(data));",
+      "confidence": 0.85,
+      "success_rate": 1.0,
+      "risk_if_ignored": "HIGH",
+      "features_applied": [
+        "F035"
+      ],
+      "features_succeeded": [
+        "F035"
+      ]
+    },
+    {
+      "id": "AGT-003",
+      "name": "AGENT_LIFECYCLE_COMPLETION_EVENT",
+      "description": "Agent stop() must emit agent:complete event for frontend cleanup and UI state management. Without it, frontend may hang waiting for response.",
+      "category": "server",
+      "evidence_count": 1,
+      "last_seen": "F035",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "When agent AbortController is signaled: (1) emit agent:complete event with final state, (2) include any accumulated output/errors, (3) frontend receives and cleans up listeners",
+      "code_example": "abortSignal.addEventListener('abort', () => {\n  emitEvent('agent:complete', {\n    agentId,\n    status: 'stopped',\n    reason: 'user-requested',\n    output: accumulatedOutput\n  });\n});",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F035"
+      ],
+      "features_succeeded": [
+        "F035"
+      ]
+    },
+    {
+      "id": "WS-004",
+      "name": "WEBSOCKET_SEND_SERIALIZATION_SAFETY",
+      "description": "Wrap ws.send(JSON.stringify(data)) in try/catch. JSON.stringify can throw on circular references or BigInt values.",
+      "category": "websocket",
+      "evidence_count": 1,
+      "last_seen": "F035",
+      "applies_to": [
+        "CAT-AGT",
+        "phase-2"
+      ],
+      "recommendation": "Always use try/catch wrapper for ws.send(). If serialization fails, emit agent:error event and log the issue.",
+      "code_example": "try {\n  ws.send(JSON.stringify(event));\n} catch (error) {\n  logger.error('Serialization error', { error });\n  try {\n    ws.send(JSON.stringify({ type: 'agent:error', message: 'Serialization failed' }));\n  } catch {}\n}",
+      "confidence": 0.85,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F035"
+      ],
+      "features_succeeded": [
+        "F035"
+      ]
+    },
+    {
+      "id": "PAT-016",
+      "name": "REHYPE_SANITIZE_WITH_REACT_MARKDOWN",
+      "description": "Use rehype-sanitize plugin with react-markdown to prevent XSS attacks when rendering untrusted markdown content from agent output",
+      "category": "security",
+      "confidence": 0.95,
+      "evidence_count": 1,
+      "first_seen": "F036",
+      "last_seen": "F036",
+      "applies_to": [
+        "CAT-AGT",
+        "frontend"
+      ],
+      "recommendation": "For any markdown rendering from untrusted sources (agent output, user content), configure react-markdown with rehype-sanitize: <Markdown plugins={[[rehypeSanitize]]} />",
+      "code_example": "import rehypeSanitize from 'rehype-sanitize';\nimport Markdown from 'react-markdown';\n\nexport function AgentOutputViewer({ markdown }: { markdown: string }) {\n  return <Markdown plugins={[[rehypeSanitize]]}>{markdown}</Markdown>;\n}",
+      "risk_if_ignored": "CRITICAL",
+      "success_rate": 1.0,
+      "features_applied": [
+        "F036"
+      ],
+      "features_succeeded": [
+        "F036"
+      ]
+    },
+    {
+      "id": "PAT-017",
+      "name": "CLIPBOARD_TIMEOUT_CLEANUP",
+      "description": "In useCopyToClipboard hook, always clear timeout in cleanup function to prevent memory leaks when component unmounts during copy operation",
+      "category": "react-hooks",
+      "confidence": 0.9,
+      "evidence_count": 1,
+      "first_seen": "F036",
+      "last_seen": "F036",
+      "applies_to": [
+        "CAT-AGT",
+        "CAT-FE",
+        "frontend"
+      ],
+      "recommendation": "useEffect with timeout for copy feedback should always return cleanup function that calls clearTimeout()",
+      "code_example": "const useCopyToClipboard = () => {\n  const [copied, setCopied] = useState(false);\n  return {\n    handleCopy: async (text: string) => {\n      await navigator.clipboard.writeText(text);\n      setCopied(true);\n      const timeoutId = setTimeout(() => setCopied(false), 2000);\n      return () => clearTimeout(timeoutId);\n    }\n  };\n};",
+      "gotcha": "Without cleanup, timeouts queue up if component re-renders frequently or unmounts before timeout fires",
+      "risk_if_ignored": "MEDIUM",
+      "success_rate": 1.0,
+      "features_applied": [
+        "F036"
+      ],
+      "features_succeeded": [
+        "F036"
+      ]
+    },
+    {
+      "id": "PAT-018",
+      "name": "COPY_PENDING_CONTENT_NOT_FINAL",
+      "description": "Copy function should include pendingContent (streaming partial messages) in addition to finalized message content",
+      "category": "react-patterns",
+      "confidence": 0.9,
+      "evidence_count": 1,
+      "first_seen": "F036",
+      "last_seen": "F036",
+      "applies_to": [
+        "CAT-AGT",
+        "streaming"
+      ],
+      "recommendation": "When implementing copy button for streaming/agent output, include both finalized and pending content",
+      "code_example": "const fullText = messages\n  .map(msg => (msg.content || '') + (msg.pendingContent || ''))\n  .join('\\n')\n  .trim();",
+      "gotcha": "Without pending content, users copying while message is streaming get incomplete output",
+      "risk_if_ignored": "LOW",
+      "success_rate": 1.0,
+      "features_applied": [
+        "F036"
+      ],
+      "features_succeeded": [
+        "F036"
+      ]
+    },
+    {
+      "id": "PAT-032",
+      "name": "SEQUENTIAL_MUTATION_CHAINING_WITH_FALLBACK",
+      "description": "For complex workflows requiring multiple mutations (createSession -> updateStatus -> sendMessage), chain with .mutateAsync() and error boundaries. If intermediate mutation fails, previous changes may be orphaned—acceptable for MVP with caveat in documentation.",
+      "category": "react-mutations",
+      "evidence_count": 1,
+      "last_seen": "F039",
+      "applies_to": [
+        "CAT-AGT",
+        "CAT-FE",
+        "mutations"
+      ],
+      "recommendation": "Use async/await pattern with try/catch for clarity: await createSession.mutateAsync(input); await updateStatus.mutateAsync({id, status}); await sendMessage.mutateAsync(...). On error, show toast with specific mutation that failed. For production, consider transaction wrappers or Saga pattern.",
+      "confidence": 0.85,
+      "success_rate": 1.0,
+      "risk_if_ignored": "MEDIUM",
+      "features_applied": [
+        "F039"
+      ],
+      "features_succeeded": [
+        "F039"
+      ]
+    },
+    {
+      "id": "PAT-033",
+      "name": "DIALOG_WITH_ENUM_SELECT_DROPDOWNS",
+      "description": "Confirmation dialogs with multiple Select dropdowns for enum options (Model, ThinkingLevel, PlanningMode). Each Select uses Base-UI pattern with form state management. Defaults from parent feature data.",
+      "category": "react-forms",
+      "evidence_count": 1,
+      "last_seen": "F039",
+      "applies_to": [
+        "CAT-AGT",
+        "CAT-FE",
+        "dialog-forms"
+      ],
+      "recommendation": "Create dialog component that accepts feature data prop and spreads defaults to each Select. Use useState for local form state. On confirm, call mutation with values. Pattern matches F028 form architecture.",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F039"
+      ],
+      "features_succeeded": [
+        "F039"
+      ]
+    },
+    {
+      "id": "PAT-034",
+      "name": "CONDITIONAL_BUTTON_VISIBILITY_BY_STATUS",
+      "description": "Action buttons in detail panels visible only for specific statuses (Start Execution visible when status=pending). Use status check in render logic with conditional className to match panel styling.",
+      "category": "react-components",
+      "evidence_count": 1,
+      "last_seen": "F039",
+      "applies_to": [
+        "CAT-FE",
+        "CAT-KAN",
+        "conditional-rendering"
+      ],
+      "recommendation": "In FeatureDetailPanel or similar detail view, check feature.status === \"pending\" before rendering button. Apply consistent styling with other action buttons.",
+      "confidence": 0.9,
+      "success_rate": 1.0,
+      "risk_if_ignored": "LOW",
+      "features_applied": [
+        "F039"
+      ],
+      "features_succeeded": [
+        "F039"
+      ]
+    },
+    {
+      "id": "PAT-035",
+      "name": "BACKEND_PRE_IMPLEMENTATION_DETECTION",
+      "description": "When Phase 1 scout identifies backend dependency already exists (method, endpoint, service), Phase 3 scope reduces to UI wiring only. Signals lower implementation complexity.",
+      "type": "planning",
+      "first_seen": "F040",
+      "occurrences": 1,
+      "affected_features": [
+        "F040"
+      ],
+      "what_works": "Feature completed in 18 minutes with 2 iterations and zero blocking findings.",
+      "actionable": "In Phase 1 scout, explicitly document backend readiness: 1) Method exists? 2) Endpoint defined? 3) Resource lifecycle handled? Mark pre_implemented=true for lower risk.",
+      "related_files": [
+        "stop-execution-dialog.tsx",
+        "feature-detail-panel.tsx"
+      ]
+    },
+    {
+      "id": "PAT-036",
+      "name": "SESSION_RESOURCE_LOOKUP_PATTERN",
+      "description": "Pattern for finding active resources by feature ID from list endpoint. Handles: multiple resources per feature, stale status, IDOR checks.",
+      "type": "code_pattern",
+      "first_seen": "F040",
+      "occurrences": 1,
+      "language": "tsx",
+      "affected_features": [
+        "F040"
+      ],
+      "example_code": "const sessions = listSessions(); const active = sessions.find(s => s.featureId === feature.id && s.isRunning); if (active) orpc.agent.stop(active.id);",
+      "what_works": "Iteration 2 added proper filtering + ownership check to prevent IDOR.",
+      "gotchas": "Must validate: 1) Session exists, 2) User owns session (auth check), 3) Status field is synchronized with isRunning",
+      "related_files": [
+        "stop-execution-dialog.tsx"
+      ]
+    },
+    {
+      "id": "PAT-037",
+      "name": "DESTRUCTIVE_ACTION_CONFIRMATION_PATTERN",
+      "description": "Pattern for confirming destructive actions in React: dialog with warning text, disabled button during loading, error toast feedback. Reusable component.",
+      "type": "code_pattern",
+      "first_seen": "F040",
+      "occurrences": 1,
+      "language": "tsx",
+      "source": "F039",
+      "affected_features": [
+        "F040"
+      ],
+      "example_code": "const [isPending, startTransition] = useTransition(); const handleStop = () => startTransition(() => mutation.mutate(...)); <button disabled={isPending}>",
+      "what_works": "Consistent UX across destructive actions. Clear user intent before action.",
+      "implementation_notes": "Always include: 1) Warning icon/text, 2) Confirmation button disabled during mutation, 3) Error toast on failure, 4) Success toast on completion",
+      "related_files": [
+        "stop-execution-dialog.tsx"
+      ]
     }
   ],
-  "last_updated": "2026-02-06T14:20:00Z",
+  "last_updated": "2026-02-08T15:30:00Z",
   "confidence_formula": "min(1.0, 0.1 + (evidence_count * 0.1) + (success_rate * 0.4))"
 }

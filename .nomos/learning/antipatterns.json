@@ -114,7 +114,59 @@
       "what_went_wrong": "F034 iterations 1-2 included ownership checks for userId in WsServerMessage.payload, but terminal:output and feature:* events never included userId. Simplified in iteration 3.",
       "lesson": "Avoid filtering logic without supporting data. Single-user desktop app has simpler auth model: authenticate connection, allow all subscriptions.",
       "fix_applied": "Removed userId filtering, kept authenticate-on-upgrade requirement"
+    },
+    {
+      "id": "ANTI-011",
+      "name": "COMPONENT_DUPLICATION_BEFORE_EXTRACTION",
+      "description": "Component-like logic duplicated across files (ThinkingBlock rendering in multiple places) instead of extracted to shared component immediately",
+      "category": "code-reuse",
+      "evidence_count": 1,
+      "last_seen": "F036",
+      "severity": "MEDIUM",
+      "prevention": "During Phase 3 iteration 1, identify duplicated JSX patterns. Move to shared component before iteration 2. Extract: component structure + styling + state together.",
+      "what_went_wrong": "ThinkingBlock logic appeared in multiple iterations before extraction. Cost: +1 iteration.",
+      "lesson": "In React features, identify display patterns (collapsible sections, formatted blocks) early and extract to dedicated component. Reduces iteration count and improves maintainability.",
+      "fix_applied": "ThinkingBlock extracted to apps/web/src/components/agent/thinking-block.tsx in iteration 3"
+    },
+    {
+      "id": "ANTI-012",
+      "name": "HARDCODED_PROJECTID_IN_DIALOG",
+      "description": "Dialog mutation parameters included hardcoded projectId instead of extracting from feature prop",
+      "category": "react-patterns",
+      "evidence_count": 1,
+      "last_seen": "F039",
+      "severity": "MEDIUM",
+      "prevention": "Always thread required context properties (projectId, featureId) as props through dialog hierarchy. Extract from parent feature object and pass to mutation explicitly.",
+      "what_went_wrong": "First iteration hardcoded projectId = \"hardcoded-id\" in handleConfirm instead of using feature.projectId",
+      "lesson": "Dialog components working with domain objects must extract IDs and context from props, never hardcode. Prevents runtime failures when feature context changes.",
+      "fix_applied": "Updated mutation calls: createSession({ featureId: feature.id, projectId: feature.projectId, ... })"
+    },
+    {
+      "id": "ANTI-013",
+      "name": "VALID_TRANSITIONS_DUPLICATION_IN_COMPONENTS",
+      "description": "VALID_TRANSITIONS state machine definition duplicated in component files instead of imported from single source (backend router)",
+      "category": "code-duplication",
+      "evidence_count": 1,
+      "last_seen": "F039",
+      "severity": "HIGH",
+      "prevention": "Define VALID_TRANSITIONS once in backend router. For client-side validation before mutations, export from @nomos-ai/types, query via API, or accept server as source of truth.",
+      "what_went_wrong": "Second iteration had VALID_TRANSITIONS defined in both feature-detail-panel.tsx and start-execution-dialog.tsx. If state machine changes, must update 3 places.",
+      "lesson": "State machines are business logic—single source of truth in backend. Frontend can reference for UX validation but should not own copies.",
+      "fix_applied": "Removed frontend VALID_TRANSITIONS duplication. Server enforces transitions; client shows toast on mutation error."
+    },
+    {
+      "id": "ANTI-014",
+      "name": "MUTATION_ORDER_DEPENDENCIES_WITHOUT_ERROR_HANDLING",
+      "description": "Sequential mutations without proper error boundaries create orphaned state if intermediate mutation fails",
+      "category": "error-handling",
+      "evidence_count": 2,
+      "last_seen": "F040",
+      "severity": "MEDIUM",
+      "prevention": "For any sequential mutation chain, wrap in try/catch with descriptive error messages. Consider compensating transactions or idempotent operation sequencing.",
+      "what_went_wrong": "handleConfirm chained createSession -> updateStatus -> sendMessage without try/catch. If updateStatus fails after session created, session orphaned.",
+      "lesson": "Multi-step workflows need error recovery planning. MVP acceptable with caveat, but document limitation and plan compensation logic for v2.",
+      "fix_applied": "Wrapped in try/catch with specific toast message for which mutation failed. Documented as MVP limitation in comments."
     }
   ],
-  "last_updated": "2026-02-04T21:30:00Z"
+  "last_updated": "2026-02-08T14:45:00Z"
 }

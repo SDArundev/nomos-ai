@@ -319,7 +319,7 @@ jq -r --arg id "{feature_id}" '
 ```
 
 **Validation (BLOCKING):**
-- All direct dependencies MUST have `passes: true` (status = verified)
+- All direct dependencies MUST have `passes: true` (status = verified or waiting_approval)
 - If any dependency is NOT verified:
   - **In `{auto_mode}`:** HALT with error. Do NOT proceed. Transition to failed state:
     ```bash
