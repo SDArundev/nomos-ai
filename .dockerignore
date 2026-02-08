@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+.cache/
+**/.cache/
+
+# Data
+data/
+**/data/
+
+# Git
+.git/
+
+# Automaker reference (not part of nomos build)
+automaker/
+
+# NOMOS runtime (not needed in runner image)
+.nomos/output/
+.nomos/worktrees/
+.nomos/locks/
+.nomos/runner-logs/
+.nomos/swarm/
+
+# Playwright artifacts
+.playwright-mcp/
+
+# IDE
+.vscode/
+.idea/
+
+# Database files
+*.db
+
+# Screenshots
+*.png

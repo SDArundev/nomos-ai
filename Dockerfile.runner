@@ -1,0 +1,59 @@
+# NOMOS Headless Feature Runner
+# Base: node:22 (guarantees npm/node for Claude Code CLI)
+# Adds: Bun, git, gh CLI, Claude Code CLI
+#
+# Usage:
+#   docker build -f Dockerfile.runner -t nomos-runner .
+#   docker run -e ANTHROPIC_API_KEY=... nomos-runner F045
+
+FROM node:22-bookworm-slim AS base
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    ca-certificates \
+    openssh-client \
+    jq \
+    gosu \
+    unzip \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Bun (system-wide)
+RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash
+
+# Install gh CLI (official apt repo — reliable across architectures)
+RUN mkdir -p -m 755 /etc/apt/keyrings \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+       -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+       > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gh \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Claude Code CLI
+RUN npm install -g @anthropic-ai/claude-code \
+    && claude --version
+
+# Non-root user (UID/GID configurable at build time)
+ARG UID=1001
+ARG GID=1001
+RUN groupadd --gid ${GID} nomos 2>/dev/null || true \
+    && useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/bash nomos 2>/dev/null || true
+
+# Git: trust all directories (needed for bind-mounts and clones)
+RUN git config --system --add safe.directory '*'
+
+# Working directories
+WORKDIR /workspace
+RUN mkdir -p /workspace /work /home/nomos/.claude \
+    && chown -R nomos:nomos /workspace /work /home/nomos
+
+# Container entrypoint
+COPY .claude/skills/nomos/scripts/nomos-container.sh /usr/local/bin/nomos-container.sh
+RUN chmod +x /usr/local/bin/nomos-container.sh
+
+ENTRYPOINT ["/usr/local/bin/nomos-container.sh"]
