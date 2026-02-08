@@ -4,6 +4,8 @@ description: "Parallel finish: extract learnings + ship feature (PR creation)"
 prev_step: steps/step-05-merge.md
 ---
 
+> **DEPRECATED (v3):** Superseded by NOMOS v4 phases. Kept for rollback. Restore: change SKILL.md FIRST ACTION to step-00-init.md.
+
 # Step 6: Finish (2 Parallel Tracks)
 
 ## References

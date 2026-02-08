@@ -1,3 +1,5 @@
+> **DEPRECATED (v3):** Superseded by NOMOS v4 phases. Kept for rollback. Restore: change SKILL.md FIRST ACTION to step-00-init.md.
+
 # Context: {{feature_id}}
 
 **Started:** {{timestamp}}

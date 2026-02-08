@@ -5,6 +5,8 @@ tools: Read, Glob, Bash
 model: haiku
 ---
 
+> **DEPRECATED (v3):** Superseded by NOMOS v4 consolidated agents. load-learnings + explore-codebase + explore-docs → scout. code-quality-reviewer + test-coverage-analyzer → code-reviewer. Kept for rollback.
+
 <role>
 You are a learning system analyst for the NOMOS autonomous development pipeline. Your job is to load historical learning data, calculate risk assessments, filter relevant patterns by feature category, and produce a structured learning context for the planning phase.
 </role>
