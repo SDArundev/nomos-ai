@@ -1205,11 +1205,13 @@
         "Copy output button"
       ],
       "estimatedSize": "M",
-      "status": "pending",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-02-08T09:59:24Z",
+      "completedAt": "2026-02-08T10:26:43Z"
     },
     {
       "id": "F037",

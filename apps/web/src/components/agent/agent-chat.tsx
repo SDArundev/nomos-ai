@@ -3,10 +3,14 @@ import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useAgentStream } from "@/hooks/use-agent-stream";
 import { useWebSocket } from "@/hooks/use-websocket";
-import { type AgentMessage, type AgentSession, useAgentStore } from "@/store/agent-store";
+import {
+	type AgentMessage,
+	type AgentSession,
+	useAgentStore,
+} from "@/store/agent-store";
 import { orpc } from "@/utils/orpc";
 import { AgentInput } from "./agent-input";
-import { MessageList } from "./message-list";
+import { AgentOutputViewer } from "./agent-output-viewer";
 import { SessionSidebar } from "./session-sidebar";
 
 export function AgentChat() {
@@ -20,8 +24,14 @@ export function AgentChat() {
 	const setIsSending = useAgentStore((s) => s.setIsSending);
 
 	const { connected } = useWebSocket();
-	const { isStreaming, pendingContent, pendingToolCalls, streamingMessages, error, clearError } =
-		useAgentStream(activeSessionId);
+	const {
+		isStreaming,
+		pendingContent,
+		pendingToolCalls,
+		streamingMessages,
+		error,
+		clearError,
+	} = useAgentStream(activeSessionId);
 
 	// Show error toast when agent errors
 	useEffect(() => {
@@ -74,14 +84,9 @@ export function AgentChat() {
 			const existingIds = new Set(
 				(historyQuery.data as AgentMessage[]).map((m) => m.id),
 			);
-			const newMsgs = streamingMessages.filter(
-				(m) => !existingIds.has(m.id),
-			);
+			const newMsgs = streamingMessages.filter((m) => !existingIds.has(m.id));
 			if (newMsgs.length > 0) {
-				setMessages([
-					...(historyQuery.data as AgentMessage[]),
-					...newMsgs,
-				]);
+				setMessages([...(historyQuery.data as AgentMessage[]), ...newMsgs]);
 			}
 		}
 	}, [streamingMessages, historyQuery.data, setMessages]);
@@ -210,7 +215,7 @@ export function AgentChat() {
 								Clear History
 							</button>
 						</div>
-						<MessageList
+						<AgentOutputViewer
 							messages={messages}
 							isStreaming={isStreaming}
 							pendingContent={pendingContent}

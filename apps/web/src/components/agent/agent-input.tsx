@@ -42,7 +42,7 @@ export function AgentInput({
 					onChange={(e) => setInput(e.target.value)}
 					onKeyDown={handleKeyDown}
 					placeholder="Send a message..."
-					className="min-h-[44px] max-h-32 resize-none"
+					className="max-h-32 min-h-[44px] resize-none"
 					disabled={isDisabled}
 					rows={1}
 				/>

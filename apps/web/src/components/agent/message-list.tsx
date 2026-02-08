@@ -33,9 +33,7 @@ export function MessageList({
 				<div className="flex h-full items-center justify-center">
 					<div className="text-center text-muted-foreground">
 						<p className="text-lg">No messages yet</p>
-						<p className="text-sm">
-							Send a message to start the conversation
-						</p>
+						<p className="text-sm">Send a message to start the conversation</p>
 					</div>
 				</div>
 			)}
