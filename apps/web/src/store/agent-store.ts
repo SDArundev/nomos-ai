@@ -11,6 +11,8 @@ export interface AgentMessage {
 		name: string;
 		input: unknown;
 		result?: string;
+		startedAt?: number;
+		completedAt?: number;
 	}> | null;
 	thinkingContent?: string | null;
 	createdAt: Date;
