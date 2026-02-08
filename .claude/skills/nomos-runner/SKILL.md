@@ -29,10 +29,10 @@ RUNNER=.claude/skills/nomos/scripts/nomos-runner.sh
 
 ### Auto-pick and run
 
-Pick N pending features from backlog (sorted by priority) and run in parallel:
+Pick N features from pending or backlog (sorted by priority) and run in parallel:
 
 ```bash
-bash $RUNNER --mount --auto        # next 1 pending feature
+bash $RUNNER --mount --auto        # next 1 feature (pending or backlog)
 bash $RUNNER --mount --auto 3      # next 3 in parallel
 ```
 

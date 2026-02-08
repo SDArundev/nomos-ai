@@ -51,7 +51,7 @@ NOMOS Headless Feature Runner
 
 Usage:
   nomos-runner.sh [OPTIONS] <FEATURE_ID...>
-  nomos-runner.sh --auto [N]          Auto-pick N pending features (default: 1)
+  nomos-runner.sh --auto [N]          Auto-pick N features from pending/backlog (default: 1)
 
 Options:
   --build           Force rebuild Docker image
@@ -60,7 +60,7 @@ Options:
   --mount           Bind-mount repo instead of cloning (faster, less isolated)
   --flags "FLAGS"   Override NOMOS flags (default: "-a -t")
   --timeout SECS    Timeout per feature in seconds (default: 3600)
-  --auto [N]        Auto-pick N pending features from backlog (default: 1)
+  --auto [N]        Auto-pick N features from pending/backlog (default: 1)
   --status          Show running containers
   --stop            Stop all running containers
   --logs FEATURE    Tail logs for a specific feature
@@ -73,7 +73,7 @@ Environment:
   GH_TOKEN                  Required for git push and PR creation
 
 Examples:
-  # Auto-pick next pending feature
+  # Auto-pick next feature (from pending or backlog)
   nomos-runner.sh --mount --auto
 
   # Auto-pick 3 features in parallel
@@ -200,16 +200,16 @@ if $AUTO_PICK; then
         exit 1
     fi
 
-    # Pick N pending features sorted by priority (lowest = highest priority)
+    # Pick N features from pending or backlog, sorted by priority (lowest = highest priority)
     AUTO_FEATURES=$(jq -r '
-        [.features[] | select(.status == "pending")]
+        [.features[] | select(.status == "pending" or .status == "backlog")]
         | sort_by(.priority)
         | .[0:'"${AUTO_COUNT}"']
         | .[].id
     ' "$FEATURES_FILE" 2>/dev/null)
 
     if [ -z "$AUTO_FEATURES" ]; then
-        log "No pending features found in backlog"
+        log "No pending or backlog features found"
         exit 0
     fi
 
