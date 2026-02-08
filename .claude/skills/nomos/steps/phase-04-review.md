@@ -116,7 +116,18 @@ sr = Task(
 )
 ```
 
-Wait for both to complete. Read their output files.
+### Wait and Parse Results
+
+Use `TaskOutput` to wait for each background agent to complete:
+
+```
+cr_result = TaskOutput(task_id=cr.agentId, block=true, timeout=300000)
+sr_result = TaskOutput(task_id=sr.agentId, block=true, timeout=300000)
+```
+
+Each agent returns its JSON verdict as text in the final message.
+Parse each result to extract `verdict` and `blocking_count`.
+If parsing fails, treat as FAIL with `blocking_count = 1`.
 
 **IF either FAIL AND fix_cycles_used < MAX_FIX_CYCLES:**
 

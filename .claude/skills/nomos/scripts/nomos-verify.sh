@@ -11,7 +11,12 @@
 
 set -e
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+GIT_COMMON=$(git rev-parse --git-common-dir 2>/dev/null)
+if [[ "$GIT_COMMON" == *.git ]]; then
+    PROJECT_ROOT=$(dirname "$GIT_COMMON")
+else
+    PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+fi
 
 FEATURE_ID="$1"
 ACTION="$2"
