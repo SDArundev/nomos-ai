@@ -17,6 +17,8 @@ interface AgentOutputViewerProps {
 		name: string;
 		input: unknown;
 		result?: string;
+		startedAt?: number;
+		completedAt?: number;
 	}>;
 }
 

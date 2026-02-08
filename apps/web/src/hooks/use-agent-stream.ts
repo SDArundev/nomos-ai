@@ -33,6 +33,8 @@ interface StreamState {
 		name: string;
 		input: unknown;
 		result?: string;
+		startedAt?: number;
+		completedAt?: number;
 	}>;
 }
 
@@ -85,6 +87,7 @@ export function useAgentStream(sessionId: string | null) {
 									id: block.tool_use_id ?? crypto.randomUUID(),
 									name: block.name,
 									input: block.input,
+									startedAt: Date.now(),
 								},
 							];
 							setStreamState((prev) => ({
@@ -94,7 +97,7 @@ export function useAgentStream(sessionId: string | null) {
 						} else if (block.type === "tool_result" && block.tool_use_id) {
 							toolCallsRef.current = toolCallsRef.current.map((tc) =>
 								tc.id === block.tool_use_id
-									? { ...tc, result: block.content ?? "" }
+									? { ...tc, result: block.content ?? "", completedAt: Date.now() }
 									: tc,
 							);
 							setStreamState((prev) => ({
