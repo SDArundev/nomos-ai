@@ -41,8 +41,13 @@ RUN npm install -g @anthropic-ai/claude-code \
 # Non-root user (UID/GID configurable at build time)
 ARG UID=1001
 ARG GID=1001
-RUN groupadd --gid ${GID} nomos 2>/dev/null || true \
-    && useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/bash nomos 2>/dev/null || true
+RUN if getent group ${GID} >/dev/null 2>&1; then \
+      EXISTING_GROUP=$(getent group ${GID} | cut -d: -f1); \
+      useradd --uid ${UID} --gid ${EXISTING_GROUP} --create-home --shell /bin/bash nomos 2>/dev/null || true; \
+    else \
+      groupadd --gid ${GID} nomos; \
+      useradd --uid ${UID} --gid nomos --create-home --shell /bin/bash nomos; \
+    fi
 
 # Git: trust all directories (needed for bind-mounts and clones)
 RUN git config --system --add safe.directory '*'
@@ -50,7 +55,7 @@ RUN git config --system --add safe.directory '*'
 # Working directories
 WORKDIR /workspace
 RUN mkdir -p /workspace /work /home/nomos/.claude \
-    && chown -R nomos:nomos /workspace /work /home/nomos
+    && chown -R nomos /workspace /work /home/nomos
 
 # Container entrypoint
 COPY .claude/skills/nomos/scripts/nomos-container.sh /usr/local/bin/nomos-container.sh

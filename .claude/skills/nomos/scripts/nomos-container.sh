@@ -108,7 +108,7 @@ fi
 CLAUDEJSON
 )
 
-chown -R ${NOMOS_USER}:${NOMOS_USER} /home/${NOMOS_USER}
+chown -R ${NOMOS_USER} /home/${NOMOS_USER}
 
 # ============================================================================
 # PHASE 2: GIT CONFIGURATION
@@ -125,7 +125,7 @@ if [ -n "$GH_TOKEN" ]; then
     gosu ${NOMOS_USER} git config --global credential.helper store
     # Write credentials with restricted permissions from the start
     (umask 077 && echo "https://oauth2:${GH_TOKEN}@github.com" > /home/${NOMOS_USER}/.git-credentials)
-    chown ${NOMOS_USER}:${NOMOS_USER} /home/${NOMOS_USER}/.git-credentials
+    chown ${NOMOS_USER} /home/${NOMOS_USER}/.git-credentials
 
     # Authenticate gh CLI
     echo "$GH_TOKEN" | gosu ${NOMOS_USER} gh auth login --with-token 2>/dev/null || true
@@ -140,31 +140,29 @@ fi
 
 log "Phase 3: Setting up workspace..."
 
-if [ -n "$REPO_URL" ]; then
-    # Clone from remote (fully isolated)
+if [ -n "$NOMOS_COPY_MOUNT" ] && [ -d "$WORKSPACE/.git" ]; then
+    # Mount mode: copy bind-mounted repo to writable location
+    log "  Using bind-mounted repository (copy mode)..."
+    mkdir -p /work
+    cp -a "$WORKSPACE/." /work/
+    chown -R ${NOMOS_USER} /work
+    WORKSPACE="/work"
+    log "  Workspace copied to /work"
+
+elif [ -n "$REPO_URL" ]; then
+    # Clone mode: fully isolated
     BRANCH="${REPO_BRANCH:-main}"
     log "  Cloning ${REPO_URL} (branch: ${BRANCH})..."
 
-    if [ -d "$WORKSPACE/.git" ]; then
-        log "  Removing stale workspace..."
-        rm -rf "${WORKSPACE:?}"/* "${WORKSPACE:?}"/.[!.]* "${WORKSPACE:?}"/..?* 2>/dev/null || true
-    fi
-
-    gosu ${NOMOS_USER} git clone --depth=${CLONE_DEPTH} -b "$BRANCH" "$REPO_URL" "$WORKSPACE" 2>&1
+    # Clone into /work to avoid conflicts with Docker's /workspace
+    mkdir -p /work
+    chown ${NOMOS_USER} /work
+    gosu ${NOMOS_USER} git clone --depth=${CLONE_DEPTH} -b "$BRANCH" "$REPO_URL" /work 2>&1
+    WORKSPACE="/work"
     log "  Clone complete"
 
 elif [ -d "$WORKSPACE/.git" ]; then
-    log "  Using bind-mounted repository"
-
-    # If bind-mounted (likely read-only), copy to a writable location
-    if [ -n "$NOMOS_COPY_MOUNT" ]; then
-        log "  Copying mount to /work..."
-        mkdir -p /work
-        cp -a "$WORKSPACE/." /work/
-        chown -R ${NOMOS_USER}:${NOMOS_USER} /work
-        WORKSPACE="/work"
-        log "  Workspace copied to /work"
-    fi
+    log "  Using bind-mounted repository (in-place)"
 else
     fail "No REPO_URL set and no .git found at ${WORKSPACE}. Mount a repo or set REPO_URL."
 fi
@@ -248,7 +246,7 @@ cat > /home/${NOMOS_USER}/.claude/settings.json << 'SETTINGS'
   "hasCompletedOnboarding": true
 }
 SETTINGS
-chown -R ${NOMOS_USER}:${NOMOS_USER} /home/${NOMOS_USER}/.claude
+chown -R ${NOMOS_USER} /home/${NOMOS_USER}/.claude
 
 log "  Prompt: ${PROMPT}"
 log "  === Claude Code output begins ==="
