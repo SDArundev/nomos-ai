@@ -5,6 +5,8 @@ prev_step: steps/step-00-init.md
 next_step: steps/step-02-plan.md
 ---
 
+> **DEPRECATED (v3):** Superseded by NOMOS v4 phases. Kept for rollback. Restore: change SKILL.md FIRST ACTION to step-00-init.md.
+
 # Step 1: Context (Parallel Gathering)
 
 ## References

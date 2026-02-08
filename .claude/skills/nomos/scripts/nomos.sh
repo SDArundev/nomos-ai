@@ -82,6 +82,7 @@ source "${LIB_DIR}/init.sh"
 source "${LIB_DIR}/learn.sh"
 source "${LIB_DIR}/lifecycle.sh"
 source "${LIB_DIR}/ingest.sh"
+source "${LIB_DIR}/tmux.sh"
 
 # ============================================================================
 # FUTURE: parallel subcommand (design only, not yet implemented)
@@ -139,6 +140,9 @@ case "$SUBCOMMAND" in
     ingest)
         cmd_ingest "$@"
         ;;
+    tmux)
+        cmd_tmux "$@"
+        ;;
     --help|-h|"")
         echo "NOMOS Unified Script v3 (modular)"
         echo ""
@@ -155,6 +159,7 @@ case "$SUBCOMMAND" in
         echo "  $0 cleanup [--stale]                 Clean up stale features and orphaned resources"
         echo "  $0 session                            Rich project context dashboard"
         echo "  $0 ingest [--dry-run]                 Ingest verification findings into features"
+        echo "  $0 tmux <action> [args...]             tmux session management"
         echo ""
         echo "State actions: start, claim, complete, verify, reset, fail, retry, preverify, get, next"
         echo "Port actions:  allocate <fid>, release <fid>, cleanup"

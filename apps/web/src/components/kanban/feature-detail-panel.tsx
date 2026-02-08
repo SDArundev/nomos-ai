@@ -22,14 +22,7 @@ interface FeatureDetailPanelProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-const statusColors: Record<string, string> = {
-	backlog: "bg-neutral-500",
-	pending: "bg-yellow-500",
-	in_progress: "bg-blue-500",
-	waiting_approval: "bg-purple-500",
-	verified: "bg-green-500",
-	failed: "bg-red-500",
-};
+import { FEATURE_STATUS_COLORS as statusColors } from "@/lib/status-display";
 
 // Using FEATURE_VALID_TRANSITIONS from @nomos-ai/types for consistency
 const VALID_TRANSITIONS = FEATURE_VALID_TRANSITIONS as Record<string, string[]>;

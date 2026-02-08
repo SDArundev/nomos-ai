@@ -1,7 +1,6 @@
 import { featureRepository } from "@nomos-ai/db";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
-import { generateFeatureId } from "../utils/id-generation";
 import { SpecService } from "../services/spec-service";
 
 let specServiceInstance: SpecService | null = null;
@@ -67,10 +66,7 @@ export const specRouter = {
 
 			if (input.createInDb && features.length > 0) {
 				for (const f of features) {
-					await featureRepository.create({
-						...f,
-						id: await generateFeatureId(),
-					});
+					await featureRepository.create(f);
 				}
 			}
 

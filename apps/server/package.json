@@ -10,7 +10,7 @@
 		"start": "bun run dist/index.js"
 	},
 	"dependencies": {
-		"@anthropic-ai/claude-agent-sdk": "^0.2.34",
+		"@anthropic-ai/claude-agent-sdk": "^0.2.37",
 		"@nomos-ai/api": "workspace:*",
 		"@nomos-ai/auth": "workspace:*",
 		"@nomos-ai/db": "workspace:*",

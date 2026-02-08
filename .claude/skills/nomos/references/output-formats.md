@@ -1,3 +1,5 @@
+> **DEPRECATED (v3):** Superseded by NOMOS v4 phases. Kept for rollback. Restore: change SKILL.md FIRST ACTION to step-00-init.md.
+
 # Output Formats Reference
 
 Standard output markdown formats and compact context transfer patterns for all NOMOS pipeline steps.

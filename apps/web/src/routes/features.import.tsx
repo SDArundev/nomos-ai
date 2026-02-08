@@ -1,4 +1,5 @@
-import type { FeatureStatus } from "@nomos-ai/types";
+import type { EstimatedSize, FeatureStatus } from "@nomos-ai/types";
+import { FEATURE_PHASES } from "@nomos-ai/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Upload } from "lucide-react";
@@ -98,11 +99,11 @@ function ImportComponent() {
 				title: f.title,
 				description: f.description,
 				category: f.category || "core",
-				phase: f.phase || "phase-1",
+				phase: f.phase || FEATURE_PHASES[0],
 				acceptanceCriteria: f.acceptanceCriteria,
 				status: (f.status ?? "backlog") as FeatureStatus,
 				priority: f.priority,
-				estimatedSize: f.estimatedSize as "XS" | "S" | "M" | "L" | "XL" | undefined,
+				estimatedSize: f.estimatedSize as EstimatedSize | undefined,
 			})),
 		});
 	};
@@ -164,7 +165,7 @@ function ImportComponent() {
 											<td className="p-2 text-muted-foreground">{i + 1}</td>
 											<td className="p-2">{f.title}</td>
 											<td className="p-2">{f.category || "core"}</td>
-											<td className="p-2">{f.phase || "phase-1"}</td>
+											<td className="p-2">{f.phase || FEATURE_PHASES[0]}</td>
 											<td className="p-2">{f.acceptanceCriteria.length}</td>
 										</tr>
 									))}

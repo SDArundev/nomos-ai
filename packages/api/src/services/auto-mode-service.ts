@@ -5,7 +5,6 @@ import {
 	areDependenciesSatisfied,
 } from "../lib/dependency-resolver";
 import { loadProjectContext } from "../lib/context-loader";
-import { generateSessionId } from "../utils/id-generation";
 import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
 import type { PipelineService } from "./pipeline-service";
@@ -142,7 +141,6 @@ export class AutoModeService {
 
 			// Create a tracked agent session
 			const session = await sessionRepository.create({
-				id: await generateSessionId(),
 				userId: "auto-mode",
 				featureId,
 				status: SESSION_STATUS.RUNNING,

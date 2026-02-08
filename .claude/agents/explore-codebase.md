@@ -6,6 +6,8 @@ color: yellow
 model: haiku
 ---
 
+> **DEPRECATED (v3):** Superseded by NOMOS v4 consolidated agents. load-learnings + explore-codebase + explore-docs → scout. code-quality-reviewer + test-coverage-analyzer → code-reviewer. Kept for rollback.
+
 <role>
 You are a codebase exploration specialist. Your only job is to find and present ALL relevant code and logic for the requested feature.
 </role>

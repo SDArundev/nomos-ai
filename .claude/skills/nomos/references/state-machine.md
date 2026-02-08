@@ -274,16 +274,27 @@ validate_transition() {
 
 ---
 
-## NOMOS v2 Step to State Mapping
+## NOMOS v4 Phase to State Mapping
+
+| Phase | State Transition |
+|-------|------------------|
+| Phase 1: UNDERSTAND | pending -> in_progress |
+| Phase 2: PLAN | (remains in_progress) |
+| Phase 3: EXECUTE | (remains in_progress, or -> failed if escalated) |
+| Phase 4: REVIEW | in_progress -> waiting_approval (or -> failed) |
+| Phase 5: SHIP | waiting_approval -> verified (if -m merge flag) |
+| Phase 6: LEARN | (post-verification, conditional) |
+
+### v3 Step to State Mapping (deprecated)
 
 | Step | State Transition |
 |------|------------------|
-| step-00-init | pending → in_progress |
+| step-00-init | pending -> in_progress |
 | step-01-context | (remains in_progress) |
 | step-02-plan | (remains in_progress) |
 | step-03-execute | (remains in_progress) |
-| step-04-verify | in_progress → waiting_approval |
-| step-05-merge | waiting_approval → verified |
+| step-04-verify | in_progress -> waiting_approval |
+| step-05-merge | waiting_approval -> verified |
 | step-06-finish | (post-verification) |
 
 ---
