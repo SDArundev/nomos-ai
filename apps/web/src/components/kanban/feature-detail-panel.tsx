@@ -1,6 +1,7 @@
-import { FEATURE_VALID_TRANSITIONS, type FeatureStatus } from "@nomos-ai/types";
+import { FEATURE_VALID_TRANSITIONS, type FeatureStatus, ModelSchema, ThinkingLevelSchema, PlanningModeSchema } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { Play } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { orpc } from "@/utils/orpc";
+import { StartExecutionDialog } from "./start-execution-dialog";
 
 interface FeatureDetailPanelProps {
 	featureId: string | null;
@@ -23,9 +25,6 @@ interface FeatureDetailPanelProps {
 }
 
 import { FEATURE_STATUS_COLORS as statusColors } from "@/lib/status-display";
-
-// Using FEATURE_VALID_TRANSITIONS from @nomos-ai/types for consistency
-const VALID_TRANSITIONS = FEATURE_VALID_TRANSITIONS as Record<string, string[]>;
 
 export function FeatureDetailPanel({
 	featureId,
@@ -36,6 +35,7 @@ export function FeatureDetailPanel({
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedTitle, setEditedTitle] = useState("");
 	const [editedDescription, setEditedDescription] = useState("");
+	const [startDialogOpen, setStartDialogOpen] = useState(false);
 
 	// Reset edit state when panel closes
 	useEffect(() => {
@@ -43,6 +43,7 @@ export function FeatureDetailPanel({
 			setIsEditing(false);
 			setEditedTitle("");
 			setEditedDescription("");
+			setStartDialogOpen(false);
 		}
 	}, [open]);
 
@@ -292,7 +293,18 @@ export function FeatureDetailPanel({
 						<div className="space-y-2">
 							<h3 className="font-medium text-sm">Available Actions</h3>
 							<div className="flex flex-wrap gap-2">
-								{VALID_TRANSITIONS[feature.data.status]?.map((nextStatus) => (
+								{feature.data.status === "pending" && (
+									<Button
+										variant="default"
+										size="sm"
+										onClick={() => setStartDialogOpen(true)}
+										disabled={updateStatus.isPending}
+									>
+										<Play className="size-4" />
+										Start Execution
+									</Button>
+								)}
+								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]?.map((nextStatus) => (
 									<Button
 										key={nextStatus}
 										variant="outline"
@@ -303,13 +315,31 @@ export function FeatureDetailPanel({
 										Move to {nextStatus}
 									</Button>
 								))}
-								{VALID_TRANSITIONS[feature.data.status]?.length === 0 && (
+								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]?.length === 0 && feature.data.status !== "pending" && (
 									<p className="text-muted-foreground text-sm">
 										No available transitions from this status.
 									</p>
 								)}
 							</div>
 						</div>
+
+						{feature.data && (() => {
+							const modelResult = ModelSchema.safeParse(feature.data.model);
+							const thinkingLevelResult = ThinkingLevelSchema.safeParse(feature.data.thinkingLevel);
+							const planningModeResult = PlanningModeSchema.safeParse(feature.data.planningMode);
+
+							return (
+								<StartExecutionDialog
+									open={startDialogOpen}
+									onOpenChange={setStartDialogOpen}
+									featureId={feature.data.id}
+									projectId={feature.data.projectId}
+									defaultModel={modelResult.success ? modelResult.data : undefined}
+									defaultThinkingLevel={thinkingLevelResult.success ? thinkingLevelResult.data : undefined}
+									defaultPlanningMode={planningModeResult.success ? planningModeResult.data : undefined}
+								/>
+							);
+						})()}
 					</div>
 				)}
 			</SheetContent>

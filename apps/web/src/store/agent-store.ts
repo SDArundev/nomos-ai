@@ -18,7 +18,7 @@ export interface AgentMessage {
 
 export interface AgentSession {
 	id: string;
-	featureId: string;
+	featureId: string | null;
 	status: string;
 	startedAt: Date;
 	model: string | null;
@@ -36,6 +36,7 @@ interface AgentStore {
 	isSending: boolean;
 
 	setSessions: (sessions: AgentSession[]) => void;
+	addSession: (session: AgentSession) => void;
 	setActiveSession: (id: string | null) => void;
 	setMessages: (messages: AgentMessage[]) => void;
 	addMessage: (message: AgentMessage) => void;
@@ -55,6 +56,12 @@ export const useAgentStore = create<AgentStore>()(
 
 			setSessions: (sessions) =>
 				set({ sessions }, undefined, "agent/setSessions"),
+			addSession: (session) =>
+				set(
+					(state) => ({ sessions: [...state.sessions, session] }),
+					undefined,
+					"agent/addSession",
+				),
 			setActiveSession: (id) =>
 				set({ activeSessionId: id }, undefined, "agent/setActiveSession"),
 			setMessages: (messages) =>
