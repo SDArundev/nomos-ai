@@ -1,8 +1,8 @@
 import { MessageSquare, Plus, Trash2 } from "lucide-react";
-import type { AgentSession } from "@/store/agent-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { AgentSession } from "@/store/agent-store";
 
 interface SessionSidebarProps {
 	sessions: AgentSession[];
@@ -50,9 +50,7 @@ export function SessionSidebar({
 						<MessageSquare className="size-4 shrink-0 text-muted-foreground" />
 						<div className="min-w-0 flex-1">
 							<div className="flex items-center gap-2">
-								<span className="truncate font-medium">
-									{session.id}
-								</span>
+								<span className="truncate font-medium">{session.id}</span>
 								<div
 									className={cn(
 										"size-2 shrink-0 rounded-full",
