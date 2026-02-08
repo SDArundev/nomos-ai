@@ -51,6 +51,7 @@ NOMOS Headless Feature Runner
 
 Usage:
   nomos-runner.sh [OPTIONS] <FEATURE_ID...>
+  nomos-runner.sh --auto [N]          Auto-pick N pending features (default: 1)
 
 Options:
   --build           Force rebuild Docker image
@@ -59,6 +60,7 @@ Options:
   --mount           Bind-mount repo instead of cloning (faster, less isolated)
   --flags "FLAGS"   Override NOMOS flags (default: "-a -t")
   --timeout SECS    Timeout per feature in seconds (default: 3600)
+  --auto [N]        Auto-pick N pending features from backlog (default: 1)
   --status          Show running containers
   --stop            Stop all running containers
   --logs FEATURE    Tail logs for a specific feature
@@ -71,17 +73,20 @@ Environment:
   GH_TOKEN                  Required for git push and PR creation
 
 Examples:
-  # Run 3 features in parallel
-  nomos-runner.sh F045 F046 F047
+  # Auto-pick next pending feature
+  nomos-runner.sh --mount --auto
+
+  # Auto-pick 3 features in parallel
+  nomos-runner.sh --mount --auto 3
+
+  # Run specific features in parallel
+  nomos-runner.sh --mount F045 F046 F047
 
   # Build image first, use opus model
   nomos-runner.sh --build --model opus F045
 
   # Higher budget, custom flags
   nomos-runner.sh --budget 15 --flags "-a -t -m" F045
-
-  # Use bind-mount (faster, for local testing)
-  nomos-runner.sh --mount F045
 EOF
 }
 
@@ -159,6 +164,8 @@ MOUNT=false
 PROMPT_MODE="direct"
 FLAGS="-a -t"
 TIMEOUT=3600
+AUTO_PICK=false
+AUTO_COUNT=1
 FEATURES=()
 
 while [[ $# -gt 0 ]]; do
@@ -169,6 +176,12 @@ while [[ $# -gt 0 ]]; do
         --mount)     MOUNT=true; shift ;;
         --flags)     FLAGS="$2"; shift 2 ;;
         --timeout)   TIMEOUT="$2"; shift 2 ;;
+        --auto)      AUTO_PICK=true
+                     # Next arg is count if it's a number
+                     if [[ "${2:-}" =~ ^[0-9]+$ ]]; then
+                         AUTO_COUNT="$2"; shift
+                     fi
+                     shift ;;
         --status)    cmd_status; exit 0 ;;
         --stop)      cmd_stop; exit 0 ;;
         --logs)      cmd_logs "$2"; exit 0 ;;
@@ -179,9 +192,37 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Auto-pick pending features from backlog
+if $AUTO_PICK; then
+    FEATURES_FILE="${PROJECT_ROOT}/.nomos/features.json"
+    if [ ! -f "$FEATURES_FILE" ]; then
+        err "features.json not found at ${FEATURES_FILE}"
+        exit 1
+    fi
+
+    # Pick N pending features sorted by priority (lowest = highest priority)
+    AUTO_FEATURES=$(jq -r '
+        [.features[] | select(.status == "pending")]
+        | sort_by(.priority)
+        | .[0:'"${AUTO_COUNT}"']
+        | .[].id
+    ' "$FEATURES_FILE" 2>/dev/null)
+
+    if [ -z "$AUTO_FEATURES" ]; then
+        log "No pending features found in backlog"
+        exit 0
+    fi
+
+    while IFS= read -r fid; do
+        FEATURES+=("$fid")
+    done <<< "$AUTO_FEATURES"
+
+    log "Auto-picked ${#FEATURES[@]} feature(s): ${FEATURES[*]}"
+fi
+
 # Validate features
 if [ ${#FEATURES[@]} -eq 0 ]; then
-    err "No features specified"
+    err "No features specified (use --auto or provide feature IDs)"
     usage
     exit 1
 fi
@@ -213,7 +254,15 @@ if ! REPO_URL=$(git remote get-url origin 2>/dev/null); then
     log "WARNING: Could not determine repo URL"
     REPO_URL=""
 fi
-REPO_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+
+# Convert SSH URL to HTTPS (container uses credential store with HTTPS)
+if [[ "$REPO_URL" == git@github.com:* ]]; then
+    REPO_URL="https://github.com/${REPO_URL#git@github.com:}"
+    REPO_URL="${REPO_URL%.git}.git"
+fi
+
+# Always branch from main, not whatever branch is currently checked out
+REPO_BRANCH="main"
 GIT_NAME=$(git config user.name 2>/dev/null || echo "nomos-runner")
 GIT_EMAIL=$(git config user.email 2>/dev/null || echo "nomos@localhost")
 
