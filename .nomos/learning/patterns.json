@@ -24,7 +24,7 @@
       "recommendation": "When creating agent queries, pass tools in options: query({ prompt, options: { tools: [...], allowedTools: [...] } })",
       "code_example": "const result = await agentQuery({\n  prompt: \"Build a feature\",\n  options: {\n    tools: DEFAULT_TOOLS,\n    allowedTools: [\"execute_code\", \"read_file\"]\n  }\n});",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F031"
@@ -47,7 +47,7 @@
       "recommendation": "Create MODEL_MAP object mapping short names (opus, sonnet, haiku) to dated model IDs. Use as lookup table for model selection.",
       "code_example": "const MODEL_MAP = {\n  \"opus\": \"claude-opus-4-20250514\",\n  \"sonnet\": \"claude-sonnet-4-5-20250929\",\n  \"haiku\": \"claude-haiku-4-5-20251001\",\n} as const;\n\nconst getModel = (shortName: string) => MODEL_MAP[shortName as keyof typeof MODEL_MAP];",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F031"
@@ -71,7 +71,7 @@
       "flags_used": "--database sqlite --orm drizzle --auth --frontend tanstack-router --addons turborepo biome husky --backend hono --runtime bun --api orpc",
       "time_saved_estimate": "2-4 hours",
       "confidence": 0.6,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F001"
@@ -96,7 +96,7 @@
       "gotcha": "TypeScript check will fail with 'Cannot find module ./routeTree.gen' until first build. New routes won't appear in type definitions until 'vite build' is run.",
       "code_example": "// Added 3 routes in F020:\n// apps/web/src/routes/projects.index.tsx\n// apps/web/src/routes/projects.$projectId.tsx\n// apps/web/src/routes/features.$featureId.tsx\n// Run: vite build\n// Result: routeTree.gen.ts updated with route type definitions",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH",
       "features_applied": [
         "F001",
@@ -122,7 +122,7 @@
       "gotcha": "Relative DATABASE_URL paths break because CWD varies in monorepo execution. Always use: DATABASE_URL=file:$(pwd)/.nomos/nomos.db",
       "codeExample": "WORKTREE_ROOT=$(cd .nomos/worktrees/F001 && pwd)\necho \"DATABASE_URL=file:${WORKTREE_ROOT}/.nomos/nomos.db\" >> apps/server/.env",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH",
       "features_applied": [
         "F001",
@@ -154,7 +154,7 @@
       "recommendation": "Use 'bunx biome check . --write --unsafe' for comprehensive auto-fixes",
       "files_fixed": 70,
       "confidence": 0.6,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F001"
@@ -177,8 +177,8 @@
       ],
       "recommendation": "For domain IDs (FeatureId, ProjectId, etc.), use z.string().brand<'TypeName'>() to prevent mixing at compile time",
       "codeExample": "const FeatureIdSchema = z.string().brand<'FeatureId'>();\ntype FeatureId = z.infer<typeof FeatureIdSchema>;",
-      "confidence": 1.0,
-      "success_rate": 1.0,
+      "confidence": 1,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F003",
@@ -212,7 +212,7 @@
       "recommendation": "Use const objects for status values, derive type with keyof typeof, create z.enum() for validation",
       "codeExample": "const STATUS = { ACTIVE: 'active' } as const;\ntype Status = (typeof STATUS)[keyof typeof STATUS];\nconst StatusSchema = z.enum([STATUS.ACTIVE]);",
       "confidence": 0.4,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F003",
@@ -240,7 +240,7 @@
       "recommendation": "For IDs with specific formats (F001, CAT-XXX), add .regex() before .brand() for runtime validation",
       "codeExample": "const FeatureIdSchema = z.string().regex(/^F[0-9]{3}$/, 'Feature ID must be F001-F999').brand<'FeatureId'>();",
       "confidence": 0.2,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F003"
@@ -264,7 +264,7 @@
       "recommendation": "When using .default(value), do NOT chain .optional() - it's redundant and creates semantic confusion",
       "codeExample": "// Good:\nmodel: ModelSchema.default('sonnet')\n\n// Bad:\nmodel: ModelSchema.default('sonnet').optional()",
       "confidence": 0.2,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F003"
@@ -289,7 +289,7 @@
       "codeExample": "// Problem: .default({}) doesn't propagate inner defaults\nsettings: SettingsSchema.default({}) // Returns {} not {theme:'system'}\n\n// Solution: Transform explicitly applies defaults\nsettings: SettingsSchema.optional().transform((s) => ({\n  theme: s?.theme ?? 'system',\n  locale: s?.locale ?? 'en'\n}))",
       "gotcha": ".default(value) returns value directly without parsing through schema - inner defaults don't apply",
       "confidence": 0.2,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F004"
@@ -313,7 +313,7 @@
       "recommendation": "When creating a new schema that references existing domain types (FeatureId, ProjectId), import and reuse the branded schemas",
       "codeExample": "import { FeatureIdSchema, SessionIdSchema } from './ids';\n\nexport const SessionSchema = z.object({\n  id: SessionIdSchema,\n  featureId: FeatureIdSchema,\n  // ...other fields\n});",
       "confidence": 0.2,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F005"
@@ -335,8 +335,8 @@
       ],
       "recommendation": "Define 3-5 concrete acceptance criteria per feature. Each should be independently verifiable.",
       "time_saved_estimate": "15-30 minutes per feature (avoids retry loops)",
-      "confidence": 1.0,
-      "success_rate": 1.0,
+      "confidence": 1,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F012",
@@ -366,8 +366,8 @@
       ],
       "recommendation": "Target XS/S-sized features that touch 2-5 files maximum. Split larger features.",
       "metric": "F012: 12 min, 3 files. F013: 4 min, 3 files. F014: 18 min, 5 files. F015: 16 min, 3 files. F016: 13 min, 2 files (XS). F017: 19 min, 3 files (M).",
-      "confidence": 1.0,
-      "success_rate": 1.0,
+      "confidence": 1,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F012",
@@ -398,7 +398,7 @@
       "recommendation": "For all layers: Identify best-in-class template and copy exactly. Database: use CRUD from F012/F013. Server: use Hono error handlers and health check pattern from F015/F016. API: use protectedProcedure pattern from F015 as base for CRUD routers (F017/F018/F019). Frontend: use route structure from F001 scaffold (beforeLoad, component, data fetching pattern) for new routes. Extreme efficiency achieved when existing template matches exactly (F018: 5 min, F019: 58 min including comprehensive test suite, F020: 21 min for 3 routes).",
       "codeExample": "// Database CRUD reuse:\nconst { id, ...updateData } = input; // only changed fields\nawait projectRepository.update(id, updateData);\n\n// Server router reuse:\napp.onError((err, c) => {\n  if (err instanceof HTTPException) return err.getResponse();\n  return c.json({ error: 'Internal Server Error' }, 500);\n});\n\n// Frontend route reuse:\nexport const Route = createFileRoute('/projects/$projectId')({component: ProjectDetail,beforeLoad: async () => {const session = await authClient.getSession(); if (!session.data) redirect({ to: '/login', throw: true });},});",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F012",
@@ -441,7 +441,7 @@
       "recommendation": "Derive repository types from schema rather than manually defining interfaces. This ensures repository types stay in sync with schema changes.",
       "codeExample": "type ProjectSelect = typeof projects.$inferSelect;\ntype ProjectInsert = typeof projects.$inferInsert;",
       "confidence": 0.4,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F012",
@@ -476,7 +476,7 @@
       ],
       "gotcha": "Easy to miss when copying code from other projects or using AI suggestions - packages may exist in source but not in target package.json",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH - feature will crash at runtime even if TypeScript passes",
       "features_applied": [
         "F024"
@@ -498,7 +498,7 @@
       "recommendation": "For list fields in forms, use form.Field(name=\"arrayField\", mode=\"array\") to get field.pushValue(value) and field.removeValue(index) methods. Apply validation on field.state.value.length for min/max constraints.",
       "code_example": "form.Field(name=\"acceptanceCriteria\", mode=\"array\", validators={{onChange: ({value}) => {if (value.length < 1) return \"Minimum 1 required\"; if (value.length > 10) return \"Max 10\";}}}) renders array field with pushValue/removeValue.",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F028"
@@ -522,7 +522,7 @@
       "recommendation": "Use Sheet component to wrap form: <Sheet><SheetContent><FeatureForm feature={selectedFeature} projectId={projectId} onSuccess={() => setSheetOpen(false)} /></SheetContent></Sheet>. Form detects feature prop to conditionally call create or update mutation.",
       "code_example": "feature ? updateFeature.mutateAsync({id: feature.id, data: {...}}) : createFeature.mutateAsync({...data, status: \"backlog\"}). Mutations both invalidate query key to refresh list.",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F028"
@@ -546,7 +546,7 @@
       "recommendation": "Pattern: collapsedColumns: Record<string, boolean> = {}. Toggle with: set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]} })). Consumer: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false)",
       "code_example": "toggleColumnCollapsed: (status) => set((state) => ({ collapsedColumns: {...state.collapsedColumns, [status]: !state.collapsedColumns[status]}, }), undefined, 'ui/toggleColumnCollapsed'). In component: const isCollapsed = useAppStore((s) => s.collapsedColumns[status] ?? false); const toggle = useAppStore((s) => s.toggleColumnCollapsed);",
       "confidence": 0.7,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F029"
@@ -570,7 +570,7 @@
       "recommendation": "Always pair icon-only buttons with aria-label. For toggle buttons, use state-aware label: aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}. For menu buttons, use consistent description: aria-label='Column options'",
       "code_example": "<Button variant='ghost' size='icon-xs' aria-label={isCollapsed ? 'Expand column' : 'Collapse column'}><ChevronDown className={isCollapsed && '-rotate-90'} /></Button>. Or for menu: <DropdownMenuTrigger render={<Button variant='ghost' size='icon-xs' aria-label='Column options' />}><MoreHorizontal /></DropdownMenuTrigger>",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F029"
@@ -594,7 +594,7 @@
       "recommendation": "For WebSocket/message protocols with multiple message types, define each as separate Zod schema (wsClientSubscribeSchema, wsClientUnsubscribeSchema, etc.) then use z.discriminatedUnion(\"action\" | \"type\", [...])",
       "code_example": "const wsClientMessageSchema = z.discriminatedUnion(\"action\", [wsClientSubscribeSchema, wsClientUnsubscribeSchema, wsClientPingSchema]);",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F034"
@@ -618,7 +618,7 @@
       "recommendation": "For event broadcasters: 1) Map<clientId, Set<eventTypes>> for subscriptions, 2) subscribe() checks Set.has() before adding, 3) broadcast() filters by client subscriptions",
       "code_example": "const subscriptions = new Map<string, Set<EventType>>(); subscriptions.has(clientId) ? subscriptions.get(clientId).add(type) : subscriptions.set(clientId, new Set([type]))",
       "confidence": 0.85,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F034"
@@ -641,7 +641,7 @@
       ],
       "recommendation": "In client hook: onConnectionChange -> if reconnected, call client.sendSubscription(previousSubscriptions). Server sends back {type:\"subscribed\", eventTypes:[...]}",
       "confidence": 0.85,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F034"
@@ -674,7 +674,7 @@
       "httpStatus": "200 for healthy, 503 for unhealthy (Service Unavailable)",
       "testCoverage": "Happy path (200), unhealthy state (503), response structure validation",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F016"
@@ -709,7 +709,7 @@
       ],
       "testCoverage": "36+ tests per CRUD router + additional tests for entity-specific operations covering: create/update/delete ops, validation (string lengths, enum values), error handling (NOT_FOUND, BAD_REQUEST), update partial fields, authentication context, state machine transitions (for entities with status fields), filtering by status/featureId, output append, duration calculation",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F017",
@@ -746,7 +746,7 @@
       ],
       "testCoverage": "Test valid transitions (backlog→pending, pending→in_progress, etc.), invalid transitions (verified→backlog), bulk operations with mixed validity, error message format",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH",
       "features_applied": [
         "F018"
@@ -780,7 +780,7 @@
         "Invalidation retry: user can retry from toast action"
       ],
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM - without defaults, queries will retry indefinitely, mutations will fail noisily",
       "features_applied": [
         "F023"
@@ -814,7 +814,7 @@
       ],
       "testCoverage": "Test mutations execute successfully, onSuccess callback fires, form state resets, queries invalidate, error state handled, isPending blocks submits, type checking at compile time",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH - without cache invalidation, UI shows stale data after mutations",
       "features_applied": [
         "F023"
@@ -839,7 +839,7 @@
       "code_example": "// bunfig.toml:\n[test]\npreload = [\"./test-setup.ts\"]\n\n// test-setup.ts:\nprocess.env.ANTHROPIC_API_KEY = \"test-key\";\nprocess.env.CLAUDE_MODEL = \"claude-opus-4-20250514\";",
       "gotcha": "If env vars are not set before imports, Zod validation fails at module load time, causing all tests to fail with cryptic errors",
       "confidence": 0.8,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH",
       "features_applied": [
         "F031"
@@ -872,7 +872,7 @@
         "Clean responsive hierarchy: flex parent, sidebar, main content column"
       ],
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW - grid layouts work but are more complex for collapsible sidebars",
       "features_applied": [
         "F024"
@@ -906,7 +906,7 @@
         "Fixed positioning is performant - no JavaScript animation needed"
       ],
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM - without overlay, mobile sidebar overlaps content without dismissal",
       "features_applied": [
         "F024"
@@ -941,7 +941,7 @@
       ],
       "testCoverage": "Test dropdown renders, shows selected value, lists projects, handles selection, updates store, shows empty state when no projects",
       "confidence": 0.85,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW - without store integration, dropdown becomes disconnected from app state",
       "features_applied": [
         "F024"
@@ -966,7 +966,7 @@
       "recommendation": "For kanban boards and task lists, use dnd-kit with both sensors configured for accessibility. Always include DragOverlay for visual feedback.",
       "code_example": "const sensors = useSensors(\n  useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),\n  useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })\n);\nreturn <DndContext sensors={sensors} collisionDetection={closestCenter}>\n  {columns.map(col => <KanbanColumn ... />)}\n  <DragOverlay>{activeFeature ? <FeatureCard feature={activeFeature} /> : null}</DragOverlay>\n</DndContext>",
       "confidence": 0.95,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW - alternative: build custom drag-drop with higher maintenance cost",
       "features_applied": [
         "F025"
@@ -992,7 +992,7 @@
       "code_example": "const VALID_TRANSITIONS: Record<string, string[]> = {\n  backlog: ['pending', 'failed'],\n  pending: ['in_progress', 'failed'],\n  in_progress: ['waiting_approval', 'failed'],\n  waiting_approval: ['verified', 'failed'],\n  verified: [],\n  failed: []\n};\n// In handleDragEnd:\nconst allowedTransitions = VALID_TRANSITIONS[currentStatus];\nif (!allowedTransitions?.includes(newStatus)) {\n  toast.error(`Cannot move from ${currentStatus} to ${newStatus}`);\n  return;\n}",
       "gotcha": "State machine bugs caught late in QA if backend not checked first. Easy to miss a transition or allow invalid moves.",
       "confidence": 0.95,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH - invalid state transitions at UI level confuse users and can cause data integrity issues",
       "features_applied": [
         "F025"
@@ -1017,7 +1017,7 @@
       "code_example": "const FeatureCard = ({ feature }) => {\n  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: feature.id });\n  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };\n  return <Card ref={setNodeRef} style={style} className=\"cursor-grab active:cursor-grabbing\" {...attributes} {...listeners}>\n    <CardHeader><CardTitle>{feature.title}</CardTitle></CardHeader>\n  </Card>;\n};",
       "gotcha": "CSS.Transform.toString() required - can't stringify transform directly. All attributes and listeners must be forwarded.",
       "confidence": 0.95,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM - without useSortable, items not draggable or missing visual feedback",
       "features_applied": [
         "F025"
@@ -1041,7 +1041,7 @@
       "recommendation": "Every column/container that accepts dropped items should use useDroppable and wrap children in SortableContext.",
       "code_example": "const KanbanColumn = ({ status, title, features, color }) => {\n  const { setNodeRef, isOver } = useDroppable({ id: status });\n  return <div ref={setNodeRef} className={cn('flex flex-col', isOver && 'bg-accent/30')}>\n    <div className=\"flex items-center gap-2\"><div className={`h-2 w-2 rounded-full ${color}`} /><h3>{title}</h3></div>\n    <SortableContext items={features.map(f => f.id)} strategy={verticalListSortingStrategy}>\n      <div className=\"flex flex-1 flex-col gap-2\">\n        {features.map(f => <FeatureCard key={f.id} feature={f} />)}\n      </div>\n    </SortableContext>\n  </div>;\n};",
       "confidence": 0.95,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM - without useDroppable, drop targets don't work and no visual feedback on hover",
       "features_applied": [
         "F025"
@@ -1065,7 +1065,7 @@
       "recommendation": "Use mutationOptions() from oRPC with onSuccess/onError callbacks instead of manual state management.",
       "code_example": "const queryClient = useQueryClient();\nconst updateStatus = useMutation(\n  orpc.features.updateStatus.mutationOptions({\n    onSuccess: () => {\n      queryClient.invalidateQueries({ queryKey: orpc.features.list.queryOptions().queryKey });\n      toast.success('Feature status updated');\n    },\n    onError: (error) => {\n      toast.error(error.message || 'Failed to update feature status');\n    }\n  })\n);\nconst handleStatusChange = (id: string, status: string) => {\n  updateStatus.mutate({ id, status: status as FeatureStatus });\n};",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM - without callbacks, UI doesn't update after mutation or show user feedback",
       "features_applied": [
         "F025"
@@ -1088,7 +1088,7 @@
       "recommendation": "Implement pattern: (1) Track all subscriptions in Set or Map, (2) subscribe() returns unsubscribe function, (3) destroy() iterates all subscriptions and calls cleanup",
       "code_example": "class EventBroadcaster {\n  private subscriptions = new Set<() => void>();\n  subscribe(callback: (data: T) => void) {\n    const unsub = () => listeners.delete(callback);\n    subscriptions.add(unsub);\n    return unsub;\n  }\n  destroy() {\n    subscriptions.forEach(unsub => unsub());\n    subscriptions.clear();\n  }\n}",
       "confidence": 0.95,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "CRITICAL",
       "features_applied": [
         "F035"
@@ -1111,7 +1111,7 @@
       "recommendation": "Pattern: (1) catch(error) immediately, (2) extract message/stack synchronously, (3) THEN perform async operations, (4) use captured message in response",
       "code_example": "try {\n  // async work\n} catch (error) {\n  const errorMessage = error instanceof Error ? error.message : String(error);\n  await db.insert(...);\n  return { error: errorMessage };\n}",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH",
       "features_applied": [
         "F035"
@@ -1134,7 +1134,7 @@
       "recommendation": "Before each ws.send(data): (1) check if ws.bufferedAmount > THRESHOLD (e.g., 1MB), (2) if exceeded, implement backoff (exponential delay) or queueing, (3) log warning",
       "code_example": "const THRESHOLD = 1024 * 1024;\nif (ws.bufferedAmount > THRESHOLD) {\n  logger.warn('Backpressure detected', { bufferedAmount: ws.bufferedAmount });\n  await sleep(exponentialBackoff());\n}\nws.send(JSON.stringify(data));",
       "confidence": 0.85,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH",
       "features_applied": [
         "F035"
@@ -1157,7 +1157,7 @@
       "recommendation": "When agent AbortController is signaled: (1) emit agent:complete event with final state, (2) include any accumulated output/errors, (3) frontend receives and cleans up listeners",
       "code_example": "abortSignal.addEventListener('abort', () => {\n  emitEvent('agent:complete', {\n    agentId,\n    status: 'stopped',\n    reason: 'user-requested',\n    output: accumulatedOutput\n  });\n});",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F035"
@@ -1180,7 +1180,7 @@
       "recommendation": "Always use try/catch wrapper for ws.send(). If serialization fails, emit agent:error event and log the issue.",
       "code_example": "try {\n  ws.send(JSON.stringify(event));\n} catch (error) {\n  logger.error('Serialization error', { error });\n  try {\n    ws.send(JSON.stringify({ type: 'agent:error', message: 'Serialization failed' }));\n  } catch {}\n}",
       "confidence": 0.85,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F035"
@@ -1205,7 +1205,7 @@
       "recommendation": "For any markdown rendering from untrusted sources (agent output, user content), configure react-markdown with rehype-sanitize: <Markdown plugins={[[rehypeSanitize]]} />",
       "code_example": "import rehypeSanitize from 'rehype-sanitize';\nimport Markdown from 'react-markdown';\n\nexport function AgentOutputViewer({ markdown }: { markdown: string }) {\n  return <Markdown plugins={[[rehypeSanitize]]}>{markdown}</Markdown>;\n}",
       "risk_if_ignored": "CRITICAL",
-      "success_rate": 1.0,
+      "success_rate": 1,
       "features_applied": [
         "F036"
       ],
@@ -1231,7 +1231,7 @@
       "code_example": "const useCopyToClipboard = () => {\n  const [copied, setCopied] = useState(false);\n  return {\n    handleCopy: async (text: string) => {\n      await navigator.clipboard.writeText(text);\n      setCopied(true);\n      const timeoutId = setTimeout(() => setCopied(false), 2000);\n      return () => clearTimeout(timeoutId);\n    }\n  };\n};",
       "gotcha": "Without cleanup, timeouts queue up if component re-renders frequently or unmounts before timeout fires",
       "risk_if_ignored": "MEDIUM",
-      "success_rate": 1.0,
+      "success_rate": 1,
       "features_applied": [
         "F036"
       ],
@@ -1256,7 +1256,7 @@
       "code_example": "const fullText = messages\n  .map(msg => (msg.content || '') + (msg.pendingContent || ''))\n  .join('\\n')\n  .trim();",
       "gotcha": "Without pending content, users copying while message is streaming get incomplete output",
       "risk_if_ignored": "LOW",
-      "success_rate": 1.0,
+      "success_rate": 1,
       "features_applied": [
         "F036"
       ],
@@ -1278,7 +1278,7 @@
       ],
       "recommendation": "Use async/await pattern with try/catch for clarity: await createSession.mutateAsync(input); await updateStatus.mutateAsync({id, status}); await sendMessage.mutateAsync(...). On error, show toast with specific mutation that failed. For production, consider transaction wrappers or Saga pattern.",
       "confidence": 0.85,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "MEDIUM",
       "features_applied": [
         "F039"
@@ -1301,7 +1301,7 @@
       ],
       "recommendation": "Create dialog component that accepts feature data prop and spreads defaults to each Select. Use useState for local form state. On confirm, call mutation with values. Pattern matches F028 form architecture.",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F039"
@@ -1324,7 +1324,7 @@
       ],
       "recommendation": "In FeatureDetailPanel or similar detail view, check feature.status === \"pending\" before rendering button. Apply consistent styling with other action buttons.",
       "confidence": 0.9,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "LOW",
       "features_applied": [
         "F039"
@@ -1401,7 +1401,7 @@
       "recommendation": "When modifying type definitions: 1) Update shared type package first, 2) Update database schema, 3) Update ALL producers (API, stream handlers, mutations), 4) Update ALL consumers (UI, display components), 5) Run tests to verify data flow",
       "code_example": "// BAD: Only updated UI consumer\ninterface ToolCall { id: string; name: string; startedAt?: number; }\n// Forgot to update handler\nexport const handleToolCall = (tool) => { /* no stamping */ }\n\n// GOOD: Update handler too\nexport const handleToolCall = (tool) => { \n  return { ...tool, startedAt: Date.now() };\n}",
       "confidence": 0.95,
-      "success_rate": 1.0,
+      "success_rate": 1,
       "risk_if_ignored": "HIGH",
       "features_applied": [
         "F037"
@@ -1409,6 +1409,50 @@
       "features_succeeded": [
         "F037"
       ]
+    },
+    {
+      "id": "PAT-PRE-001",
+      "name": "PRE_IMPLEMENTED_FIX",
+      "description": "Feature was already implemented correctly when feature was initiated. Common for audit-discovered issues that are fixed in parallel tracks.",
+      "category": "delivery-efficiency",
+      "examples": [
+        "F275"
+      ],
+      "confidence": "high",
+      "recommendation": "When feature is discovered as already-fixed, mark as verified immediately. No re-work needed."
+    },
+    {
+      "id": "PAT-MICRO-FIX",
+      "name": "MICRO_FIX_DELIVERY",
+      "description": "Single-file configuration changes with minimal scope (1-2 lines). Completes in under 2 minutes.",
+      "category": "efficiency",
+      "examples": [
+        "F275"
+      ],
+      "confidence": "high",
+      "metrics": {
+        "typical_duration_minutes": 1.7,
+        "typical_files_changed": 1,
+        "typical_lines_changed": 2
+      },
+      "recommendation": "These fixes are best handled in parallel batches or fix tracks to amortize PR overhead."
+    },
+    {
+      "id": "PAT-ZERO_ITERATION",
+      "name": "ZERO_ITERATION_DELIVERY",
+      "description": "Features that require no iteration, retries, or loops. Single-shot implementation.",
+      "category": "quality",
+      "examples": [
+        "F275"
+      ],
+      "confidence": "high",
+      "factors": [
+        "Crystal clear requirements",
+        "No ambiguity in acceptance criteria",
+        "Minimal scope",
+        "No conditional logic needed"
+      ],
+      "recommendation": "Document prerequisite clarity as leading indicator of success."
     }
   ],
   "last_updated": "2026-02-08T15:30:00Z",

@@ -7833,7 +7833,7 @@
       "id": "F275",
       "title": "Add apps/web to root tsconfig references",
       "description": "Add apps/web to the references array in root tsconfig.json so root-level tsc --build checks the web app.",
-      "status": "pending",
+      "status": "in_progress",
       "priority": 10,
       "category": "CAT-FIX",
       "passes": false,
@@ -7857,7 +7857,8 @@
       "thinkingLevel": "none",
       "planningMode": "skip",
       "failureReason": "test: special chars [0-9]{3} (parens)",
-      "failedAt": "2026-02-08T18:16:10Z"
+      "failedAt": "2026-02-08T18:16:10Z",
+      "startedAt": "2026-02-08T21:07:43Z"
     }
   ],
   "summary": {

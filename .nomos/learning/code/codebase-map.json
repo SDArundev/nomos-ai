@@ -1193,6 +1193,24 @@
         "AC3: Duration shown",
         "AC4: File diffs rendered"
       ]
+    },
+    "tsconfig.json": {
+      "purpose": "Root monorepo TypeScript configuration with references to all packages and apps. Enables tsc --build from root to check entire codebase including apps/web (added F275).",
+      "layer": "infrastructure",
+      "exports": [],
+      "imports_from": [
+        "@nomos-ai/config/tsconfig.base.json"
+      ],
+      "lastTouchedBy": "F275",
+      "references": [
+        "packages/types",
+        "packages/db",
+        "packages/auth",
+        "packages/api",
+        "packages/env",
+        "apps/server",
+        "apps/web"
+      ]
     }
   },
   "lastUpdated": "2026-02-04T21:50:00Z",
