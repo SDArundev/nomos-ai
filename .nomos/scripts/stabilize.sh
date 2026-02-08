@@ -137,7 +137,6 @@ generate_runner_scripts() {
 
     cat > "$runner" <<RUNNER_EOF
 #!/usr/bin/env bash
-set -euo pipefail
 cd "$worktree"
 
 echo "=== Track $n starting at \$(date) ==="
@@ -145,10 +144,11 @@ echo "Working directory: \$(pwd)"
 echo "Branch: \$(git branch --show-current)"
 echo ""
 
-# Read prompt from file and pass via stdin
+# Read prompt from file
 prompt=\$(cat "$prompt_file")
 
-timeout $TIMEOUT_SECONDS claude -p --dangerously-skip-permissions "\$prompt" > "$log_file" 2>&1
+# Run claude; capture exit code regardless of success/failure
+claude -p --dangerously-skip-permissions "\$prompt" > "$log_file" 2>&1
 exit_code=\$?
 
 echo "\$exit_code" > "$status_file"
