@@ -37,14 +37,14 @@ describe("Database Package - Migration", () => {
 			expect(existsSync(journal)).toBe(true);
 		});
 
-		it("journal tracks both migrations", async () => {
+		it("journal tracks all migrations", async () => {
 			const journalPath = resolve(
 				import.meta.dirname,
 				"../migrations/meta/_journal.json",
 			);
 			const journal = await Bun.file(journalPath).json();
 			expect(journal.entries).toBeDefined();
-			expect(journal.entries.length).toBe(2);
+			expect(journal.entries.length).toBe(7);
 		});
 	});
 

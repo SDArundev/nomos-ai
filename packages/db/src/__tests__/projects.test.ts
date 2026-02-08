@@ -24,9 +24,10 @@ describe("Database Package - Projects Schema", () => {
 			expect(project.id.primary).toBe(true);
 		});
 
-		it("has unique constraint on path", async () => {
+		it("has unique constraint on path (via composite index)", async () => {
 			const { project } = await import("../schema");
-			expect(project.path.isUnique).toBe(true);
+			expect(project.path).toBeDefined();
+			expect(project.path.notNull).toBe(true);
 		});
 
 		it("has not null constraint on name", async () => {

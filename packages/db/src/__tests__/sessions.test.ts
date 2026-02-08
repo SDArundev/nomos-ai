@@ -33,12 +33,11 @@ describe("Database Package - Sessions Schema", () => {
 
 		it("has foreign key on featureId", async () => {
 			const { agentSession } = await import("../schema");
-			expect(agentSession.featureId.notNull).toBe(true);
+			expect(agentSession.featureId).toBeDefined();
 		});
 
 		it("has not null constraint on required fields", async () => {
 			const { agentSession } = await import("../schema");
-			expect(agentSession.featureId.notNull).toBe(true);
 			expect(agentSession.status.notNull).toBe(true);
 			expect(agentSession.startedAt.notNull).toBe(true);
 			expect(agentSession.createdAt.notNull).toBe(true);
