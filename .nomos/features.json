@@ -1233,11 +1233,12 @@
         "File diffs rendered"
       ],
       "estimatedSize": "M",
-      "status": "backlog",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "completedAt": "2026-02-08T11:13:06Z"
     },
     {
       "id": "F038",
