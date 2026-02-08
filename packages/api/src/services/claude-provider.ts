@@ -71,15 +71,19 @@ export class ClaudeProvider implements AgentProvider {
 		const model = MODEL_ALIASES[options.model] ?? options.model;
 		const thinkingLevel = options.thinkingLevel ?? "standard";
 
-		const sdkOptions: Record<string, unknown> = {
+		const abortController = options.abortController ?? new AbortController();
+
+		const sdkOptions: Parameters<typeof query>[0] = {
 			prompt: options.prompt,
 			options: {
 				model,
 				cwd: options.cwd,
 				systemPrompt: options.systemPrompt,
 				maxTurns: options.maxTurns ?? 10,
-				permissionMode: "bypassPermissions" as const,
+				permissionMode: "bypassPermissions",
 				allowDangerouslySkipPermissions: true,
+				settingSources: ["project"],
+				abortController,
 				...(options.allowedTools && { tools: options.allowedTools }),
 				...(options.sdkSessionId && {
 					sessionId: options.sdkSessionId,
@@ -90,10 +94,6 @@ export class ClaudeProvider implements AgentProvider {
 			},
 		};
 
-		// Use provided abort controller or create one with timeout
-		const abortController = options.abortController ?? new AbortController();
-		sdkOptions.abortController = abortController;
-
 		const timeout = setTimeout(() => {
 			abortController.abort(new Error("Connection timeout"));
 		}, CONNECTION_TIMEOUT_MS);
@@ -102,7 +102,7 @@ export class ClaudeProvider implements AgentProvider {
 
 		for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
 			try {
-				const stream = query(sdkOptions as Parameters<typeof query>[0]);
+				const stream = query(sdkOptions);
 
 				for await (const message of stream) {
 					const type = (message as { type?: string }).type;
@@ -117,7 +117,6 @@ export class ClaudeProvider implements AgentProvider {
 				lastError = error;
 				const classified = classifyError(error);
 
-				// Don't retry non-retryable errors or if aborted by user
 				if (!classified.retryable || abortController.signal.aborted || attempt === MAX_RETRIES) {
 					clearTimeout(timeout);
 					throw new Error(
