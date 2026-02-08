@@ -19,6 +19,8 @@ export const messageSchema = z.object({
 				name: z.string(),
 				input: z.unknown(),
 				result: z.string().optional(),
+				startedAt: z.number().optional(),
+				completedAt: z.number().optional(),
 			}),
 		)
 		.optional(),

@@ -14,6 +14,8 @@ export const message = sqliteTable(
 				name: string;
 				input: unknown;
 				result?: string;
+				startedAt?: number;
+				completedAt?: number;
 			}>
 		>(),
 		thinkingContent: text("thinking_content"),
