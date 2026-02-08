@@ -35,8 +35,8 @@
 		"db:migrate": "turbo -F @nomos-ai/db db:migrate",
 		"db:local": "turbo -F @nomos-ai/db db:local",
 		"check": "turbo lint",
-		"test": "bunx vitest run",
-		"test:ci": "bunx vitest run",
+		"test": "bun test",
+		"test:ci": "bun test",
 		"start": "NODE_ENV=production bun run apps/server/src/index.ts"
 	},
 	"packageManager": "bun@1.3.0",

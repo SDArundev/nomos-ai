@@ -146,18 +146,17 @@ describe("Hono App", () => {
 			// Create a new app instance to test error handling
 			const errorApp = new Hono();
 
-			// Add the route that throws an error
-			errorApp.get("/generic-error", () => {
-				throw new Error("Something went wrong");
-			});
-
-			// Add error handler (must be added after routes in Hono)
+			// Error handler must be registered before routes in Hono
 			errorApp.onError((err, c) => {
 				if (err instanceof HTTPException) {
 					return err.getResponse();
 				}
-				console.error("Unhandled error:", err);
 				return c.json({ error: "Internal Server Error" }, 500);
+			});
+
+			// Add the route that throws an error
+			errorApp.get("/generic-error", () => {
+				throw new Error("Something went wrong");
 			});
 
 			const res = await errorApp.request("/generic-error");
