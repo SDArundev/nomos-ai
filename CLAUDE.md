@@ -49,7 +49,8 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 │   ├── nomos-verify/      # Verification & analysis (5-step)
 │   ├── nomos-refactor/    # Safe refactoring (9-step)
 │   ├── nomos-improve/     # System self-improvement (5-step)
-│   └── nomos-swarm/       # Multi-agent collaborative sessions (4-phase)
+│   ├── nomos-swarm/       # Multi-agent collaborative sessions (4-phase)
+│   └── nomos-runner/      # Headless Docker runner for parallel features
 └── agents/                # 11 active agents (+ 5 deprecated v3 agents)
 ```
 
@@ -71,6 +72,9 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 | `/nomos swarm research F045` | Deep research before implementing |
 | `/nomos swarm discuss "topic"` | Multi-perspective architecture debate |
 | `/nomos swarm learn` | Learning system audit and improvement |
+| `/runner --auto 3` | Run 3 features in parallel Docker containers |
+| `/runner F276 F277` | Run specific features in Docker containers |
+| `/runner --status` | Show running/stopped containers |
 | `nomos.sh ingest [--dry-run]` | Ingest verification findings into features |
 | `nomos.sh tmux <action>` | tmux session management |
 
