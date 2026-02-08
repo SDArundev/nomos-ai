@@ -7,61 +7,80 @@ description: >
   "feature pipeline", "nomos session", "nomos status".
 ---
 
-# NOMOS
+# NOMOS v4
 
-Autonomous development ecosystem with worktree isolation, parallel verification, and self-learning.
+Autonomous development ecosystem with JSON checkpoints, native agent swarm, and tmux multi-session.
 
 ## Quick Start
 
 ```bash
 /nomos -s                       # Session dashboard
 /nomos F031                     # Implement feature
-/nomos -a -t -pr F031           # Full auto: implement + test + PR
+/nomos -a -t -m F031            # Full auto: implement + test + merge
 /nomos verify F031              # Verify single feature
 /nomos verify --audit           # Full codebase audit
 /nomos refactor -t rename X Y   # Safe refactoring
 /nomos improve                  # Improve NOMOS system
 ```
 
-**Feature flags:** `-a` (auto), `-t` (test), `-pr` (pull-request), `-r` (resume), `-i` (interactive), `-p` (plan-only), `-v` (verify-only), `-l` (learn-only), `-c` (cleanup), `-f N` (from-step N)
+**Feature flags:** `-a` (auto), `-t` (test), `-m` (merge), `-r` (resume), `-i` (interactive), `-p` (plan-only), `-v` (verify-only), `-l` (learn-only), `-c` (cleanup), `-f N` (from-phase N)
 
 See `references/cli-reference.md` for all flags and examples.
 
-## Pipeline
+## Pipeline (6 phases)
 
 ```
-00-init → 01-context → 02-plan → 03-execute → 04-verify → 05-merge → 06-finish
-          (3 agents)             (loop x3)    (3 tracks)             (2 tracks)
+Phase 0: ROUTE       → sub-command dispatch
+Phase 1: UNDERSTAND  → init + scout (Task, haiku)           → cp-01.json → CLEAR
+Phase 2: PLAN        → architect (Task, opus)                → cp-02.json → CLEAR
+Phase 3: EXECUTE     → code-writer + qa-reviewer loop        → cp-03.json → CLEAR
+Phase 4: REVIEW      → Gate A (bash) + Gate B (2 Tasks) + Gate C (Task)
+                                                             → cp-04.json → CLEAR
+Phase 5: SHIP        → git ops, PR, no agents               → cp-05.json → CLEAR
+Phase 6: LEARN       → historian (Task, haiku, conditional)  → cp-06.json → DONE
 ```
 
-**FIRST ACTION:** Load `steps/step-00-init.md`
+**FIRST ACTION:** Load `steps/phase-00-router.md`
 
 ## Output Structure
 
 ```
 .nomos/output/{feature_id}/
-├── 00-context.md   # Config, feature spec, progress
-├── 01-context.md   # Learnings + codebase + research
-├── 02-plan.md      # Implementation plan
-├── 03-execute.md   # Execution log
-├── 04-verify.md    # Static + runtime + review
-├── 05-merge.md     # Merge log
-└── 06-finish.md    # Learning + ship
+├── cp-01.json   # Understand: context + scout results
+├── cp-02.json   # Plan: architect output
+├── cp-03.json   # Execute: code-writer + qa loop results
+├── cp-04.json   # Review: gate A/B/C results
+├── cp-05.json   # Ship: git ops + PR
+└── cp-06.json   # Learn: patterns + metrics (conditional)
 ```
 
 **Worktree:** `.nomos/worktrees/{feature_id}/`
 
-## Step Files
+## Phase Files
 
-| Step | File | Mode |
-|------|------|------|
-| 00 | `steps/step-00-init.md` | sequential |
-| 01 | `steps/step-01-context.md` | 3 parallel agents |
-| 02 | `steps/step-02-plan.md` | sequential |
-| 03 | `steps/step-03-execute.md` | loop (max 3) |
-| 04 | `steps/step-04-verify.md` | 3 parallel tracks |
-| 05 | `steps/step-05-merge.md` | sequential |
-| 06 | `steps/step-06-finish.md` | 2 parallel tracks |
+| Phase | File | Dispatch |
+|-------|------|----------|
+| 0 | `steps/phase-00-router.md` | sub-command routing |
+| 1 | `steps/phase-01-understand.md` | scout (Task, haiku) |
+| 2 | `steps/phase-02-plan.md` | architect (Task, opus) |
+| 3 | `steps/phase-03-execute.md` | code-writer + qa-reviewer loop (Task, sonnet) |
+| 4 | `steps/phase-04-review.md` | Gate A (bash) + Gate B (2x Task) + Gate C (Task) |
+| 5 | `steps/phase-05-ship.md` | orchestrator (no agents) |
+| 6 | `steps/phase-06-learn.md` | historian (Task, haiku, conditional) |
+
+## Agents (9 total)
+
+| Agent | Model | Phase | Role |
+|-------|-------|-------|------|
+| scout | haiku | 1 | Context gathering (replaces load-learnings + explore-codebase + explore-docs) |
+| architect | opus | 2 | Implementation planning with self-critique |
+| code-writer | sonnet | 3, 4 | Implementation + fix cycles (resume-capable) |
+| qa-reviewer | sonnet | 3 | Code review per iteration (stateless) |
+| code-reviewer | sonnet | 4 | Comprehensive review: bugs + quality + coverage |
+| security-reviewer | sonnet | 4 | Security analysis |
+| qa-functional-tester | sonnet | 4 | Functional QA (conditional) |
+| qa-smoke-tester | sonnet | 4 | Smoke testing |
+| historian | haiku | 6 | Learning extraction (conditional) |
 
 ## Critical Rules
 
@@ -71,13 +90,18 @@ See `references/cli-reference.md` for all flags and examples.
 
 **OUTPUT PATH:**
 - `{output_dir}` is ALWAYS **ABSOLUTE** (project root, not worktree)
-- Code changes → `{worktree_path}`
-- Pipeline logs → `{output_dir}`
+- Code changes -> `{worktree_path}`
+- Checkpoint JSON -> `{output_dir}`
 
-**DOCUMENTATION RESEARCH:**
-- Library/framework docs → **Context7 MCP** via `explore-docs`
-- General patterns → WebSearch acceptable
-- NEVER use WebSearch for specific API syntax
+**CONTEXT CLEARING:**
+- Each phase reads ONLY the previous checkpoint JSON
+- Agents get FRESH context windows via Task tool
+- Checkpoints are the sole inter-phase channel
+
+**AGENT DISPATCH:**
+- ALL agents dispatched via native Task tool (not inline prompts)
+- code-writer uses `resume` parameter for iteration 2+
+- Gate B agents use `run_in_background` for parallelism
 
 **MERGE VERIFICATION:**
 - All merges MUST be verified per `references/git-operations.md#merge-verification`
@@ -87,17 +111,15 @@ See `references/cli-reference.md` for all flags and examples.
 | File | When |
 |------|------|
 | `references/cli-reference.md` | Flags, examples, resume workflow |
-| `references/scripts-reference.md` | nomos.sh commands, agents |
-| `references/parallel-execution.md` | Parallel agent architecture |
+| `references/checkpoint-schema.md` | Checkpoint JSON schema |
+| `references/agent-contracts.md` | Agent dispatch contracts |
+| `references/scripts-reference.md` | nomos.sh commands |
+| `references/parallel-execution.md` | v4 dispatch model |
 | `references/quality-gates.md` | Verification gates |
 | `references/git-operations.md` | Merge verification, worktrees |
 | `references/state-machine.md` | Feature state transitions |
-| `references/output-formats.md` | Learning system format |
 
-## NOMOS Features
+## Rollback
 
-1. **Feature-Driven** — `features.json` with state machine (backlog → pending → in_progress → waiting_approval → verified | failed)
-2. **Worktree Isolation** — Each feature in `.nomos/worktrees/{feature_id}` with branch `nomos/{feature_id}`
-3. **Self-Learning** — Patterns extracted per feature, injected into future planning
-4. **Quality Gates** — Spec-first, test coverage, security scanning, browser validation
-5. **Memory Persistence** — Session insights, checkpoints, cross-feature recommendations
+v3 files preserved with deprecation headers. Instant rollback:
+Change line above from `steps/phase-00-router.md` to `steps/step-00-init.md`.

@@ -30,15 +30,6 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 
 ---
 
-## Next Steps
-
-1. Generate `app_spec.json` from Automaker reference
-2. Generate `features.json` from Automaker catalog (158 features)
-3. Scaffold: `bun create better-t-stack@latest`
-4. Build features via NOMOS system
-
----
-
 ## Key Directories
 
 ```
@@ -54,11 +45,11 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 
 .claude/
 ├── skills/
-│   ├── nomos/             # Core: feature implementation (7-step)
+│   ├── nomos/             # Core: feature implementation (v4 6-phase pipeline)
 │   ├── nomos-verify/      # Verification & analysis (5-step)
 │   ├── nomos-refactor/    # Safe refactoring (9-step)
 │   └── nomos-improve/     # System self-improvement (5-step)
-└── agents/                # 14 shared agent definitions
+└── agents/                # 9 active agents (+ 5 deprecated v3 agents)
 ```
 
 ---
@@ -68,13 +59,14 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 | Command | Purpose |
 |---------|---------|
 | `/nomos -s` | Session dashboard — run at start of session |
-| `/nomos F031` | Implement feature (7-step pipeline) |
-| `/nomos -a -t -pr F031` | Full auto: implement + test + PR |
+| `/nomos F031` | Implement feature (v4 6-phase pipeline) |
+| `/nomos -a -t -m F031` | Full auto: implement + test + merge |
 | `/nomos verify F031` | Verify feature (5-step pipeline) |
 | `/nomos verify --audit` | Full codebase health audit |
 | `/nomos refactor -t rename X Y` | Safe codebase refactoring (9-step) |
 | `/nomos improve` | NOMOS system self-improvement |
 | `nomos.sh ingest [--dry-run]` | Ingest verification findings into features |
+| `nomos.sh tmux <action>` | tmux session management |
 
 ---
 
@@ -90,13 +82,21 @@ States: `backlog` (not scheduled) | `pending` (ready) | `in_progress` | `waiting
 
 ---
 
-## Workflow Steps (7-step pipeline)
+## Pipeline (v4 — 6 phases with JSON checkpoints)
 
 ```
-00-init → 01-context → 02-plan → 03-execute → 04-verify → 05-merge → 06-finish
-          (3 agents)             (loop x3)    (3 tracks)             (2 tracks)
+Phase 0: ROUTE       → sub-command dispatch
+Phase 1: UNDERSTAND  → init + scout (Task, haiku)           → cp-01.json → CLEAR
+Phase 2: PLAN        → architect (Task, opus)                → cp-02.json → CLEAR
+Phase 3: EXECUTE     → code-writer + qa-reviewer loop        → cp-03.json → CLEAR
+Phase 4: REVIEW      → Gate A (bash) + Gate B (2 Tasks) + Gate C (Task)
+                                                             → cp-04.json → CLEAR
+Phase 5: SHIP        → git ops, PR, no agents               → cp-05.json → CLEAR
+Phase 6: LEARN       → historian (Task, haiku, conditional)  → cp-06.json → DONE
 ```
+
+**Context clearing:** Each phase reads ONLY the previous checkpoint JSON. Agents get fresh context windows via Task tool.
 
 ---
 
-*NOMOS AI v2.0*
+*NOMOS AI v4.0*

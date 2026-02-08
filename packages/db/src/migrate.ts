@@ -1,23 +1,64 @@
-import { existsSync } from "node:fs";
+import { copyFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { db } from "./index";
+import { resolveDbUrl } from "./resolve-url";
+import { env } from "@nomos-ai/env/server";
+
+const monorepoRoot = resolve(import.meta.dirname, "../../..");
 
 /**
- * Rollback strategy:
- * Drizzle ORM does not provide automatic rollback for applied migrations.
- * To rollback, manually:
- * 1. Identify the migration to revert in ./migrations/
- * 2. Write a new "down" migration SQL file
- * 3. Apply it via: bun drizzle-kit push
- * 4. Or restore from database backup: cp apps/server/data/nomos.db.bak apps/server/data/nomos.db
- *
- * For safety, always backup before migrating:
- *   cp apps/server/data/nomos.db apps/server/data/nomos.db.bak
+ * Resolve the absolute path to the SQLite database file.
+ * Returns null if the DATABASE_URL is not a local file (e.g., libsql:// or http).
  */
+function resolveDbFilePath(): string | null {
+	const url = resolveDbUrl(env.DATABASE_URL, monorepoRoot);
+	if (!url.startsWith("file:")) return null;
+	return url.slice("file:".length);
+}
+
+/**
+ * Create a backup of the SQLite database file before migrations.
+ * Returns the backup path, or null if backup is not applicable (remote DB).
+ */
+export function backupDatabase(): string | null {
+	const dbPath = resolveDbFilePath();
+	if (!dbPath || !existsSync(dbPath)) return null;
+
+	const backupPath = `${dbPath}.bak`;
+	try {
+		copyFileSync(dbPath, backupPath);
+		console.log(`[db] Backup created: ${backupPath}`);
+		return backupPath;
+	} catch (error) {
+		console.warn("[db] Backup failed:", error);
+		return null;
+	}
+}
+
+/**
+ * Restore the database from a backup file (.bak).
+ * Use this to rollback after a failed or unwanted migration.
+ * @throws {Error} If backup file doesn't exist
+ */
+export function rollbackDatabase(): void {
+	const dbPath = resolveDbFilePath();
+	if (!dbPath) {
+		throw new Error("Rollback only supported for local file databases");
+	}
+
+	const backupPath = `${dbPath}.bak`;
+	if (!existsSync(backupPath)) {
+		throw new Error(`No backup found at ${backupPath}. Cannot rollback.`);
+	}
+
+	copyFileSync(backupPath, dbPath);
+	console.log(`[db] Database restored from backup: ${backupPath}`);
+}
 
 /**
  * Run all pending database migrations.
+ * Automatically backs up the database before applying migrations.
  * Should be called during server startup before accepting requests.
  * @throws {Error} If migrations directory is missing or migrations fail
  */
@@ -27,6 +68,9 @@ export async function runMigrations(): Promise<void> {
 	if (!existsSync(migrationsFolder)) {
 		throw new Error(`Migrations directory not found: ${migrationsFolder}`);
 	}
+
+	// Backup before migrating
+	backupDatabase();
 
 	try {
 		await migrate(db, { migrationsFolder });

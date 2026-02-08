@@ -15,7 +15,13 @@ const client = createClient({
 export const db = drizzle({ client, schema });
 
 export { sql } from "drizzle-orm";
-export { runMigrations } from "./migrate";
+export { runMigrations, backupDatabase, rollbackDatabase } from "./migrate";
+export {
+	generateFeatureId,
+	generateLearningId,
+	generateProjectId,
+	generateSessionId,
+} from "./lib/id-generation";
 export {
 	type EventInsert,
 	type EventSelect,

@@ -152,15 +152,24 @@ bun run check
 
 ---
 
-## Enforcement in v2 Pipeline
+## Enforcement in v4 Pipeline
 
-Quality gates are enforced in the **step-04-verify** parallel tracks:
+Quality gates are enforced in **Phase 4: REVIEW** across three gates:
+
+| Gate | Gates Enforced |
+|------|---------------|
+| **Gate A: Static** (bash, no agent) | CQ-001 (TypeScript), CQ-002 (Linting), ART-002 (Tests) |
+| **Gate B: Parallel Review** (2 Task agents) | SEC-001-003 (Security), CQ-003-004 (Quality), Coverage analysis |
+| **Gate C: Functional QA** (1 Task agent, conditional) | BV-001 (Browser), ART-008 (AC verification) |
+
+**Pre-verification (Phase 2):** ART-001 (Plan exists — architect output)
+**Fix cycles:** Max 2 total across all gates (not per gate)
+**Post-review (Phase 5):** CI-001 (post-rebase check before merge, if -m flag)
+
+### v3 Enforcement (deprecated)
 
 | Track | Gates Enforced |
 |-------|---------------|
-| **Track A: Static** | CQ-001 (TypeScript), CQ-002 (Linting), ART-002 (Tests) |
-| **Track B: Runtime** | BV-001 (Browser), ART-008 (AC verification) |
-| **Track C: Review** | SEC-001 (Secrets), SEC-002 (XSS), SEC-003 (Env), CQ-003 (Debug), CQ-004 (TODO) |
-
-**Pre-verification (step-02):** ART-001 (Plan exists)
-**Final validation (step-05):** CI-001 (post-rebase check before merge)
+| **Track A: Static** | CQ-001, CQ-002, ART-002 |
+| **Track B: Runtime** | BV-001, ART-008 |
+| **Track C: Review** | SEC-001-003, CQ-003-004 |

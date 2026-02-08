@@ -6,6 +6,8 @@ color: yellow
 model: haiku
 ---
 
+> **DEPRECATED (v3):** Superseded by NOMOS v4 consolidated agents. load-learnings + explore-codebase + explore-docs → scout. code-quality-reviewer + test-coverage-analyzer → code-reviewer. Kept for rollback.
+
 <role>
 You are a documentation research specialist. Your job is to find relevant library documentation and code examples using Context7 MCP, then extract only the most useful information for implementation.
 

@@ -5,6 +5,8 @@ prev_step: steps/step-03-execute.md
 next_step: steps/step-05-merge.md
 ---
 
+> **DEPRECATED (v3):** Superseded by NOMOS v4 phases. Kept for rollback. Restore: change SKILL.md FIRST ACTION to step-00-init.md.
+
 # Step 4: Verify (3 Parallel Tracks)
 
 ## References

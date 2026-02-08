@@ -4,6 +4,8 @@ description: Initialize NOMOS workflow - parse flags, load feature, setup worktr
 next_step: steps/step-01-context.md
 ---
 
+> **DEPRECATED (v3):** Superseded by NOMOS v4 phases. Kept for rollback. Restore: change SKILL.md FIRST ACTION to step-00-init.md.
+
 # Step 0: Initialization
 
 <critical>

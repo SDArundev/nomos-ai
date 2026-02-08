@@ -16,8 +16,6 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3001
       - CORS_ORIGIN=http://localhost:3000
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - CLAUDE_OAUTH_CREDENTIALS=${CLAUDE_OAUTH_CREDENTIALS:-}
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-5-20250929}
       - NOMOS_MOCK_AGENT=${NOMOS_MOCK_AGENT:-false}
       - ALLOWED_ROOT_DIRECTORY=/projects
@@ -27,7 +25,7 @@ services:
       - .:/app:cached
       - nomos-dev-node-modules:/app/node_modules
       - ./apps/server/data:/data
-      - nomos-claude-config:/home/nomos/.claude
+      - ~/.claude:/home/nomos/.claude:ro
     entrypoint: /usr/local/bin/docker-entrypoint.sh
     command: >
       bash -c "bun install && exec gosu nomos bun run --hot apps/server/src/index.ts"
@@ -66,4 +64,3 @@ services:
 
 volumes:
   nomos-dev-node-modules:
-  nomos-claude-config:

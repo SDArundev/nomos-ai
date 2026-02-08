@@ -7,5 +7,4 @@ process.env.BETTER_AUTH_SECRET =
 process.env.BETTER_AUTH_URL = "http://localhost:3001";
 process.env.CORS_ORIGIN = "http://localhost:3000";
 process.env.NODE_ENV = "test";
-process.env.ANTHROPIC_API_KEY = "sk-ant-test-key";
 process.env.CLAUDE_MODEL = "claude-sonnet-4-5-20250929";

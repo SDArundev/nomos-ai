@@ -1,5 +1,6 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "../index";
+import { generateSessionId } from "../lib/id-generation";
 import { agentSession } from "../schema/sessions";
 
 type AgentSessionSelect = typeof agentSession.$inferSelect;
@@ -40,9 +41,10 @@ export const sessionRepository = {
 	},
 
 	async create(
-		data: Omit<AgentSessionInsert, "createdAt" | "updatedAt">,
+		data: Omit<AgentSessionInsert, "id" | "createdAt" | "updatedAt"> & { id?: string },
 	): Promise<AgentSessionSelect> {
-		const rows = await db.insert(agentSession).values(data).returning();
+		const id = data.id ?? (await generateSessionId());
+		const rows = await db.insert(agentSession).values({ ...data, id }).returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error("Failed to create session");

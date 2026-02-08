@@ -24,7 +24,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
-    ANTHROPIC_API_KEY: z.string().optional(),
     CLAUDE_MODEL: z.string().default("claude-sonnet-4-5-20250929"),
     NOMOS_MOCK_AGENT: z.coerce.boolean().default(false),
     ALLOWED_ROOT_DIRECTORY: z.string().optional(),

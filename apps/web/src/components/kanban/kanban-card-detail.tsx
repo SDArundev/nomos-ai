@@ -24,14 +24,27 @@ interface KanbanCardDetailProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-const statusConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-	backlog: { icon: Clock, color: "text-neutral-500", label: "Backlog" },
-	pending: { icon: Clock, color: "text-yellow-500", label: "Pending" },
-	in_progress: { icon: Loader2, color: "text-blue-500", label: "In Progress" },
-	waiting_approval: { icon: GitBranch, color: "text-purple-500", label: "Waiting Approval" },
-	verified: { icon: CheckCircle2, color: "text-green-500", label: "Verified" },
-	failed: { icon: XCircle, color: "text-red-500", label: "Failed" },
+import { FEATURE_STATUS_TEXT_COLORS, FEATURE_STATUS_LABELS } from "@/lib/status-display";
+
+const statusIcons: Record<string, React.ElementType> = {
+	backlog: Clock,
+	pending: Clock,
+	in_progress: Loader2,
+	waiting_approval: GitBranch,
+	verified: CheckCircle2,
+	failed: XCircle,
 };
+
+const statusConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = Object.fromEntries(
+	Object.keys(FEATURE_STATUS_TEXT_COLORS).map((key) => [
+		key,
+		{
+			icon: statusIcons[key] ?? Clock,
+			color: FEATURE_STATUS_TEXT_COLORS[key] ?? "text-neutral-500",
+			label: FEATURE_STATUS_LABELS[key] ?? key,
+		},
+	]),
+);
 
 export function KanbanCardDetail({
 	featureId,

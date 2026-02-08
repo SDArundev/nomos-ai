@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ALL_EVENT_TYPES } from "@nomos-ai/types";
 import { getEventsClient, WebSocketClient } from "@/lib/websocket";
 
 export function useWebSocket() {
@@ -16,6 +17,9 @@ export function useWebSocket() {
 			setConnected(isConnected);
 
 			if (isConnected) {
+				// Send subscription on connect/reconnect
+				client.sendSubscription(ALL_EVENT_TYPES);
+
 				// Only show "Reconnected" if we previously had a connection that dropped
 				if (hasEverConnectedRef.current && !wasConnectedRef.current) {
 					toast.success("Reconnected to server", { id: "ws-status" });

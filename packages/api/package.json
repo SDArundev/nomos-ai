@@ -16,7 +16,7 @@
 		"hono": "catalog:"
 	},
 	"dependencies": {
-		"@anthropic-ai/claude-agent-sdk": "^0.2.34",
+		"@anthropic-ai/claude-agent-sdk": "^0.2.37",
 		"@nomos-ai/auth": "workspace:*",
 		"@nomos-ai/db": "workspace:*",
 		"@nomos-ai/env": "workspace:*",

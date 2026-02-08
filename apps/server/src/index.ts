@@ -73,6 +73,13 @@ app.use("/*", async (c, next) => {
 	c.header("X-XSS-Protection", "1; mode=block");
 	c.header("Referrer-Policy", "strict-origin-when-cross-origin");
 	c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+	c.header(
+		"Content-Security-Policy",
+		"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:",
+	);
+	if (process.env.NODE_ENV === "production") {
+		c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+	}
 });
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
@@ -83,25 +90,21 @@ const broadcaster = new EventBroadcaster(eventService);
 const terminalService = getTerminalService();
 const wsHandlers = createWebSocketHandlers(broadcaster, terminalService, eventService);
 
-// Helper to extract userId from session cookie on WebSocket upgrade
-async function extractWsUserId(req: Request): Promise<string> {
-	try {
-		const session = await auth.api.getSession({ headers: req.headers });
-		return session?.user?.id ?? "anonymous";
-	} catch {
-		return "anonymous";
-	}
-}
-
-// WebSocket upgrade endpoints
+// WebSocket upgrade endpoints with authentication enforcement
 app.get("/ws/events", async (c) => {
 	const server = c.env as unknown as
 		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
 		| undefined;
 	if (!server?.upgrade) return c.text("WebSocket not supported", 400);
-	const userId = await extractWsUserId(c.req.raw);
+
+	// Enforce authentication
+	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+	if (!session?.user?.id) {
+		return c.text("Unauthorized", 401);
+	}
+
 	const upgraded = server.upgrade(c.req.raw, {
-		data: { channel: "events" as const, userId },
+		data: { channel: "events" as const, userId: session.user.id },
 	});
 	if (upgraded) return undefined as unknown as Response;
 	return c.text("WebSocket upgrade failed", 400);
@@ -113,9 +116,15 @@ app.get("/ws/terminal", async (c) => {
 		| { upgrade: (req: Request, opts: { data: WSData }) => boolean }
 		| undefined;
 	if (!server?.upgrade) return c.text("WebSocket not supported", 400);
-	const userId = await extractWsUserId(c.req.raw);
+
+	// Enforce authentication
+	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+	if (!session?.user?.id) {
+		return c.text("Unauthorized", 401);
+	}
+
 	const upgraded = server.upgrade(c.req.raw, {
-		data: { channel: "terminal" as const, sessionId, userId },
+		data: { channel: "terminal" as const, sessionId, userId: session.user.id },
 	});
 	if (upgraded) return undefined as unknown as Response;
 	return c.text("WebSocket upgrade failed", 400);

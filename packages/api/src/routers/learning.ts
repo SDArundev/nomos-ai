@@ -4,7 +4,6 @@ import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { handleRepositoryError } from "../utils/error-handler";
-import { generateLearningId } from "../utils/id-generation";
 
 const listLearningsInput = z
 	.object({
@@ -85,7 +84,6 @@ export const learningRouter = {
 		.handler(async ({ input, context }) => {
 			try {
 				return await learningRepository.create({
-					id: await generateLearningId(),
 					userId: context.session.user.id,
 					...input,
 				});

@@ -13,10 +13,16 @@ import {
 	SESSION_STATUS,
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
-import { generateSessionId } from "../utils/id-generation";
 import { loadProjectContext } from "../lib/context-loader";
 import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
+
+/** Max concurrent running sessions across all users */
+const MAX_CONCURRENT_SESSIONS = 5;
+/** Max message content length (100KB) */
+const MAX_MESSAGE_LENGTH = 100_000;
+/** Max session name length */
+const MAX_SESSION_NAME_LENGTH = 200;
 
 interface CreateAgentSessionInput {
 	featureId: string;
@@ -138,7 +144,7 @@ export async function createAgentSession(
 	const model = MODEL_MAP[modelKey];
 
 	const session = await sessionRepository.create({
-		id: await generateSessionId(),
+
 		userId: input.userId,
 		featureId: input.featureId,
 		status: SESSION_STATUS.PENDING,
@@ -178,8 +184,41 @@ export class AgentService {
 		workingDirectory?: string;
 		model?: string;
 	}) {
+		// Validate name
+		if (!input.name || input.name.trim().length === 0) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Session name is required",
+			});
+		}
+		if (input.name.length > MAX_SESSION_NAME_LENGTH) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: `Session name must be at most ${MAX_SESSION_NAME_LENGTH} characters`,
+			});
+		}
+
+		// Validate projectId
+		if (!input.projectId || input.projectId.trim().length === 0) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Project ID is required",
+			});
+		}
+
+		// Validate userId
+		if (!input.userId || input.userId.trim().length === 0) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "User ID is required",
+			});
+		}
+
+		// Check concurrent session limit
+		if (this.runningSessions.size >= MAX_CONCURRENT_SESSIONS) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: `Maximum concurrent sessions reached (${MAX_CONCURRENT_SESSIONS}). Stop an existing session first.`,
+			});
+		}
+
 		const session = await sessionRepository.create({
-			id: await generateSessionId(),
+	
 			userId: input.userId,
 			projectId: input.projectId,
 			status: SESSION_STATUS.PENDING,
@@ -197,8 +236,27 @@ export class AgentService {
 		sessionId: string,
 		content: string,
 	): Promise<void> {
+		// Validate message content
+		if (!content || content.trim().length === 0) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Message content cannot be empty",
+			});
+		}
+		if (content.length > MAX_MESSAGE_LENGTH) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: `Message too long (${content.length} chars). Maximum is ${MAX_MESSAGE_LENGTH} characters.`,
+			});
+		}
+
 		const session = await sessionRepository.findById(sessionId);
 		if (!session) throw new ORPCError("NOT_FOUND", { message: "Session not found" });
+
+		// Prevent sending to an already-running session
+		if (this.runningSessions.has(sessionId)) {
+			throw new ORPCError("CONFLICT", {
+				message: "Session is already processing a message. Wait for completion or stop it first.",
+			});
+		}
 
 		const abortController = new AbortController();
 		this.runningSessions.set(sessionId, abortController);
@@ -320,5 +378,9 @@ export class AgentService {
 
 	isRunning(sessionId: string): boolean {
 		return this.runningSessions.has(sessionId);
+	}
+
+	get runningSessionCount(): number {
+		return this.runningSessions.size;
 	}
 }

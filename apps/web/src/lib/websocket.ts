@@ -1,4 +1,5 @@
 import { env } from "@nomos-ai/env/web";
+import type { EventType, WsClientMessage, WsServerMessage } from "@nomos-ai/types";
 
 type EventHandler = (data: { type: string; payload: unknown }) => void;
 
@@ -21,6 +22,7 @@ export class WebSocketClient {
 	private handlers: EventHandler[] = [];
 	private connectionHandlers: Array<(connected: boolean) => void> = [];
 	private options: WebSocketClientOptions;
+	private pendingSubscription: EventType[] | null = null;
 
 	constructor(
 		private channel: string,
@@ -75,6 +77,15 @@ export class WebSocketClient {
 		}
 	}
 
+	sendSubscription(eventTypes: EventType[]): void {
+		this.pendingSubscription = eventTypes;
+		const message: WsClientMessage = {
+			action: "subscribe",
+			eventTypes,
+		};
+		this.send(message);
+	}
+
 	get connected(): boolean {
 		return this.ws?.readyState === WebSocket.OPEN;
 	}
@@ -100,18 +111,59 @@ export class WebSocketClient {
 
 		this.ws.onmessage = (event) => {
 			try {
-				const data = JSON.parse(event.data as string);
-				for (const handler of this.handlers) {
-					handler(data);
+				const message = JSON.parse(event.data as string) as WsServerMessage;
+
+				// Handle protocol messages
+				if (message.type === "pong") {
+					// Server acknowledged ping
+					return;
+				}
+
+				if (message.type === "error") {
+					console.error("WebSocket server error:", message.message);
+					return;
+				}
+
+				if (message.type === "welcome") {
+					// Server sent welcome, acknowledge reconnection
+					console.log("WebSocket reconnected");
+					// Re-send pending subscription on reconnect
+					if (this.pendingSubscription) {
+						this.sendSubscription(this.pendingSubscription);
+					}
+					return;
+				}
+
+				if (message.type === "subscribed") {
+					// Server confirmed subscription
+					return;
+				}
+
+				// Handle event messages
+				if (message.type === "event") {
+					const data = { type: message.eventType, payload: message.payload };
+					for (const handler of this.handlers) {
+						handler(data);
+					}
 				}
 			} catch {
 				// Ignore malformed messages
 			}
 		};
 
-		this.ws.onclose = () => {
+		this.ws.onclose = (event) => {
 			this.options.onClose?.();
 			this.notifyConnectionChange(false);
+
+			// Don't reconnect on auth failures (expired session)
+			// 1008 = Policy Violation (standard auth failure)
+			// 4001 = Custom auth failure code
+			if (event.code === 1008 || event.code === 4001) {
+				console.error("WebSocket authentication failed. Please refresh and log in again.");
+				this.shouldReconnect = false;
+				return;
+			}
+
 			this.scheduleReconnect();
 		};
 
