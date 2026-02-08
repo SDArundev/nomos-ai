@@ -110,7 +110,7 @@ app.get("/ws/events", async (c) => {
 	const upgraded = server.upgrade(c.req.raw, {
 		data: { channel: "events" as const, userId },
 	});
-	if (upgraded) return undefined as unknown as Response;
+	if (upgraded) return new Response(null);
 	return c.text("WebSocket upgrade failed", 400);
 });
 
@@ -124,7 +124,7 @@ app.get("/ws/terminal", async (c) => {
 	const upgraded = server.upgrade(c.req.raw, {
 		data: { channel: "terminal" as const, sessionId, userId },
 	});
-	if (upgraded) return undefined as unknown as Response;
+	if (upgraded) return new Response(null);
 	return c.text("WebSocket upgrade failed", 400);
 });
 

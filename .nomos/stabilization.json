@@ -1,0 +1,125 @@
+{
+  "version": "1.0.0",
+  "created": "2026-02-08",
+  "branch": "stabilize/v1",
+  "description": "Stabilization sprint: fix all audit-discovered bugs before continuing new features",
+  "source": "swarm audit 2026-02-08",
+  "tracks": [
+    {
+      "id": 1,
+      "name": "Auth Routers",
+      "description": "Add userId scoping and ownership checks to all router endpoints missing authorization",
+      "estimatedMinutes": 15,
+      "features": ["F019", "F224", "F266", "F032", "F269"],
+      "files": [
+        "packages/api/src/routers/session.ts",
+        "packages/api/src/routers/auto-mode.ts",
+        "packages/api/src/routers/settings.ts",
+        "packages/api/src/routers/spec.ts",
+        "packages/api/src/routers/learning.ts",
+        "packages/api/src/routers/events.ts",
+        "packages/api/src/routers/pipeline.ts",
+        "packages/api/src/routers/notifications.ts",
+        "packages/api/src/routers/worktree.ts",
+        "packages/api/src/routers/terminal.ts",
+        "packages/api/src/routers/github.ts",
+        "packages/api/src/routers/fs.ts",
+        "packages/api/src/routers/models.ts",
+        "packages/api/src/routers/agent.ts"
+      ],
+      "referencePattern": "packages/api/src/routers/feature.ts",
+      "acceptanceCriteria": [
+        "All list endpoints filter by context.session.user.id",
+        "All get/update/delete endpoints verify ownership before acting",
+        "Unauthorized access throws ORPCError('FORBIDDEN')",
+        "agent.sendMessage verifies session ownership",
+        "agent.listSessions filters by userId",
+        "agent.getHistory/clearHistory verify session ownership"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Server Infra",
+      "description": "Fix WebSocket auth, event broadcasting scope, CSP header, and rate limiter",
+      "estimatedMinutes": 10,
+      "features": ["F034", "F267", "F272", "F274"],
+      "files": [
+        "apps/server/src/index.ts",
+        "apps/server/src/lib/websocket.ts",
+        "packages/api/src/services/event-broadcaster.ts"
+      ],
+      "acceptanceCriteria": [
+        "WebSocket connections with no valid session are rejected (no 'anonymous' fallback)",
+        "EventBroadcaster tracks userId per client and only sends events to the owning user",
+        "CSP header includes cdn.jsdelivr.net in script-src and style-src",
+        "Rate limiter uses sliding window (not fixed window)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Provider + Auto-Mode",
+      "description": "Fix hardcoded permissionMode bypass and auto-mode userId",
+      "estimatedMinutes": 8,
+      "features": ["F031", "F268", "F260", "F270"],
+      "files": [
+        "packages/api/src/services/claude-provider.ts",
+        "packages/api/src/services/auto-mode-service.ts",
+        "packages/api/src/routers/auto-mode.ts"
+      ],
+      "acceptanceCriteria": [
+        "ClaudeProvider reads permissionMode from options instead of hardcoding 'bypassPermissions'",
+        "AutoModeService accepts real userId parameter (not hardcoded 'auto-mode')",
+        "auto-mode router passes context.session.user.id to service methods",
+        "sessionRepository.create gets real userId in auto-mode"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Test Infrastructure",
+      "description": "Align test runner configuration with test imports and fix fixtures",
+      "estimatedMinutes": 5,
+      "features": ["F004", "F271", "F273"],
+      "files": [
+        "package.json",
+        "apps/server/src/index.test.ts",
+        "packages/types/src/__tests__/ids.test.ts",
+        "packages/db/src/__tests__/features.test.ts",
+        "packages/db/src/__tests__/sessions.test.ts",
+        "packages/db/src/__tests__/projects.test.ts"
+      ],
+      "acceptanceCriteria": [
+        "Root package.json 'test' script uses 'bun test' (matches bun:test imports)",
+        "Root package.json 'test:ci' script uses 'bun test'",
+        "All tests pass with 'bun test'",
+        "Test fixtures use correct ID formats matching schema validators"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Config",
+      "description": "Add apps/web to root tsconfig.json references",
+      "estimatedMinutes": 2,
+      "features": ["F275"],
+      "files": [
+        "tsconfig.json"
+      ],
+      "acceptanceCriteria": [
+        "Root tsconfig.json includes { \"path\": \"apps/web\" } in references array",
+        "bun run check-types passes including apps/web"
+      ]
+    }
+  ],
+  "verification": {
+    "commands": [
+      "bun run check-types",
+      "bun run check",
+      "bun test",
+      "bun run build"
+    ],
+    "antipatterns": [
+      { "pattern": "\"anonymous\"", "scope": "packages/ apps/", "exclude": "test", "expected": "none" },
+      { "pattern": "userId: \"auto-mode\"", "scope": "packages/", "expected": "none" },
+      { "pattern": "permissionMode: \"bypassPermissions\"", "scope": "packages/api/src/services/claude-provider.ts", "expected": "configurable, not hardcoded" }
+    ]
+  }
+}
