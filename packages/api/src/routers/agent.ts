@@ -29,6 +29,7 @@ export const agentRouter = {
 			z.object({
 				name: z.string(),
 				projectId: z.string(),
+				featureId: z.string().optional(),
 				workingDirectory: z.string().optional(),
 				model: z.string().optional(),
 			}),
