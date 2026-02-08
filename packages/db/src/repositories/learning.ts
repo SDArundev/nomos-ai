@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../index";
 import { generateLearningId } from "../lib/id-generation";
 import { learning } from "../schema/learnings";
@@ -14,6 +14,18 @@ export const learningRepository = {
 	async findById(id: string): Promise<LearningSelect | null> {
 		const rows = await db.select().from(learning).where(eq(learning.id, id));
 		return rows[0] ?? null;
+	},
+
+	async findByUser(userId: string): Promise<LearningSelect[]> {
+		return db.select().from(learning).where(eq(learning.userId, userId));
+	},
+
+	async findByUserAndCategory(userId: string, category: string): Promise<LearningSelect[]> {
+		return db.select().from(learning).where(and(eq(learning.userId, userId), eq(learning.category, category)));
+	},
+
+	async findByUserAndFeature(userId: string, featureId: string): Promise<LearningSelect[]> {
+		return db.select().from(learning).where(and(eq(learning.userId, userId), eq(learning.featureId, featureId)));
 	},
 
 	async findByFeature(featureId: string): Promise<LearningSelect[]> {

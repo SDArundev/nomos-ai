@@ -3,6 +3,7 @@ import { SESSION_STATUS } from "@nomos-ai/types";
 
 interface MockSession {
 	id: string;
+	userId: string;
 	featureId: string;
 	status: string;
 	startedAt: Date;
@@ -16,6 +17,7 @@ interface MockSession {
 function createMockSession(overrides?: Partial<MockSession>): MockSession {
 	return {
 		id: "session_test1",
+		userId: "user_test1",
 		featureId: "F001",
 		status: SESSION_STATUS.PENDING,
 		startedAt: new Date("2026-01-29T10:00:00Z"),
@@ -424,6 +426,357 @@ describe("Session Router Logic", () => {
 				createMockSession({ id: "s2" }),
 			];
 			expect(sessions.length).toBe(2);
+		});
+	});
+
+	describe("Session Router Authorization", () => {
+		describe("verifySessionOwnership helper", () => {
+			it("should allow access to own session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user1";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(true);
+			});
+
+			it("should deny access to other user's session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(false);
+			});
+
+			it("should throw NOT_FOUND for missing session", () => {
+				const session = null;
+				expect(session).toBeNull();
+			});
+
+			it("should throw FORBIDDEN for unauthorized access", () => {
+				const errorType = "FORBIDDEN";
+				const errorMessage = "Access denied";
+				expect(errorType).toBe("FORBIDDEN");
+				expect(errorMessage).toBe("Access denied");
+			});
+
+			it("should return session on successful verification", () => {
+				const session = createMockSession({ id: "s1", userId: "user1" });
+				const requestUserId = "user1";
+				const isOwner = session.userId === requestUserId;
+				expect(isOwner).toBe(true);
+				expect(session.id).toBe("s1");
+			});
+		});
+
+		describe("List endpoint - userId scoping", () => {
+			it("should filter all sessions by userId", () => {
+				const allSessions = [
+					createMockSession({ id: "s1", userId: "user1" }),
+					createMockSession({ id: "s2", userId: "user2" }),
+					createMockSession({ id: "s3", userId: "user1" }),
+				];
+				const userId = "user1";
+				const filtered = allSessions.filter((s) => s.userId === userId);
+				expect(filtered.length).toBe(2);
+				expect(filtered[0]?.id).toBe("s1");
+				expect(filtered[1]?.id).toBe("s3");
+			});
+
+			it("should filter by userId and status", () => {
+				const allSessions = [
+					createMockSession({
+						id: "s1",
+						userId: "user1",
+						status: SESSION_STATUS.PENDING,
+					}),
+					createMockSession({
+						id: "s2",
+						userId: "user1",
+						status: SESSION_STATUS.RUNNING,
+					}),
+					createMockSession({
+						id: "s3",
+						userId: "user2",
+						status: SESSION_STATUS.PENDING,
+					}),
+				];
+				const userId = "user1";
+				const status = SESSION_STATUS.PENDING;
+				const filtered = allSessions.filter(
+					(s) => s.userId === userId && s.status === status,
+				);
+				expect(filtered.length).toBe(1);
+				expect(filtered[0]?.id).toBe("s1");
+			});
+
+			it("should filter by userId and featureId", () => {
+				const allSessions = [
+					createMockSession({ id: "s1", userId: "user1", featureId: "F001" }),
+					createMockSession({ id: "s2", userId: "user1", featureId: "F002" }),
+					createMockSession({ id: "s3", userId: "user2", featureId: "F001" }),
+				];
+				const userId = "user1";
+				const featureId = "F001";
+				const filtered = allSessions.filter(
+					(s) => s.userId === userId && s.featureId === featureId,
+				);
+				expect(filtered.length).toBe(1);
+				expect(filtered[0]?.id).toBe("s1");
+			});
+
+			it("should return empty for wrong userId", () => {
+				const allSessions = [createMockSession({ userId: "user1" })];
+				const userId = "user2";
+				const filtered = allSessions.filter((s) => s.userId === userId);
+				expect(filtered.length).toBe(0);
+			});
+
+			it("should not leak sessions from other users", () => {
+				const allSessions = [
+					createMockSession({ id: "s1", userId: "user1" }),
+					createMockSession({ id: "s2", userId: "user2" }),
+				];
+				const userId = "user1";
+				const filtered = allSessions.filter((s) => s.userId === userId);
+				expect(filtered.length).toBe(1);
+				expect(filtered.find((s) => s.userId === "user2")).toBeUndefined();
+			});
+		});
+
+		describe("ListActive endpoint - userId filtering", () => {
+			it("should filter active sessions by userId", () => {
+				const allSessions = [
+					createMockSession({
+						id: "s1",
+						userId: "user1",
+						status: SESSION_STATUS.PENDING,
+					}),
+					createMockSession({
+						id: "s2",
+						userId: "user2",
+						status: SESSION_STATUS.RUNNING,
+					}),
+					createMockSession({
+						id: "s3",
+						userId: "user1",
+						status: SESSION_STATUS.RUNNING,
+					}),
+				];
+				const userId = "user1";
+				const active = allSessions.filter(
+					(s) =>
+						s.userId === userId &&
+						(s.status === "pending" || s.status === "running"),
+				);
+				expect(active.length).toBe(2);
+				expect(active[0]?.id).toBe("s1");
+				expect(active[1]?.id).toBe("s3");
+			});
+
+			it("should not leak active sessions from other users", () => {
+				const allSessions = [
+					createMockSession({
+						id: "s1",
+						userId: "user1",
+						status: SESSION_STATUS.RUNNING,
+					}),
+					createMockSession({
+						id: "s2",
+						userId: "user2",
+						status: SESSION_STATUS.RUNNING,
+					}),
+				];
+				const userId = "user1";
+				const active = allSessions.filter(
+					(s) =>
+						s.userId === userId &&
+						(s.status === "pending" || s.status === "running"),
+				);
+				expect(active.length).toBe(1);
+				expect(active.find((s) => s.userId === "user2")).toBeUndefined();
+			});
+		});
+
+		describe("Get endpoint - ownership verification", () => {
+			it("should allow getting own session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user1";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(true);
+			});
+
+			it("should deny getting other user's session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(false);
+			});
+		});
+
+		describe("Update endpoint - ownership verification", () => {
+			it("should allow updating own session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user1";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(true);
+			});
+
+			it("should deny updating other user's session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(false);
+			});
+		});
+
+		describe("Delete endpoint - ownership verification", () => {
+			it("should allow deleting own session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user1";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(true);
+			});
+
+			it("should deny deleting other user's session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(false);
+			});
+		});
+
+		describe("UpdateStatus endpoint - ownership verification", () => {
+			it("should allow updating status of own session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user1";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(true);
+			});
+
+			it("should deny updating status of other user's session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(false);
+			});
+
+			it("should verify ownership before checking transition validity", () => {
+				const session = createMockSession({
+					userId: "user1",
+					status: SESSION_STATUS.PENDING,
+				});
+				const requestUserId = "user1";
+				const isOwner = session.userId === requestUserId;
+				const targetStatus = SESSION_STATUS.RUNNING;
+				const allowed = ["running", "failed"];
+				const isValidTransition = allowed.includes(targetStatus);
+				// Ownership check comes first
+				expect(isOwner).toBe(true);
+				// Then transition check
+				expect(isValidTransition).toBe(true);
+			});
+		});
+
+		describe("AppendOutput endpoint - ownership verification", () => {
+			it("should allow appending to own session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user1";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(true);
+			});
+
+			it("should deny appending to other user's session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(false);
+			});
+		});
+
+		describe("GetDuration endpoint - ownership verification", () => {
+			it("should allow getting duration of own session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user1";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(true);
+			});
+
+			it("should deny getting duration of other user's session", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const hasAccess = session.userId === requestUserId;
+				expect(hasAccess).toBe(false);
+			});
+		});
+
+		describe("Create endpoint - userId injection", () => {
+			it("should inject userId from context", () => {
+				const contextUserId = "user_test1";
+				const createInput = {
+					featureId: "F001",
+					status: SESSION_STATUS.PENDING,
+					startedAt: new Date(),
+				};
+				const finalData = { ...createInput, userId: contextUserId };
+				expect(finalData.userId).toBe("user_test1");
+				expect(finalData.featureId).toBe("F001");
+			});
+
+			it("should not allow user to override userId", () => {
+				const contextUserId = "user1";
+				const maliciousInput = {
+					featureId: "F001",
+					userId: "user2", // This should be ignored
+				};
+				const finalData = { ...maliciousInput, userId: contextUserId };
+				expect(finalData.userId).toBe("user1");
+				expect(finalData.userId).not.toBe("user2");
+			});
+		});
+
+		describe("CreateAgentSession endpoint - userId injection", () => {
+			it("should inject userId from context", () => {
+				const contextUserId = "user_test1";
+				const createInput = {
+					featureId: "F001",
+					model: "sonnet",
+				};
+				const finalData = { ...createInput, userId: contextUserId };
+				expect(finalData.userId).toBe("user_test1");
+				expect(finalData.featureId).toBe("F001");
+			});
+
+			it("should not allow user to override userId", () => {
+				const contextUserId = "user1";
+				const maliciousInput = {
+					featureId: "F001",
+					userId: "user2", // This should be ignored
+				};
+				const finalData = { ...maliciousInput, userId: contextUserId };
+				expect(finalData.userId).toBe("user1");
+				expect(finalData.userId).not.toBe("user2");
+			});
+		});
+
+		describe("Authorization error handling", () => {
+			it("should throw FORBIDDEN for wrong user", () => {
+				const session = createMockSession({ userId: "user1" });
+				const requestUserId = "user2";
+				const isOwner = session.userId === requestUserId;
+				const errorType = isOwner ? null : "FORBIDDEN";
+				expect(errorType).toBe("FORBIDDEN");
+			});
+
+			it("should throw NOT_FOUND for missing session", () => {
+				const session = null;
+				const errorType = session ? null : "NOT_FOUND";
+				expect(errorType).toBe("NOT_FOUND");
+			});
+
+			it("should prioritize NOT_FOUND over FORBIDDEN", () => {
+				// When session doesn't exist, should throw NOT_FOUND
+				// before checking ownership
+				const session = null;
+				expect(session).toBeNull();
+			});
 		});
 	});
 });

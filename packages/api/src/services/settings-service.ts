@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
 };
 
 export class SettingsService {
-	async get<T>(key: string, projectId?: string): Promise<T> {
+	async get<T>(key: string, projectId?: string, userId?: string): Promise<T> {
 		// Project-level
 		if (projectId) {
 			const projectSetting = await settingRepository.findByKeyAndScope(
@@ -24,12 +24,15 @@ export class SettingsService {
 			if (projectSetting) return JSON.parse(projectSetting.value) as T;
 		}
 
-		// Global-level
-		const globalSetting = await settingRepository.findByKeyAndScope(
-			key,
-			"global",
-		);
-		if (globalSetting) return JSON.parse(globalSetting.value) as T;
+		// Global-level (user-scoped)
+		if (userId) {
+			const globalSetting = await settingRepository.findByKeyAndScope(
+				key,
+				"global",
+				userId,
+			);
+			if (globalSetting) return JSON.parse(globalSetting.value) as T;
+		}
 
 		// Default
 		return DEFAULT_SETTINGS[key] as T;
@@ -40,20 +43,24 @@ export class SettingsService {
 		value: unknown,
 		scope: "global" | "project",
 		scopeId?: string,
+		userId?: string,
 	): Promise<void> {
+		const effectiveScopeId = scope === "global" && userId ? userId : scopeId;
 		await settingRepository.upsert({
 			key,
 			value: JSON.stringify(value),
 			scope,
-			scopeId: scopeId ?? null,
+			scopeId: effectiveScopeId ?? null,
 		});
 	}
 
 	async getAll(
 		scope: "global" | "project",
 		scopeId?: string,
+		userId?: string,
 	): Promise<Record<string, unknown>> {
-		const settings = await settingRepository.getAllForScope(scope, scopeId);
+		const effectiveScopeId = scope === "global" && userId ? userId : scopeId;
+		const settings = await settingRepository.getAllForScope(scope, effectiveScopeId);
 		const result: Record<string, unknown> = { ...DEFAULT_SETTINGS };
 
 		for (const s of settings) {

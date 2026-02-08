@@ -15,6 +15,11 @@ export const notificationRepository = {
 		return row;
 	},
 
+	async findById(id: string): Promise<NotificationSelect | null> {
+		const rows = await db.select().from(notification).where(eq(notification.id, id));
+		return rows[0] ?? null;
+	},
+
 	async findByProjectId(
 		projectId: string,
 		unreadOnly = false,

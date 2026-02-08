@@ -54,29 +54,37 @@ const updateLearningInput = z.object({
 		}),
 });
 
+async function verifyLearningOwnership(learningId: string, userId: string) {
+	const learning = await learningRepository.findById(learningId);
+	if (!learning) {
+		throw new ORPCError("NOT_FOUND", {
+			message: `Learning not found: ${learningId}`,
+		});
+	}
+	if (learning.userId !== userId) {
+		throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+	}
+	return learning;
+}
+
 export const learningRouter = {
 	list: protectedProcedure
 		.input(listLearningsInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
 			if (input?.category) {
-				return learningRepository.findByCategory(input.category);
+				return learningRepository.findByUserAndCategory(userId, input.category);
 			}
 			if (input?.featureId) {
-				return learningRepository.findByFeature(input.featureId);
+				return learningRepository.findByUserAndFeature(userId, input.featureId);
 			}
-			return learningRepository.findAll();
+			return learningRepository.findByUser(userId);
 		}),
 
 	get: protectedProcedure
 		.input(z.object({ id: z.string().min(1) }))
-		.handler(async ({ input }) => {
-			const learning = await learningRepository.findById(input.id);
-			if (!learning) {
-				throw new ORPCError("NOT_FOUND", {
-					message: `Learning not found: ${input.id}`,
-				});
-			}
-			return learning;
+		.handler(async ({ input, context }) => {
+			return verifyLearningOwnership(input.id, context.session.user.id);
 		}),
 
 	create: protectedProcedure
@@ -94,7 +102,8 @@ export const learningRouter = {
 
 	update: protectedProcedure
 		.input(updateLearningInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifyLearningOwnership(input.id, context.session.user.id);
 			try {
 				return await learningRepository.update(input.id, input.data);
 			} catch (error) {
@@ -104,7 +113,8 @@ export const learningRouter = {
 
 	delete: protectedProcedure
 		.input(z.object({ id: z.string().min(1) }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifyLearningOwnership(input.id, context.session.user.id);
 			try {
 				return await learningRepository.delete(input.id);
 			} catch (error) {

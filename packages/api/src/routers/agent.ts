@@ -72,19 +72,7 @@ export const agentRouter = {
 	stop: protectedProcedure
 		.input(z.object({ sessionId: z.string() }))
 		.handler(async ({ input, context }) => {
-			// Authorization: verify session ownership
-			const session = await sessionRepository.findById(input.sessionId);
-			if (!session) {
-				throw new ORPCError("NOT_FOUND", {
-					message: `Session not found: ${input.sessionId}`,
-				});
-			}
-			if (session.userId !== context.session.user.id) {
-				throw new ORPCError("FORBIDDEN", {
-					message: "You do not have permission to stop this session",
-				});
-			}
-
+			await verifySessionOwnership(input.sessionId, context.session.user.id);
 			const service = getAgentService();
 			await service.stop(input.sessionId);
 			return { success: true };

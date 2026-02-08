@@ -80,16 +80,15 @@ export const sessionRouter = {
 		.input(listSessionsInput)
 		.handler(async ({ input, context }) => {
 			const userId = context.session.user.id;
+			const allUserSessions = await sessionRepository.findByUser(userId);
+
 			if (input?.status) {
-				const sessions = await sessionRepository.findByStatus(input.status);
-				return sessions.filter((s) => s.userId === userId);
+				return allUserSessions.filter((s) => s.status === input.status);
 			}
 			if (input?.featureId) {
-				const sessions = await sessionRepository.findByFeature(input.featureId);
-				return sessions.filter((s) => s.userId === userId);
+				return allUserSessions.filter((s) => s.featureId === input.featureId);
 			}
-			const sessions = await sessionRepository.findAll();
-			return sessions.filter((s) => s.userId === userId);
+			return allUserSessions;
 		}),
 
 	get: protectedProcedure
@@ -145,8 +144,8 @@ export const sessionRouter = {
 
 	listActive: protectedProcedure.handler(async ({ context }) => {
 		const userId = context.session.user.id;
-		const sessions = await sessionRepository.findActive();
-		return sessions.filter((s) => s.userId === userId);
+		const allUserSessions = await sessionRepository.findByUser(userId);
+		return allUserSessions.filter((s) => s.status === "pending" || s.status === "running");
 	}),
 
 	updateStatus: protectedProcedure

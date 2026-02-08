@@ -34,7 +34,7 @@ export const settingsRouter = {
 				await verifyProjectOwnership(input.projectId, context.session.user.id);
 			}
 			const service = getSettingsService();
-			const value = await service.get(input.key, input.projectId);
+			const value = await service.get(input.key, input.projectId, context.session.user.id);
 			return { key: input.key, value };
 		}),
 
@@ -52,7 +52,7 @@ export const settingsRouter = {
 				await verifyProjectOwnership(input.scopeId, context.session.user.id);
 			}
 			const service = getSettingsService();
-			await service.set(input.key, input.value, input.scope, input.scopeId);
+			await service.set(input.key, input.value, input.scope, input.scopeId, context.session.user.id);
 			return { success: true };
 		}),
 
@@ -68,6 +68,6 @@ export const settingsRouter = {
 				await verifyProjectOwnership(input.scopeId, context.session.user.id);
 			}
 			const service = getSettingsService();
-			return service.getAll(input.scope, input.scopeId);
+			return service.getAll(input.scope, input.scopeId, context.session.user.id);
 		}),
 };

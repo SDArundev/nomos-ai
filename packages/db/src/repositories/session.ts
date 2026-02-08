@@ -19,6 +19,10 @@ export const sessionRepository = {
 		return rows[0] ?? null;
 	},
 
+	async findByUser(userId: string): Promise<AgentSessionSelect[]> {
+		return db.select().from(agentSession).where(eq(agentSession.userId, userId));
+	},
+
 	async findByFeature(featureId: string): Promise<AgentSessionSelect[]> {
 		return db
 			.select()

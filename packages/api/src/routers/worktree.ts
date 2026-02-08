@@ -13,9 +13,16 @@ async function verifyFeatureOwnership(featureId: string, userId: string) {
 }
 
 export const worktreeRouter = {
-	list: protectedProcedure.handler(async () => {
+	list: protectedProcedure.handler(async ({ context }) => {
 		const service = getWorktreeService();
-		return service.listActive();
+		const allWorktrees = await service.listActive();
+
+		// Get user's features to filter worktrees
+		const userFeatures = await featureRepository.findByUser(context.session.user.id);
+		const userFeatureIds = new Set(userFeatures.map((f) => f.id));
+
+		// Filter worktrees to only include those belonging to user's features
+		return allWorktrees.filter((wt) => userFeatureIds.has(wt.featureId));
 	}),
 
 	getByFeature: protectedProcedure

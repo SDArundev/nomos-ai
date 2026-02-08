@@ -7562,7 +7562,7 @@
       "id": "F266",
       "title": "Fix userId authorization in 7 remaining API routers",
       "description": "Session, agent, learning, settings, notifications, worktree, and terminal routers need userId scoping on all endpoints. Add findByUser() to session repository. Model after feature/project router pattern.",
-      "status": "backlog",
+      "status": "in_progress",
       "priority": 1,
       "category": "CAT-FIX",
       "passes": false,
@@ -7590,7 +7590,8 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "standard"
+      "planningMode": "standard",
+      "startedAt": "2026-02-08T21:19:01Z"
     },
     {
       "id": "F267",
