@@ -142,9 +142,20 @@ log "Phase 3: Setting up workspace..."
 
 if [ -n "$NOMOS_COPY_MOUNT" ] && [ -d "$WORKSPACE/.git" ]; then
     # Mount mode: copy bind-mounted repo to writable location
+    # Use tar with excludes to skip heavy directories (node_modules reinstalled in Phase 4)
     log "  Using bind-mounted repository (copy mode)..."
     mkdir -p /work
-    cp -a "$WORKSPACE/." /work/
+    (cd "$WORKSPACE" && tar -cf - \
+        --exclude='node_modules' \
+        --exclude='.nomos/worktrees' \
+        --exclude='.nomos/output' \
+        --exclude='.nomos/runner-logs' \
+        --exclude='.nomos/swarm' \
+        --exclude='.nomos/locks' \
+        --exclude='dist' \
+        --exclude='build' \
+        --exclude='.cache' \
+        .) | tar -xf - -C /work/
     chown -R ${NOMOS_USER} /work
     WORKSPACE="/work"
     log "  Workspace copied to /work"
