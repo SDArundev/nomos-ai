@@ -6,6 +6,7 @@
 		{ "path": "packages/auth" },
 		{ "path": "packages/api" },
 		{ "path": "packages/env" },
-		{ "path": "apps/server" }
+		{ "path": "apps/server" },
+		{ "path": "apps/web" }
 	]
 }
