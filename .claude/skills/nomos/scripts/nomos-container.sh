@@ -182,6 +182,22 @@ cd "$WORKSPACE"
 log "  Working directory: $(pwd)"
 log "  Git status: $(gosu ${NOMOS_USER} git rev-parse --short HEAD) on $(gosu ${NOMOS_USER} git rev-parse --abbrev-ref HEAD)"
 
+# Ensure we branch from the correct base (not whatever branch was checked out on host)
+BASE_BRANCH="${REPO_BRANCH:-main}"
+CURRENT_BRANCH=$(gosu ${NOMOS_USER} git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "$BASE_BRANCH" ]; then
+    if gosu ${NOMOS_USER} git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
+        gosu ${NOMOS_USER} git checkout "$BASE_BRANCH" 2>&1
+        log "  Checked out base branch: ${BASE_BRANCH}"
+    else
+        log "  WARNING: Base branch ${BASE_BRANCH} not found, using ${CURRENT_BRANCH}"
+        BASE_BRANCH="$CURRENT_BRANCH"
+    fi
+fi
+
+# Record merge-base for commit counting later (before creating feature branch)
+MERGE_BASE=$(gosu ${NOMOS_USER} git rev-parse HEAD)
+
 # Create feature branch
 BRANCH_NAME="feature/${FEATURE_ID}"
 if gosu ${NOMOS_USER} git rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
@@ -335,18 +351,22 @@ log "Phase 6: Pushing results..."
 
 cd "$WORKSPACE"
 
-# Check if there are any uncommitted changes
-CHANGES=$(gosu ${NOMOS_USER} git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+# Check if there are any uncommitted changes (only tracked files + new files Claude created)
+# Use `git diff` for tracked changes and `git ls-files --others --exclude-standard` for new files
+TRACKED_CHANGES=$(gosu ${NOMOS_USER} git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
+STAGED_CHANGES=$(gosu ${NOMOS_USER} git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
+TOTAL_CHANGES=$((TRACKED_CHANGES + STAGED_CHANGES))
 
-if [ "$CHANGES" -gt 0 ]; then
-    log "  WARNING: ${CHANGES} uncommitted changes detected (Claude may not have committed)"
+if [ "$TOTAL_CHANGES" -gt 0 ]; then
+    log "  WARNING: ${TOTAL_CHANGES} uncommitted tracked changes detected"
     log "  Auto-committing remaining changes..."
-    gosu ${NOMOS_USER} git add -A
+    gosu ${NOMOS_USER} git add -u
     gosu ${NOMOS_USER} git commit -m "chore(${FEATURE_ID}): auto-commit remaining changes from headless runner" 2>/dev/null || true
 fi
 
-# Count commits on branch (use origin/branch for shallow clone compatibility)
-COMMIT_COUNT=$(gosu ${NOMOS_USER} git rev-list --count "origin/${REPO_BRANCH:-main}..HEAD" 2>/dev/null || echo "0")
+# Count commits on branch using merge-base recorded before branch creation
+# This works for both clone mode (has origin) and mount-copy mode (no origin)
+COMMIT_COUNT=$(gosu ${NOMOS_USER} git rev-list --count "${MERGE_BASE}..HEAD" 2>/dev/null || echo "0")
 # Validate numeric
 if ! [[ "$COMMIT_COUNT" =~ ^[0-9]+$ ]]; then
     COMMIT_COUNT="0"
@@ -354,6 +374,10 @@ fi
 log "  Commits on branch: ${COMMIT_COUNT}"
 
 if [ -n "$GH_TOKEN" ] && [ -n "$REPO_URL" ] && [ "$COMMIT_COUNT" -gt 0 ]; then
+    # Add remote if not present (mount-copy mode has no origin)
+    if ! gosu ${NOMOS_USER} git remote get-url origin >/dev/null 2>&1; then
+        gosu ${NOMOS_USER} git remote add origin "$REPO_URL"
+    fi
     gosu ${NOMOS_USER} git push -u origin "$BRANCH_NAME" 2>&1 && \
         log "  Pushed branch: ${BRANCH_NAME}" || \
         log "  WARNING: Push failed"
