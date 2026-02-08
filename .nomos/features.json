@@ -1286,11 +1286,13 @@
         "Status updates to in_progress"
       ],
       "estimatedSize": "S",
-      "status": "backlog",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "startedAt": "2026-02-08T10:10:56Z",
+      "completedAt": "2026-02-08T10:41:42Z"
     },
     {
       "id": "F040",

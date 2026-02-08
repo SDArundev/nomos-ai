@@ -181,6 +181,7 @@ export class AgentService {
 		name: string;
 		projectId: string;
 		userId: string;
+		featureId?: string;
 		workingDirectory?: string;
 		model?: string;
 	}) {
@@ -218,9 +219,10 @@ export class AgentService {
 		}
 
 		const session = await sessionRepository.create({
-	
+
 			userId: input.userId,
 			projectId: input.projectId,
+			featureId: input.featureId ?? null,
 			status: SESSION_STATUS.PENDING,
 			startedAt: new Date(),
 			model: input.model ?? "sonnet",
