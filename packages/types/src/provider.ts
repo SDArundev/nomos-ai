@@ -46,12 +46,21 @@ export const providerMessageSchema = z.object({
 });
 export type ProviderMessage = z.infer<typeof providerMessageSchema>;
 
+export const permissionModeSchema = z.enum([
+	"default",
+	"acceptEdits",
+	"bypassPermissions",
+	"plan",
+]);
+export type PermissionMode = z.infer<typeof permissionModeSchema>;
+
 export const executeOptionsSchema = z.object({
 	prompt: z.string(),
 	model: z.string().default("sonnet"),
 	cwd: z.string(),
 	systemPrompt: z.string().optional(),
 	maxTurns: z.number().default(10),
+	permissionMode: permissionModeSchema.optional(),
 	allowedTools: z.array(z.string()).optional(),
 	abortController: z.custom<AbortController>().optional(),
 	sdkSessionId: z.string().optional(),

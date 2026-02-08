@@ -29,6 +29,7 @@ export class AutoModeService {
 	private runningFeatures = new Map<string, AbortController>();
 	private consecutiveFailures = 0;
 	private projectContext: string | null = null;
+	private currentUserId: string | null = null;
 
 	constructor(
 		private events: EventService,
@@ -40,6 +41,7 @@ export class AutoModeService {
 	async start(
 		projectId: string,
 		projectRoot: string,
+		userId: string,
 	): Promise<void> {
 		if (this.isRunning) {
 			throw new Error("Auto-mode is already running");
@@ -47,6 +49,7 @@ export class AutoModeService {
 
 		this.isRunning = true;
 		this.consecutiveFailures = 0;
+		this.currentUserId = userId;
 		this.events.emit("auto-mode:started", { projectId });
 
 		// Load context once for all features
@@ -133,7 +136,7 @@ export class AutoModeService {
 			await featureRepository.update(featureId, {
 				status: "in_progress",
 				locked: true,
-				lockedBy: "auto-mode",
+				lockedBy: this.currentUserId!,
 				lockedAt: new Date(),
 			});
 
@@ -141,7 +144,7 @@ export class AutoModeService {
 
 			// Create a tracked agent session
 			const session = await sessionRepository.create({
-				userId: "auto-mode",
+				userId: this.currentUserId!,
 				featureId,
 				status: SESSION_STATUS.RUNNING,
 				startedAt: new Date(),
