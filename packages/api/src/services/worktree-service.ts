@@ -1,4 +1,4 @@
-import { worktreeRepository } from "@nomos-ai/db";
+import { featureRepository, worktreeRepository } from "@nomos-ai/db";
 import type { EventService } from "./event-service";
 import {
 	branchExists,
@@ -21,7 +21,11 @@ export class WorktreeService {
 		const { featureId, branchName, projectRoot, baseBranch = "main" } = input;
 		const worktreePath = `${projectRoot}/.worktrees/${featureId}`;
 
-		this.events.emit("worktree:init-started", { featureId });
+		// Look up feature to get userId
+		const feature = await featureRepository.findById(featureId);
+		const userId = feature?.userId ?? null;
+
+		this.events.emit("worktree:init-started", { featureId, userId });
 
 		// Create branch if it doesn't exist
 		if (!(await branchExists(branchName, projectRoot))) {
@@ -38,7 +42,7 @@ export class WorktreeService {
 			path: worktreePath,
 		});
 
-		this.events.emit("worktree:init-completed", { featureId });
+		this.events.emit("worktree:init-completed", { featureId, userId });
 		return worktree;
 	}
 

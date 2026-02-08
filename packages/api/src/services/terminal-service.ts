@@ -6,6 +6,7 @@ interface TerminalSession {
 	process: pty.IPty;
 	scrollback: string[];
 	cwd: string;
+	userId: string;
 }
 
 const MAX_SCROLLBACK_BYTES = 50 * 1024; // 50KB
@@ -17,7 +18,7 @@ export class TerminalService {
 
 	constructor(private events: EventService) {}
 
-	createSession(cwd: string): string {
+	createSession(cwd: string, userId: string): string {
 		const id = crypto.randomUUID();
 		const shell = process.env.SHELL ?? "/bin/zsh";
 
@@ -34,6 +35,7 @@ export class TerminalService {
 			process: proc,
 			scrollback: [],
 			cwd,
+			userId,
 		};
 
 		this.sessions.set(id, session);
@@ -72,10 +74,21 @@ export class TerminalService {
 		return session.scrollback;
 	}
 
-	listSessions(): Array<{ id: string; cwd: string }> {
+	getSession(sessionId: string): { id: string; cwd: string; userId: string } {
+		const session = this.sessions.get(sessionId);
+		if (!session) throw new Error("Terminal session not found");
+		return {
+			id: session.id,
+			cwd: session.cwd,
+			userId: session.userId,
+		};
+	}
+
+	listSessions(): Array<{ id: string; cwd: string; userId: string }> {
 		return Array.from(this.sessions.values()).map((s) => ({
 			id: s.id,
 			cwd: s.cwd,
+			userId: s.userId,
 		}));
 	}
 
@@ -90,6 +103,7 @@ export class TerminalService {
 				this.events.emit("terminal:output", {
 					sessionId: session.id,
 					data: batch,
+					userId: session.userId,
 				});
 				batch = "";
 			}

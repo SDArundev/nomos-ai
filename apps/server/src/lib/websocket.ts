@@ -21,13 +21,16 @@ export function createWebSocketHandlers(
 	if (events) {
 		events.subscribe((type, payload) => {
 			if (type === "terminal:output") {
-				const { sessionId, data } = payload as { sessionId: string; data: string };
+				const { sessionId, data, userId } = payload as { sessionId: string; data: string; userId: string };
 				const clients = terminalClients.get(sessionId);
 				if (clients) {
 					const msg = JSON.stringify({ type: "output", data });
 					for (const ws of clients) {
 						try {
-							if (ws.readyState === 1) ws.send(msg);
+							// Only send to clients whose userId matches the session owner
+							if (ws.readyState === 1 && ws.data.userId === userId) {
+								ws.send(msg);
+							}
 						} catch {
 							clients.delete(ws);
 						}

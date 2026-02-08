@@ -1,4 +1,4 @@
-import { notificationRepository } from "@nomos-ai/db";
+import { notificationRepository, projectRepository } from "@nomos-ai/db";
 import type { NotificationType } from "@nomos-ai/types";
 import type { EventService } from "./event-service";
 
@@ -24,7 +24,11 @@ export class NotificationService {
 			dismissed: false,
 		});
 
-		this.events.emit("notification:created", notification);
+		// Look up project to get userId
+		const project = await projectRepository.findById(input.projectId);
+		const userId = project?.userId ?? null;
+
+		this.events.emit("notification:created", { ...notification, userId });
 		return notification;
 	}
 

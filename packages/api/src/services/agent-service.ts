@@ -301,6 +301,7 @@ export class AgentService {
 				this.events.emit("agent:stream", {
 					sessionId,
 					message: msg,
+					userId: session.userId,
 				});
 
 				// Accumulate text for persistence
@@ -338,7 +339,7 @@ export class AgentService {
 				messageCount: count,
 			});
 
-			this.events.emit("agent:complete", { sessionId });
+			this.events.emit("agent:complete", { sessionId, userId: session.userId });
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error);
 			try {
@@ -353,6 +354,7 @@ export class AgentService {
 			this.events.emit("agent:error", {
 				sessionId,
 				error: errorMessage,
+				userId: session.userId,
 			});
 		} finally {
 			this.runningSessions.delete(sessionId);
@@ -365,11 +367,14 @@ export class AgentService {
 			controller.abort();
 			this.runningSessions.delete(sessionId);
 		}
+		const session = await sessionRepository.findById(sessionId);
 		await sessionRepository.update(sessionId, {
 			isRunning: false,
 			status: SESSION_STATUS.FAILED,
 		});
-		this.events.emit("agent:complete", { sessionId });
+		if (session) {
+			this.events.emit("agent:complete", { sessionId, userId: session.userId });
+		}
 	}
 
 	async listSessions() {
