@@ -7596,7 +7596,7 @@
       "id": "F267",
       "title": "Fix WebSocket authentication — reject anonymous connections",
       "description": "Remove anonymous fallback in extractWsUserId. Reject WebSocket upgrade if auth fails. Add per-user event filtering in EventBroadcaster.",
-      "status": "backlog",
+      "status": "waiting_approval",
       "priority": 1,
       "category": "CAT-FIX",
       "passes": false,
@@ -7620,7 +7620,10 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "standard"
+      "planningMode": "standard",
+      "startedAt": "2026-02-08T21:19:17Z",
+      "prUrl": "https://github.com/SDArundev/nomos-ai/pull/14",
+      "prCreatedAt": "2026-02-08T21:48:21Z"
     },
     {
       "id": "F268",

@@ -980,9 +980,25 @@
       "feature": "F034"
     },
     "apps/server/src/lib/websocket.ts": {
-      "purpose": "WebSocket handlers (open/message/close)",
-      "category": "server-lib",
-      "feature": "F034"
+      "purpose": "WebSocket handler for real-time events and terminal I/O. Enforces authentication on upgrade, manages per-sessionId client tracking, and relays events with userId filtering",
+      "layer": "server",
+      "exports": [
+        "createWebSocketHandlers"
+      ],
+      "imports_from": [
+        "packages/api/services/event-broadcaster",
+        "apps/server/src/index.ts"
+      ],
+      "lastTouchedBy": "F267",
+      "security_features": [
+        "auth enforcement on upgrade",
+        "userId filtering on broadcast"
+      ],
+      "methods": {
+        "createWebSocketHandlers": "Initialize WebSocket handler with auth checks, event subscription, message dispatch",
+        "terminalClients.set": "Track clients per sessionId",
+        "userId filtering": "Only send messages to clients matching event publisher userId"
+      }
     },
     "apps/web/src/lib/websocket.ts": {
       "purpose": "WebSocket client (connection/reconnection)",
@@ -990,46 +1006,24 @@
       "feature": "F034"
     },
     "packages/api/src/services/event-broadcaster.ts": {
-      "purpose": "EventBroadcaster class for fan-out WebSocket message broadcasting. Manages subscriptions, batches messages, detects backpressure via bufferedAmount, and provides cleanup via destroy(). Handles JSON serialization safely.",
+      "purpose": "EventBroadcaster service managing per-client subscriptions and filtered broadcast. Now includes userId filtering to ensure multi-user safety",
       "layer": "server",
-      "exports": [
-        "EventBroadcaster"
+      "lastTouchedBy": "F267",
+      "security_features": [
+        "per-userId filtering",
+        "subscription management"
       ],
-      "imports_from": [
-        "packages/types/src/event.ts"
-      ],
-      "lastTouchedBy": "F035",
       "methods": {
-        "subscribe": "Add listener, returns unsubscribe function",
-        "broadcast": "Send JSON payload to all subscribed ws connections with backpressure check",
-        "destroy": "Clean up all subscriptions (CRITICAL for memory management)"
-      },
-      "patterns_applied": [
-        "WS-001",
-        "WS-003",
-        "WS-004"
-      ]
+        "subscribe": "Subscribe to event type",
+        "unsubscribe": "Unsubscribe from event type",
+        "broadcast": "Send event to all subscribed clients matching userId filter"
+      }
     },
     "packages/api/src/services/agent-service.ts": {
-      "purpose": "AgentService for streaming Claude Agent SDK outputs. Manages agent lifecycle (run, stop, abort), emits typed events (agent:stream, agent:complete, agent:error), captures error messages before async operations, and emits completion event on stop.",
+      "purpose": "Agent execution service. Updated to include userId in agent:output events for filtering",
       "layer": "server",
-      "exports": [
-        "agentService"
-      ],
-      "imports_from": [
-        "packages/types/src/event.ts",
-        "@anthropic-ai/sdk"
-      ],
-      "lastTouchedBy": "F035",
-      "methods": {
-        "run": "Execute agent with prompt/tools, stream output via emitEvent(agent:stream)",
-        "stop": "Abort agent execution and emit agent:complete for frontend cleanup",
-        "onError": "Catch handler that captures error message BEFORE DB updates"
-      },
-      "patterns_applied": [
-        "WS-002",
-        "AGT-003"
-      ]
+      "lastTouchedBy": "F267",
+      "event_payload_change": "agent:output now includes userId field"
     },
     "apps/web/src/components/agent/agent-output-viewer.tsx": {
       "path": "apps/web/src/components/agent/agent-output-viewer.tsx",
@@ -1193,6 +1187,69 @@
         "AC3: Duration shown",
         "AC4: File diffs rendered"
       ]
+    },
+    "apps/server/src/__tests__/websocket-auth.test.ts": {
+      "purpose": "Test suite for WebSocket authentication enforcement (rejects anonymous, enforces auth on upgrade)",
+      "layer": "test",
+      "imports_from": [
+        "apps/server/src/lib/websocket.ts"
+      ],
+      "lastTouchedBy": "F267",
+      "test_count": 5,
+      "coverage": "auth rejection, anonymous fallback removal"
+    },
+    "packages/api/src/services/__tests__/event-broadcaster.test.ts": {
+      "purpose": "Test suite for EventBroadcaster userId filtering. Validates that clients only receive events matching their userId",
+      "layer": "test",
+      "imports_from": [
+        "packages/api/services/event-broadcaster"
+      ],
+      "lastTouchedBy": "F267",
+      "test_count": 8,
+      "coverage": "per-user filtering, message routing, subscription management"
+    },
+    "packages/api/src/services/__tests__/event-filtering.test.ts": {
+      "purpose": "Test suite for event filtering logic across all services (agent, terminal, pipeline, auto-mode, notification, worktree)",
+      "layer": "test",
+      "lastTouchedBy": "F267",
+      "test_count": 12,
+      "coverage": "userId presence in all event payloads, filtering in all publishers"
+    },
+    "packages/api/src/services/terminal-service.ts": {
+      "purpose": "Terminal service for worktree shell I/O. Updated to include userId in terminal:output events",
+      "layer": "server",
+      "lastTouchedBy": "F267",
+      "event_payload_change": "terminal:output now includes userId field for filtering"
+    },
+    "packages/api/src/services/auto-mode-service.ts": {
+      "purpose": "Auto-mode feature execution. Updated to include userId in feature events",
+      "layer": "server",
+      "lastTouchedBy": "F267",
+      "event_payload_change": "feature:* events now include userId"
+    },
+    "packages/api/src/services/pipeline-service.ts": {
+      "purpose": "Feature pipeline coordination. Updated to include userId in pipeline events",
+      "layer": "server",
+      "lastTouchedBy": "F267",
+      "event_payload_change": "pipeline:* events now include userId"
+    },
+    "packages/api/src/services/notification-service.ts": {
+      "purpose": "Push notification service. Updated to include userId in notification events",
+      "layer": "server",
+      "lastTouchedBy": "F267",
+      "event_payload_change": "notification:* events now include userId"
+    },
+    "packages/api/src/services/worktree-service.ts": {
+      "purpose": "Worktree lifecycle management. Updated to include userId in worktree events",
+      "layer": "server",
+      "lastTouchedBy": "F267",
+      "event_payload_change": "worktree:* events now include userId"
+    },
+    "packages/api/src/routers/terminal.ts": {
+      "purpose": "Terminal router endpoints for shell command execution. Updated to pass userId through event publishing",
+      "layer": "server",
+      "lastTouchedBy": "F267",
+      "changes": "Propagate userId from request context to event payloads"
     }
   },
   "lastUpdated": "2026-02-04T21:50:00Z",

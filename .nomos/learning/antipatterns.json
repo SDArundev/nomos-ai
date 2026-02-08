@@ -214,6 +214,22 @@
       "prevention": "Standardize on one test runner across the monorepo. Verify test scripts in package.json match import statements. CI must fail if zero tests run.",
       "what_went_wrong": "packages/types tests use bun:test imports but vitest is the configured runner",
       "lesson": "Broken tests go undetected, giving false confidence in code quality. Invisible tests are worse than no tests."
+    },
+    {
+      "id": "ANTI-011",
+      "name": "PREMATURE_MULTI_USER_FILTERING",
+      "description": "Adding filtering logic (like userId checks) before verifying the business requirement actually exists. Related to related feature F034 where iteration 1-2 included NON_FUNCTIONAL_OWNERSHIP_FILTERING because requirements were unclear.",
+      "category": "architecture",
+      "evidence_count": 2,
+      "last_seen": "F267",
+      "severity": "MEDIUM",
+      "features_affected": [
+        "F034",
+        "F267"
+      ],
+      "prevention": "During Phase 2 planning, explicitly list all event types and their payloads. Confirm userId requirements before Phase 3 implementation.",
+      "what_went_wrong": "F034 added userId filtering logic that was not needed for events. F267 had to add userId to payloads retroactively.",
+      "lesson": "Design event schema (including userId) during Phase 2. Avoid adding security features without explicit acceptance criteria."
     }
   ],
   "last_updated": "2026-02-08T21:42:00Z"
