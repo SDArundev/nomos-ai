@@ -1,7 +1,7 @@
 import { FEATURE_VALID_TRANSITIONS, type FeatureStatus, ModelSchema, ThinkingLevelSchema, PlanningModeSchema } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Play } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { orpc } from "@/utils/orpc";
 import { StartExecutionDialog } from "./start-execution-dialog";
+import { StopExecutionDialog } from "./stop-execution-dialog";
 
 interface FeatureDetailPanelProps {
 	featureId: string | null;
@@ -36,6 +37,7 @@ export function FeatureDetailPanel({
 	const [editedTitle, setEditedTitle] = useState("");
 	const [editedDescription, setEditedDescription] = useState("");
 	const [startDialogOpen, setStartDialogOpen] = useState(false);
+	const [stopDialogOpen, setStopDialogOpen] = useState(false);
 
 	// Reset edit state when panel closes
 	useEffect(() => {
@@ -44,6 +46,7 @@ export function FeatureDetailPanel({
 			setEditedTitle("");
 			setEditedDescription("");
 			setStartDialogOpen(false);
+			setStopDialogOpen(false);
 		}
 	}, [open]);
 
@@ -304,6 +307,17 @@ export function FeatureDetailPanel({
 										Start Execution
 									</Button>
 								)}
+								{feature.data.status === "in_progress" && (
+									<Button
+										variant="destructive"
+										size="sm"
+										onClick={() => setStopDialogOpen(true)}
+										disabled={updateStatus.isPending}
+									>
+										<Square className="size-4" />
+										Stop Execution
+									</Button>
+								)}
 								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]?.map((nextStatus) => (
 									<Button
 										key={nextStatus}
@@ -315,7 +329,7 @@ export function FeatureDetailPanel({
 										Move to {nextStatus}
 									</Button>
 								))}
-								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]?.length === 0 && feature.data.status !== "pending" && (
+								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]?.length === 0 && feature.data.status !== "pending" && feature.data.status !== "in_progress" && (
 									<p className="text-muted-foreground text-sm">
 										No available transitions from this status.
 									</p>
@@ -329,15 +343,22 @@ export function FeatureDetailPanel({
 							const planningModeResult = PlanningModeSchema.safeParse(feature.data.planningMode);
 
 							return (
-								<StartExecutionDialog
-									open={startDialogOpen}
-									onOpenChange={setStartDialogOpen}
-									featureId={feature.data.id}
-									projectId={feature.data.projectId}
-									defaultModel={modelResult.success ? modelResult.data : undefined}
-									defaultThinkingLevel={thinkingLevelResult.success ? thinkingLevelResult.data : undefined}
-									defaultPlanningMode={planningModeResult.success ? planningModeResult.data : undefined}
-								/>
+								<>
+									<StartExecutionDialog
+										open={startDialogOpen}
+										onOpenChange={setStartDialogOpen}
+										featureId={feature.data.id}
+										projectId={feature.data.projectId}
+										defaultModel={modelResult.success ? modelResult.data : undefined}
+										defaultThinkingLevel={thinkingLevelResult.success ? thinkingLevelResult.data : undefined}
+										defaultPlanningMode={planningModeResult.success ? planningModeResult.data : undefined}
+									/>
+									<StopExecutionDialog
+										open={stopDialogOpen}
+										onOpenChange={setStopDialogOpen}
+										featureId={feature.data.id}
+									/>
+								</>
 							);
 						})()}
 					</div>

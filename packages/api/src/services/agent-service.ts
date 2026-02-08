@@ -367,6 +367,7 @@ export class AgentService {
 		}
 		await sessionRepository.update(sessionId, {
 			isRunning: false,
+			status: SESSION_STATUS.FAILED,
 		});
 		this.events.emit("agent:complete", { sessionId });
 	}
