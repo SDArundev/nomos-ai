@@ -7858,6 +7858,42 @@
       "planningMode": "skip",
       "failureReason": "test: special chars [0-9]{3} (parens)",
       "failedAt": "2026-02-08T18:16:10Z"
+    },
+    {
+      "id": "F276",
+      "title": "Create Account / Signup Page",
+      "description": "Create signup/registration page with Name, Email, and Password fields. Include Sign Up button and link to Sign In page. Handle validation, loading states, and redirect after successful registration.",
+      "status": "in_progress",
+      "priority": 276,
+      "category": "CAT-SEC",
+      "passes": false,
+      "tags": [
+        "auth",
+        "signup",
+        "registration"
+      ],
+      "effort": "medium",
+      "createdAt": "2026-02-08T22:00:00Z",
+      "dependencies": [
+        "F061"
+      ],
+      "acceptanceCriteria": [
+        "Form includes Name, Email, and Password fields",
+        "Sign Up button triggers registration",
+        "Link to Sign In page for existing users",
+        "Form validates input (email format, password requirements)",
+        "Error messages shown for validation failures",
+        "Loading spinner during registration",
+        "Redirect to dashboard after successful signup"
+      ],
+      "phase": "phase-1",
+      "estimatedSize": "S",
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
     }
   ],
   "summary": {

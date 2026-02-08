@@ -1193,6 +1193,95 @@
         "AC3: Duration shown",
         "AC4: File diffs rendered"
       ]
+    },
+    "apps/web/src/components/sign-up-form.tsx": {
+      "purpose": "Main signup form component with Name, Email, Password fields; TanStack React Form + Zod validation; error display and loading state handling",
+      "layer": "frontend",
+      "category": "CAT-SEC",
+      "exports": [
+        "SignUpForm"
+      ],
+      "depends_on": [
+        "better-auth client",
+        "tanstack-react-form",
+        "zod",
+        "sonner",
+        "ui/input",
+        "ui/button"
+      ],
+      "methods": {
+        "signupSchema": "Zod validator for form inputs",
+        "onSubmit": "Calls authClient.signUp.email() with form values, handles errors and redirect",
+        "onSwitchToSignIn": "Callback to toggle to signin form"
+      },
+      "patterns_used": [
+        "PAT-F276-001",
+        "PAT-F276-002",
+        "PAT-F276-003"
+      ],
+      "acceptance_criteria_met": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "lastTouchedBy": "F276",
+      "feature": "F276"
+    },
+    "apps/web/src/routes/login.tsx": {
+      "purpose": "Login page route that conditionally renders SignUpForm or SignInForm based on state",
+      "layer": "frontend",
+      "exports": [
+        "Route definition for /login"
+      ],
+      "depends_on": [
+        "sign-up-form.tsx",
+        "sign-in-form.tsx"
+      ],
+      "patterns_used": [
+        "PAT-F276-004"
+      ],
+      "lastTouchedBy": "F276",
+      "feature": "F276"
+    },
+    "apps/web/src/lib/auth-client.ts": {
+      "purpose": "Better-auth client initialization with baseURL and email/password provider setup",
+      "layer": "frontend",
+      "exports": [
+        "authClient"
+      ],
+      "methods": {
+        "signUp.email": "Register new user with email and password",
+        "signIn.email": "Login with email and password"
+      },
+      "lastTouchedBy": "F276",
+      "feature": "F276"
+    },
+    "packages/auth/src/index.ts": {
+      "purpose": "Better-auth server configuration with Drizzle adapter and email/password provider",
+      "layer": "server",
+      "exports": [
+        "authHandler",
+        "auth plugin for Hono"
+      ],
+      "schema": "User model with email, password, name fields; sessions, accounts, verifications tables",
+      "lastTouchedBy": "F061",
+      "feature": "F061"
+    },
+    "packages/db/src/schema/auth.ts": {
+      "purpose": "Database schema for users, sessions, accounts, verifications tables via better-auth",
+      "layer": "database",
+      "tables": [
+        "users",
+        "sessions",
+        "accounts",
+        "verifications"
+      ],
+      "lastTouchedBy": "F061",
+      "feature": "F061"
     }
   },
   "lastUpdated": "2026-02-04T21:50:00Z",
