@@ -151,16 +151,9 @@ EOF
 
         fail)
             local failure_reason="${3:-unspecified}"
-            atomic_update "$(cat <<EOF
-                .features |= map(
-                    if .id == "$feature_id" then
-                        .status = "failed" |
-                        .failureReason = "$failure_reason" |
-                        .failedAt = "$TIMESTAMP"
-                    else . end
-                )
-EOF
-)"
+            jq --arg id "$feature_id" --arg reason "$failure_reason" --arg ts "$TIMESTAMP" \
+              '.features |= map(if .id == $id then .status = "failed" | .failureReason = $reason | .failedAt = $ts else . end)' \
+              "$FEATURES_FILE" > "${FEATURES_FILE}.tmp" && mv "${FEATURES_FILE}.tmp" "$FEATURES_FILE"
             echo "ok $feature_id: status -> failed (reason: $failure_reason)"
             ;;
 

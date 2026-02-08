@@ -67,6 +67,7 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 | `/nomos refactor -t rename X Y` | Safe codebase refactoring (9-step) |
 | `/nomos improve` | NOMOS system self-improvement |
 | `/nomos swarm audit` | Multi-agent collaborative feature audit |
+| `/nomos swarm fix` | Execute remediation for audit findings |
 | `/nomos swarm research F045` | Deep research before implementing |
 | `/nomos swarm discuss "topic"` | Multi-perspective architecture debate |
 | `/nomos swarm learn` | Learning system audit and improvement |

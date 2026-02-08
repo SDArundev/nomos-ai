@@ -258,6 +258,94 @@ JSON schemas for swarm session output files.
 
 ---
 
+## Fix Mode — session.json
+
+```json
+{
+  "mode": "fix",
+  "timestamp": "YYYYMMDD-HHMMSS",
+  "output_dir": "/absolute/path/to/.nomos/swarm/fix-{timestamp}",
+  "flags": {
+    "auto": false,
+    "dry_run": false,
+    "skip_verify": false
+  },
+  "scope": {
+    "type": "fix",
+    "source_audit": "/absolute/path/to/.nomos/swarm/audit-YYYYMMDD-HHMMSS",
+    "fix_features": ["F073", "F074"],
+    "failed_originals": ["F025", "F031"],
+    "total": 2
+  },
+  "status": "initialized | executing | completed"
+}
+```
+
+---
+
+## Fix Mode — plan.json
+
+```json
+{
+  "batches": [
+    {
+      "batch_number": 1,
+      "code_area": "auth",
+      "features": ["F073", "F074"],
+      "evidence": [
+        {
+          "finding_id": "SW-001",
+          "feature_id": "F025",
+          "summary": "Description of the audit finding"
+        }
+      ],
+      "priority": "CRITICAL"
+    }
+  ],
+  "total_features": 4,
+  "total_batches": 2
+}
+```
+
+---
+
+## Fix Mode — summary.json
+
+```json
+{
+  "source_audit": "/absolute/path/to/audit-dir",
+  "timestamp": "ISO 8601",
+  "batches": [
+    {
+      "batch_number": 1,
+      "code_area": "auth",
+      "features": ["F073", "F074"],
+      "originals": ["F025"],
+      "status": "completed | partial | failed",
+      "commit_sha": "abc1234",
+      "qa_verdict": "PASS | FAIL",
+      "qa_retried": false
+    }
+  ],
+  "totals": {
+    "features_fixed": 4,
+    "features_failed": 0,
+    "batches_completed": 2,
+    "batches_failed": 0,
+    "originals_retried": 3
+  },
+  "feature_states": [
+    {
+      "id": "F073",
+      "status": "waiting_approval",
+      "was": "backlog"
+    }
+  ]
+}
+```
+
+---
+
 ## Finding ID Format
 
 Finding IDs follow the format: `SW-{NNN}`

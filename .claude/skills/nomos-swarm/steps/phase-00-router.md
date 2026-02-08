@@ -14,6 +14,7 @@ Extract the FIRST positional argument after `swarm`:
 | `research` | research | Deep research before implementing a feature |
 | `discuss` | discuss | Multi-perspective debate on a topic |
 | `learn` | learn | Audit and improve the learning system |
+| `fix` | fix | Execute remediation for audit findings |
 
 **If no mode specified:** Default to `audit`.
 
@@ -31,6 +32,8 @@ Extract the FIRST positional argument after `swarm`:
 | `--rounds` | `-r N` | 2 | Number of discussion rounds (discuss mode) |
 | `--quick` | `-q` | false | Quick mode: fewer agents (skip tester in audit) |
 | `--prune` | | false | Remove stale entries (learn mode) |
+| `--dry-run` | `-d` | false | Show fix plan without executing (fix mode) |
+| `--skip-verify` | | false | Skip re-audit offer after fixes (fix mode) |
 
 ---
 
@@ -55,6 +58,13 @@ Extract the FIRST positional argument after `swarm`:
 **Learn mode:**
 - No scope needed — operates on all `.nomos/learning/` files
 - If `--prune`: note in flags for Phase 2
+
+**Fix mode:**
+- Find the latest audit's output directory: `ls -td .nomos/swarm/audit-* | head -1`
+- Read `actions.json` from that directory — STOP if not found
+- Load backlog features tagged `swarm-audit` with category `fix`
+- If no fix features found: print "No fix tasks found. Run `/nomos swarm audit -a` first." and STOP
+- Store the audit dir path and fix feature list in session config
 
 ---
 
@@ -115,6 +125,17 @@ For `learn` mode, `scope` is:
 }
 ```
 
+For `fix` mode, `scope` is:
+```json
+{
+  "type": "fix",
+  "source_audit": "/absolute/path/to/.nomos/swarm/audit-YYYYMMDD-HHMMSS",
+  "fix_features": ["F073", "F074", "F075"],
+  "failed_originals": ["F025", "F031"],
+  "total": 3
+}
+```
+
 ---
 
 ## 6. Print Session Banner
@@ -134,6 +155,8 @@ Output:  {output_dir}
 
 ## 7. Continue
 
-**IMMEDIATELY load:** `steps/phase-01-assemble.md`
+**Fix mode:** IMMEDIATELY load `steps/phase-02-fix.md` (skip Phase 1 — no team needed).
+
+**All other modes:** IMMEDIATELY load `steps/phase-01-assemble.md`.
 
 Pass `session_config` (the session.json contents) forward.

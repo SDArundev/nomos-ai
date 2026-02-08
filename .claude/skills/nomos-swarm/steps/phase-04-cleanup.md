@@ -83,45 +83,84 @@ For each transition in `actions.state_transitions`:
 bash .claude/skills/nomos/scripts/nomos.sh state fail {feature_id} "swarm_audit: {reason}"
 ```
 
+**After each call**, verify the `failureReason` was written correctly:
+
+```bash
+jq -r --arg id "{feature_id}" '.features[] | select(.id == $id) | .failureReason' .nomos/features.json
+```
+
+If the result is `null` or empty (e.g. special chars in the reason broke parsing), apply a direct jq fallback:
+
+```bash
+jq --arg id "{feature_id}" --arg reason "swarm_audit: {reason}" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '.features |= map(if .id == $id then .status = "failed" | .failureReason = $reason | .failedAt = $ts else . end)' \
+  .nomos/features.json > .nomos/features.json.tmp && mv .nomos/features.json.tmp .nomos/features.json
+```
+
 <critical>
-The `state.sh` `fail` action has NO status guard — it works from ANY state including `verified`.
-This is intentional for swarm audit findings.
+- The `state.sh` `fail` action has NO status guard — it works from ANY state including `verified`.
+- Always use `--arg` for jq values containing special characters like `[0-9]{3}`, `(parens)`, or quotes.
+- The canonical field is `failureReason` (NOT `failedReason`).
 </critical>
 
 ### Applying New Backlog Items
 
-If `-f` (fix) flag is set, add new features to `.nomos/features.json`:
+Always apply new backlog items from audit findings (no `-f` flag gate required — audit findings should always create backlog items so fixes can be tracked).
 
 For each item in `actions.new_backlog_items`:
-1. Read current features.json
-2. Generate next feature ID (e.g., F073)
-3. Append new feature object:
 
-```json
-{
-  "id": "F073",
-  "title": "{item.title}",
-  "description": "{item.description}",
-  "status": "backlog",
-  "priority": "{item.priority}",
-  "category": "fix",
-  "tags": ["swarm-audit", "fix:{original_feature_id}"],
-  "acceptanceCriteria": [],
-  "createdAt": "{timestamp}"
-}
+1. Compute the next feature ID:
+```bash
+next_id=$(jq '[.features[].id | ltrimstr("F") | tonumber] | max + 1' .nomos/features.json)
+feature_id="F$(printf '%03d' "$next_id")"
 ```
 
-4. Write updated features.json
+2. Append the new feature using `--arg` for all string fields:
+```bash
+jq --arg id "$feature_id" \
+   --arg title "{item.title}" \
+   --arg desc "{item.description}" \
+   --argjson priority "{item.priority}" \
+   --arg tag_fix "fix:{original_feature_id}" \
+   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   '.features += [{
+     id: $id, title: $title, description: $desc,
+     status: "backlog", priority: $priority, passes: false,
+     category: "fix", tags: ["swarm-audit", $tag_fix],
+     acceptanceCriteria: [], createdAt: $ts
+   }]' .nomos/features.json > .nomos/features.json.tmp && mv .nomos/features.json.tmp .nomos/features.json
+```
+
+3. Verify after each append:
+```bash
+jq --arg id "$feature_id" '.features[] | select(.id == $id) | .title' .nomos/features.json
+```
 
 ### Applying Learning Updates
 
-**New antipatterns:** Append to `.nomos/learning/antipatterns.json` (if file exists):
+**New antipatterns:** Append to `.nomos/learning/antipatterns.json` (if file exists).
+
+Map audit schema to learning schema:
+- Audit fields: `name`, `description`, `example`, `impact`
+- Learning fields: `id`, `name`, `description`, `category`, `severity`, `prevention`, `what_went_wrong`, `lesson`
+
+Before appending, dedup by name:
+```bash
+existing=$(jq -r '.antipatterns[].name' .nomos/learning/antipatterns.json 2>/dev/null)
+```
+
+Skip any antipattern whose `name` already exists. For new ones, append:
+
 ```json
 {
+  "id": "AP-{next_id}",
   "name": "{antipattern.name}",
   "description": "{antipattern.description}",
-  "example": "{antipattern.example}",
-  "impact": "{antipattern.impact}",
+  "category": "swarm-audit",
+  "severity": "medium",
+  "prevention": "{derived from antipattern.impact}",
+  "what_went_wrong": "{antipattern.example}",
+  "lesson": "{antipattern.description}",
   "confidence": 0.5,
   "source": "swarm_audit",
   "added": "{timestamp}"
@@ -147,6 +186,19 @@ This removes:
 
 ## 5. Update Session Status
 
+Count actual applied items by querying the files (don't trust in-memory counters):
+
+```bash
+# Count features in failed state that match this session's transitions
+failed_count=$(jq '[.features[] | select(.status == "failed" and (.failureReason // "" | startswith("swarm_audit:")))] | length' .nomos/features.json)
+
+# Count backlog items tagged with this session
+backlog_count=$(jq '[.features[] | select(.tags != null and (.tags | index("swarm-audit")) != null and .status == "backlog")] | length' .nomos/features.json)
+
+# Count antipatterns from this session
+ap_count=$(jq '[.antipatterns[] | select(.source == "swarm_audit")] | length' .nomos/learning/antipatterns.json 2>/dev/null || echo 0)
+```
+
 Update `{output_dir}/session.json`:
 
 ```json
@@ -154,9 +206,9 @@ Update `{output_dir}/session.json`:
   "status": "completed",
   "completed_at": "{timestamp}",
   "actions_applied": {
-    "state_transitions": 2,
-    "backlog_items": 2,
-    "learning_updates": 3
+    "state_transitions": "{failed_count}",
+    "backlog_items": "{backlog_count}",
+    "learning_updates": "{ap_count}"
   }
 }
 ```

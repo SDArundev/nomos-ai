@@ -279,8 +279,8 @@
       "planningMode": "lite",
       "startedAt": "2026-01-28T15:34:57Z",
       "verifiedAt": "2026-01-28T16:16:02Z",
-      "failedReason": "swarm_audit: test fixtures use wrong ID format (proj-001 vs P[0-9]{3}), 14+ tests should be failing (SW-001)",
-      "failedAt": "2026-02-08T21:42:00Z"
+      "failedAt": "2026-02-08T21:42:00Z",
+      "failureReason": "swarm_audit: test fixtures use wrong ID format (proj-001 vs P[0-9]{3}), 14+ tests should be failing (SW-001)"
     },
     {
       "id": "F005",
@@ -728,8 +728,8 @@
       "planningMode": "lite",
       "startedAt": "2026-01-29T15:43:30Z",
       "verifiedAt": "2026-01-29T16:41:47Z",
-      "failedReason": "swarm_audit: 8/10 session router endpoints lack userId authorization (SW-010)",
-      "failedAt": "2026-02-08T21:42:00Z"
+      "failedAt": "2026-02-08T21:42:00Z",
+      "failureReason": "swarm_audit: 8/10 session router endpoints lack userId authorization (SW-010)"
     },
     {
       "id": "F020",
@@ -1072,8 +1072,8 @@
       "planningMode": "lite",
       "completedAt": "2026-02-06T14:29:06Z",
       "verifiedAt": "2026-02-06T14:30:42Z",
-      "failedReason": "swarm_audit: ClaudeProvider hardcodes bypassPermissions:true, overrides user config (SW-009)",
-      "failedAt": "2026-02-08T21:42:00Z"
+      "failedAt": "2026-02-08T21:42:00Z",
+      "failureReason": "swarm_audit: ClaudeProvider hardcodes bypassPermissions:true, overrides user config (SW-009)"
     },
     {
       "id": "F032",
@@ -1103,8 +1103,8 @@
       "planningMode": "lite",
       "startedAt": "2026-02-06T18:08:51Z",
       "verifiedAt": "2026-02-06T19:38:51Z",
-      "failedReason": "swarm_audit: agent sendMessage has no session ownership check (SW-011)",
-      "failedAt": "2026-02-08T21:42:00Z"
+      "failedAt": "2026-02-08T21:42:00Z",
+      "failureReason": "swarm_audit: agent sendMessage has no session ownership check (SW-011)"
     },
     {
       "id": "F033",
@@ -1161,8 +1161,8 @@
       "planningMode": "lite",
       "preImplemented": true,
       "verifiedAt": "2026-02-08T09:27:52Z",
-      "failedReason": "swarm_audit: WebSocket accepts anonymous connections, broadcasts all events to all clients (SW-003)",
-      "failedAt": "2026-02-08T21:42:00Z"
+      "failedAt": "2026-02-08T21:42:00Z",
+      "failureReason": "swarm_audit: WebSocket accepts anonymous connections, broadcasts all events to all clients (SW-003)"
     },
     {
       "id": "F035",
@@ -6188,8 +6188,8 @@
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "skip",
-      "failedReason": "swarm_audit: userId authorization only enforced in 2/9 routers — fix incomplete (SW-002)",
-      "failedAt": "2026-02-08T21:42:00Z"
+      "failedAt": "2026-02-08T21:42:00Z",
+      "failureReason": "swarm_audit: userId authorization only enforced in 2/9 routers — fix incomplete (SW-002)"
     },
     {
       "id": "F225",
@@ -7295,8 +7295,8 @@
         "group-2",
         "auto-mode"
       ],
-      "failedReason": "swarm_audit: auto-mode uses hardcoded userId auto-mode, sessions not tied to real users (SW-012)",
-      "failedAt": "2026-02-08T21:42:00Z"
+      "failedAt": "2026-02-08T21:42:00Z",
+      "failureReason": "swarm_audit: auto-mode uses hardcoded userId auto-mode, sessions not tied to real users (SW-012)"
     },
     {
       "id": "F261",
@@ -7833,7 +7833,7 @@
       "id": "F275",
       "title": "Add apps/web to root tsconfig references",
       "description": "Add apps/web to the references array in root tsconfig.json so root-level tsc --build checks the web app.",
-      "status": "backlog",
+      "status": "pending",
       "priority": 10,
       "category": "CAT-FIX",
       "passes": false,
@@ -7855,7 +7855,9 @@
       "requirements": [],
       "model": "haiku",
       "thinkingLevel": "none",
-      "planningMode": "skip"
+      "planningMode": "skip",
+      "failureReason": "test: special chars [0-9]{3} (parens)",
+      "failedAt": "2026-02-08T18:16:10Z"
     }
   ],
   "summary": {

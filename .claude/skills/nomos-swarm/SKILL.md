@@ -16,6 +16,7 @@ Multi-agent collaborative sessions using Claude Code's agent teams. Agents commu
 | Mode | Purpose | Team Size | Key Value |
 |------|---------|-----------|-----------|
 | `audit` | Re-examine verified features, find real bugs | 3 agents | Fresh eyes on "verified but broken" features |
+| `fix` | Execute remediation for audit findings | 0 agents (Task-dispatched) | Automated batch fixing of audit-identified issues |
 | `research` | Deep research before implementing complex features | 2 agents | Better context for architect in Phase 2 |
 | `discuss` | Multi-perspective debate on architecture/priorities | 3 agents | Structured decision-making with tradeoffs |
 | `learn` | Audit and improve the learning system itself | 2 agents | Better patterns/antipatterns for future work |
@@ -26,14 +27,17 @@ Multi-agent collaborative sessions using Claude Code's agent teams. Agents commu
 /nomos swarm audit                        # Audit all verified features
 /nomos swarm audit F025-F040              # Audit specific range
 /nomos swarm audit -q                     # Quick: 2 agents (skip tester)
-/nomos swarm audit -a -f                  # Auto-apply + create fix tasks
+/nomos swarm audit -a                     # Auto-apply all actions
+/nomos swarm fix                          # Execute fixes for audit findings
+/nomos swarm fix --dry-run                # Show fix plan without executing
+/nomos swarm fix -a                       # Auto-fix without confirmation
 /nomos swarm research F045                # Research before implementing
 /nomos swarm discuss "State machine extraction?"
 /nomos swarm learn                        # Full learning system audit
 /nomos swarm learn --prune                # Audit + remove stale entries
 ```
 
-## Pipeline (4 phases)
+## Pipeline (4 phases + fix shortcut)
 
 ```
 Phase 0: ROUTE      → Parse mode + flags, create output dir
@@ -41,6 +45,10 @@ Phase 1: ASSEMBLE   → TeamCreate, spawn agents, create tasks
 Phase 2: EXECUTE    → Mode-specific orchestration
 Phase 3: REPORT     → Synthesize findings into structured output
 Phase 4: CLEANUP    → Shutdown team, apply actions, TeamDelete
+
+Fix mode shortcut:
+Phase 0: ROUTE      → Parse mode, load audit context, resolve fix features
+Phase 2: FIX        → Batch + code-writer + qa-reviewer loop (skips Phase 1, 3, 4)
 ```
 
 **FIRST ACTION:** Load `steps/phase-00-router.md`
@@ -53,6 +61,12 @@ Phase 4: CLEANUP    → Shutdown team, apply actions, TeamDelete
 ├── findings.json     # Categorized issues with evidence
 ├── report.md         # Human-readable summary
 └── actions.json      # Recommended state transitions + learning updates
+
+Fix mode output:
+.nomos/swarm/fix-{timestamp}/
+├── session.json      # Mode, scope, source audit reference
+├── plan.json         # Batch plan with evidence mapping
+└── summary.json      # Batch results, feature states, commit SHAs
 ```
 
 ## Agents

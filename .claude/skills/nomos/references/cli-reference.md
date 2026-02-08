@@ -14,6 +14,7 @@
 | `/nomos swarm audit` | 4-phase swarm | Multi-agent collaborative feature audit |
 | `/nomos swarm research F045` | 4-phase swarm | Deep research before implementing |
 | `/nomos swarm discuss "topic"` | 4-phase swarm | Multi-perspective architecture debate |
+| `/nomos swarm fix` | 2-phase swarm | Execute remediation for audit findings |
 | `/nomos swarm learn` | 4-phase swarm | Learning system audit and improvement |
 | `/nomos -s` | — | Session dashboard (status + recommendations) |
 
@@ -158,6 +159,8 @@ bash .claude/skills/nomos/scripts/nomos.sh ingest
 | `-b N` | `--batch N` | Features per batch (audit mode, default: 5) |
 | `-r N` | `--rounds N` | Discussion rounds (discuss mode, default: 2) |
 | `-q` | `--quick` | Quick mode: fewer agents (skip tester in audit) |
+| `-d` | `--dry-run` | Show fix plan without executing (fix mode) |
+| | `--skip-verify` | Skip re-audit offer after fixes (fix mode) |
 | | `--prune` | Remove stale entries (learn mode) |
 
 ### nomos-refactor Flags

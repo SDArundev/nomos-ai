@@ -71,3 +71,18 @@ Agent roles, models, and spawn configurations per swarm mode.
 | learn | 2 | 1 haiku + 1 sonnet | ~2x (one-time) |
 
 All agents are **READ-ONLY** on source files. Only the lead applies changes in Phase 4.
+
+---
+
+## Fix Mode
+
+No team is created. Fix mode uses single-agent orchestration via Task tool:
+
+| Step | subagent_type | Model | Role |
+|------|---------------|-------|------|
+| Code Writer | `code-writer` | sonnet | Implements fixes based on audit evidence |
+| QA Reviewer | `qa-reviewer` | sonnet | Verifies fixes address the audit findings |
+
+**No TeamCreate.** The lead dispatches code-writer and qa-reviewer as one-shot Task calls per batch, same pattern as the main pipeline's phase-03-execute.
+
+**Flow:** Load audit → Batch → (code-writer → qa-reviewer → retry?) per batch → Commit → State transitions

@@ -126,6 +126,50 @@ Discussion outputs can inform decision-making:
 
 ---
 
+## Fix Mode Workflow
+
+Fix mode bridges the gap between audit (find issues) and resolution (fix issues):
+
+```
+/nomos swarm audit -a    →  audit actions applied (state transitions + backlog items)
+                              ↓
+/nomos swarm fix         →  load audit findings, batch fix features
+                              ↓
+                           code-writer fixes per batch + qa-reviewer verifies
+                              ↓
+                           originals retried, offer re-audit
+```
+
+### State Flow
+
+```
+Original Feature:
+  verified ──[audit: fail]──→ failed ──[fix: retry]──→ in_progress
+
+Fix Feature:
+  backlog ──[fix: start]──→ in_progress ──[fix: complete]──→ waiting_approval
+```
+
+### Typical Two-Command Workflow
+
+```bash
+# Step 1: Audit finds issues, auto-applies state transitions + backlog items
+/nomos swarm audit -a
+
+# Step 2: Fix mode reads the audit, batches fixes, executes them
+/nomos swarm fix -a
+```
+
+### Fix Mode Flags
+
+| Flag | Description |
+|------|-------------|
+| `-a` / `--auto` | Skip confirmation, execute all batches |
+| `-d` / `--dry-run` | Show batch plan without executing |
+| `--skip-verify` | Don't offer re-audit after fixes |
+
+---
+
 ## Complementary Tools
 
 | Tool | What It Does | How Swarm Complements |
