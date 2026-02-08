@@ -110,6 +110,8 @@ export {
 	contentBlockSchema,
 	type ExecuteOptions,
 	executeOptionsSchema,
+	type PermissionMode,
+	permissionModeSchema,
 	type ProviderMessage,
 	providerMessageSchema,
 	type ProviderThinkingLevel,

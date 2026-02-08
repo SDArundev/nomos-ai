@@ -1,4 +1,5 @@
 import { featureRepository } from "@nomos-ai/db";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { AutoModeService } from "../services/auto-mode-service";
@@ -46,10 +47,10 @@ export const autoModeRouter = {
 				projectRoot: z.string(),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const service = getAutoModeService();
 			service
-				.start(input.projectId, input.projectRoot)
+				.start(input.projectId, input.projectRoot, context.session.user.id)
 				.catch(() => {
 					// Errors handled via events
 				});
@@ -95,7 +96,11 @@ export const autoModeRouter = {
 
 	retryFeature: protectedProcedure
 		.input(z.object({ featureId: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const feature = await featureRepository.findById(input.featureId);
+			if (!feature || feature.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
 			await featureRepository.resetRetryCount(input.featureId);
 			await featureRepository.update(input.featureId, { status: "pending" });
 			return { success: true, message: `Reset retry count for ${input.featureId}` };
