@@ -214,6 +214,45 @@
       "prevention": "Standardize on one test runner across the monorepo. Verify test scripts in package.json match import statements. CI must fail if zero tests run.",
       "what_went_wrong": "packages/types tests use bun:test imports but vitest is the configured runner",
       "lesson": "Broken tests go undetected, giving false confidence in code quality. Invisible tests are worse than no tests."
+    },
+    {
+      "id": "AP-018",
+      "name": "WEBSOCKET_PROTOCOL_MISMATCH",
+      "description": "Server and client WebSocket handlers use different message type strings and payload structures. No shared type definition enforces consistency.",
+      "category": "swarm-audit",
+      "severity": "high",
+      "prevention": "Define shared WebSocket message types in packages/types. Both server and client import and use the same type.",
+      "what_went_wrong": "Server sends { type: output, data } but client expects { type: terminal:output, payload: { data } }",
+      "lesson": "Always use shared types for WebSocket message protocols. Without a shared contract, mismatches are invisible at compile time.",
+      "confidence": 0.8,
+      "source": "swarm_audit",
+      "added": "2026-02-08T19:59:21Z"
+    },
+    {
+      "id": "AP-019",
+      "name": "INCONSISTENT_AUTHORIZATION_WITHIN_ROUTER",
+      "description": "Some endpoints in a single router check ownership while others in the same router skip checks. Creates false sense of security.",
+      "category": "swarm-audit",
+      "severity": "medium",
+      "prevention": "Apply authorization checks at the router middleware level, not per-endpoint. Use a shared auth guard.",
+      "what_went_wrong": "notifications.ts: list/countUnread check ownership, markRead/dismiss accept any ID",
+      "lesson": "When fixing auth, audit ALL endpoints in the affected router, not just the reported ones.",
+      "confidence": 0.7,
+      "source": "swarm_audit",
+      "added": "2026-02-08T19:59:21Z"
+    },
+    {
+      "id": "AP-020",
+      "name": "GLOBAL_FETCH_THEN_FILTER",
+      "description": "Fetching all records with findAll() then filtering in the handler instead of querying with a WHERE clause.",
+      "category": "swarm-audit",
+      "severity": "medium",
+      "prevention": "Add findByUser() or findByProject() methods to repositories. Filter at the database query level.",
+      "what_went_wrong": "service.listSessions() returns ALL sessions, router filters by userId after fetch",
+      "lesson": "Always push filtering to the database layer. Application-level filtering is inefficient and temporarily exposes data.",
+      "confidence": 0.7,
+      "source": "swarm_audit",
+      "added": "2026-02-08T19:59:21Z"
     }
   ],
   "last_updated": "2026-02-08T21:42:00Z"

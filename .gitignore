@@ -62,6 +62,7 @@ local.db
 .nomos/output/
 .nomos/worktrees/
 .nomos/locks/
+.nomos/runner-logs/
 .ruler/
 
 # Claude Code local settings (personal overrides)

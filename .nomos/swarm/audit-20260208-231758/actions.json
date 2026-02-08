@@ -1,0 +1,120 @@
+{
+  "state_transitions": [
+    {
+      "feature_id": "F262",
+      "action": "fail",
+      "reason": "swarm_audit: path traversal vulnerability in SpecService — accepts arbitrary projectPath without validation (SW-001)"
+    },
+    {
+      "feature_id": "F035",
+      "action": "fail",
+      "reason": "swarm_audit: terminal WebSocket protocol mismatch — server sends 'output' but client expects 'terminal:output' with payload wrapper (SW-002)"
+    },
+    {
+      "feature_id": "F261",
+      "action": "fail",
+      "reason": "swarm_audit: terminal router has no user isolation — any authenticated user can access any terminal session (SW-003)"
+    },
+    {
+      "feature_id": "F243",
+      "action": "fail",
+      "reason": "swarm_audit: learning router has no ownership checks — IDOR vulnerability allows any user to read/modify/delete others' learnings (SW-004)"
+    }
+  ],
+  "new_backlog_items": [
+    {
+      "title": "Fix: SpecService path traversal vulnerability",
+      "description": "SpecService accepts arbitrary projectPath without validation, allowing path traversal. Add validatePath() from FSService or implement equivalent protection. Evidence: spec.ts:17,29, spec-service.ts:39,52.",
+      "priority": 1,
+      "tags": ["swarm-audit", "security", "fix:F262"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Terminal WebSocket protocol mismatch (server vs client)",
+      "description": "Server sends { type: 'output', data } but client expects { type: 'terminal:output', payload: { data } }. Align message format between websocket.ts and use-terminal.ts. Evidence: websocket.ts:27, use-terminal.ts:52-53.",
+      "priority": 1,
+      "tags": ["swarm-audit", "fix:F035"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Terminal router missing user isolation",
+      "description": "Terminal operations (create, write, resize, kill, list) don't check user ownership. Add userId to TerminalSession interface and filter by user. Evidence: terminal.ts:18,24,31,52, terminal-service.ts:4.",
+      "priority": 1,
+      "tags": ["swarm-audit", "security", "fix:F261"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Learning router missing ownership checks",
+      "description": "Learning list/get/update/delete accept any ID without ownership verification. Add user filter to all operations. Evidence: learning.ts:60,72,97,107.",
+      "priority": 1,
+      "tags": ["swarm-audit", "security", "fix:F243"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Auto-mode endpoints missing ownership checks",
+      "description": "stop, status, setConcurrency, setConfig, getConfig endpoints have no user/project ownership checks. AutoModeService singleton only supports one user. Evidence: auto-mode.ts:60,66,72,86.",
+      "priority": 2,
+      "tags": ["swarm-audit", "security", "fix:F265"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Notification markRead/dismiss missing ownership checks",
+      "description": "markRead and dismiss endpoints accept any notification ID without ownership verification. Other notification endpoints correctly check. Evidence: notifications.ts:50,67.",
+      "priority": 2,
+      "tags": ["swarm-audit", "security", "fix:F262"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Feature bulkCreate/bulkDelete lack transaction wrapping",
+      "description": "Sequential loops without transactions mean partial failures leave inconsistent state. Errors silently swallowed. Evidence: feature.ts:203,224,231.",
+      "priority": 3,
+      "tags": ["swarm-audit", "fix:F018"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Kanban board missing 'failed' status column",
+      "description": "KANBAN_COLUMNS omits 'failed' status — features with failed status disappear from the board. Evidence: kanban-board.tsx:35,40.",
+      "priority": 3,
+      "tags": ["swarm-audit", "fix:F025"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Devtools rendered unconditionally in production",
+      "description": "TanStack Router and React Query devtools are always rendered, no import.meta.env.DEV guard. Evidence: __root.tsx:99,100.",
+      "priority": 3,
+      "tags": ["swarm-audit", "fix:F020"],
+      "category": "fix"
+    },
+    {
+      "title": "Fix: Session list fetches ALL sessions then filters client-side",
+      "description": "AgentService.listSessions() and session router both return findAll() then filter by userId. Should filter at database query level. Evidence: agent.ts:96, session.ts:91.",
+      "priority": 3,
+      "tags": ["swarm-audit", "fix:F033"],
+      "category": "fix"
+    }
+  ],
+  "learning_updates": {
+    "new_patterns": [],
+    "new_antipatterns": [
+      {
+        "name": "websocket_protocol_mismatch",
+        "description": "Server and client WebSocket handlers using different message type strings and payload structures. No shared type definition enforces consistency.",
+        "example": "Server sends { type: 'output' }, client checks data.type === 'terminal:output'",
+        "impact": "Feature appears implemented (code compiles, no errors) but data never reaches the UI"
+      },
+      {
+        "name": "inconsistent_authorization_checks",
+        "description": "Some endpoints in a router check ownership, others in the same router don't. Creates false sense of security.",
+        "example": "notifications.ts: list/countUnread check ownership, markRead/dismiss don't",
+        "impact": "IDOR vulnerabilities in endpoints that skip checks"
+      },
+      {
+        "name": "global_fetch_then_filter",
+        "description": "Fetching all records with findAll() then filtering in the router/handler instead of querying with WHERE clause.",
+        "example": "service.listSessions() returns ALL, router filters by userId",
+        "impact": "Performance degradation at scale, temporary data exposure"
+      }
+    ],
+    "stale_patterns": []
+  }
+}

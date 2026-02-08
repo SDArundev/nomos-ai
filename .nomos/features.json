@@ -1185,14 +1185,16 @@
         "Errors propagated"
       ],
       "estimatedSize": "M",
-      "status": "verified",
+      "status": "failed",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "startedAt": "2026-02-08T09:34:51Z",
       "prUrl": "https://github.com/SDArundev/nomos-ai/pull/8",
-      "prCreatedAt": "2026-02-08T09:51:05Z"
+      "prCreatedAt": "2026-02-08T09:51:05Z",
+      "failureReason": "swarm_audit: terminal WebSocket protocol mismatch (SW-002)",
+      "failedAt": "2026-02-08T19:53:29Z"
     },
     {
       "id": "F036",
@@ -6719,7 +6721,7 @@
       "id": "F243",
       "title": "Fix: No learning oRPC router — frontend can't query learnings",
       "description": "No learning oRPC router — frontend can't query learnings. Suggested fix: Create learning router + add to appRouter",
-      "status": "verified",
+      "status": "failed",
       "priority": 5,
       "category": "CAT-FIX",
       "passes": false,
@@ -6742,7 +6744,9 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "skip"
+      "planningMode": "skip",
+      "failureReason": "swarm_audit: learning router no ownership checks (SW-004)",
+      "failedAt": "2026-02-08T19:53:30Z"
     },
     {
       "id": "F244",
@@ -7330,7 +7334,7 @@
       },
       "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md section 7 for terminal pattern. Use Bun.spawn (not node-pty).",
       "estimatedSize": "L",
-      "status": "verified",
+      "status": "failed",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -7339,7 +7343,9 @@
         "automaker-mirror",
         "group-2",
         "terminal"
-      ]
+      ],
+      "failureReason": "swarm_audit: terminal router no user isolation (SW-003)",
+      "failedAt": "2026-02-08T19:53:29Z"
     },
     {
       "id": "F262",
@@ -7378,7 +7384,7 @@
       },
       "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md sections 8-9, 12-13 for settings, notification, GitHub, and FS patterns.",
       "estimatedSize": "XL",
-      "status": "verified",
+      "status": "failed",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -7387,7 +7393,9 @@
         "automaker-mirror",
         "group-2",
         "services"
-      ]
+      ],
+      "failureReason": "swarm_audit: path traversal in SpecService (SW-001)",
+      "failedAt": "2026-02-08T19:53:28Z"
     },
     {
       "id": "F263",
@@ -7858,6 +7866,196 @@
       "planningMode": "skip",
       "failureReason": "test: special chars [0-9]{3} (parens)",
       "failedAt": "2026-02-08T18:16:10Z"
+    },
+    {
+      "id": "F276",
+      "title": "Fix: SpecService path traversal vulnerability",
+      "description": "SpecService accepts arbitrary projectPath without validation, allowing path traversal. Add validatePath() from FSService. Evidence: spec.ts:17,29, spec-service.ts:39,52.",
+      "status": "backlog",
+      "priority": 1,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "security",
+        "fix:F262"
+      ],
+      "acceptanceCriteria": [
+        "SpecService validates projectPath using FSService.validatePath()",
+        "Path traversal attempts return 400 error",
+        "Unit test covers traversal rejection"
+      ],
+      "createdAt": "2026-02-08T19:55:28Z"
+    },
+    {
+      "id": "F277",
+      "title": "Fix: Terminal WebSocket protocol mismatch",
+      "description": "Server sends { type: output, data } but client expects { type: terminal:output, payload: { data } }. Align message format. Evidence: websocket.ts:27, use-terminal.ts:52-53.",
+      "status": "backlog",
+      "priority": 1,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "fix:F035"
+      ],
+      "acceptanceCriteria": [
+        "Server and client use identical WS message type strings",
+        "Terminal output displays in UI",
+        "Shared type definition enforces format"
+      ],
+      "createdAt": "2026-02-08T19:55:28Z"
+    },
+    {
+      "id": "F278",
+      "title": "Fix: Terminal router missing user isolation",
+      "description": "Terminal operations have no ownership checks. Add userId to TerminalSession and filter by user. Evidence: terminal.ts:18,24,31,52, terminal-service.ts:4.",
+      "status": "backlog",
+      "priority": 1,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "security",
+        "fix:F261"
+      ],
+      "acceptanceCriteria": [
+        "TerminalSession has userId field",
+        "All terminal endpoints verify ownership",
+        "Users cannot see other users terminals"
+      ],
+      "createdAt": "2026-02-08T19:55:28Z"
+    },
+    {
+      "id": "F279",
+      "title": "Fix: Learning router missing ownership checks",
+      "description": "list/get/update/delete accept any ID without user verification. Add user filter. Evidence: learning.ts:60,72,97,107.",
+      "status": "backlog",
+      "priority": 1,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "security",
+        "fix:F243"
+      ],
+      "acceptanceCriteria": [
+        "All learning endpoints verify user ownership",
+        "Users cannot access other users learnings",
+        "Unit test covers IDOR attempt"
+      ],
+      "createdAt": "2026-02-08T19:55:28Z"
+    },
+    {
+      "id": "F280",
+      "title": "Fix: Auto-mode endpoints missing ownership checks",
+      "description": "stop, status, setConcurrency, setConfig, getConfig have no user/project ownership checks. Evidence: auto-mode.ts:60,66,72,86.",
+      "status": "backlog",
+      "priority": 2,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "security",
+        "fix:F265"
+      ],
+      "acceptanceCriteria": [
+        "All auto-mode endpoints verify user ownership",
+        "Users cannot stop other users auto-mode"
+      ],
+      "createdAt": "2026-02-08T19:58:24Z"
+    },
+    {
+      "id": "F281",
+      "title": "Fix: Notification markRead/dismiss missing ownership",
+      "description": "markRead and dismiss accept any notification ID without ownership verification. Other endpoints check correctly. Evidence: notifications.ts:50,67.",
+      "status": "backlog",
+      "priority": 2,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "security",
+        "fix:F262"
+      ],
+      "acceptanceCriteria": [
+        "markRead verifies notification belongs to user",
+        "dismiss verifies notification belongs to user"
+      ],
+      "createdAt": "2026-02-08T19:58:24Z"
+    },
+    {
+      "id": "F282",
+      "title": "Fix: bulkCreate/bulkDelete lack transaction wrapping",
+      "description": "Sequential loops without transactions cause partial failures. Errors silently swallowed. Evidence: feature.ts:203,224,231.",
+      "status": "backlog",
+      "priority": 3,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "fix:F018"
+      ],
+      "acceptanceCriteria": [
+        "bulkCreate uses db.transaction()",
+        "bulkDelete uses db.transaction()",
+        "Partial failure rolls back all changes"
+      ],
+      "createdAt": "2026-02-08T19:58:24Z"
+    },
+    {
+      "id": "F283",
+      "title": "Fix: Kanban board missing failed status column",
+      "description": "KANBAN_COLUMNS omits failed status. Features with failed status disappear. Evidence: kanban-board.tsx:35,40.",
+      "status": "backlog",
+      "priority": 3,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "fix:F025"
+      ],
+      "acceptanceCriteria": [
+        "Kanban has failed column visible",
+        "Failed features display with distinct styling"
+      ],
+      "createdAt": "2026-02-08T19:58:24Z"
+    },
+    {
+      "id": "F284",
+      "title": "Fix: Devtools rendered unconditionally in production",
+      "description": "TanStack Router + React Query devtools always rendered. Add import.meta.env.DEV guard. Evidence: __root.tsx:99,100.",
+      "status": "backlog",
+      "priority": 3,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "fix:F020"
+      ],
+      "acceptanceCriteria": [
+        "Devtools only render when import.meta.env.DEV is true",
+        "Production build excludes devtools"
+      ],
+      "createdAt": "2026-02-08T19:58:24Z"
+    },
+    {
+      "id": "F285",
+      "title": "Fix: Session list fetches ALL then filters client-side",
+      "description": "AgentService.listSessions() returns findAll() then filters by userId. Should filter at DB level. Evidence: agent.ts:96, session.ts:91.",
+      "status": "backlog",
+      "priority": 3,
+      "passes": false,
+      "category": "fix",
+      "tags": [
+        "swarm-audit",
+        "fix:F033"
+      ],
+      "acceptanceCriteria": [
+        "Session queries filter by userId at database level",
+        "findAll replaced with findByUser where appropriate"
+      ],
+      "createdAt": "2026-02-08T19:58:24Z"
     }
   ],
   "summary": {

@@ -46,6 +46,7 @@ cd {env.worktree_path} && bun run test:ci
 ```
 fix_result = Task(
   subagent_type = "code-writer",
+  mode = "bypassPermissions",
   model = "sonnet",
   description = "Fix Gate A {feature_id}",
   prompt = "Fix these static check failures in {env.worktree_path}:
@@ -134,6 +135,7 @@ If parsing fails, treat as FAIL with `blocking_count = 1`.
 ```
 fix_result = Task(
   subagent_type = "code-writer",
+  mode = "bypassPermissions",
   model = "sonnet",
   description = "Fix Gate B {feature_id}",
   prompt = "Fix these review findings in {env.worktree_path}:
