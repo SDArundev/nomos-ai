@@ -25,6 +25,14 @@ export function getAgentService(): AgentService {
 	return agentServiceInstance;
 }
 
+async function verifySessionOwnership(sessionId: string, userId: string) {
+	const session = await sessionRepository.findById(sessionId);
+	if (!session || session.userId !== userId) {
+		throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+	}
+	return session;
+}
+
 export const agentRouter = {
 	createSession: protectedProcedure
 		.input(
@@ -51,7 +59,8 @@ export const agentRouter = {
 				content: z.string().min(1),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifySessionOwnership(input.sessionId, context.session.user.id);
 			const service = getAgentService();
 			// Start in background (non-blocking) — events stream via WebSocket
 			service.sendMessage(input.sessionId, input.content).catch(() => {
@@ -81,21 +90,25 @@ export const agentRouter = {
 			return { success: true };
 		}),
 
-	listSessions: protectedProcedure.handler(async () => {
+	listSessions: protectedProcedure.handler(async ({ context }) => {
+		const userId = context.session.user.id;
 		const service = getAgentService();
-		return service.listSessions();
+		const sessions = await service.listSessions();
+		return sessions.filter((s) => s.userId === userId);
 	}),
 
 	getHistory: protectedProcedure
 		.input(z.object({ sessionId: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifySessionOwnership(input.sessionId, context.session.user.id);
 			const service = getAgentService();
 			return service.getHistory(input.sessionId);
 		}),
 
 	clearHistory: protectedProcedure
 		.input(z.object({ sessionId: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifySessionOwnership(input.sessionId, context.session.user.id);
 			const service = getAgentService();
 			await service.clearHistory(input.sessionId);
 			return { success: true };
