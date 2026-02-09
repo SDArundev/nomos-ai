@@ -22,10 +22,7 @@ export const worktreeRepository = {
 			.select()
 			.from(worktree)
 			.where(
-				and(
-					eq(worktree.featureId, featureId),
-					isNull(worktree.removedAt),
-				),
+				and(eq(worktree.featureId, featureId), isNull(worktree.removedAt)),
 			);
 		return rows[0];
 	},
@@ -37,10 +34,7 @@ export const worktreeRepository = {
 			.select()
 			.from(worktree)
 			.where(
-				and(
-					eq(worktree.branchName, branchName),
-					isNull(worktree.removedAt),
-				),
+				and(eq(worktree.branchName, branchName), isNull(worktree.removedAt)),
 			);
 		return rows[0];
 	},
@@ -66,9 +60,6 @@ export const worktreeRepository = {
 	},
 
 	async findActive(): Promise<WorktreeSelect[]> {
-		return db
-			.select()
-			.from(worktree)
-			.where(isNull(worktree.removedAt));
+		return db.select().from(worktree).where(isNull(worktree.removedAt));
 	},
 };

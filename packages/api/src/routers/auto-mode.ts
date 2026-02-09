@@ -5,7 +5,7 @@ import { protectedProcedure } from "../index";
 import { AutoModeService } from "../services/auto-mode-service";
 import { PipelineService } from "../services/pipeline-service";
 import { WorktreeService } from "../services/worktree-service";
-import { getEventService } from "./agent";
+import { getEventService, getSessionService } from "./agent";
 
 let autoModeServiceInstance: AutoModeService | null = null;
 
@@ -14,7 +14,8 @@ export function getAutoModeService(): AutoModeService {
 		const events = getEventService();
 		const pipeline = getPipelineService();
 		const worktree = getWorktreeService();
-		autoModeServiceInstance = new AutoModeService(events, pipeline, worktree);
+		const sessions = getSessionService();
+		autoModeServiceInstance = new AutoModeService(events, pipeline, worktree, sessions);
 	}
 	return autoModeServiceInstance;
 }

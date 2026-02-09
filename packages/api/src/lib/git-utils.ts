@@ -3,14 +3,15 @@
  */
 import { execFile } from "node:child_process";
 
-function execGit(
-	args: string[],
-	cwd: string,
-): Promise<string> {
+function execGit(args: string[], cwd: string): Promise<string> {
 	return new Promise((resolve, reject) => {
 		execFile("git", args, { cwd }, (error, stdout, stderr) => {
 			if (error) {
-				reject(new Error(`git ${args[0]} failed: ${stderr?.trim() ?? error.message}`));
+				reject(
+					new Error(
+						`git ${args[0]} failed: ${stderr?.trim() ?? error.message}`,
+					),
+				);
 				return;
 			}
 			resolve(stdout.trim());
@@ -18,10 +19,7 @@ function execGit(
 	});
 }
 
-export async function git(
-	args: string[],
-	cwd: string,
-): Promise<string> {
+export async function git(args: string[], cwd: string): Promise<string> {
 	return execGit(args, cwd);
 }
 
@@ -57,16 +55,11 @@ export async function worktreeAdd(
 	await git(["worktree", "add", path, branchName], cwd);
 }
 
-export async function worktreeRemove(
-	path: string,
-	cwd: string,
-): Promise<void> {
+export async function worktreeRemove(path: string, cwd: string): Promise<void> {
 	await git(["worktree", "remove", path, "--force"], cwd);
 }
 
-export async function worktreeList(
-	cwd: string,
-): Promise<string[]> {
+export async function worktreeList(cwd: string): Promise<string[]> {
 	const output = await git(["worktree", "list", "--porcelain"], cwd);
 	return output
 		.split("\n")

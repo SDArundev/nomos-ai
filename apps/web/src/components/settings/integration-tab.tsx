@@ -64,8 +64,8 @@ export function IntegrationTab() {
 						</Badge>
 					</div>
 					<p className="mt-2 text-muted-foreground text-xs">
-						GitHub integration uses the gh CLI tool. Ensure it is installed
-						and authenticated.
+						GitHub integration uses the gh CLI tool. Ensure it is installed and
+						authenticated.
 					</p>
 				</CardContent>
 			</Card>

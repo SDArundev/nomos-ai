@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getEventsClient, WebSocketClient } from "@/lib/websocket";
+import { getEventsClient, type WebSocketClient } from "@/lib/websocket";
 
 export function useWebSocket() {
 	const [connected, setConnected] = useState(false);
@@ -21,7 +21,11 @@ export function useWebSocket() {
 					toast.success("Reconnected to server", { id: "ws-status" });
 				}
 				hasEverConnectedRef.current = true;
-			} else if (!isConnected && hasEverConnectedRef.current && wasConnectedRef.current) {
+			} else if (
+				!isConnected &&
+				hasEverConnectedRef.current &&
+				wasConnectedRef.current
+			) {
 				// Only show "Connection lost" if we had a stable connection before
 				toast.warning("Connection lost — reconnecting...", { id: "ws-status" });
 			}

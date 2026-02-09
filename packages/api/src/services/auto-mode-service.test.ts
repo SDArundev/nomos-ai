@@ -73,7 +73,9 @@ describe("AutoModeService", () => {
 			mapCheckpointToFeature: mock(() => {}),
 			getLatestCheckpoint: mock(() => null),
 		};
-		worktreeService = { create: mock(() => Promise.resolve({ path: "/tmp/wt" })) };
+		worktreeService = {
+			create: mock(() => Promise.resolve({ path: "/tmp/wt" })),
+		};
 
 		service = new AutoModeService(
 			events as any,

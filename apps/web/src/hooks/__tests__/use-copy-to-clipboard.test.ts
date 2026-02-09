@@ -1,10 +1,10 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 describe("useCopyToClipboard Hook", () => {
 	it("provides a copy function that accepts text", () => {
 		// Hook returns an object with copy function, copied state, and error state
 		const hookInterface = {
-			copy: (text: string) => Promise.resolve(),
+			copy: (_text: string) => Promise.resolve(),
 			copied: false,
 			error: null,
 		};
@@ -15,7 +15,7 @@ describe("useCopyToClipboard Hook", () => {
 	});
 
 	it("copy function accepts string parameter", () => {
-		const copy = (text: string) => Promise.resolve();
+		const copy = (_text: string) => Promise.resolve();
 		const testText = "test content";
 
 		// Should not throw

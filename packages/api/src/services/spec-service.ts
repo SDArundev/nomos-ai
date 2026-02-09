@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { FeatureInsert } from "@nomos-ai/db";
 import { validateSpec } from "../lib/spec-validator";
@@ -14,19 +14,21 @@ interface AppSpec {
 	constitution?: Record<string, unknown>;
 	architecture?: Record<string, unknown>;
 	requirements?: Record<string, unknown>;
-	phases?: Array<{
-		id: string;
-		name: string;
-		features?: Array<{
-			id?: string;
-			title: string;
-			description: string;
-			category?: string;
-			priority?: number;
-			estimatedSize?: string;
-			acceptanceCriteria?: string[];
-		}>;
-	}> | Record<string, unknown>;
+	phases?:
+		| Array<{
+				id: string;
+				name: string;
+				features?: Array<{
+					id?: string;
+					title: string;
+					description: string;
+					category?: string;
+					priority?: number;
+					estimatedSize?: string;
+					acceptanceCriteria?: string[];
+				}>;
+		  }>
+		| Record<string, unknown>;
 	constraints?: Record<string, unknown>;
 	[key: string]: unknown;
 }
@@ -69,7 +71,8 @@ export class SpecService {
 		projectId: string,
 		userId: string,
 	): Omit<FeatureInsert, "id" | "createdAt" | "updatedAt">[] {
-		const features: Omit<FeatureInsert, "id" | "createdAt" | "updatedAt">[] = [];
+		const features: Omit<FeatureInsert, "id" | "createdAt" | "updatedAt">[] =
+			[];
 
 		if (!Array.isArray(spec.phases)) return features;
 

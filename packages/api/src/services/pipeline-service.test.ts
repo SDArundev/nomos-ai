@@ -196,9 +196,9 @@ describe("PipelineService", () => {
 
 		test("returns highest completed checkpoint", () => {
 			// First call: existsSync for dir, then for each cp file
-			let existsCalls = 0;
+			let _existsCalls = 0;
 			mockExistsSync.mockImplementation(() => {
-				existsCalls++;
+				_existsCalls++;
 				return true; // all exist
 			});
 			mockReaddirSync.mockReturnValue([
@@ -240,11 +240,7 @@ describe("PipelineService", () => {
 
 		test("ignores non-checkpoint files in directory", () => {
 			mockExistsSync.mockReturnValue(true);
-			mockReaddirSync.mockReturnValue([
-				"README.md",
-				"cp-01.json",
-				"notes.txt",
-			]);
+			mockReaddirSync.mockReturnValue(["README.md", "cp-01.json", "notes.txt"]);
 			mockReadFileSync.mockReturnValue(makeCheckpoint(1));
 
 			const result = service.getLatestCheckpoint("F001", "/tmp/root");
@@ -290,7 +286,9 @@ describe("PipelineService", () => {
 		});
 
 		test("phase 4 sets status to waiting_approval", () => {
-			const cp = JSON.parse(makeCheckpoint(4, "completed", { verdict: "PASS" }));
+			const cp = JSON.parse(
+				makeCheckpoint(4, "completed", { verdict: "PASS" }),
+			);
 			service.mapCheckpointToFeature("F001", cp);
 
 			const updateArgs = mockFeatureRepository.update.mock.calls[0] as any[];
@@ -369,9 +367,7 @@ describe("PipelineService", () => {
 			service.mapCheckpointToFeature("F001", cp, "user_001");
 
 			const emitCalls = events.emit.mock.calls;
-			const errorCall = emitCalls.find(
-				(c: any[]) => c[0] === "feature:error",
-			);
+			const errorCall = emitCalls.find((c: any[]) => c[0] === "feature:error");
 			expect(errorCall).toBeDefined();
 		});
 
@@ -385,9 +381,9 @@ describe("PipelineService", () => {
 
 	describe("pollCheckpoints", () => {
 		test("rejects when projectRoot not set", async () => {
-			await expect(
-				service.pollCheckpoints("F001", () => {}),
-			).rejects.toThrow("projectRoot not set");
+			await expect(service.pollCheckpoints("F001", () => {})).rejects.toThrow(
+				"projectRoot not set",
+			);
 		});
 
 		test("stops polling when abort signal fires", async () => {

@@ -59,7 +59,9 @@ export class WebSocketClient {
 	onConnectionChange(handler: (connected: boolean) => void): () => void {
 		this.connectionHandlers.push(handler);
 		return () => {
-			this.connectionHandlers = this.connectionHandlers.filter((h) => h !== handler);
+			this.connectionHandlers = this.connectionHandlers.filter(
+				(h) => h !== handler,
+			);
 		};
 	}
 

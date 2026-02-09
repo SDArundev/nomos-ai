@@ -20,7 +20,9 @@ function execGh(args: string[]): Promise<string> {
 	return new Promise((resolve, reject) => {
 		execFile("gh", args, (error, stdout, stderr) => {
 			if (error) {
-				reject(new Error(`gh ${args[0]} failed: ${stderr?.trim() ?? error.message}`));
+				reject(
+					new Error(`gh ${args[0]} failed: ${stderr?.trim() ?? error.message}`),
+				);
 				return;
 			}
 			resolve(stdout.trim());

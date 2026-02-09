@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../index";
 import { generateLearningId } from "../lib/id-generation";
 import { learning } from "../schema/learnings";
@@ -11,9 +11,35 @@ export const learningRepository = {
 		return db.select().from(learning);
 	},
 
+	async findByUser(userId: string): Promise<LearningSelect[]> {
+		return db.select().from(learning).where(eq(learning.userId, userId));
+	},
+
 	async findById(id: string): Promise<LearningSelect | null> {
 		const rows = await db.select().from(learning).where(eq(learning.id, id));
 		return rows[0] ?? null;
+	},
+
+	async findByUserAndFeature(
+		userId: string,
+		featureId: string,
+	): Promise<LearningSelect[]> {
+		return db
+			.select()
+			.from(learning)
+			.where(
+				and(eq(learning.userId, userId), eq(learning.featureId, featureId)),
+			);
+	},
+
+	async findByUserAndCategory(
+		userId: string,
+		category: string,
+	): Promise<LearningSelect[]> {
+		return db
+			.select()
+			.from(learning)
+			.where(and(eq(learning.userId, userId), eq(learning.category, category)));
 	},
 
 	async findByFeature(featureId: string): Promise<LearningSelect[]> {
@@ -25,10 +51,15 @@ export const learningRepository = {
 	},
 
 	async create(
-		data: Omit<LearningInsert, "id" | "createdAt" | "updatedAt"> & { id?: string },
+		data: Omit<LearningInsert, "id" | "createdAt" | "updatedAt"> & {
+			id?: string;
+		},
 	): Promise<LearningSelect> {
 		const id = data.id ?? (await generateLearningId());
-		const rows = await db.insert(learning).values({ ...data, id }).returning();
+		const rows = await db
+			.insert(learning)
+			.values({ ...data, id })
+			.returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error("Failed to create learning");
@@ -53,7 +84,10 @@ export const learningRepository = {
 	},
 
 	async delete(id: string): Promise<LearningSelect> {
-		const rows = await db.delete(learning).where(eq(learning.id, id)).returning();
+		const rows = await db
+			.delete(learning)
+			.where(eq(learning.id, id))
+			.returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error(`Learning not found: ${id}`);

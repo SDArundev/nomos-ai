@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from "react";
 import type { Terminal } from "@xterm/xterm";
+import { useCallback, useEffect, useRef } from "react";
 import { createTerminalClient, type WebSocketClient } from "@/lib/websocket";
 
 interface UseTerminalOptions {

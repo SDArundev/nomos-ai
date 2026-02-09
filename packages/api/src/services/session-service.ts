@@ -109,10 +109,7 @@ export class SessionService {
 	}
 
 	/** Mark a session as failed */
-	async failSession(
-		sessionId: string,
-		error: string,
-	): Promise<SessionRecord> {
+	async failSession(sessionId: string, error: string): Promise<SessionRecord> {
 		return sessionRepository.update(sessionId, {
 			status: SESSION_STATUS.FAILED,
 			isRunning: false,

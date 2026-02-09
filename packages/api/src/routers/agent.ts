@@ -29,7 +29,11 @@ export function getSessionService(): SessionService {
 export function getAgentService(): AgentService {
 	if (!agentServiceInstance) {
 		const provider = ClaudeProvider.create();
-		agentServiceInstance = new AgentService(getEventService(), provider, getSessionService());
+		agentServiceInstance = new AgentService(
+			getEventService(),
+			provider,
+			getSessionService(),
+		);
 	}
 	return agentServiceInstance;
 }

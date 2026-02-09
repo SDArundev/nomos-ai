@@ -12,7 +12,11 @@ interface SettingsLayoutProps {
 	defaultTab?: string;
 }
 
-export function SettingsLayout({ tabs, children, defaultTab }: SettingsLayoutProps) {
+export function SettingsLayout({
+	tabs,
+	children,
+	defaultTab,
+}: SettingsLayoutProps) {
 	const [activeTab, setActiveTab] = useState(defaultTab ?? tabs[0]?.id ?? "");
 
 	return (

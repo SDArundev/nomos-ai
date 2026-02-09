@@ -4,7 +4,9 @@ import type { FeatureSelect } from "@nomos-ai/db";
  * Topological sort using Kahn's algorithm.
  * Returns features in dependency-safe execution order.
  */
-export function resolveDependencies(features: FeatureSelect[]): FeatureSelect[] {
+export function resolveDependencies(
+	features: FeatureSelect[],
+): FeatureSelect[] {
 	if (features.length === 0) return [];
 
 	const featureMap = new Map(features.map((f) => [f.id, f]));
@@ -22,7 +24,7 @@ export function resolveDependencies(features: FeatureSelect[]): FeatureSelect[] 
 		const deps = f.dependencies ?? [];
 		for (const depId of deps) {
 			if (!featureMap.has(depId)) continue; // missing dep = treat as satisfied
-			adjacencyList.get(depId)!.push(f.id);
+			adjacencyList.get(depId)?.push(f.id);
 			inDegree.set(f.id, (inDegree.get(f.id) ?? 0) + 1);
 		}
 	}
@@ -92,10 +94,11 @@ export function getBlockingDependencies(
 	const featureMap = new Map(allFeatures.map((f) => [f.id, f]));
 	return deps
 		.map((depId) => featureMap.get(depId))
-		.filter((dep): dep is FeatureSelect =>
-			dep !== undefined &&
-			dep.status !== "verified" &&
-			dep.status !== "waiting_approval",
+		.filter(
+			(dep): dep is FeatureSelect =>
+				dep !== undefined &&
+				dep.status !== "verified" &&
+				dep.status !== "waiting_approval",
 		);
 }
 

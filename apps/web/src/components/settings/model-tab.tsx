@@ -87,7 +87,7 @@ export function ModelTab({ settings, onUpdate }: ModelTabProps) {
 									className="accent-primary"
 								/>
 								<div>
-									<span className="text-sm font-medium">{level.label}</span>
+									<span className="font-medium text-sm">{level.label}</span>
 									<p className="text-muted-foreground text-xs">
 										{level.description}
 									</p>

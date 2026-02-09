@@ -40,7 +40,8 @@ export const terminalRouter = {
 
 			if (session.userId !== context.session.user.id) {
 				throw new ORPCError("FORBIDDEN", {
-					message: "You do not have permission to write to this terminal session",
+					message:
+						"You do not have permission to write to this terminal session",
 				});
 			}
 

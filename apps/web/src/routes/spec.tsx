@@ -108,9 +108,7 @@ function SpecPage() {
 						</div>
 						<Button
 							variant="outline"
-							onClick={() =>
-								specQuery.refetch()
-							}
+							onClick={() => specQuery.refetch()}
 							disabled={!effectivePath}
 						>
 							Reload
@@ -167,7 +165,7 @@ function SpecPage() {
 											<AlertCircle className="mt-0.5 size-3 shrink-0 text-red-500" />
 											<span>
 												{err.path && (
-													<span className="font-mono text-xs text-muted-foreground">
+													<span className="font-mono text-muted-foreground text-xs">
 														{err.path}:{" "}
 													</span>
 												)}
@@ -205,9 +203,7 @@ function SpecPage() {
 								{"description" in spec && spec.description != null && (
 									<>
 										<dt className="text-muted-foreground">Description</dt>
-										<dd className="col-span-2">
-											{String(spec.description)}
-										</dd>
+										<dd className="col-span-2">{String(spec.description)}</dd>
 									</>
 								)}
 							</dl>
@@ -234,9 +230,7 @@ function SpecPage() {
 							)}
 							<Button
 								onClick={handleExtract}
-								disabled={
-									extractFeatures.isPending || !selectedProjectId
-								}
+								disabled={extractFeatures.isPending || !selectedProjectId}
 							>
 								{extractFeatures.isPending
 									? "Extracting..."

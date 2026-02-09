@@ -36,7 +36,13 @@ function getPriorityLevel(priority: number | null): string {
 	return "low";
 }
 
-export function FeatureCard({ feature, onClick, selectable, selected, onSelect }: FeatureCardProps) {
+export function FeatureCard({
+	feature,
+	onClick,
+	selectable,
+	selected,
+	onSelect,
+}: FeatureCardProps) {
 	const {
 		attributes,
 		listeners,

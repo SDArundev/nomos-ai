@@ -40,7 +40,8 @@ function FeatureDetail() {
 		orpc.features.update.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
-					queryKey: orpc.features.get.queryOptions({ input: { id: featureId } }).queryKey,
+					queryKey: orpc.features.get.queryOptions({ input: { id: featureId } })
+						.queryKey,
 				});
 				queryClient.invalidateQueries({
 					queryKey: orpc.features.list.queryOptions().queryKey,
@@ -177,7 +178,9 @@ function FeatureDetail() {
 						</>
 					) : (
 						<>
-							<span className="text-muted-foreground text-sm">{feat.phase}</span>
+							<span className="text-muted-foreground text-sm">
+								{feat.phase}
+							</span>
 							<span className="text-muted-foreground text-sm">
 								{feat.category}
 							</span>
@@ -265,7 +268,9 @@ function FeatureDetail() {
 						<CardContent>
 							<p className="text-sm">
 								Current step:{" "}
-								<span className="font-mono font-medium">{feat.pipelineStep}</span>
+								<span className="font-medium font-mono">
+									{feat.pipelineStep}
+								</span>
 							</p>
 							{feat.lastCompletedStep && (
 								<p className="text-muted-foreground text-sm">

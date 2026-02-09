@@ -1,11 +1,4 @@
-import {
-	AlertCircle,
-	CheckCircle2,
-	Clock,
-	Eye,
-	Trash2,
-	X,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, Eye, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -122,8 +115,8 @@ function NotificationItem({
 		>
 			<Icon className={cn("mt-0.5 size-4 shrink-0", color)} />
 			<div className="min-w-0 flex-1">
-				<p className="text-sm font-medium">{notification.title}</p>
-				<p className="text-muted-foreground text-xs line-clamp-2">
+				<p className="font-medium text-sm">{notification.title}</p>
+				<p className="line-clamp-2 text-muted-foreground text-xs">
 					{notification.message}
 				</p>
 				<span className="text-muted-foreground text-xs">

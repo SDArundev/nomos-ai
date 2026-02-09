@@ -1,8 +1,8 @@
 import { Check } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "@/components/theme-provider";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { applyTheme, resetTheme, themes } from "@/lib/themes";
+import { cn } from "@/lib/utils";
 
 interface GeneralTabProps {
 	settings: Record<string, unknown>;
@@ -45,7 +45,8 @@ export function GeneralTab({ settings, onUpdate }: GeneralTabProps) {
 								type="button"
 								className={cn(
 									"group relative flex flex-col items-center gap-2 rounded-lg border p-3 transition-colors hover:border-primary",
-									currentTheme === theme.id && "border-primary ring-1 ring-primary",
+									currentTheme === theme.id &&
+										"border-primary ring-1 ring-primary",
 								)}
 								onClick={() => handleThemeChange(theme.id)}
 							>

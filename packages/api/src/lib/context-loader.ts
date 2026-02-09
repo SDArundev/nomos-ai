@@ -20,9 +20,7 @@ async function readFileSafe(path: string): Promise<string> {
 async function readContextDirectory(dirPath: string): Promise<string> {
 	try {
 		const entries = await readdir(dirPath, { withFileTypes: true });
-		const mdFiles = entries.filter(
-			(e) => e.isFile() && e.name.endsWith(".md"),
-		);
+		const mdFiles = entries.filter((e) => e.isFile() && e.name.endsWith(".md"));
 
 		const parts: string[] = [];
 		for (const file of mdFiles) {
@@ -41,9 +39,7 @@ async function readContextDirectory(dirPath: string): Promise<string> {
  * Loads CLAUDE.md and context files from a project directory.
  * Results are cached per projectPath for 5 minutes.
  */
-export async function loadProjectContext(
-	projectPath: string,
-): Promise<string> {
+export async function loadProjectContext(projectPath: string): Promise<string> {
 	const now = Date.now();
 	const cached = cache.get(projectPath);
 	if (cached && cached.expiresAt > now) {

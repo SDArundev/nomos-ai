@@ -76,7 +76,10 @@ export const projectRouter = {
 	create: protectedProcedure
 		.input(createProjectInput)
 		.handler(async ({ input, context }) => {
-			const existing = await projectRepository.findByPath(context.session.user.id, input.path);
+			const existing = await projectRepository.findByPath(
+				context.session.user.id,
+				input.path,
+			);
 			if (existing) {
 				throw new ORPCError("CONFLICT", {
 					message: `You already have a project with path "${input.path}"`,
@@ -100,7 +103,9 @@ export const projectRouter = {
 		.handler(async ({ input, context }) => {
 			const existing = await projectRepository.findById(input.id);
 			if (!existing || existing.userId !== context.session.user.id) {
-				throw new ORPCError("NOT_FOUND", { message: `Project not found: ${input.id}` });
+				throw new ORPCError("NOT_FOUND", {
+					message: `Project not found: ${input.id}`,
+				});
 			}
 			try {
 				const updateData = Object.fromEntries(
@@ -117,7 +122,9 @@ export const projectRouter = {
 		.handler(async ({ input, context }) => {
 			const existing = await projectRepository.findById(input.id);
 			if (!existing || existing.userId !== context.session.user.id) {
-				throw new ORPCError("NOT_FOUND", { message: `Project not found: ${input.id}` });
+				throw new ORPCError("NOT_FOUND", {
+					message: `Project not found: ${input.id}`,
+				});
 			}
 			try {
 				return await projectRepository.delete(input.id);

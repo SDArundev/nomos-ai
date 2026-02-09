@@ -61,7 +61,10 @@ export function StopExecutionDialog({
 
 			// Find session that matches featureId and is running
 			const activeSession = sessions.find(
-				(s) => s.featureId === featureId && s.isRunning === true && s.status === "running",
+				(s) =>
+					s.featureId === featureId &&
+					s.isRunning === true &&
+					s.status === "running",
 			);
 
 			if (!activeSession) {
@@ -95,7 +98,7 @@ export function StopExecutionDialog({
 
 			toast.success("Feature execution stopped");
 			onOpenChange(false);
-		} catch (error) {
+		} catch (_error) {
 			// Errors are already handled by individual mutation handlers
 			// Close dialog so user isn't stuck
 			onOpenChange(false);
@@ -110,7 +113,8 @@ export function StopExecutionDialog({
 				<DialogHeader>
 					<DialogTitle>Stop Feature Execution</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to stop the execution of this feature? This will cancel the running agent and mark the feature as failed.
+						Are you sure you want to stop the execution of this feature? This
+						will cancel the running agent and mark the feature as failed.
 					</DialogDescription>
 				</DialogHeader>
 

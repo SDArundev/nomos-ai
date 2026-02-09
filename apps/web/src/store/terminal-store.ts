@@ -49,8 +49,7 @@ export const useTerminalStore = create<TerminalStore>()(
 				),
 			setActiveTab: (id) =>
 				set({ activeTabId: id }, undefined, "terminal/setActiveTab"),
-			setTabs: (tabs) =>
-				set({ tabs }, undefined, "terminal/setTabs"),
+			setTabs: (tabs) => set({ tabs }, undefined, "terminal/setTabs"),
 		}),
 		{ name: "TerminalStore" },
 	),

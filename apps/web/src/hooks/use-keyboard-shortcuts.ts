@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 
 export function useKeyboardShortcuts(onOpenPalette: () => void) {
 	const navigate = useNavigate();
@@ -9,7 +9,10 @@ export function useKeyboardShortcuts(onOpenPalette: () => void) {
 	useEffect(() => {
 		const handler = (e: KeyboardEvent) => {
 			const target = e.target as HTMLElement;
-			const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+			const isInput =
+				target.tagName === "INPUT" ||
+				target.tagName === "TEXTAREA" ||
+				target.isContentEditable;
 
 			// Cmd+K / Ctrl+K — command palette
 			if ((e.metaKey || e.ctrlKey) && e.key === "k") {

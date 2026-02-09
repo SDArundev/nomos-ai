@@ -24,7 +24,10 @@ interface KanbanCardDetailProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-import { FEATURE_STATUS_TEXT_COLORS, FEATURE_STATUS_LABELS } from "@/lib/status-display";
+import {
+	FEATURE_STATUS_LABELS,
+	FEATURE_STATUS_TEXT_COLORS,
+} from "@/lib/status-display";
 
 const statusIcons: Record<string, React.ElementType> = {
 	backlog: Clock,
@@ -35,7 +38,10 @@ const statusIcons: Record<string, React.ElementType> = {
 	failed: XCircle,
 };
 
-const statusConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = Object.fromEntries(
+const statusConfig: Record<
+	string,
+	{ icon: React.ElementType; color: string; label: string }
+> = Object.fromEntries(
 	Object.keys(FEATURE_STATUS_TEXT_COLORS).map((key) => [
 		key,
 		{
@@ -123,29 +129,32 @@ export function KanbanCardDetail({
 							</div>
 
 							{/* Acceptance Criteria */}
-							{feature.acceptanceCriteria && feature.acceptanceCriteria.length > 0 && (
-								<div>
-									<h4 className="mb-2 font-semibold text-sm">
-										Acceptance Criteria
-									</h4>
-									<ul className="space-y-1">
-										{feature.acceptanceCriteria.map((ac: string, i: number) => (
-											<li
-												key={`ac-${i}`}
-												className="flex items-start gap-2 text-sm"
-											>
-												<span className="mt-0.5 size-4 shrink-0 rounded-full border text-center text-xs leading-4">
-													{i + 1}
-												</span>
-												<span>{ac}</span>
-											</li>
-										))}
-									</ul>
-								</div>
-							)}
+							{feature.acceptanceCriteria &&
+								feature.acceptanceCriteria.length > 0 && (
+									<div>
+										<h4 className="mb-2 font-semibold text-sm">
+											Acceptance Criteria
+										</h4>
+										<ul className="space-y-1">
+											{feature.acceptanceCriteria.map(
+												(ac: string, i: number) => (
+													<li
+														key={ac}
+														className="flex items-start gap-2 text-sm"
+													>
+														<span className="mt-0.5 size-4 shrink-0 rounded-full border text-center text-xs leading-4">
+															{i + 1}
+														</span>
+														<span>{ac}</span>
+													</li>
+												),
+											)}
+										</ul>
+									</div>
+								)}
 
 							{/* Pipeline Progress */}
-							{pipeline && pipeline.steps && (
+							{pipeline?.steps && (
 								<div>
 									<h4 className="mb-2 font-semibold text-sm">
 										Pipeline Progress
@@ -190,19 +199,13 @@ export function KanbanCardDetail({
 									<h4 className="mb-2 font-semibold text-sm">Files</h4>
 									<div className="space-y-1">
 										{feature.files.create?.map((f: string) => (
-											<div
-												key={f}
-												className="flex items-center gap-2 text-sm"
-											>
+											<div key={f} className="flex items-center gap-2 text-sm">
 												<FileCode2 className="size-3 text-green-500" />
 												<span className="font-mono text-xs">{f}</span>
 											</div>
 										))}
 										{feature.files.modify?.map((f: string) => (
-											<div
-												key={f}
-												className="flex items-center gap-2 text-sm"
-											>
+											<div key={f} className="flex items-center gap-2 text-sm">
 												<FileCode2 className="size-3 text-yellow-500" />
 												<span className="font-mono text-xs">{f}</span>
 											</div>

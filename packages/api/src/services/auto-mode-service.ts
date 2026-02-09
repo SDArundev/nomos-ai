@@ -1,13 +1,13 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import { resolve } from "node:path";
-import { featureRepository, sessionRepository } from "@nomos-ai/db";
-import { SESSION_STATUS } from "@nomos-ai/types";
+import { featureRepository } from "@nomos-ai/db";
 import {
 	areDependenciesSatisfied,
 	resolveDependencies,
 } from "../lib/dependency-resolver";
 import type { EventService } from "./event-service";
 import type { PipelineService } from "./pipeline-service";
+import type { SessionService } from "./session-service";
 import type { WorktreeService } from "./worktree-service";
 
 const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
@@ -48,6 +48,7 @@ export class AutoModeService {
 		private events: EventService,
 		private pipelineService: PipelineService,
 		private worktreeService: WorktreeService,
+		private sessionService: SessionService,
 	) {}
 
 	async start(
@@ -162,14 +163,10 @@ export class AutoModeService {
 			});
 
 			// Create a tracked agent session
-			const session = await sessionRepository.create({
+			const session = await this.sessionService.createPipelineSession({
 				userId: this.currentUserId!,
 				featureId,
-				status: SESSION_STATUS.RUNNING,
-				startedAt: new Date(),
 				model: "claude-cli",
-				isRunning: true,
-				messageCount: 0,
 			});
 
 			// Create worktree if needed
@@ -269,14 +266,13 @@ export class AutoModeService {
 				lockedAt: null,
 			});
 
-			await sessionRepository.update(session.id, {
-				status: SESSION_STATUS.COMPLETED,
-				isRunning: false,
-				completedAt: new Date(),
-				...(typeof costData?.total_cost_usd === "number" && {
-					totalCostUsd: String(costData.total_cost_usd),
-				}),
-			});
+			await this.sessionService.completeSession(
+				session.id,
+				undefined,
+				typeof costData?.total_cost_usd === "number"
+					? { totalCostUsd: costData.total_cost_usd, inputTokens: 0, outputTokens: 0 }
+					: undefined,
+			);
 
 			this.events.emit("feature:completed", {
 				featureId,

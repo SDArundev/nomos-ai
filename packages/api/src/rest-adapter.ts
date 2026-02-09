@@ -61,7 +61,7 @@ export function createRestAdapter(rpcHandler: any) {
 			const orpcContext = c.get("orpcContext");
 
 			// Create RPC request format
-			const rpcRequest = new Request("http://internal/rpc/" + method, {
+			const rpcRequest = new Request(`http://internal/rpc/${method}`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

@@ -18,7 +18,12 @@ export const themeModeSchema = z.enum([
 ]);
 export type ThemeMode = z.infer<typeof themeModeSchema>;
 
-export const planningModeSettingSchema = z.enum(["skip", "lite", "spec", "full"]);
+export const planningModeSettingSchema = z.enum([
+	"skip",
+	"lite",
+	"spec",
+	"full",
+]);
 export type PlanningModeSetting = z.infer<typeof planningModeSettingSchema>;
 
 export const settingScopeSchema = z.enum(["global", "project"]);

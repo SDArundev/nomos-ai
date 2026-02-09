@@ -30,7 +30,10 @@ export function validateSpec(spec: Record<string, unknown>): ValidationResult {
 
 	for (const field of requiredTopLevel) {
 		if (!(field in spec)) {
-			errors.push({ path: field, message: `Required field "${field}" is missing` });
+			errors.push({
+				path: field,
+				message: `Required field "${field}" is missing`,
+			});
 		}
 	}
 
@@ -38,21 +41,40 @@ export function validateSpec(spec: Record<string, unknown>): ValidationResult {
 	if (spec.meta && typeof spec.meta === "object") {
 		const meta = spec.meta as Record<string, unknown>;
 		if (!meta.name || typeof meta.name !== "string") {
-			errors.push({ path: "meta.name", message: "meta.name is required and must be a string" });
+			errors.push({
+				path: "meta.name",
+				message: "meta.name is required and must be a string",
+			});
 		}
 		if (!meta.version || typeof meta.version !== "string") {
-			errors.push({ path: "meta.version", message: "meta.version is required and must be a string" });
+			errors.push({
+				path: "meta.version",
+				message: "meta.version is required and must be a string",
+			});
 		}
 	}
 
 	// Validate phases (should be an array or object)
-	if (spec.phases !== undefined && !Array.isArray(spec.phases) && typeof spec.phases !== "object") {
-		errors.push({ path: "phases", message: "phases must be an array or object" });
+	if (
+		spec.phases !== undefined &&
+		!Array.isArray(spec.phases) &&
+		typeof spec.phases !== "object"
+	) {
+		errors.push({
+			path: "phases",
+			message: "phases must be an array or object",
+		});
 	}
 
 	// Validate requirements
-	if (spec.requirements !== undefined && typeof spec.requirements !== "object") {
-		errors.push({ path: "requirements", message: "requirements must be an object" });
+	if (
+		spec.requirements !== undefined &&
+		typeof spec.requirements !== "object"
+	) {
+		errors.push({
+			path: "requirements",
+			message: "requirements must be an object",
+		});
 	}
 
 	return { valid: errors.length === 0, errors };

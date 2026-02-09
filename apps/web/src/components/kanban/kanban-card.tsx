@@ -94,7 +94,7 @@ export function KanbanCard({ feature, onClick }: KanbanCardProps) {
 							{feature.id}
 						</span>
 					</div>
-					<Badge className={priorityColors[priorityLevel]} >
+					<Badge className={priorityColors[priorityLevel]}>
 						{priorityLevel.toUpperCase()}
 					</Badge>
 				</div>

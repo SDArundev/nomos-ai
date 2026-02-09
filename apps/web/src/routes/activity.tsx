@@ -50,10 +50,7 @@ function ActivityComponent() {
 				))}
 			</div>
 
-			<ActivityFeed
-				limit={50}
-				typeFilter={typeFilter || undefined}
-			/>
+			<ActivityFeed limit={50} typeFilter={typeFilter || undefined} />
 		</div>
 	);
 }

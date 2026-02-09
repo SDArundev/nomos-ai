@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronRight, Clock, Wrench } from "lucide-react";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { DiffViewer } from "@/components/diff/diff-viewer";
+import { Badge } from "@/components/ui/badge";
 import { getToolCategory, isFileModifyingTool } from "@/lib/tool-categories";
 
 interface ToolCallDisplayProps {
@@ -120,7 +120,9 @@ export function ToolCallDisplay({ toolCall }: ToolCallDisplayProps) {
 					{/* File diff rendering for Write/Edit tools */}
 					{diffData && (
 						<div className="mb-3">
-							<span className="text-muted-foreground text-xs">File Changes</span>
+							<span className="text-muted-foreground text-xs">
+								File Changes
+							</span>
 							<div className="mt-1">
 								<DiffViewer
 									oldValue={diffData.oldValue}

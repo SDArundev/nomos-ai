@@ -1,7 +1,7 @@
-import { LogOut, User } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
+import { LogOut, User } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
 import { NavLinks } from "./nav-links";
 import { ProjectSelector } from "./project-selector";
@@ -73,7 +73,9 @@ export function AppSidebar() {
 							<>
 								<div className="flex min-w-0 flex-1 flex-col text-xs">
 									<span className="truncate font-medium">{userName}</span>
-									<span className="truncate text-muted-foreground">{userEmail}</span>
+									<span className="truncate text-muted-foreground">
+										{userEmail}
+									</span>
 								</div>
 								<button
 									type="button"

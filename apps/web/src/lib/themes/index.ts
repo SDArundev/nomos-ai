@@ -1,4 +1,8 @@
-import { type ThemeColors, type ThemeDefinition, themes } from "./theme-registry";
+import {
+	type ThemeColors,
+	type ThemeDefinition,
+	themes,
+} from "./theme-registry";
 
 export type { ThemeColors, ThemeDefinition };
 
@@ -32,17 +36,35 @@ export function applyTheme(themeId: string): void {
 	root.style.setProperty("--sidebar", colors.sidebar);
 	root.style.setProperty("--sidebar-foreground", colors.sidebarForeground);
 	root.style.setProperty("--sidebar-accent", colors.sidebarAccent);
-	root.style.setProperty("--sidebar-accent-foreground", colors.sidebarAccentForeground);
+	root.style.setProperty(
+		"--sidebar-accent-foreground",
+		colors.sidebarAccentForeground,
+	);
 }
 
 export function resetTheme(): void {
 	const root = document.documentElement;
 	const properties = [
-		"--background", "--foreground", "--card", "--card-foreground",
-		"--primary", "--primary-foreground", "--secondary", "--secondary-foreground",
-		"--muted", "--muted-foreground", "--accent", "--accent-foreground",
-		"--destructive", "--border", "--input", "--ring",
-		"--sidebar", "--sidebar-foreground", "--sidebar-accent", "--sidebar-accent-foreground",
+		"--background",
+		"--foreground",
+		"--card",
+		"--card-foreground",
+		"--primary",
+		"--primary-foreground",
+		"--secondary",
+		"--secondary-foreground",
+		"--muted",
+		"--muted-foreground",
+		"--accent",
+		"--accent-foreground",
+		"--destructive",
+		"--border",
+		"--input",
+		"--ring",
+		"--sidebar",
+		"--sidebar-foreground",
+		"--sidebar-accent",
+		"--sidebar-accent-foreground",
 	];
 	for (const prop of properties) {
 		root.style.removeProperty(prop);

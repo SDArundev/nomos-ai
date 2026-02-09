@@ -20,11 +20,13 @@ export function TerminalSplit() {
 
 	useEffect(() => {
 		if (sessionsQuery.data && tabs.length === 0) {
-			const existingTabs = sessionsQuery.data.map((s: { id: string; cwd: string }) => ({
-				id: s.id,
-				cwd: s.cwd,
-				title: s.cwd.split("/").pop() ?? "Terminal",
-			}));
+			const existingTabs = sessionsQuery.data.map(
+				(s: { id: string; cwd: string }) => ({
+					id: s.id,
+					cwd: s.cwd,
+					title: s.cwd.split("/").pop() ?? "Terminal",
+				}),
+			);
 			if (existingTabs.length > 0) {
 				setTabs(existingTabs);
 			}

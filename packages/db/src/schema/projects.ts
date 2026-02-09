@@ -1,5 +1,11 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import {
+	index,
+	integer,
+	sqliteTable,
+	text,
+	uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const project = sqliteTable(
 	"project",
@@ -10,7 +16,12 @@ export const project = sqliteTable(
 		path: text("path").notNull(),
 		settings: text("settings", { mode: "json" })
 			.$type<Record<string, unknown>>()
-			.default({ theme: "system", locale: "en", autoSaveInterval: 30, notifications: true })
+			.default({
+				theme: "system",
+				locale: "en",
+				autoSaveInterval: 30,
+				notifications: true,
+			})
 			.notNull(),
 		status: text("status").notNull().default("draft"),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
