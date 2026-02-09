@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../index";
-import { generateMetricId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { featureMetric } from "../schema/feature-metrics";
 
 export type FeatureMetricSelect = typeof featureMetric.$inferSelect;
@@ -26,9 +26,7 @@ export const featureMetricRepository = {
 		return rows[0] ?? null;
 	},
 
-	async findByFeature(
-		featureId: string,
-	): Promise<FeatureMetricSelect | null> {
+	async findByFeature(featureId: string): Promise<FeatureMetricSelect | null> {
 		const rows = await db
 			.select()
 			.from(featureMetric)
@@ -48,16 +46,24 @@ export const featureMetricRepository = {
 			id?: string;
 		},
 	): Promise<FeatureMetricSelect> {
-		const id = data.id ?? (await generateMetricId());
-		const rows = await db
-			.insert(featureMetric)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create feature metric");
+		if (data.id) {
+			const rows = await db
+				.insert(featureMetric)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create feature metric");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(
+				tx,
+				featureMetric,
+				"MET-",
+				3,
+				data,
+			) as Promise<FeatureMetricSelect>;
+		});
 	},
 
 	async upsert(
@@ -92,9 +98,7 @@ export const featureMetricRepository = {
 
 	async update(
 		id: string,
-		data: Partial<
-			Omit<FeatureMetricInsert, "id" | "createdAt" | "updatedAt">
-		>,
+		data: Partial<Omit<FeatureMetricInsert, "id" | "createdAt" | "updatedAt">>,
 	): Promise<FeatureMetricSelect> {
 		const rows = await db
 			.update(featureMetric)

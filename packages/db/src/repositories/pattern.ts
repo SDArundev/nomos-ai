@@ -1,6 +1,6 @@
 import { and, eq, gte } from "drizzle-orm";
 import { db } from "../index";
-import { generatePatternId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { pattern } from "../schema/patterns";
 
 export type PatternSelect = typeof pattern.$inferSelect;
@@ -46,16 +46,24 @@ export const patternRepository = {
 			id?: string;
 		},
 	): Promise<PatternSelect> {
-		const id = data.id ?? (await generatePatternId());
-		const rows = await db
-			.insert(pattern)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create pattern");
+		if (data.id) {
+			const rows = await db
+				.insert(pattern)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create pattern");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(
+				tx,
+				pattern,
+				"PAT-",
+				3,
+				data,
+			) as Promise<PatternSelect>;
+		});
 	},
 
 	async upsert(
@@ -109,10 +117,7 @@ export const patternRepository = {
 	},
 
 	async delete(id: string): Promise<PatternSelect> {
-		const rows = await db
-			.delete(pattern)
-			.where(eq(pattern.id, id))
-			.returning();
+		const rows = await db.delete(pattern).where(eq(pattern.id, id)).returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error(`Pattern not found: ${id}`);

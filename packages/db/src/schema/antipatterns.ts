@@ -1,17 +1,19 @@
 import { sql } from "drizzle-orm";
 import {
+	check,
 	index,
 	integer,
 	pgTable,
 	text,
 	timestamp,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 
 export const antipattern = pgTable(
 	"antipattern",
 	{
 		id: text("id").primaryKey(),
-		userId: text("user_id").notNull(),
+		userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
 		name: text("name").notNull(),
 		description: text("description").notNull(),
 		category: text("category").notNull(),
@@ -34,5 +36,6 @@ export const antipattern = pgTable(
 		index("antipattern_category_idx").on(table.category),
 		index("antipattern_user_id_idx").on(table.userId),
 		index("antipattern_severity_idx").on(table.severity),
+		check("severity_enum", sql`severity IN ('critical', 'high', 'medium', 'low')`),
 	],
 );

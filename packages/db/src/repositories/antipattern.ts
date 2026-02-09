@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../index";
-import { generateAntipatternId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { antipattern } from "../schema/antipatterns";
 
 export type AntipatternSelect = typeof antipattern.$inferSelect;
@@ -12,10 +12,7 @@ export const antipatternRepository = {
 	},
 
 	async findByUser(userId: string): Promise<AntipatternSelect[]> {
-		return db
-			.select()
-			.from(antipattern)
-			.where(eq(antipattern.userId, userId));
+		return db.select().from(antipattern).where(eq(antipattern.userId, userId));
 	},
 
 	async findById(id: string): Promise<AntipatternSelect | null> {
@@ -48,16 +45,24 @@ export const antipatternRepository = {
 			id?: string;
 		},
 	): Promise<AntipatternSelect> {
-		const id = data.id ?? (await generateAntipatternId());
-		const rows = await db
-			.insert(antipattern)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create antipattern");
+		if (data.id) {
+			const rows = await db
+				.insert(antipattern)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create antipattern");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(
+				tx,
+				antipattern,
+				"ANTI-",
+				3,
+				data,
+			) as Promise<AntipatternSelect>;
+		});
 	},
 
 	async upsert(

@@ -1,4 +1,6 @@
 import { createContext } from "@nomos-ai/api/context";
+import { serverLogger } from "@nomos-ai/api/lib/logger";
+import { registry, requestDuration } from "@nomos-ai/api/lib/metrics";
 import { apiKeyAuthMiddleware } from "@nomos-ai/api/middleware/api-key-auth";
 import { createRestAdapter } from "@nomos-ai/api/rest-adapter";
 import { getEventService } from "@nomos-ai/api/routers/agent";
@@ -8,9 +10,13 @@ import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
 import { ingestPendingLearnings } from "@nomos-ai/api/services/learning-ingestion";
 import { RedisEventService } from "@nomos-ai/api/services/redis-event-service";
 import { auth } from "@nomos-ai/auth";
-import { serverLogger } from "@nomos-ai/api/lib/logger";
-import { registry, requestDuration } from "@nomos-ai/api/lib/metrics";
-import { db, runMigrations, sessionRepository, sql } from "@nomos-ai/db";
+import {
+	closeDatabase,
+	db,
+	runMigrations,
+	sessionRepository,
+	sql,
+} from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -43,7 +49,10 @@ try {
 				completedAt: new Date(),
 			});
 		}
-		serverLogger.info({ count: orphaned.length }, "Cleaned up orphaned sessions");
+		serverLogger.info(
+			{ count: orphaned.length },
+			"Cleaned up orphaned sessions",
+		);
 	}
 } catch (error) {
 	serverLogger.warn({ err: error }, "Session cleanup failed (non-fatal)");
@@ -56,7 +65,10 @@ try {
 		serverLogger.info(result, "Ingested pending learnings");
 	}
 } catch (error) {
-	serverLogger.warn({ err: error }, "Pending learnings ingestion failed (non-fatal)");
+	serverLogger.warn(
+		{ err: error },
+		"Pending learnings ingestion failed (non-fatal)",
+	);
 }
 
 const app = new Hono<{ Variables: { orpcContext: any } }>();
@@ -112,11 +124,34 @@ app.use(
 		origin: env.CORS_ORIGIN.includes(",")
 			? env.CORS_ORIGIN.split(",").map((o) => o.trim())
 			: env.CORS_ORIGIN,
-		allowMethods: ["GET", "POST", "OPTIONS"],
-		allowHeaders: ["Content-Type", "Authorization"],
+		allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+		allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 		credentials: true,
 	}),
 );
+
+// CSRF protection: require X-Requested-With header on state-changing requests
+app.use("/api/*", async (c, next) => {
+	const method = c.req.method;
+	if (method === "GET" || method === "OPTIONS") return next();
+	// better-auth handles its own CSRF protection
+	if (c.req.path.startsWith("/api/auth/")) return next();
+	const xrw = c.req.header("X-Requested-With");
+	if (xrw !== "XMLHttpRequest") {
+		return c.json({ error: "CSRF validation failed" }, 403);
+	}
+	await next();
+});
+
+app.use("/rpc/*", async (c, next) => {
+	const method = c.req.method;
+	if (method === "GET" || method === "OPTIONS") return next();
+	const xrw = c.req.header("X-Requested-With");
+	if (xrw !== "XMLHttpRequest") {
+		return c.json({ error: "CSRF validation failed" }, 403);
+	}
+	await next();
+});
 
 // Security headers
 app.use("/*", async (c, next) => {
@@ -144,7 +179,9 @@ app.use("/*", async (c, next) => {
 	await next();
 	const duration = (performance.now() - start) / 1000;
 	// Normalize path to avoid high-cardinality labels
-	const path = c.req.path.replace(/\/[a-f0-9-]{36}/g, "/:id").replace(/\/[A-Z]+-?\d+/g, "/:id");
+	const path = c.req.path
+		.replace(/\/[a-f0-9-]{36}/g, "/:id")
+		.replace(/\/[A-Z]+-?\d+/g, "/:id");
 	requestDuration.observe(
 		{ method: c.req.method, path, status: String(c.res.status) },
 		duration,
@@ -343,6 +380,16 @@ app.onError((err, c) => {
 });
 
 serverLogger.info({ port: env.PORT }, "Server ready");
+
+// Graceful shutdown
+const shutdown = async () => {
+	serverLogger.info("Shutting down...");
+	terminalService.killAll();
+	await closeDatabase();
+	process.exit(0);
+};
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 export default {
 	port: env.PORT,

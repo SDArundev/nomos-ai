@@ -68,9 +68,17 @@ export function createWebSocketHandlers(
 				terminalService
 			) {
 				try {
+					const session = terminalService.getSession(ws.data.sessionId);
+					if (session.userId !== ws.data.userId) {
+						console.warn(
+							`Terminal session ownership mismatch: session ${ws.data.sessionId} owned by ${session.userId}, accessed by ${ws.data.userId}`,
+						);
+						ws.close(4403, "Forbidden: session ownership mismatch");
+						return;
+					}
 					terminalService.write(ws.data.sessionId, String(message));
 				} catch {
-					// Session may have been killed
+					// Session may have been killed or not found
 				}
 			}
 		},

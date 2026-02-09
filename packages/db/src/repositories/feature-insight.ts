@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../index";
-import { generateInsightId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { featureInsight } from "../schema/feature-insights";
 
 export type FeatureInsightSelect = typeof featureInsight.$inferSelect;
@@ -39,16 +39,24 @@ export const featureInsightRepository = {
 			id?: string;
 		},
 	): Promise<FeatureInsightSelect> {
-		const id = data.id ?? (await generateInsightId());
-		const rows = await db
-			.insert(featureInsight)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create feature insight");
+		if (data.id) {
+			const rows = await db
+				.insert(featureInsight)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create feature insight");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(
+				tx,
+				featureInsight,
+				"INS-",
+				3,
+				data,
+			) as Promise<FeatureInsightSelect>;
+		});
 	},
 
 	async upsert(
@@ -79,9 +87,7 @@ export const featureInsightRepository = {
 
 	async update(
 		id: string,
-		data: Partial<
-			Omit<FeatureInsightInsert, "id" | "createdAt" | "updatedAt">
-		>,
+		data: Partial<Omit<FeatureInsightInsert, "id" | "createdAt" | "updatedAt">>,
 	): Promise<FeatureInsightSelect> {
 		const rows = await db
 			.update(featureInsight)

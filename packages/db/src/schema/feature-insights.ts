@@ -1,12 +1,13 @@
 import { sql } from "drizzle-orm";
 import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { feature } from "./features";
 
 export const featureInsight = pgTable(
 	"feature_insight",
 	{
 		id: text("id").primaryKey(),
-		userId: text("user_id").notNull(),
+		userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
 		featureId: text("feature_id")
 			.notNull()
 			.references(() => feature.id, { onDelete: "cascade" }),

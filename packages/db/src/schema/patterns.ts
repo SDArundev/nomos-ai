@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+	check,
 	index,
 	integer,
 	jsonb,
@@ -8,12 +9,13 @@ import {
 	text,
 	timestamp,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 
 export const pattern = pgTable(
 	"pattern",
 	{
 		id: text("id").primaryKey(),
-		userId: text("user_id").notNull(),
+		userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
 		name: text("name").notNull(),
 		description: text("description").notNull(),
 		category: text("category").notNull(),
@@ -41,5 +43,8 @@ export const pattern = pgTable(
 		index("pattern_category_idx").on(table.category),
 		index("pattern_user_id_idx").on(table.userId),
 		index("pattern_confidence_idx").on(table.confidence),
+		check("confidence_range", sql`confidence >= 0 AND confidence <= 1`),
+		check("success_rate_range", sql`success_rate IS NULL OR (success_rate >= 0 AND success_rate <= 1)`),
+		check("status_enum", sql`status IN ('active', 'proven', 'archived')`),
 	],
 );

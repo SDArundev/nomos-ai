@@ -15,6 +15,13 @@
       "when": 1770625907619,
       "tag": "0001_stiff_tenebrous",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770658821905,
+      "tag": "0002_peaceful_tinkerer",
+      "breakpoints": true
     }
   ]
 }

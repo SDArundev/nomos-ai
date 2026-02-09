@@ -7,13 +7,14 @@ import {
 	timestamp,
 	unique,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { feature } from "./features";
 
 export const featureMetric = pgTable(
 	"feature_metric",
 	{
 		id: text("id").primaryKey(),
-		userId: text("user_id").notNull(),
+		userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
 		featureId: text("feature_id")
 			.notNull()
 			.references(() => feature.id, { onDelete: "cascade" }),

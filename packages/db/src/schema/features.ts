@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
 	boolean,
+	check,
 	index,
 	integer,
 	jsonb,
@@ -127,5 +128,6 @@ export const feature = pgTable(
 		index("feature_status_idx").on(table.status),
 		index("feature_phase_idx").on(table.phase),
 		index("feature_project_id_idx").on(table.projectId),
+		check("feature_status_enum", sql`status IN ('backlog', 'pending', 'in_progress', 'waiting_approval', 'verified', 'failed')`),
 	],
 );

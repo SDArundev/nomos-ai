@@ -1,5 +1,57 @@
+import { existsSync, realpathSync } from "node:fs";
+import { homedir } from "node:os";
+import { resolve } from "node:path";
 import * as pty from "node-pty";
+import { serverLogger } from "../lib/logger";
 import type { IEventService } from "./event-service";
+
+/** Allowlisted environment variable keys for terminal sessions */
+const ENV_ALLOWLIST = new Set([
+	"PATH",
+	"HOME",
+	"SHELL",
+	"USER",
+	"TERM",
+	"LANG",
+	"EDITOR",
+	"LC_ALL",
+	"COLORTERM",
+]);
+
+/** Patterns that indicate sensitive env vars to strip */
+const ENV_DENYLIST_PATTERNS = [
+	"SECRET",
+	"KEY",
+	"TOKEN",
+	"PASSWORD",
+	"DATABASE",
+	"REDIS",
+	"ANTHROPIC",
+];
+
+function sanitizeEnv(): Record<string, string> {
+	const sanitized: Record<string, string> = {};
+	for (const [key, value] of Object.entries(process.env)) {
+		if (value === undefined) continue;
+		if (!ENV_ALLOWLIST.has(key)) continue;
+		const upperKey = key.toUpperCase();
+		if (ENV_DENYLIST_PATTERNS.some((p) => upperKey.includes(p))) continue;
+		sanitized[key] = value;
+	}
+	return sanitized;
+}
+
+function validateCwd(cwd: string): string {
+	// Resolve the path, using realpath if the path exists to resolve symlinks
+	const resolved = existsSync(cwd) ? realpathSync(cwd) : resolve(cwd);
+
+	// Block path traversal sequences
+	if (cwd.includes("\0")) {
+		throw new Error("Path traversal detected in terminal cwd");
+	}
+
+	return resolved;
+}
 
 interface TerminalSession {
 	id: string;
@@ -19,13 +71,14 @@ export class TerminalService {
 	constructor(private events: IEventService) {}
 
 	createSession(cwd: string, userId: string): string {
+		const safeCwd = validateCwd(cwd);
 		const id = crypto.randomUUID();
 		const shell = process.env.SHELL ?? "/bin/zsh";
 
 		const proc = pty.spawn(shell, [], {
 			name: "xterm-256color",
-			cwd,
-			env: process.env as Record<string, string>,
+			cwd: safeCwd,
+			env: sanitizeEnv(),
 			cols: 80,
 			rows: 24,
 		});
@@ -34,12 +87,17 @@ export class TerminalService {
 			id,
 			process: proc,
 			scrollback: [],
-			cwd,
+			cwd: safeCwd,
 			userId,
 		};
 
 		this.sessions.set(id, session);
 		this.streamOutput(session);
+
+		serverLogger.info(
+			{ sessionId: id, userId, cwd: safeCwd },
+			"Terminal session created",
+		);
 
 		// Clean up on process exit
 		proc.onExit(() => {
