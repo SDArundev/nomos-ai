@@ -1,25 +1,15 @@
 import type { FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CheckSquare, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FeatureDetailPanel } from "@/components/kanban/feature-detail-panel";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
-import { KanbanFilterBar } from "@/components/kanban/kanban-filter-bar";
-import { Button } from "@/components/ui/button";
+import { KanbanToolbar } from "@/components/kanban/kanban-toolbar";
+import { NewFeatureDialog } from "@/components/kanban/new-feature-dialog";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/store";
 import { orpc } from "@/utils/orpc";
@@ -61,18 +51,15 @@ function KanbanPage() {
 	const [selectable, setSelectable] = useState(false);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [showNewFeature, setShowNewFeature] = useState(false);
-	const [newTitle, setNewTitle] = useState("");
-	const [newDescription, setNewDescription] = useState("");
-	const [newCategory, setNewCategory] = useState("core");
-	const [newPhase, setNewPhase] = useState("phase-1");
-	const [newAC, setNewAC] = useState("");
+
+	const invalidateFeatures = {
+		queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
+	};
 
 	const updateStatus = useMutation(
 		orpc.features.updateStatus.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
-				});
+				queryClient.invalidateQueries(invalidateFeatures);
 				toast.success("Feature status updated");
 			},
 			onError: (error) => {
@@ -81,32 +68,10 @@ function KanbanPage() {
 		}),
 	);
 
-	const createFeature = useMutation(
-		orpc.features.create.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
-				});
-				toast.success("Feature created");
-				setShowNewFeature(false);
-				setNewTitle("");
-				setNewDescription("");
-				setNewCategory("core");
-				setNewPhase("phase-1");
-				setNewAC("");
-			},
-			onError: (error) => {
-				toast.error(error.message || "Failed to create feature");
-			},
-		}),
-	);
-
 	const bulkUpdateStatus = useMutation(
 		orpc.features.bulkUpdateStatus.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
-				});
+				queryClient.invalidateQueries(invalidateFeatures);
 				toast.success(`Updated ${selectedIds.size} features`);
 				setSelectedIds(new Set());
 				setSelectable(false);
@@ -120,9 +85,7 @@ function KanbanPage() {
 	const bulkDelete = useMutation(
 		orpc.features.bulkDelete.mutationOptions({
 			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
-				});
+				queryClient.invalidateQueries(invalidateFeatures);
 				toast.success(`Deleted ${selectedIds.size} features`);
 				setSelectedIds(new Set());
 				setSelectable(false);
@@ -142,31 +105,6 @@ function KanbanPage() {
 		});
 	}, []);
 
-	const handleCreateFeature = (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!selectedProjectId) {
-			toast.error("Select a project first");
-			return;
-		}
-		const acList = newAC
-			.split("\n")
-			.map((s) => s.trim())
-			.filter(Boolean);
-		if (acList.length === 0) {
-			toast.error("Add at least one acceptance criterion");
-			return;
-		}
-		createFeature.mutate({
-			projectId: selectedProjectId,
-			title: newTitle.trim(),
-			description: newDescription.trim(),
-			category: newCategory,
-			phase: newPhase,
-			acceptanceCriteria: acList,
-			status: "backlog" as FeatureStatus,
-		});
-	};
-
 	const handleStatusChange = (id: string, status: string) => {
 		updateStatus.mutate({ id, status: status as FeatureStatus });
 	};
@@ -178,7 +116,6 @@ function KanbanPage() {
 
 	const totalFeatures = features.data?.total ?? 0;
 
-	// Filter features client-side
 	const filteredFeatures = (features.data?.rows ?? []).filter((feature) => {
 		if (searchParams.search) {
 			const searchLower = searchParams.search.toLowerCase();
@@ -214,39 +151,6 @@ function KanbanPage() {
 		if (!confirm(`Delete ${selectedIds.size} features? This cannot be undone.`))
 			return;
 		bulkDelete.mutate({ ids: Array.from(selectedIds) });
-	};
-
-	const handleSearchChange = (value: string) => {
-		navigate({
-			search: {
-				...searchParams,
-				search: value || undefined,
-			},
-		});
-	};
-
-	const handleCategoryChange = (value: string) => {
-		navigate({
-			search: {
-				...searchParams,
-				category: value || undefined,
-			},
-		});
-	};
-
-	const handlePhaseChange = (value: string) => {
-		navigate({
-			search: {
-				...searchParams,
-				phase: value || undefined,
-			},
-		});
-	};
-
-	const handleClearFilters = () => {
-		navigate({
-			search: {},
-		});
 	};
 
 	if (features.isLoading) {
@@ -289,73 +193,34 @@ function KanbanPage() {
 
 	return (
 		<div className="flex h-full flex-col">
-			<div className="border-b px-6 py-4 shrink-0">
-				<div className="mb-4 flex items-center justify-between">
-					<div>
-						<h1 className="font-bold text-2xl">Kanban Board</h1>
-						<p className="text-muted-foreground text-sm">
-							Drag and drop features to change their status
-						</p>
-					</div>
-					<div className="flex gap-2">
-						<Button
-							variant={selectable ? "secondary" : "outline"}
-							onClick={() => {
-								setSelectable(!selectable);
-								if (selectable) setSelectedIds(new Set());
-							}}
-						>
-							<CheckSquare className="mr-2 size-4" />
-							{selectable ? "Cancel Select" : "Select"}
-						</Button>
-						<Button onClick={() => setShowNewFeature(true)}>
-							<Plus className="mr-2 size-4" />
-							New Feature
-						</Button>
-					</div>
-				</div>
-				<KanbanFilterBar
-					search={searchParams.search}
-					category={searchParams.category}
-					phase={searchParams.phase}
-					onSearchChange={handleSearchChange}
-					onCategoryChange={handleCategoryChange}
-					onPhaseChange={handlePhaseChange}
-					onClear={handleClearFilters}
-				/>
-				{selectable && selectedIds.size > 0 && (
-					<div className="mx-6 mb-2 flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2">
-						<span className="font-medium text-sm">
-							{selectedIds.size} selected
-						</span>
-						<Button size="sm" variant="outline" onClick={handleSelectAll}>
-							{selectedIds.size === filteredFeatures.length
-								? "Deselect All"
-								: "Select All"}
-						</Button>
-						<select
-							className="h-8 rounded border bg-background px-2 text-sm"
-							defaultValue=""
-							onChange={(e) => {
-								if (e.target.value) handleBulkStatusChange(e.target.value);
-								e.target.value = "";
-							}}
-						>
-							<option value="" disabled>
-								Move to...
-							</option>
-							<option value="backlog">Backlog</option>
-							<option value="pending">Pending</option>
-							<option value="in_progress">In Progress</option>
-							<option value="verified">Verified</option>
-						</select>
-						<Button size="sm" variant="destructive" onClick={handleBulkDelete}>
-							<Trash2 className="mr-1 size-3.5" />
-							Delete
-						</Button>
-					</div>
-				)}
-			</div>
+			<KanbanToolbar
+				selectable={selectable}
+				onToggleSelectable={() => {
+					setSelectable(!selectable);
+					if (selectable) setSelectedIds(new Set());
+				}}
+				onNewFeature={() => setShowNewFeature(true)}
+				search={searchParams.search}
+				category={searchParams.category}
+				phase={searchParams.phase}
+				onSearchChange={(value) =>
+					navigate({ search: { ...searchParams, search: value || undefined } })
+				}
+				onCategoryChange={(value) =>
+					navigate({
+						search: { ...searchParams, category: value || undefined },
+					})
+				}
+				onPhaseChange={(value) =>
+					navigate({ search: { ...searchParams, phase: value || undefined } })
+				}
+				onClearFilters={() => navigate({ search: {} })}
+				selectedCount={selectedIds.size}
+				totalFiltered={filteredFeatures.length}
+				onSelectAll={handleSelectAll}
+				onBulkStatusChange={handleBulkStatusChange}
+				onBulkDelete={handleBulkDelete}
+			/>
 			<div className="flex-1 overflow-hidden">
 				<KanbanBoard
 					features={filteredFeatures}
@@ -392,82 +257,11 @@ function KanbanPage() {
 				open={detailPanelOpen}
 				onOpenChange={setDetailPanelOpen}
 			/>
-
-			{/* New Feature Dialog */}
-			<Dialog open={showNewFeature} onOpenChange={setShowNewFeature}>
-				<DialogContent className="max-w-lg">
-					<DialogHeader>
-						<DialogTitle>New Feature</DialogTitle>
-					</DialogHeader>
-					<form onSubmit={handleCreateFeature} className="grid gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="feat-title">Title</Label>
-							<Input
-								id="feat-title"
-								value={newTitle}
-								onChange={(e) => setNewTitle(e.target.value)}
-								placeholder="Feature title (min 5 chars)"
-								required
-								minLength={5}
-								maxLength={80}
-							/>
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="feat-desc">Description</Label>
-							<Textarea
-								id="feat-desc"
-								value={newDescription}
-								onChange={(e) => setNewDescription(e.target.value)}
-								placeholder="Describe the feature (min 20 chars)"
-								required
-								minLength={20}
-								maxLength={500}
-								rows={3}
-							/>
-						</div>
-						<div className="grid grid-cols-2 gap-4">
-							<div className="grid gap-2">
-								<Label htmlFor="feat-cat">Category</Label>
-								<Input
-									id="feat-cat"
-									value={newCategory}
-									onChange={(e) => setNewCategory(e.target.value)}
-									placeholder="e.g. core, ui, infra"
-									required
-								/>
-							</div>
-							<div className="grid gap-2">
-								<Label htmlFor="feat-phase">Phase</Label>
-								<Input
-									id="feat-phase"
-									value={newPhase}
-									onChange={(e) => setNewPhase(e.target.value)}
-									placeholder="e.g. phase-1"
-									required
-								/>
-							</div>
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="feat-ac">
-								Acceptance Criteria (one per line)
-							</Label>
-							<Textarea
-								id="feat-ac"
-								value={newAC}
-								onChange={(e) => setNewAC(e.target.value)}
-								placeholder={
-									"App renders without errors\nUnit tests pass\nTypes check clean"
-								}
-								required
-								rows={4}
-							/>
-						</div>
-						<Button type="submit" disabled={createFeature.isPending}>
-							{createFeature.isPending ? "Creating..." : "Create Feature"}
-						</Button>
-					</form>
-				</DialogContent>
-			</Dialog>
+			<NewFeatureDialog
+				open={showNewFeature}
+				onOpenChange={setShowNewFeature}
+				projectId={selectedProjectId}
+			/>
 		</div>
 	);
 }

@@ -1,7 +1,7 @@
-import { resolve } from "node:path";
 import { featureRepository, sessionRepository } from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
 import type { PermissionMode, ProviderMessage } from "@nomos-ai/types";
+import { validateProjectRoot } from "../lib/allowed-roots";
 import {
 	areDependenciesSatisfied,
 	resolveDependencies,
@@ -13,16 +13,6 @@ import { GitCommitService } from "./git-commit-service";
 import type { PipelineService } from "./pipeline-service";
 import type { SessionService } from "./session-service";
 import type { WorktreeService } from "./worktree-service";
-
-const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
-
-function validateProjectRoot(projectRoot: string): string {
-	const resolved = resolve(projectRoot);
-	if (!ALLOWED_ROOTS.some((root) => resolved.startsWith(`${root}/`))) {
-		throw new Error("projectRoot must be under an allowed directory");
-	}
-	return resolved;
-}
 
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,16 +27,19 @@ interface AutoModeConfig {
 	maxRetries: number;
 }
 
+interface UserState {
+	runningFeatures: Map<string, AbortController>;
+	retryTimers: Set<ReturnType<typeof setTimeout>>;
+	consecutiveFailures: number;
+	isRunning: boolean;
+}
+
 export class AutoModeService {
-	private isRunning = false;
 	private config: AutoModeConfig = {
 		maxConcurrency: 1,
 		maxRetries: MAX_RETRIES,
 	};
-	private runningFeatures = new Map<string, AbortController>();
-	private retryTimers = new Set<ReturnType<typeof setTimeout>>();
-	private consecutiveFailures = 0;
-	private startedByUserId: string | null = null;
+	private userState = new Map<string, UserState>();
 
 	constructor(
 		private events: IEventService,
@@ -56,24 +49,38 @@ export class AutoModeService {
 		private sessionService: SessionService,
 	) {}
 
+	private getUserState(userId: string): UserState {
+		let state = this.userState.get(userId);
+		if (!state) {
+			state = {
+				runningFeatures: new Map(),
+				retryTimers: new Set(),
+				consecutiveFailures: 0,
+				isRunning: false,
+			};
+			this.userState.set(userId, state);
+		}
+		return state;
+	}
+
 	async start(
 		projectId: string,
 		rawProjectRoot: string,
 		userId: string,
 	): Promise<void> {
-		if (this.isRunning) {
+		const state = this.getUserState(userId);
+		if (state.isRunning) {
 			throw new Error("Auto-mode is already running");
 		}
 
 		const projectRoot = validateProjectRoot(rawProjectRoot);
-		this.isRunning = true;
-		this.consecutiveFailures = 0;
-		this.startedByUserId = userId;
+		state.isRunning = true;
+		state.consecutiveFailures = 0;
 		this.events.emit("auto-mode:started", { projectId, userId });
 
-		while (this.isRunning) {
+		while (state.isRunning) {
 			// Check concurrency limit
-			if (this.runningFeatures.size >= this.config.maxConcurrency) {
+			if (state.runningFeatures.size >= this.config.maxConcurrency) {
 				await sleep(1000);
 				continue;
 			}
@@ -86,7 +93,7 @@ export class AutoModeService {
 			// Pick next eligible feature
 			const feature = ordered.find((f) => {
 				// Skip if already running
-				if (this.runningFeatures.has(f.id)) return false;
+				if (state.runningFeatures.has(f.id)) return false;
 				// Skip if dependencies not satisfied
 				if (!areDependenciesSatisfied(f, allFeatures)) {
 					this.events.emit("auto-mode:event", {
@@ -127,20 +134,20 @@ export class AutoModeService {
 
 			// Execute feature in background
 			this.executeFeature(feature.id, projectRoot, userId).catch((err) => {
-				this.consecutiveFailures++;
+				state.consecutiveFailures++;
 				this.events.emit("auto-mode:error", {
 					featureId: feature.id,
 					error: err instanceof Error ? err.message : String(err),
 					userId,
 				});
-				if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+				if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
 					this.events.emit("auto-mode:event", {
 						type: "auto-mode:paused",
 						reason: "consecutive_failures",
-						count: this.consecutiveFailures,
+						count: state.consecutiveFailures,
 						userId,
 					});
-					this.stop();
+					this.stop(userId);
 				}
 			});
 		}
@@ -151,8 +158,9 @@ export class AutoModeService {
 		projectRoot: string,
 		userId: string,
 	): Promise<void> {
+		const state = this.getUserState(userId);
 		const abort = new AbortController();
-		this.runningFeatures.set(featureId, abort);
+		state.runningFeatures.set(featureId, abort);
 
 		try {
 			// Mark as in_progress via state machine
@@ -267,12 +275,8 @@ export class AutoModeService {
 					gateResult.typecheck.status === "FAIL"
 						? gateResult.typecheck.summary
 						: null,
-					gateResult.lint.status === "FAIL"
-						? gateResult.lint.summary
-						: null,
-					gateResult.test.status === "FAIL"
-						? gateResult.test.summary
-						: null,
+					gateResult.lint.status === "FAIL" ? gateResult.lint.summary : null,
+					gateResult.test.status === "FAIL" ? gateResult.test.summary : null,
 				]
 					.filter(Boolean)
 					.join("; ");
@@ -335,7 +339,7 @@ export class AutoModeService {
 			}
 
 			// Quality gates passed — proceed to waiting_approval
-			this.consecutiveFailures = 0;
+			state.consecutiveFailures = 0;
 			await transitionFeatureStatus(featureId, "waiting_approval", {
 				locked: false,
 				lockedBy: null,
@@ -392,50 +396,48 @@ export class AutoModeService {
 
 				// Reset to pending after backoff so it gets picked up again
 				const timer = setTimeout(async () => {
-					this.retryTimers.delete(timer);
+					state.retryTimers.delete(timer);
 					try {
 						await transitionFeatureStatus(featureId, "pending");
 					} catch {
 						// Feature may have been manually handled
 					}
 				}, backoffMs);
-				this.retryTimers.add(timer);
+				state.retryTimers.add(timer);
 			}
 
 			throw err;
 		} finally {
-			this.runningFeatures.delete(featureId);
+			state.runningFeatures.delete(featureId);
 		}
 	}
 
-	stop(): void {
-		this.isRunning = false;
-		for (const timer of this.retryTimers) {
+	stop(userId: string): void {
+		const state = this.getUserState(userId);
+		state.isRunning = false;
+		for (const timer of state.retryTimers) {
 			clearTimeout(timer);
 		}
-		this.retryTimers.clear();
-		for (const [, abort] of this.runningFeatures) {
+		state.retryTimers.clear();
+		for (const [, abort] of state.runningFeatures) {
 			abort.abort();
 		}
-		this.runningFeatures.clear();
-		if (this.startedByUserId) {
-			this.events.emit("auto-mode:stopped", { userId: this.startedByUserId });
-		}
+		state.runningFeatures.clear();
+		this.events.emit("auto-mode:stopped", { userId });
 	}
 
-	getStatus(): {
+	getStatus(userId: string): {
 		isRunning: boolean;
 		runningFeatures: string[];
 		consecutiveFailures: number;
 		config: AutoModeConfig;
-		startedByUserId: string | null;
 	} {
+		const state = this.getUserState(userId);
 		return {
-			isRunning: this.isRunning,
-			runningFeatures: Array.from(this.runningFeatures.keys()),
-			consecutiveFailures: this.consecutiveFailures,
+			isRunning: state.isRunning,
+			runningFeatures: Array.from(state.runningFeatures.keys()),
+			consecutiveFailures: state.consecutiveFailures,
 			config: { ...this.config },
-			startedByUserId: this.startedByUserId,
 		};
 	}
 
@@ -471,8 +473,7 @@ export class AutoModeService {
 		const projectRoot = validateProjectRoot(rawProjectRoot);
 
 		// Resume the session (validates status, updates DB)
-		const session =
-			await this.sessionService.resumeSession(sessionId);
+		const session = await this.sessionService.resumeSession(sessionId);
 
 		if (!session.featureId) {
 			throw new Error("Cannot resume session without a feature ID");
@@ -480,7 +481,8 @@ export class AutoModeService {
 
 		const featureId = session.featureId;
 
-		if (this.runningFeatures.has(featureId)) {
+		const state = this.getUserState(userId);
+		if (state.runningFeatures.has(featureId)) {
 			throw new Error(`Feature ${featureId} is already running`);
 		}
 
@@ -518,8 +520,9 @@ export class AutoModeService {
 		userId: string,
 	): Promise<void> {
 		const projectRoot = validateProjectRoot(rawProjectRoot);
+		const state = this.getUserState(userId);
 
-		if (this.runningFeatures.has(featureId)) {
+		if (state.runningFeatures.has(featureId)) {
 			throw new Error(`Feature ${featureId} is already running`);
 		}
 

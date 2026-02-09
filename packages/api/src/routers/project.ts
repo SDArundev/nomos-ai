@@ -5,9 +5,8 @@ import { ProjectIdSchema, ProjectStatusSchema } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { isAllowedRoot } from "../lib/allowed-roots";
 import { handleRepositoryError } from "../utils/error-handler";
-
-const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
 
 const createProjectInput = z.object({
 	name: z.string().min(1, "Project name is required").max(100),
@@ -83,9 +82,7 @@ export const projectRouter = {
 		.handler(async ({ input, context }) => {
 			// Validate path is under an allowed root
 			const resolvedPath = resolve(input.path);
-			if (
-				!ALLOWED_ROOTS.some((root) => resolvedPath.startsWith(`${root}/`))
-			) {
+			if (!isAllowedRoot(resolvedPath)) {
 				throw new ORPCError("BAD_REQUEST", {
 					message:
 						"Project path must be under an allowed directory (/home, /Users, /tmp, /var/projects)",
@@ -121,8 +118,7 @@ export const projectRouter = {
 					name: input.name,
 					path: resolvedPath,
 					status: input.status,
-					settings:
-						Object.keys(settings).length > 0 ? settings : undefined,
+					settings: Object.keys(settings).length > 0 ? settings : undefined,
 				});
 			} catch (error) {
 				handleRepositoryError(error, "create project");

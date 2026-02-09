@@ -1,5 +1,5 @@
-import { resolve } from "node:path";
 import { featureRepository, worktreeRepository } from "@nomos-ai/db";
+import { validateProjectRoot } from "../lib/allowed-roots";
 import {
 	branchExists,
 	createBranch,
@@ -7,17 +7,6 @@ import {
 	worktreeRemove,
 } from "../lib/git-utils";
 import type { IEventService } from "./event-service";
-
-/** Allowed base directories for project roots */
-const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
-
-function validateProjectRoot(projectRoot: string): string {
-	const resolved = resolve(projectRoot);
-	if (!ALLOWED_ROOTS.some((root) => resolved.startsWith(`${root}/`))) {
-		throw new Error("projectRoot must be under an allowed directory");
-	}
-	return resolved;
-}
 
 interface CreateWorktreeInput {
 	featureId: string;

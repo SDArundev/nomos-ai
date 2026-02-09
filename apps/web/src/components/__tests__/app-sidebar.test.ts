@@ -43,14 +43,3 @@ describe("AppSidebar - State Management", () => {
 	});
 });
 
-describe("AppSidebar - Width Calculations", () => {
-	it("calculates correct width for expanded sidebar", () => {
-		const expandedWidth = "w-64"; // 16rem = 256px
-		expect(expandedWidth).toBe("w-64");
-	});
-
-	it("calculates correct width for collapsed sidebar", () => {
-		const collapsedWidth = "w-16"; // 4rem = 64px
-		expect(collapsedWidth).toBe("w-16");
-	});
-});

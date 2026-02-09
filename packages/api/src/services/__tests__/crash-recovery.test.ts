@@ -507,7 +507,7 @@ describe("AutoModeService.resumeSession", () => {
 		).rejects.toThrow("already running");
 
 		// Cleanup: stop the service
-		service.stop();
+		service.stop("user1");
 	});
 
 	test("delegates to SessionService.resumeSession for state validation", async () => {

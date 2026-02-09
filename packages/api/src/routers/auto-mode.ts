@@ -75,31 +75,19 @@ export const autoModeRouter = {
 
 	stop: protectedProcedure.handler(async ({ context }) => {
 		const service = getAutoModeService();
-		const status = service.getStatus();
-		if (status.isRunning && status.startedByUserId !== context.session.user.id) {
-			throw new ORPCError("FORBIDDEN", { message: "Access denied" });
-		}
-		service.stop();
+		service.stop(context.session.user.id);
 		return { success: true, message: "Auto-mode stopped" };
 	}),
 
 	status: protectedProcedure.handler(async ({ context }) => {
 		const service = getAutoModeService();
-		const status = service.getStatus();
-		if (status.isRunning && status.startedByUserId !== context.session.user.id) {
-			throw new ORPCError("FORBIDDEN", { message: "Access denied" });
-		}
-		return status;
+		return service.getStatus(context.session.user.id);
 	}),
 
 	setConcurrency: protectedProcedure
 		.input(z.object({ max: z.number().int().min(1).max(5) }))
-		.handler(async ({ input, context }) => {
+		.handler(async ({ input }) => {
 			const service = getAutoModeService();
-			const status = service.getStatus();
-			if (status.isRunning && status.startedByUserId !== context.session.user.id) {
-				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
-			}
 			service.setMaxConcurrency(input.max);
 			return { success: true };
 		}),
@@ -111,12 +99,8 @@ export const autoModeRouter = {
 				maxRetries: z.number().int().min(0).max(10).optional(),
 			}),
 		)
-		.handler(async ({ input, context }) => {
+		.handler(async ({ input }) => {
 			const service = getAutoModeService();
-			const status = service.getStatus();
-			if (status.isRunning && status.startedByUserId !== context.session.user.id) {
-				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
-			}
 			service.setConfig(input);
 			return { success: true, config: service.getConfig() };
 		}),

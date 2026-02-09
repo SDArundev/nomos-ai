@@ -443,7 +443,7 @@ describe("AutoModeService Integration", () => {
 		test("should return current status with running features", () => {
 			const provider = createMockProvider([]);
 			const service = new AutoModeService(events, provider, pipeline, worktree, sessions);
-			const status = service.getStatus();
+			const status = service.getStatus("user1");
 
 			expect(status.isRunning).toBe(false);
 			expect(status.runningFeatures).toEqual([]);
