@@ -128,13 +128,12 @@ describe("WebSocket Authentication", () => {
 			const problematicRequests = [
 				new Request("http://localhost/ws/events", {
 					headers: new Headers({
-						cookie:
-							"better_call_session=" + "x".repeat(10000), // Very long cookie
+						cookie: `better_call_session=${"x".repeat(10000)}`, // Very long cookie
 					}),
 				}),
 				new Request("http://localhost/ws/events", {
 					headers: new Headers({
-						authorization: "Bearer " + JSON.stringify({ invalid: "data" }),
+						authorization: `Bearer ${JSON.stringify({ invalid: "data" })}`,
 					}),
 				}),
 			];

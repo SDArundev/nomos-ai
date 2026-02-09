@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
+	CheckCircle2,
 	FolderOpen,
 	GitBranch,
-	CheckCircle2,
-	Clock,
 	Layers,
 	Plus,
 } from "lucide-react";
 import { ActivityFeed } from "@/components/activity/activity-feed";
+import { AutoModeDashboard } from "@/components/auto-mode/auto-mode-dashboard";
+import { IntentBox } from "@/components/intent-box";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -59,8 +60,18 @@ function DashboardComponent() {
 					Welcome back, {session.data?.user.name ?? "there"}
 				</h1>
 				<p className="text-muted-foreground">
-					Here's an overview of your workspace.
+					Autonomous development studio overview.
 				</p>
+			</div>
+
+			{/* Intent Box — primary input surface */}
+			<div className="mb-8">
+				<IntentBox />
+			</div>
+
+			{/* Auto-Mode Dashboard */}
+			<div className="mb-8">
+				<AutoModeDashboard />
 			</div>
 
 			{/* Empty state: no projects */}
@@ -118,7 +129,9 @@ function DashboardComponent() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="text-base">Features by Status</CardTitle>
-								<CardDescription>Distribution across your pipeline</CardDescription>
+								<CardDescription>
+									Distribution across your pipeline
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								{features.isLoading ? (
@@ -128,15 +141,47 @@ function DashboardComponent() {
 										<Skeleton className="h-6 w-full" />
 									</div>
 								) : totalFeatures === 0 ? (
-									<p className="text-muted-foreground text-sm">No features yet.</p>
+									<p className="text-muted-foreground text-sm">
+										No features yet.
+									</p>
 								) : (
 									<div className="space-y-3">
-										<StatusRow label="Backlog" count={featuresByStatus.backlog ?? 0} total={totalFeatures} color="bg-gray-500" />
-										<StatusRow label="Pending" count={featuresByStatus.pending ?? 0} total={totalFeatures} color="bg-yellow-500" />
-										<StatusRow label="In Progress" count={featuresByStatus.in_progress ?? 0} total={totalFeatures} color="bg-blue-500" />
-										<StatusRow label="Waiting Approval" count={featuresByStatus.waiting_approval ?? 0} total={totalFeatures} color="bg-purple-500" />
-										<StatusRow label="Verified" count={featuresByStatus.verified ?? 0} total={totalFeatures} color="bg-green-500" />
-										<StatusRow label="Failed" count={featuresByStatus.failed ?? 0} total={totalFeatures} color="bg-red-500" />
+										<StatusRow
+											label="Backlog"
+											count={featuresByStatus.backlog ?? 0}
+											total={totalFeatures}
+											color="bg-gray-500"
+										/>
+										<StatusRow
+											label="Pending"
+											count={featuresByStatus.pending ?? 0}
+											total={totalFeatures}
+											color="bg-yellow-500"
+										/>
+										<StatusRow
+											label="In Progress"
+											count={featuresByStatus.in_progress ?? 0}
+											total={totalFeatures}
+											color="bg-blue-500"
+										/>
+										<StatusRow
+											label="Waiting Approval"
+											count={featuresByStatus.waiting_approval ?? 0}
+											total={totalFeatures}
+											color="bg-purple-500"
+										/>
+										<StatusRow
+											label="Verified"
+											count={featuresByStatus.verified ?? 0}
+											total={totalFeatures}
+											color="bg-green-500"
+										/>
+										<StatusRow
+											label="Failed"
+											count={featuresByStatus.failed ?? 0}
+											total={totalFeatures}
+											color="bg-red-500"
+										/>
 									</div>
 								)}
 							</CardContent>
@@ -145,7 +190,9 @@ function DashboardComponent() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="text-base">Recent Activity</CardTitle>
-								<CardDescription>Latest events in your workspace</CardDescription>
+								<CardDescription>
+									Latest events in your workspace
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<ActivityFeed limit={10} />
@@ -166,7 +213,9 @@ function DashboardComponent() {
 									>
 										<Card className="transition-colors hover:bg-accent/50">
 											<CardHeader className="pb-2">
-												<CardTitle className="text-sm">{project.name}</CardTitle>
+												<CardTitle className="text-sm">
+													{project.name}
+												</CardTitle>
 												<CardDescription className="font-mono text-xs">
 													{project.path}
 												</CardDescription>

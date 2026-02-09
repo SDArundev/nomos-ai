@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { sessionRepository } from "@nomos-ai/db";
 import { EventService } from "../event-service";
 import { TerminalService } from "../terminal-service";
 
@@ -22,7 +21,10 @@ describe("Event Filtering - AC2 and AC3", () => {
 		capturedEvents = [];
 
 		eventService.subscribe((type, payload) => {
-			capturedEvents.push({ type, payload: payload as Record<string, unknown> });
+			capturedEvents.push({
+				type,
+				payload: payload as Record<string, unknown>,
+			});
 		});
 	});
 
@@ -279,7 +281,9 @@ describe("Event Filtering - AC2 and AC3", () => {
 			const aliceEvents = capturedEvents.filter(
 				(e) => e.payload.userId === "user_alice",
 			);
-			const bobEvents = capturedEvents.filter((e) => e.payload.userId === "user_bob");
+			const bobEvents = capturedEvents.filter(
+				(e) => e.payload.userId === "user_bob",
+			);
 
 			expect(aliceEvents.length).toBe(1);
 			expect(bobEvents.length).toBe(1);

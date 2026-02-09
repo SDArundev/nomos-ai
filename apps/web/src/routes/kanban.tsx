@@ -203,7 +203,8 @@ function KanbanPage() {
 	};
 
 	const handleBulkDelete = () => {
-		if (!confirm(`Delete ${selectedIds.size} features? This cannot be undone.`)) return;
+		if (!confirm(`Delete ${selectedIds.size} features? This cannot be undone.`))
+			return;
 		bulkDelete.mutate({ ids: Array.from(selectedIds) });
 	};
 
@@ -314,11 +315,15 @@ function KanbanPage() {
 					onPhaseChange={handlePhaseChange}
 					onClear={handleClearFilters}
 				/>
-			{selectable && selectedIds.size > 0 && (
+				{selectable && selectedIds.size > 0 && (
 					<div className="mx-6 mb-2 flex items-center gap-3 rounded-lg border bg-muted/50 px-4 py-2">
-						<span className="text-sm font-medium">{selectedIds.size} selected</span>
+						<span className="font-medium text-sm">
+							{selectedIds.size} selected
+						</span>
 						<Button size="sm" variant="outline" onClick={handleSelectAll}>
-							{selectedIds.size === filteredFeatures.length ? "Deselect All" : "Select All"}
+							{selectedIds.size === filteredFeatures.length
+								? "Deselect All"
+								: "Select All"}
 						</Button>
 						<select
 							className="h-8 rounded border bg-background px-2 text-sm"
@@ -328,7 +333,9 @@ function KanbanPage() {
 								e.target.value = "";
 							}}
 						>
-							<option value="" disabled>Move to...</option>
+							<option value="" disabled>
+								Move to...
+							</option>
 							<option value="backlog">Backlog</option>
 							<option value="pending">Pending</option>
 							<option value="in_progress">In Progress</option>
@@ -419,7 +426,9 @@ function KanbanPage() {
 								id="feat-ac"
 								value={newAC}
 								onChange={(e) => setNewAC(e.target.value)}
-								placeholder={"App renders without errors\nUnit tests pass\nTypes check clean"}
+								placeholder={
+									"App renders without errors\nUnit tests pass\nTypes check clean"
+								}
 								required
 								rows={4}
 							/>

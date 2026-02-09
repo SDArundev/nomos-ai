@@ -1,9 +1,5 @@
 import { featureRepository } from "@nomos-ai/db";
 import {
-	resolveDependencies,
-	getBlockingDependencies,
-} from "../lib/dependency-resolver";
-import {
 	FEATURE_VALID_TRANSITIONS,
 	FeatureIdSchema,
 	type FeatureStatus,
@@ -13,6 +9,11 @@ import {
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import {
+	getBlockingDependencies,
+	resolveDependencies,
+} from "../lib/dependency-resolver";
+import { ExpansionService } from "../services/expansion-service";
 import { handleRepositoryError } from "../utils/error-handler";
 
 const listFeaturesInput = z
@@ -74,7 +75,11 @@ export const featureRouter = {
 		.handler(async ({ input, context }) => {
 			const userId = context.session.user.id;
 			if (input?.status && input?.phase) {
-				return featureRepository.findByUserStatusAndPhase(userId, input.status, input.phase);
+				return featureRepository.findByUserStatusAndPhase(
+					userId,
+					input.status,
+					input.phase,
+				);
 			}
 			if (input?.status) {
 				return featureRepository.findByUserAndStatus(userId, input.status);
@@ -131,7 +136,9 @@ export const featureRouter = {
 		.handler(async ({ input, context }) => {
 			const feat = await featureRepository.findById(input.id);
 			if (!feat || feat.userId !== context.session.user.id) {
-				throw new ORPCError("NOT_FOUND", { message: `Feature not found: ${input.id}` });
+				throw new ORPCError("NOT_FOUND", {
+					message: `Feature not found: ${input.id}`,
+				});
 			}
 			try {
 				const updateData = Object.fromEntries(
@@ -148,7 +155,9 @@ export const featureRouter = {
 		.handler(async ({ input, context }) => {
 			const feat = await featureRepository.findById(input.id);
 			if (!feat || feat.userId !== context.session.user.id) {
-				throw new ORPCError("NOT_FOUND", { message: `Feature not found: ${input.id}` });
+				throw new ORPCError("NOT_FOUND", {
+					message: `Feature not found: ${input.id}`,
+				});
 			}
 			try {
 				return await featureRepository.delete(input.id);
@@ -183,7 +192,10 @@ export const featureRouter = {
 	getDependencyOrder: protectedProcedure
 		.input(z.object({ projectId: z.string() }))
 		.handler(async ({ input, context }) => {
-			const features = await featureRepository.findByUserAndProject(context.session.user.id, input.projectId);
+			const features = await featureRepository.findByUserAndProject(
+				context.session.user.id,
+				input.projectId,
+			);
 			const ordered = resolveDependencies(features);
 			return ordered.map((f) => ({
 				id: f.id,
@@ -236,7 +248,9 @@ export const featureRouter = {
 			const userIds = new Set(userFeatures.map((f) => f.id));
 			const unauthorized = input.ids.filter((id) => !userIds.has(id));
 			if (unauthorized.length > 0) {
-				throw new ORPCError("FORBIDDEN", { message: "Access denied to some features" });
+				throw new ORPCError("FORBIDDEN", {
+					message: "Access denied to some features",
+				});
 			}
 			const results = [];
 			for (const id of input.ids) {
@@ -259,7 +273,9 @@ export const featureRouter = {
 			const userIds = new Set(userFeatures.map((f) => f.id));
 			const unauthorized = input.ids.filter((id) => !userIds.has(id));
 			if (unauthorized.length > 0) {
-				throw new ORPCError("FORBIDDEN", { message: "Access denied to some features" });
+				throw new ORPCError("FORBIDDEN", {
+					message: "Access denied to some features",
+				});
 			}
 			try {
 				return await featureRepository.bulkUpdateStatusWithValidation(
@@ -270,5 +286,21 @@ export const featureRouter = {
 			} catch (error) {
 				handleRepositoryError(error, "bulk update feature status");
 			}
+		}),
+
+	expand: protectedProcedure
+		.input(
+			z.object({
+				text: z.string().min(1, "Text is required").max(2000),
+				projectId: z.string().min(1, "Project ID is required"),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const expansionService = new ExpansionService();
+			return expansionService.expandIntent({
+				naturalLanguage: input.text,
+				projectId: input.projectId,
+				userId: context.session.user.id,
+			});
 		}),
 };

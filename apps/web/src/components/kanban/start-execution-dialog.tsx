@@ -1,6 +1,13 @@
 "use client";
 
-import { MODEL, PLANNING_MODE, THINKING_LEVEL, type Model, type PlanningMode, type ThinkingLevel } from "@nomos-ai/types";
+import {
+	MODEL,
+	type Model,
+	PLANNING_MODE,
+	type PlanningMode,
+	THINKING_LEVEL,
+	type ThinkingLevel,
+} from "@nomos-ai/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -44,8 +51,10 @@ export function StartExecutionDialog({
 	const queryClient = useQueryClient();
 
 	const [model, setModel] = useState<Model>(defaultModel);
-	const [thinkingLevel, setThinkingLevel] = useState<ThinkingLevel>(defaultThinkingLevel);
-	const [planningMode, setPlanningMode] = useState<PlanningMode>(defaultPlanningMode);
+	const [thinkingLevel, setThinkingLevel] =
+		useState<ThinkingLevel>(defaultThinkingLevel);
+	const [planningMode, setPlanningMode] =
+		useState<PlanningMode>(defaultPlanningMode);
 
 	const createSession = useMutation(
 		orpc.agent.createSession.mutationOptions({
@@ -115,12 +124,13 @@ Please begin the implementation.`;
 
 			toast.success("Feature execution started");
 			onOpenChange(false);
-		} catch (error) {
+		} catch (_error) {
 			// Errors are already handled by individual mutation handlers
 		}
 	};
 
-	const isPending = createSession.isPending || updateStatus.isPending || sendMessage.isPending;
+	const isPending =
+		createSession.isPending || updateStatus.isPending || sendMessage.isPending;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,16 +168,24 @@ Please begin the implementation.`;
 						</label>
 						<Select
 							value={thinkingLevel}
-							onValueChange={(value) => setThinkingLevel(value as ThinkingLevel)}
+							onValueChange={(value) =>
+								setThinkingLevel(value as ThinkingLevel)
+							}
 						>
 							<SelectTrigger id="thinking-level" className="w-full">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value={THINKING_LEVEL.NONE}>None</SelectItem>
-								<SelectItem value={THINKING_LEVEL.STANDARD}>Standard</SelectItem>
-								<SelectItem value={THINKING_LEVEL.EXTENDED}>Extended</SelectItem>
-								<SelectItem value={THINKING_LEVEL.ULTRATHINK}>Ultrathink</SelectItem>
+								<SelectItem value={THINKING_LEVEL.STANDARD}>
+									Standard
+								</SelectItem>
+								<SelectItem value={THINKING_LEVEL.EXTENDED}>
+									Extended
+								</SelectItem>
+								<SelectItem value={THINKING_LEVEL.ULTRATHINK}>
+									Ultrathink
+								</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -184,10 +202,18 @@ Please begin the implementation.`;
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value={PLANNING_MODE.SKIP}>Skip Planning</SelectItem>
-								<SelectItem value={PLANNING_MODE.LITE}>Lite Planning</SelectItem>
-								<SelectItem value={PLANNING_MODE.SPEC}>Spec Planning</SelectItem>
-								<SelectItem value={PLANNING_MODE.FULL}>Full Planning</SelectItem>
+								<SelectItem value={PLANNING_MODE.SKIP}>
+									Skip Planning
+								</SelectItem>
+								<SelectItem value={PLANNING_MODE.LITE}>
+									Lite Planning
+								</SelectItem>
+								<SelectItem value={PLANNING_MODE.SPEC}>
+									Spec Planning
+								</SelectItem>
+								<SelectItem value={PLANNING_MODE.FULL}>
+									Full Planning
+								</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -201,10 +227,7 @@ Please begin the implementation.`;
 					>
 						Cancel
 					</Button>
-					<Button
-						onClick={handleConfirm}
-						disabled={isPending}
-					>
+					<Button onClick={handleConfirm} disabled={isPending}>
 						{isPending ? "Starting..." : "Start Execution"}
 					</Button>
 				</DialogFooter>

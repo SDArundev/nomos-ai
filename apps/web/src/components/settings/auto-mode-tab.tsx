@@ -80,7 +80,7 @@ export function AutoModeTab({ settings, onUpdate }: AutoModeTabProps) {
 									className="accent-primary"
 								/>
 								<div>
-									<span className="text-sm font-medium">{mode.label}</span>
+									<span className="font-medium text-sm">{mode.label}</span>
 									<p className="text-muted-foreground text-xs">
 										{mode.description}
 									</p>

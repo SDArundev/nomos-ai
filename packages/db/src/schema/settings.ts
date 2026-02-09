@@ -1,4 +1,9 @@
-import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import {
+	integer,
+	sqliteTable,
+	text,
+	uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 import { createSettingId } from "../lib/ids";
 
 export const setting = sqliteTable(

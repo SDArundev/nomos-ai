@@ -1,14 +1,24 @@
-import { featureRepository, sessionRepository } from "@nomos-ai/db";
-import { SESSION_STATUS } from "@nomos-ai/types";
+import { type ChildProcess, spawn } from "node:child_process";
+import { resolve } from "node:path";
+import { featureRepository } from "@nomos-ai/db";
 import {
-	resolveDependencies,
 	areDependenciesSatisfied,
+	resolveDependencies,
 } from "../lib/dependency-resolver";
-import { loadProjectContext } from "../lib/context-loader";
-import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
 import type { PipelineService } from "./pipeline-service";
+import type { SessionService } from "./session-service";
 import type { WorktreeService } from "./worktree-service";
+
+const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
+
+function validateProjectRoot(projectRoot: string): string {
+	const resolved = resolve(projectRoot);
+	if (!ALLOWED_ROOTS.some((root) => resolved.startsWith(`${root}/`))) {
+		throw new Error("projectRoot must be under an allowed directory");
+	}
+	return resolved;
+}
 
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -25,35 +35,36 @@ interface AutoModeConfig {
 
 export class AutoModeService {
 	private isRunning = false;
-	private config: AutoModeConfig = { maxConcurrency: 1, maxRetries: MAX_RETRIES };
+	private config: AutoModeConfig = {
+		maxConcurrency: 1,
+		maxRetries: MAX_RETRIES,
+	};
 	private runningFeatures = new Map<string, AbortController>();
+	private retryTimers = new Set<ReturnType<typeof setTimeout>>();
 	private consecutiveFailures = 0;
-	private projectContext: string | null = null;
 	private currentUserId: string | null = null;
 
 	constructor(
 		private events: EventService,
 		private pipelineService: PipelineService,
 		private worktreeService: WorktreeService,
-		private provider: AgentProvider,
+		private sessionService: SessionService,
 	) {}
 
 	async start(
 		projectId: string,
-		projectRoot: string,
+		rawProjectRoot: string,
 		userId: string,
 	): Promise<void> {
 		if (this.isRunning) {
 			throw new Error("Auto-mode is already running");
 		}
 
+		const projectRoot = validateProjectRoot(rawProjectRoot);
 		this.isRunning = true;
 		this.consecutiveFailures = 0;
 		this.currentUserId = userId;
 		this.events.emit("auto-mode:started", { projectId, userId });
-
-		// Load context once for all features
-		this.projectContext = await loadProjectContext(projectRoot);
 
 		while (this.isRunning) {
 			// Check concurrency limit
@@ -95,7 +106,10 @@ export class AutoModeService {
 			});
 
 			if (!feature) {
-				this.events.emit("auto-mode:idle", { projectId, userId: this.currentUserId! });
+				this.events.emit("auto-mode:idle", {
+					projectId,
+					userId: this.currentUserId!,
+				});
 				await sleep(5000);
 				continue;
 			}
@@ -107,25 +121,23 @@ export class AutoModeService {
 			});
 
 			// Execute feature in background
-			this.executeFeature(feature.id, projectRoot).catch(
-				(err) => {
-					this.consecutiveFailures++;
-					this.events.emit("auto-mode:error", {
-						featureId: feature.id,
-						error: err instanceof Error ? err.message : String(err),
+			this.executeFeature(feature.id, projectRoot).catch((err) => {
+				this.consecutiveFailures++;
+				this.events.emit("auto-mode:error", {
+					featureId: feature.id,
+					error: err instanceof Error ? err.message : String(err),
+					userId: this.currentUserId!,
+				});
+				if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+					this.events.emit("auto-mode:event", {
+						type: "auto-mode:paused",
+						reason: "consecutive_failures",
+						count: this.consecutiveFailures,
 						userId: this.currentUserId!,
 					});
-					if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-						this.events.emit("auto-mode:event", {
-							type: "auto-mode:paused",
-							reason: "consecutive_failures",
-							count: this.consecutiveFailures,
-							userId: this.currentUserId!,
-						});
-						this.stop();
-					}
-				},
-			);
+					this.stop();
+				}
+			});
 		}
 	}
 
@@ -145,17 +157,16 @@ export class AutoModeService {
 				lockedAt: new Date(),
 			});
 
-			this.events.emit("feature:started", { featureId, userId: this.currentUserId! });
+			this.events.emit("feature:started", {
+				featureId,
+				userId: this.currentUserId!,
+			});
 
 			// Create a tracked agent session
-			const session = await sessionRepository.create({
+			const session = await this.sessionService.createPipelineSession({
 				userId: this.currentUserId!,
 				featureId,
-				status: SESSION_STATUS.RUNNING,
-				startedAt: new Date(),
-				model: "sonnet",
-				isRunning: true,
-				messageCount: 0,
+				model: "claude-cli",
 			});
 
 			// Create worktree if needed
@@ -172,39 +183,79 @@ export class AutoModeService {
 				cwd = worktree.path;
 			}
 
-			// Determine start step (resume from checkpoint if retrying)
-			const lastCompleted = feature?.lastCompletedStep;
+			// Auto-mode always runs with auto=true, test=true, merge=false
+			// (merge is not done automatically — features go to waiting_approval)
+			const prompt = `Read .claude/skills/nomos/SKILL.md and follow the FIRST ACTION instructions for feature ${featureId}. Flags: auto=true, test=true, merge=false`;
 
-			// Real executeStep using the provider
-			const executeStep = async (prompt: string, stepCwd: string) => {
-				const systemPrompt = this.projectContext
-					? `# Project Context\n\n${this.projectContext}`
-					: undefined;
+			// Spawn claude CLI as subprocess
+			const proc = spawn(
+				"claude",
+				["--dangerously-skip-permissions", "-p", prompt],
+				{
+					cwd,
+					env: { ...process.env },
+					stdio: ["ignore", "pipe", "pipe"],
+				},
+			);
 
-				for await (const msg of this.provider.executeQuery({
-					prompt,
-					cwd: stepCwd,
-					model: feature?.model ?? "sonnet",
-					maxTurns: 50,
-					thinkingLevel: "high",
-					systemPrompt,
-					abortController: abort,
-				})) {
-					this.events.emit("agent:stream", {
-						sessionId: session.id,
-						message: msg,
+			// Wire abort signal to kill the subprocess
+			const onAbort = () => {
+				proc.kill();
+			};
+			abort.signal.addEventListener("abort", onAbort);
+
+			// Set project root for checkpoint resolution and start polling
+			this.pipelineService.setProjectRoot(cwd);
+
+			const pollPromise = this.pipelineService.pollCheckpoints(
+				featureId,
+				(checkpoint) => {
+					this.pipelineService.mapCheckpointToFeature(
+						featureId,
+						checkpoint,
+						this.currentUserId!,
+					);
+					this.events.emit("auto-mode:event", {
+						type: "auto-mode:checkpoint",
+						featureId,
+						checkpoint,
 						userId: this.currentUserId!,
 					});
-				}
-			};
-
-			// Run pipeline (with checkpoint resume)
-			await this.pipelineService.executeFeature(
-				featureId,
-				executeStep,
-				cwd,
-				lastCompleted ?? undefined,
+				},
+				abort.signal,
 			);
+
+			// Stream stdout/stderr for logging/events
+			this.streamChildOutput(proc, session.id);
+
+			// Wait for subprocess to exit
+			const exitCode = await new Promise<number | null>((resolveCode) => {
+				proc.on("close", (code) => resolveCode(code));
+				proc.on("error", () => resolveCode(null));
+			});
+
+			// Clean up abort listener
+			abort.signal.removeEventListener("abort", onAbort);
+
+			// Wait for checkpoint polling to finish
+			await pollPromise.catch(() => {
+				// Polling may reject if aborted — that's fine
+			});
+
+			if (exitCode !== 0) {
+				throw new Error(
+					`Claude CLI exited with code ${exitCode} for feature ${featureId}`,
+				);
+			}
+
+			// Read final checkpoint data
+			const finalCheckpoint = this.pipelineService.getLatestCheckpoint(
+				featureId,
+				cwd,
+			);
+			const costData = finalCheckpoint?.data?.data as
+				| Record<string, unknown>
+				| undefined;
 
 			// Success
 			this.consecutiveFailures = 0;
@@ -215,13 +266,18 @@ export class AutoModeService {
 				lockedAt: null,
 			});
 
-			await sessionRepository.update(session.id, {
-				status: SESSION_STATUS.COMPLETED,
-				isRunning: false,
-				completedAt: new Date(),
-			});
+			await this.sessionService.completeSession(
+				session.id,
+				undefined,
+				typeof costData?.total_cost_usd === "number"
+					? { totalCostUsd: costData.total_cost_usd, inputTokens: 0, outputTokens: 0 }
+					: undefined,
+			);
 
-			this.events.emit("feature:completed", { featureId, userId: this.currentUserId! });
+			this.events.emit("feature:completed", {
+				featureId,
+				userId: this.currentUserId!,
+			});
 		} catch (err) {
 			// Increment retry count
 			await featureRepository.incrementRetryCount(featureId);
@@ -243,7 +299,10 @@ export class AutoModeService {
 
 			// Schedule retry if under limit
 			if (retryInfo.retryCount < this.config.maxRetries) {
-				const backoffMs = RETRY_BACKOFF_MS[Math.min(retryInfo.retryCount - 1, RETRY_BACKOFF_MS.length - 1)] ?? RETRY_BACKOFF_MS[0];
+				const backoffMs =
+					RETRY_BACKOFF_MS[
+						Math.min(retryInfo.retryCount - 1, RETRY_BACKOFF_MS.length - 1)
+					] ?? RETRY_BACKOFF_MS[0];
 				this.events.emit("auto-mode:event", {
 					type: "auto-mode:retry",
 					featureId,
@@ -253,13 +312,15 @@ export class AutoModeService {
 				});
 
 				// Reset to pending after backoff so it gets picked up again
-				setTimeout(async () => {
+				const timer = setTimeout(async () => {
+					this.retryTimers.delete(timer);
 					try {
 						await featureRepository.update(featureId, { status: "pending" });
 					} catch {
 						// Feature may have been manually handled
 					}
 				}, backoffMs);
+				this.retryTimers.add(timer);
 			}
 
 			throw err;
@@ -268,8 +329,35 @@ export class AutoModeService {
 		}
 	}
 
+	/**
+	 * Attach listeners to a child process's stdout/stderr and emit as agent events.
+	 */
+	private streamChildOutput(proc: ChildProcess, sessionId: string): void {
+		proc.stdout?.on("data", (chunk: Buffer) => {
+			this.events.emit("agent:stream", {
+				sessionId,
+				channel: "stdout",
+				text: chunk.toString(),
+				userId: this.currentUserId!,
+			});
+		});
+
+		proc.stderr?.on("data", (chunk: Buffer) => {
+			this.events.emit("agent:stream", {
+				sessionId,
+				channel: "stderr",
+				text: chunk.toString(),
+				userId: this.currentUserId!,
+			});
+		});
+	}
+
 	stop(): void {
 		this.isRunning = false;
+		for (const timer of this.retryTimers) {
+			clearTimeout(timer);
+		}
+		this.retryTimers.clear();
 		for (const [, abort] of this.runningFeatures) {
 			abort.abort();
 		}
@@ -299,7 +387,10 @@ export class AutoModeService {
 
 	setConfig(config: Partial<AutoModeConfig>): void {
 		if (config.maxConcurrency !== undefined) {
-			this.config.maxConcurrency = Math.max(1, Math.min(5, config.maxConcurrency));
+			this.config.maxConcurrency = Math.max(
+				1,
+				Math.min(5, config.maxConcurrency),
+			);
 		}
 		if (config.maxRetries !== undefined) {
 			this.config.maxRetries = Math.max(0, Math.min(10, config.maxRetries));

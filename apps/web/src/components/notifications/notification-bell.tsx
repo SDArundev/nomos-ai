@@ -1,10 +1,10 @@
 import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useAppStore } from "@/store";
 import { NotificationList } from "./notification-list";
@@ -17,13 +17,11 @@ export function NotificationBell() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
-				render={
-					<Button variant="ghost" size="icon-sm" className="relative" />
-				}
+				render={<Button variant="ghost" size="icon-sm" className="relative" />}
 			>
 				<Bell className="size-4" />
 				{unreadCount > 0 && (
-					<span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive font-bold text-destructive-foreground text-[10px]">
+					<span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive font-bold text-[10px] text-destructive-foreground">
 						{unreadCount > 9 ? "9+" : unreadCount}
 					</span>
 				)}

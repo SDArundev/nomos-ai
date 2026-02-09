@@ -25,7 +25,11 @@ describe("WebSocket Handlers", () => {
 		eventService = new EventService();
 		broadcaster = new EventBroadcaster(eventService);
 		terminalService = new TerminalService(eventService);
-		handlers = createWebSocketHandlers(broadcaster, terminalService, eventService);
+		handlers = createWebSocketHandlers(
+			broadcaster,
+			terminalService,
+			eventService,
+		);
 	});
 
 	describe("Event channel handlers", () => {

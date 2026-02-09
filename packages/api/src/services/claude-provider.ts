@@ -29,26 +29,53 @@ export function classifyError(error: unknown): {
 	retryable: boolean;
 	message: string;
 } {
-	const msg =
-		error instanceof Error ? error.message : String(error);
+	const msg = error instanceof Error ? error.message : String(error);
 	const lower = msg.toLowerCase();
 
-	if (lower.includes("401") || lower.includes("unauthorized") || lower.includes("invalid api key") || lower.includes("authentication")) {
+	if (
+		lower.includes("401") ||
+		lower.includes("unauthorized") ||
+		lower.includes("invalid api key") ||
+		lower.includes("authentication")
+	) {
 		return { category: "auth", retryable: false, message: msg };
 	}
-	if (lower.includes("429") || lower.includes("rate limit") || lower.includes("too many requests")) {
+	if (
+		lower.includes("429") ||
+		lower.includes("rate limit") ||
+		lower.includes("too many requests")
+	) {
 		return { category: "rate_limit", retryable: true, message: msg };
 	}
-	if (lower.includes("timeout") || lower.includes("timed out") || lower.includes("etimedout")) {
+	if (
+		lower.includes("timeout") ||
+		lower.includes("timed out") ||
+		lower.includes("etimedout")
+	) {
 		return { category: "timeout", retryable: true, message: msg };
 	}
-	if (lower.includes("econnrefused") || lower.includes("enotfound") || lower.includes("network") || lower.includes("fetch failed") || lower.includes("econnreset")) {
+	if (
+		lower.includes("econnrefused") ||
+		lower.includes("enotfound") ||
+		lower.includes("network") ||
+		lower.includes("fetch failed") ||
+		lower.includes("econnreset")
+	) {
 		return { category: "network", retryable: true, message: msg };
 	}
-	if (lower.includes("500") || lower.includes("502") || lower.includes("503") || lower.includes("overloaded")) {
+	if (
+		lower.includes("500") ||
+		lower.includes("502") ||
+		lower.includes("503") ||
+		lower.includes("overloaded")
+	) {
 		return { category: "server", retryable: true, message: msg };
 	}
-	if (lower.includes("invalid") || lower.includes("validation") || lower.includes("400")) {
+	if (
+		lower.includes("invalid") ||
+		lower.includes("validation") ||
+		lower.includes("400")
+	) {
 		return { category: "validation", retryable: false, message: msg };
 	}
 	return { category: "unknown", retryable: false, message: msg };
@@ -81,7 +108,8 @@ export class ClaudeProvider implements AgentProvider {
 				systemPrompt: options.systemPrompt,
 				maxTurns: options.maxTurns ?? 10,
 				permissionMode: options.permissionMode ?? "default",
-				allowDangerouslySkipPermissions: options.permissionMode === "bypassPermissions",
+				allowDangerouslySkipPermissions:
+					options.permissionMode === "bypassPermissions",
 				settingSources: ["project"],
 				abortController,
 				...(options.allowedTools && { tools: options.allowedTools }),
@@ -90,6 +118,9 @@ export class ClaudeProvider implements AgentProvider {
 				}),
 				...(thinkingLevel !== "none" && {
 					maxThinkingTokens: THINKING_TOKEN_BUDGET[thinkingLevel],
+				}),
+				...(options.maxBudgetUsd && {
+					maxBudgetUsd: options.maxBudgetUsd,
 				}),
 			},
 		};
@@ -107,7 +138,22 @@ export class ClaudeProvider implements AgentProvider {
 				for await (const message of stream) {
 					const type = (message as { type?: string }).type;
 					if (type === "assistant" || type === "result" || type === "error") {
-						yield message as ProviderMessage;
+						const msg = message as ProviderMessage;
+						// Extract cost data from SDK result messages
+						if (type === "result") {
+							const sdkResult = message as {
+								total_cost_usd?: number;
+								usage?: { input_tokens?: number; output_tokens?: number };
+							};
+							if (sdkResult.total_cost_usd != null) {
+								msg.costData = {
+									totalCostUsd: sdkResult.total_cost_usd,
+									inputTokens: sdkResult.usage?.input_tokens ?? 0,
+									outputTokens: sdkResult.usage?.output_tokens ?? 0,
+								};
+							}
+						}
+						yield msg;
 					}
 				}
 
@@ -117,7 +163,11 @@ export class ClaudeProvider implements AgentProvider {
 				lastError = error;
 				const classified = classifyError(error);
 
-				if (!classified.retryable || abortController.signal.aborted || attempt === MAX_RETRIES) {
+				if (
+					!classified.retryable ||
+					abortController.signal.aborted ||
+					attempt === MAX_RETRIES
+				) {
 					clearTimeout(timeout);
 					throw new Error(
 						`Claude SDK error [${classified.category}]: ${classified.message}`,
@@ -140,9 +190,12 @@ export class ClaudeProvider implements AgentProvider {
 	}
 
 	static create(): AgentProvider {
-		const isMock = process.env.NOMOS_MOCK_AGENT === "true" || process.env.NOMOS_MOCK_AGENT === "1";
+		const isMock =
+			process.env.NOMOS_MOCK_AGENT === "true" ||
+			process.env.NOMOS_MOCK_AGENT === "1";
 		if (isMock) {
-			const { MockProvider } = require("./mock-provider") as typeof import("./mock-provider");
+			const { MockProvider } =
+				require("./mock-provider") as typeof import("./mock-provider");
 			return new MockProvider();
 		}
 		return new ClaudeProvider();

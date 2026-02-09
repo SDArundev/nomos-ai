@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { EventCard } from "./event-card";
 import { useEventSubscription } from "@/hooks/use-websocket";
 import { orpc } from "@/utils/orpc";
+import { EventCard } from "./event-card";
 
 interface ActivityFeedProps {
 	limit?: number;
@@ -18,7 +18,14 @@ export function ActivityFeed({ limit = 50, typeFilter }: ActivityFeedProps) {
 
 	// Auto-refresh on new events
 	useEventSubscription(
-		["agent:complete", "agent:error", "feature:update", "feature:create", "auto-mode:start", "auto-mode:stop"],
+		[
+			"agent:complete",
+			"agent:error",
+			"feature:update",
+			"feature:create",
+			"auto-mode:start",
+			"auto-mode:stop",
+		],
 		() => {
 			refetch();
 		},

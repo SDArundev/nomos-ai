@@ -74,10 +74,15 @@ Create an implementation plan with:
 			`Description: ${feature.description}`,
 		];
 
-		if (Array.isArray(feature.acceptanceCriteria) && feature.acceptanceCriteria.length > 0) {
+		if (
+			Array.isArray(feature.acceptanceCriteria) &&
+			feature.acceptanceCriteria.length > 0
+		) {
 			featureContext.push(
 				"Acceptance Criteria:",
-				...feature.acceptanceCriteria.map((ac: string, i: number) => `  ${i + 1}. ${ac}`),
+				...feature.acceptanceCriteria.map(
+					(ac: string, i: number) => `  ${i + 1}. ${ac}`,
+				),
 			);
 		}
 
@@ -93,6 +98,8 @@ Create an implementation plan with:
 			finish: `Finalize: update feature status, record learnings.\n\n${featureBlock}`,
 		};
 
-		return stepInstructions[stepId] ?? `Execute step: ${stepId}\n\n${featureBlock}`;
+		return (
+			stepInstructions[stepId] ?? `Execute step: ${stepId}\n\n${featureBlock}`
+		);
 	}
 }

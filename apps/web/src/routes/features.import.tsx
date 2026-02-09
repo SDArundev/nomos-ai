@@ -37,7 +37,10 @@ function ImportComponent() {
 	const selectedProjectId = useAppStore((s) => s.selectedProjectId);
 	const [parsed, setParsed] = useState<ImportFeature[]>([]);
 	const [error, setError] = useState<string | null>(null);
-	const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+	const [progress, setProgress] = useState<{
+		done: number;
+		total: number;
+	} | null>(null);
 	const fileRef = useRef<HTMLInputElement>(null);
 
 	const bulkCreate = useMutation(
@@ -67,15 +70,21 @@ function ImportComponent() {
 		reader.onload = (ev) => {
 			try {
 				const json = JSON.parse(ev.target?.result as string);
-				const features: ImportFeature[] = Array.isArray(json) ? json : json.features;
+				const features: ImportFeature[] = Array.isArray(json)
+					? json
+					: json.features;
 				if (!Array.isArray(features) || features.length === 0) {
-					setError("JSON must be an array of features or an object with a 'features' array");
+					setError(
+						"JSON must be an array of features or an object with a 'features' array",
+					);
 					return;
 				}
 				// Basic validation
 				for (const f of features) {
 					if (!f.title || !f.description || !f.acceptanceCriteria) {
-						setError(`Feature "${f.title ?? "unknown"}" is missing required fields (title, description, acceptanceCriteria)`);
+						setError(
+							`Feature "${f.title ?? "unknown"}" is missing required fields (title, description, acceptanceCriteria)`,
+						);
 						return;
 					}
 				}
@@ -127,16 +136,11 @@ function ImportComponent() {
 						onChange={handleFileChange}
 						className="hidden"
 					/>
-					<Button
-						variant="outline"
-						onClick={() => fileRef.current?.click()}
-					>
+					<Button variant="outline" onClick={() => fileRef.current?.click()}>
 						<Upload className="mr-2 size-4" />
 						Choose JSON file
 					</Button>
-					{error && (
-						<p className="mt-2 text-destructive text-sm">{error}</p>
-					)}
+					{error && <p className="mt-2 text-destructive text-sm">{error}</p>}
 				</CardContent>
 			</Card>
 
@@ -181,7 +185,9 @@ function ImportComponent() {
 							onClick={handleImport}
 							disabled={bulkCreate.isPending || !selectedProjectId}
 						>
-							{bulkCreate.isPending ? "Importing..." : `Import All (${parsed.length})`}
+							{bulkCreate.isPending
+								? "Importing..."
+								: `Import All (${parsed.length})`}
 						</Button>
 						{!selectedProjectId && (
 							<p className="mt-2 text-muted-foreground text-xs">

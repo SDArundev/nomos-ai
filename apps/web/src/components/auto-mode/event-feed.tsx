@@ -75,9 +75,7 @@ export function EventFeed({ events }: EventFeedProps) {
 			</CardHeader>
 			<CardContent>
 				{sortedEvents.length === 0 ? (
-					<p className="text-muted-foreground text-sm">
-						No events yet
-					</p>
+					<p className="text-muted-foreground text-sm">No events yet</p>
 				) : (
 					<div className="max-h-64 space-y-2 overflow-y-auto">
 						{sortedEvents.map((event, i) => {
@@ -89,13 +87,9 @@ export function EventFeed({ events }: EventFeedProps) {
 									key={`${event.timestamp}-${i}`}
 									className="flex items-start gap-2 text-sm"
 								>
-									<Icon
-										className={cn("mt-0.5 size-4 shrink-0", color)}
-									/>
+									<Icon className={cn("mt-0.5 size-4 shrink-0", color)} />
 									<div className="min-w-0 flex-1">
-										<p className="truncate">
-											{formatEventMessage(event)}
-										</p>
+										<p className="truncate">{formatEventMessage(event)}</p>
 										<span className="text-muted-foreground text-xs">
 											{new Date(event.timestamp).toLocaleTimeString()}
 										</span>

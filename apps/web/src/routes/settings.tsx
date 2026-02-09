@@ -37,9 +37,7 @@ function SettingsPage() {
 		<div className="h-full">
 			<SettingsLayout tabs={tabs} defaultTab="general">
 				{{
-					general: (
-						<GeneralTab settings={settings} onUpdate={updateSetting} />
-					),
+					general: <GeneralTab settings={settings} onUpdate={updateSetting} />,
 					model: <ModelTab settings={settings} onUpdate={updateSetting} />,
 					"auto-mode": (
 						<AutoModeTab settings={settings} onUpdate={updateSetting} />

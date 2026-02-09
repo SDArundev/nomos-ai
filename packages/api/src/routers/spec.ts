@@ -18,8 +18,17 @@ export const specRouter = {
 		.handler(async ({ input }) => {
 			const service = getSpecService();
 			const spec = await service.loadSpec(input.projectPath);
-			if (!spec) return { spec: null, validation: { valid: false, errors: [{ path: "", message: "No spec found" }] } };
-			const validation = service.validate(spec as unknown as Record<string, unknown>);
+			if (!spec)
+				return {
+					spec: null,
+					validation: {
+						valid: false,
+						errors: [{ path: "", message: "No spec found" }],
+					},
+				};
+			const validation = service.validate(
+				spec as unknown as Record<string, unknown>,
+			);
 			return { spec, validation };
 		}),
 
@@ -32,7 +41,9 @@ export const specRouter = {
 		)
 		.handler(async ({ input }) => {
 			const service = getSpecService();
-			const validation = service.validate(input.spec as Record<string, unknown>);
+			const validation = service.validate(
+				input.spec as Record<string, unknown>,
+			);
 			if (!validation.valid) {
 				return { success: false, errors: validation.errors };
 			}
@@ -40,7 +51,10 @@ export const specRouter = {
 				input.projectPath,
 				input.spec as unknown as Parameters<SpecService["saveSpec"]>[1],
 			);
-			return { success: true, errors: [] as { path: string; message: string }[] };
+			return {
+				success: true,
+				errors: [] as { path: string; message: string }[],
+			};
 		}),
 
 	extractFeatures: protectedProcedure

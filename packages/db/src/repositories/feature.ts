@@ -20,20 +20,51 @@ export const featureRepository = {
 		return db.select().from(feature).where(eq(feature.userId, userId));
 	},
 
-	async findByUserAndStatus(userId: string, status: string): Promise<FeatureSelect[]> {
-		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.status, status)));
+	async findByUserAndStatus(
+		userId: string,
+		status: string,
+	): Promise<FeatureSelect[]> {
+		return db
+			.select()
+			.from(feature)
+			.where(and(eq(feature.userId, userId), eq(feature.status, status)));
 	},
 
-	async findByUserAndPhase(userId: string, phase: string): Promise<FeatureSelect[]> {
-		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.phase, phase)));
+	async findByUserAndPhase(
+		userId: string,
+		phase: string,
+	): Promise<FeatureSelect[]> {
+		return db
+			.select()
+			.from(feature)
+			.where(and(eq(feature.userId, userId), eq(feature.phase, phase)));
 	},
 
-	async findByUserStatusAndPhase(userId: string, status: string, phase: string): Promise<FeatureSelect[]> {
-		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.status, status), eq(feature.phase, phase)));
+	async findByUserStatusAndPhase(
+		userId: string,
+		status: string,
+		phase: string,
+	): Promise<FeatureSelect[]> {
+		return db
+			.select()
+			.from(feature)
+			.where(
+				and(
+					eq(feature.userId, userId),
+					eq(feature.status, status),
+					eq(feature.phase, phase),
+				),
+			);
 	},
 
-	async findByUserAndProject(userId: string, projectId: string): Promise<FeatureSelect[]> {
-		return db.select().from(feature).where(and(eq(feature.userId, userId), eq(feature.projectId, projectId)));
+	async findByUserAndProject(
+		userId: string,
+		projectId: string,
+	): Promise<FeatureSelect[]> {
+		return db
+			.select()
+			.from(feature)
+			.where(and(eq(feature.userId, userId), eq(feature.projectId, projectId)));
 	},
 
 	async findByProject(projectId: string): Promise<FeatureSelect[]> {
@@ -59,10 +90,15 @@ export const featureRepository = {
 	},
 
 	async create(
-		data: Omit<FeatureInsert, "id" | "createdAt" | "updatedAt"> & { id?: string },
+		data: Omit<FeatureInsert, "id" | "createdAt" | "updatedAt"> & {
+			id?: string;
+		},
 	): Promise<FeatureSelect> {
 		const id = data.id ?? (await generateFeatureId());
-		const rows = await db.insert(feature).values({ ...data, id }).returning();
+		const rows = await db
+			.insert(feature)
+			.values({ ...data, id })
+			.returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error("Failed to create feature");
@@ -176,7 +212,9 @@ export const featureRepository = {
 			.where(eq(feature.id, id));
 	},
 
-	async getRetryInfo(id: string): Promise<{ retryCount: number; lastFailureAt: Date | null }> {
+	async getRetryInfo(
+		id: string,
+	): Promise<{ retryCount: number; lastFailureAt: Date | null }> {
 		const feat = await this.findById(id);
 		if (!feat) throw new Error(`Feature not found: ${id}`);
 		return {
@@ -192,7 +230,9 @@ export const featureRepository = {
 			.where(eq(feature.id, id));
 	},
 
-	async findByProjectWithDependencies(projectId: string): Promise<FeatureSelect[]> {
+	async findByProjectWithDependencies(
+		projectId: string,
+	): Promise<FeatureSelect[]> {
 		return db.select().from(feature).where(eq(feature.projectId, projectId));
 	},
 

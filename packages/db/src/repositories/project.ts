@@ -20,7 +20,10 @@ export const projectRepository = {
 		return db.select().from(project).where(eq(project.userId, userId));
 	},
 
-	async findByPath(userId: string, path: string): Promise<ProjectSelect | null> {
+	async findByPath(
+		userId: string,
+		path: string,
+	): Promise<ProjectSelect | null> {
 		const rows = await db
 			.select()
 			.from(project)
@@ -29,10 +32,15 @@ export const projectRepository = {
 	},
 
 	async create(
-		data: Omit<ProjectInsert, "id" | "createdAt" | "updatedAt"> & { id?: string },
+		data: Omit<ProjectInsert, "id" | "createdAt" | "updatedAt"> & {
+			id?: string;
+		},
 	): Promise<ProjectSelect> {
 		const id = data.id ?? (await generateProjectId());
-		const rows = await db.insert(project).values({ ...data, id }).returning();
+		const rows = await db
+			.insert(project)
+			.values({ ...data, id })
+			.returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error("Failed to create project");

@@ -33,10 +33,6 @@ export const eventRepository = {
 	},
 
 	async findRecent(limit = 50): Promise<EventSelect[]> {
-		return db
-			.select()
-			.from(event)
-			.orderBy(desc(event.createdAt))
-			.limit(limit);
+		return db.select().from(event).orderBy(desc(event.createdAt)).limit(limit);
 	},
 };

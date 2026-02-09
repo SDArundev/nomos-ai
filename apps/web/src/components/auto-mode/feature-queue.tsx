@@ -33,7 +33,7 @@ export function FeatureQueue({ onRetry, retrying }: FeatureQueueProps) {
 			<CardContent className="space-y-3">
 				{inProgress.length > 0 && (
 					<div>
-						<h4 className="mb-1 flex items-center gap-1 text-blue-500 text-xs font-medium">
+						<h4 className="mb-1 flex items-center gap-1 font-medium text-blue-500 text-xs">
 							<Loader2 className="size-3 animate-spin" />
 							In Progress
 						</h4>
@@ -56,7 +56,7 @@ export function FeatureQueue({ onRetry, retrying }: FeatureQueueProps) {
 
 				{failed.length > 0 && (
 					<div>
-						<h4 className="mb-1 flex items-center gap-1 text-red-500 text-xs font-medium">
+						<h4 className="mb-1 flex items-center gap-1 font-medium text-red-500 text-xs">
 							<XCircle className="size-3" />
 							Failed ({failed.length})
 						</h4>
@@ -87,18 +87,15 @@ export function FeatureQueue({ onRetry, retrying }: FeatureQueueProps) {
 
 				{pending.length > 0 ? (
 					<div>
-						<h4 className="mb-1 flex items-center gap-1 text-muted-foreground text-xs font-medium">
+						<h4 className="mb-1 flex items-center gap-1 font-medium text-muted-foreground text-xs">
 							<Clock className="size-3" />
 							Up Next ({pending.length})
 						</h4>
 						<div className="space-y-1">
 							{pending.slice(0, 5).map((f) => (
-								<div
-									key={f.id}
-									className="flex items-center gap-2 text-sm"
-								>
+								<div key={f.id} className="flex items-center gap-2 text-sm">
 									<ArrowRight className="size-3 text-muted-foreground" />
-									<span className="font-mono text-xs text-muted-foreground">
+									<span className="font-mono text-muted-foreground text-xs">
 										{f.id}
 									</span>
 									<span className="flex-1 truncate">{f.title}</span>

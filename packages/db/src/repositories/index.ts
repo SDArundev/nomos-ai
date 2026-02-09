@@ -1,4 +1,9 @@
 export {
+	type ApiKeyInsert,
+	type ApiKeySelect,
+	apiKeyRepository,
+} from "./api-key";
+export {
 	type EventInsert,
 	type EventSelect,
 	eventRepository,

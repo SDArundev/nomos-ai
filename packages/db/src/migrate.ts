@@ -1,9 +1,9 @@
 import { copyFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { env } from "@nomos-ai/env/server";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { db } from "./index";
 import { resolveDbUrl } from "./resolve-url";
-import { env } from "@nomos-ai/env/server";
 
 const monorepoRoot = resolve(import.meta.dirname, "../../..");
 

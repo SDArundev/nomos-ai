@@ -1,10 +1,10 @@
 import {
 	Bot,
+	ChevronDown,
+	ChevronUp,
 	GitBranch,
 	Layers,
 	Play,
-	ChevronDown,
-	ChevronUp,
 } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";

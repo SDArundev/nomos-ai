@@ -15,14 +15,17 @@ const client = createClient({
 export const db = drizzle({ client, schema });
 
 export { sql } from "drizzle-orm";
-export { runMigrations, backupDatabase, rollbackDatabase } from "./migrate";
 export {
 	generateFeatureId,
 	generateLearningId,
 	generateProjectId,
 	generateSessionId,
 } from "./lib/id-generation";
+export { backupDatabase, rollbackDatabase, runMigrations } from "./migrate";
 export {
+	type ApiKeyInsert,
+	type ApiKeySelect,
+	apiKeyRepository,
 	type EventInsert,
 	type EventSelect,
 	eventRepository,
@@ -39,9 +42,9 @@ export {
 	type NotificationSelect,
 	notificationRepository,
 	projectRepository,
-	sessionRepository,
 	type SettingInsert,
 	type SettingSelect,
+	sessionRepository,
 	settingRepository,
 	type WorktreeInsert,
 	type WorktreeSelect,

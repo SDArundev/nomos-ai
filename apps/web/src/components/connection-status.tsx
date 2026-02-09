@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { cn } from "@/lib/utils";
 
 export function ConnectionStatus() {
 	const { connected } = useWebSocket();
@@ -19,7 +19,7 @@ export function ConnectionStatus() {
 			<span
 				className={cn(
 					"inline-block size-2 rounded-full",
-					connected ? "bg-green-500" : "bg-red-500 animate-pulse",
+					connected ? "bg-green-500" : "animate-pulse bg-red-500",
 				)}
 			/>
 			<span className="text-muted-foreground">

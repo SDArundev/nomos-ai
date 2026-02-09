@@ -1,12 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	AlertTriangle,
-	Pause,
-	Play,
-	RefreshCw,
-	Settings2,
-	Zap,
-} from "lucide-react";
+import { AlertTriangle, Pause, Play, Settings2, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +26,7 @@ export function AutoModeDashboard() {
 	// Sync config from server
 	const config = configQuery.data;
 	const displayConcurrency = config?.maxConcurrency ?? concurrency;
-	const displayRetries = config?.maxRetries ?? maxRetries;
+	const _displayRetries = config?.maxRetries ?? maxRetries;
 
 	const setConfigMutation = useMutation(
 		orpc.autoMode.setConfig.mutationOptions({
@@ -89,9 +82,7 @@ export function AutoModeDashboard() {
 							<Badge
 								variant={status.isRunning ? "default" : "secondary"}
 								className={
-									status.isRunning
-										? "bg-green-500 hover:bg-green-600"
-										: ""
+									status.isRunning ? "bg-green-500 hover:bg-green-600" : ""
 								}
 							>
 								{status.isRunning ? "Running" : "Stopped"}
@@ -200,9 +191,7 @@ export function AutoModeDashboard() {
 			{/* Queue + Feed side by side */}
 			<div className="grid gap-6 lg:grid-cols-2">
 				<FeatureQueue
-					onRetry={(featureId) =>
-						retryFeatureMutation.mutate({ featureId })
-					}
+					onRetry={(featureId) => retryFeatureMutation.mutate({ featureId })}
 					retrying={retryFeatureMutation.isPending}
 				/>
 				<EventFeed events={events} />

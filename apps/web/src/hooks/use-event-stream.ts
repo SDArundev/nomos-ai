@@ -26,10 +26,7 @@ export function useEventStream(eventTypes?: string[]) {
 		const unsubscribe = client.subscribe((data) => {
 			if (!eventTypes || eventTypes.includes(data.type)) {
 				setEvents((prev) => {
-					const next = [
-						...prev,
-						{ ...data, timestamp: Date.now() },
-					];
+					const next = [...prev, { ...data, timestamp: Date.now() }];
 					if (next.length > maxEvents.current) {
 						return next.slice(-maxEvents.current);
 					}

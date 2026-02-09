@@ -65,7 +65,10 @@ describe("StopExecutionDialog status transition", () => {
 
 	it("should validate failed status is in valid transitions from in_progress", () => {
 		// This validates the status.ts FEATURE_VALID_TRANSITIONS map
-		const validTransitions = [FEATURE_STATUS.WAITING_APPROVAL, FEATURE_STATUS.FAILED];
+		const validTransitions = [
+			FEATURE_STATUS.WAITING_APPROVAL,
+			FEATURE_STATUS.FAILED,
+		];
 
 		expect(validTransitions).toContain(FEATURE_STATUS.FAILED);
 	});

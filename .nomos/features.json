@@ -272,7 +272,7 @@
         "Timestamps validated as ISO strings"
       ],
       "estimatedSize": "S",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -605,7 +605,8 @@
       "thinkingLevel": "standard",
       "planningMode": "lite",
       "startedAt": "2026-01-29T14:02:34Z",
-      "verifiedAt": "2026-01-29T14:18:49Z"
+      "verifiedAt": "2026-01-29T14:18:49Z",
+      "release": "v1"
     },
     {
       "id": "F016",
@@ -721,7 +722,7 @@
         "Duration tracking"
       ],
       "estimatedSize": "M",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -1065,7 +1066,7 @@
         "Tool permissions set"
       ],
       "estimatedSize": "M",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -1096,7 +1097,7 @@
         "Tools configured correctly"
       ],
       "estimatedSize": "M",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -1132,7 +1133,8 @@
       "thinkingLevel": "extended",
       "planningMode": "spec",
       "startedAt": "2026-02-06T19:57:41Z",
-      "verifiedAt": "2026-02-06T20:38:17Z"
+      "verifiedAt": "2026-02-06T20:38:17Z",
+      "release": "v1"
     },
     {
       "id": "F034",
@@ -1154,7 +1156,7 @@
         "Reconnection handled"
       ],
       "estimatedSize": "M",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -1185,7 +1187,7 @@
         "Errors propagated"
       ],
       "estimatedSize": "M",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -1520,7 +1522,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F048",
@@ -1627,7 +1630,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F052",
@@ -1679,7 +1683,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F054",
@@ -1707,7 +1712,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "extended",
-      "planningMode": "spec"
+      "planningMode": "spec",
+      "release": "v1"
     },
     {
       "id": "F055",
@@ -1733,7 +1739,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F056",
@@ -1759,7 +1766,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F057",
@@ -1811,7 +1819,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F059",
@@ -1997,7 +2006,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F066",
@@ -2023,7 +2033,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F067",
@@ -2050,7 +2061,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F068",
@@ -2076,7 +2088,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F069",
@@ -3164,7 +3177,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F110",
@@ -3190,7 +3204,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F111",
@@ -3320,7 +3335,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F116",
@@ -3373,7 +3389,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F118",
@@ -3425,7 +3442,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F120",
@@ -4819,7 +4837,8 @@
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F173",
@@ -6166,7 +6185,7 @@
       "id": "F224",
       "title": "Fix: No userId/ownerId column — any auth user can CRUD any entity",
       "description": "No userId/ownerId column — any auth user can CRUD any entity. Suggested fix: Add userId columns, enforce ownership in all repository methods",
-      "status": "failed",
+      "status": "waiting_approval",
       "priority": 1,
       "category": "CAT-FIX",
       "passes": false,
@@ -6721,7 +6740,7 @@
       "id": "F243",
       "title": "Fix: No learning oRPC router — frontend can't query learnings",
       "description": "No learning oRPC router — frontend can't query learnings. Suggested fix: Create learning router + add to appRouter",
-      "status": "failed",
+      "status": "waiting_approval",
       "priority": 5,
       "category": "CAT-FIX",
       "passes": false,
@@ -7202,7 +7221,8 @@
         "automaker-mirror",
         "group-1",
         "foundation"
-      ]
+      ],
+      "release": "v1"
     },
     {
       "id": "F259",
@@ -7248,7 +7268,8 @@
         "automaker-mirror",
         "group-1",
         "agent"
-      ]
+      ],
+      "release": "v1"
     },
     {
       "id": "F260",
@@ -7289,7 +7310,7 @@
       },
       "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md sections 5-6 for pipeline and worktree patterns.",
       "estimatedSize": "XL",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "opus",
       "thinkingLevel": "high",
@@ -7334,7 +7355,7 @@
       },
       "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md section 7 for terminal pattern. Use Bun.spawn (not node-pty).",
       "estimatedSize": "L",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -7384,7 +7405,7 @@
       },
       "technicalNotes": "Reference: .nomos/inspiration/automaker-mirror/implementation-patterns.md sections 8-9, 12-13 for settings, notification, GitHub, and FS patterns.",
       "estimatedSize": "XL",
-      "status": "failed",
+      "status": "waiting_approval",
       "passes": false,
       "model": "sonnet",
       "thinkingLevel": "standard",
@@ -7598,7 +7619,8 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "standard"
+      "planningMode": "standard",
+      "release": "v1"
     },
     {
       "id": "F267",
@@ -7628,7 +7650,8 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "standard"
+      "planningMode": "standard",
+      "release": "v1"
     },
     {
       "id": "F268",
@@ -7658,7 +7681,8 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F269",
@@ -7690,7 +7714,8 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F270",
@@ -7719,7 +7744,8 @@
       "requirements": [],
       "model": "sonnet",
       "thinkingLevel": "standard",
-      "planningMode": "lite"
+      "planningMode": "lite",
+      "release": "v1"
     },
     {
       "id": "F271",
@@ -7885,7 +7911,8 @@
         "Path traversal attempts return 400 error",
         "Unit test covers traversal rejection"
       ],
-      "createdAt": "2026-02-08T19:55:28Z"
+      "createdAt": "2026-02-08T19:55:28Z",
+      "release": "v1"
     },
     {
       "id": "F277",
@@ -7904,7 +7931,8 @@
         "Terminal output displays in UI",
         "Shared type definition enforces format"
       ],
-      "createdAt": "2026-02-08T19:55:28Z"
+      "createdAt": "2026-02-08T19:55:28Z",
+      "release": "v1"
     },
     {
       "id": "F278",
@@ -7944,7 +7972,8 @@
         "Users cannot access other users learnings",
         "Unit test covers IDOR attempt"
       ],
-      "createdAt": "2026-02-08T19:55:28Z"
+      "createdAt": "2026-02-08T19:55:28Z",
+      "release": "v1"
     },
     {
       "id": "F280",
@@ -7963,7 +7992,8 @@
         "All auto-mode endpoints verify user ownership",
         "Users cannot stop other users auto-mode"
       ],
-      "createdAt": "2026-02-08T19:58:24Z"
+      "createdAt": "2026-02-08T19:58:24Z",
+      "release": "v1"
     },
     {
       "id": "F281",
@@ -7982,7 +8012,8 @@
         "markRead verifies notification belongs to user",
         "dismiss verifies notification belongs to user"
       ],
-      "createdAt": "2026-02-08T19:58:24Z"
+      "createdAt": "2026-02-08T19:58:24Z",
+      "release": "v1"
     },
     {
       "id": "F282",

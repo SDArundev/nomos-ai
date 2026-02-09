@@ -44,9 +44,7 @@ export function TerminalTab({ settings, onUpdate }: TerminalTabProps) {
 							(settings.terminal_font_family as string) ??
 							"'JetBrains Mono', 'Fira Code', monospace"
 						}
-						onChange={(e) =>
-							onUpdate("terminal_font_family", e.target.value)
-						}
+						onChange={(e) => onUpdate("terminal_font_family", e.target.value)}
 					/>
 				</CardContent>
 			</Card>

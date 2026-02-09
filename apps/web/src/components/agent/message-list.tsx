@@ -25,7 +25,7 @@ export function MessageList({
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages.length, pendingContent, isStreaming]);
+	}, []);
 
 	return (
 		<div className="flex-1 overflow-y-auto">

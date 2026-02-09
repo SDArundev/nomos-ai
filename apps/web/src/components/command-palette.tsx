@@ -1,5 +1,5 @@
-import { Command } from "cmdk";
 import { useNavigate } from "@tanstack/react-router";
+import { Command } from "cmdk";
 import {
 	Activity,
 	Bot,
@@ -47,7 +47,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
+			{/* biome-ignore lint/a11y/useSemanticElements: backdrop overlay, not a real button */}
 			<div
+				role="button"
+				tabIndex={-1}
 				className="fixed inset-0 bg-black/50"
 				onClick={() => onOpenChange(false)}
 				onKeyDown={(e) => {
@@ -70,7 +73,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 						No results found.
 					</Command.Empty>
 
-					<Command.Group heading="Navigation" className="text-muted-foreground text-xs [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5">
+					<Command.Group
+						heading="Navigation"
+						className="text-muted-foreground text-xs [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5"
+					>
 						{navItems.map(({ label, icon: Icon, to }) => (
 							<Command.Item
 								key={to}
@@ -86,7 +92,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
 					<Command.Separator className="my-1 h-px bg-border" />
 
-					<Command.Group heading="Actions" className="text-muted-foreground text-xs [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5">
+					<Command.Group
+						heading="Actions"
+						className="text-muted-foreground text-xs [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5"
+					>
 						<Command.Item
 							value="New Feature"
 							onSelect={() => handleSelect("/kanban")}
@@ -110,7 +119,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 					<div className="flex items-center justify-between text-muted-foreground text-xs">
 						<span>Navigate with arrow keys</span>
 						<div className="flex gap-2">
-							<kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px]">esc</kbd>
+							<kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+								esc
+							</kbd>
 							<span>to close</span>
 						</div>
 					</div>

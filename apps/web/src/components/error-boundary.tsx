@@ -29,15 +29,13 @@ export class ErrorBoundary extends Component<Props, State> {
 		if (this.state.hasError) {
 			return (
 				<div className="flex h-full flex-col items-center justify-center gap-4 p-8">
-					<div className="text-destructive text-4xl">Something went wrong</div>
+					<div className="text-4xl text-destructive">Something went wrong</div>
 					<p className="text-muted-foreground text-sm">
 						An unexpected error occurred. Try reloading the page.
 					</p>
 					<div className="flex gap-2">
 						<Button
-							onClick={() =>
-								this.setState({ hasError: false, error: null })
-							}
+							onClick={() => this.setState({ hasError: false, error: null })}
 						>
 							Try Again
 						</Button>
@@ -49,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
 						<div className="mt-4 w-full max-w-xl">
 							<button
 								type="button"
-								className="text-muted-foreground hover:text-foreground text-xs underline"
+								className="text-muted-foreground text-xs underline hover:text-foreground"
 								onClick={() =>
 									this.setState((s) => ({
 										showDetails: !s.showDetails,
@@ -59,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
 								{this.state.showDetails ? "Hide" : "Show"} error details
 							</button>
 							{this.state.showDetails && (
-								<pre className="bg-muted mt-2 max-h-48 overflow-auto rounded p-3 text-xs">
+								<pre className="mt-2 max-h-48 overflow-auto rounded bg-muted p-3 text-xs">
 									{this.state.error.message}
 									{"\n"}
 									{this.state.error.stack}

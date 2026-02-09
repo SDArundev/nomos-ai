@@ -16,6 +16,7 @@ import { ORPCError } from "@orpc/server";
 import { loadProjectContext } from "../lib/context-loader";
 import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
+import type { SessionService } from "./session-service";
 
 /** Max concurrent running sessions across all users */
 const MAX_CONCURRENT_SESSIONS = 5;
@@ -92,9 +93,7 @@ export function buildSystemPrompt(feature: FeatureSelect): string {
 		}
 		if (feature.testingRequirements.integration?.length) {
 			parts.push("### Integration Tests");
-			for (const t of feature.testingRequirements.integration.filter(
-				Boolean,
-			)) {
+			for (const t of feature.testingRequirements.integration.filter(Boolean)) {
 				parts.push(`- ${t}`);
 			}
 		}
@@ -106,9 +105,7 @@ export function buildSystemPrompt(feature: FeatureSelect): string {
 		}
 		if (feature.testingRequirements.manual?.length) {
 			parts.push("### Manual Tests");
-			for (const t of feature.testingRequirements.manual.filter(
-				Boolean,
-			)) {
+			for (const t of feature.testingRequirements.manual.filter(Boolean)) {
 				parts.push(`- ${t}`);
 			}
 		}
@@ -125,6 +122,7 @@ export function configureTools(overrides?: string[]): string[] {
 
 export async function createAgentSession(
 	input: CreateAgentSessionInput,
+	sessionService: SessionService,
 ): Promise<AgentSessionResult> {
 	const feature = await featureRepository.findById(input.featureId);
 	if (!feature) {
@@ -143,12 +141,9 @@ export async function createAgentSession(
 	const modelKey: Model = input.model ?? featureModel ?? MODEL.SONNET;
 	const model = MODEL_MAP[modelKey];
 
-	const session = await sessionRepository.create({
-
+	const session = await sessionService.createAgentSession({
 		userId: input.userId,
 		featureId: input.featureId,
-		status: SESSION_STATUS.PENDING,
-		startedAt: new Date(),
 	});
 
 	return {
@@ -160,7 +155,7 @@ export async function createAgentSession(
 			maxTurns: input.maxTurns,
 			maxBudgetUsd: input.maxBudgetUsd,
 			cwd: input.cwd,
-			permissionMode: input.permissionMode ?? "bypassPermissions",
+			permissionMode: input.permissionMode ?? "default",
 		},
 	};
 }
@@ -175,6 +170,7 @@ export class AgentService {
 	constructor(
 		private events: EventService,
 		private provider: AgentProvider,
+		private sessionService: SessionService,
 	) {}
 
 	async createSession(input: {
@@ -218,26 +214,18 @@ export class AgentService {
 			});
 		}
 
-		const session = await sessionRepository.create({
-
+		const session = await this.sessionService.createInteractiveSession({
 			userId: input.userId,
 			projectId: input.projectId,
-			featureId: input.featureId ?? null,
-			status: SESSION_STATUS.PENDING,
-			startedAt: new Date(),
-			model: input.model ?? "sonnet",
-			workingDirectory: input.workingDirectory ?? null,
-			isRunning: false,
-			messageCount: 0,
+			featureId: input.featureId,
+			model: input.model,
+			workingDirectory: input.workingDirectory,
 		});
 
 		return session;
 	}
 
-	async sendMessage(
-		sessionId: string,
-		content: string,
-	): Promise<void> {
+	async sendMessage(sessionId: string, content: string): Promise<void> {
 		// Validate message content
 		if (!content || content.trim().length === 0) {
 			throw new ORPCError("BAD_REQUEST", {
@@ -251,12 +239,14 @@ export class AgentService {
 		}
 
 		const session = await sessionRepository.findById(sessionId);
-		if (!session) throw new ORPCError("NOT_FOUND", { message: "Session not found" });
+		if (!session)
+			throw new ORPCError("NOT_FOUND", { message: "Session not found" });
 
 		// Prevent sending to an already-running session
 		if (this.runningSessions.has(sessionId)) {
 			throw new ORPCError("CONFLICT", {
-				message: "Session is already processing a message. Wait for completion or stop it first.",
+				message:
+					"Session is already processing a message. Wait for completion or stop it first.",
 			});
 		}
 
@@ -285,6 +275,9 @@ export class AgentService {
 				: undefined;
 
 			let fullResponse = "";
+			let costData:
+				| { totalCostUsd: number; inputTokens: number; outputTokens: number }
+				| undefined;
 			const stream = this.provider.executeQuery({
 				prompt: content,
 				cwd,
@@ -305,10 +298,7 @@ export class AgentService {
 				});
 
 				// Accumulate text for persistence
-				if (
-					msg.type === "assistant" &&
-					msg.message?.content
-				) {
+				if (msg.type === "assistant" && msg.message?.content) {
 					for (const block of msg.message.content) {
 						if (block.type === "text" && block.text) {
 							fullResponse += block.text;
@@ -321,6 +311,11 @@ export class AgentService {
 					await sessionRepository.update(sessionId, {
 						sdkSessionId: msg.session_id,
 					});
+				}
+
+				// Capture cost data from result messages
+				if (msg.type === "result" && msg.costData) {
+					costData = msg.costData;
 				}
 			}
 
@@ -337,11 +332,17 @@ export class AgentService {
 			await sessionRepository.update(sessionId, {
 				isRunning: false,
 				messageCount: count,
+				...(costData && {
+					totalCostUsd: String(costData.totalCostUsd),
+					inputTokens: costData.inputTokens,
+					outputTokens: costData.outputTokens,
+				}),
 			});
 
 			this.events.emit("agent:complete", { sessionId, userId: session.userId });
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error);
+			const errorMessage =
+				error instanceof Error ? error.message : String(error);
 			try {
 				await sessionRepository.update(sessionId, {
 					isRunning: false,

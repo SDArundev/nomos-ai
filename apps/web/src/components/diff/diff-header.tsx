@@ -6,7 +6,11 @@ interface DiffHeaderProps {
 	deletions?: number;
 }
 
-export function DiffHeader({ fileName, additions, deletions }: DiffHeaderProps) {
+export function DiffHeader({
+	fileName,
+	additions,
+	deletions,
+}: DiffHeaderProps) {
 	return (
 		<div className="flex items-center gap-2 border-b bg-muted/30 px-3 py-2">
 			<FileCode2 className="size-4 text-muted-foreground" />

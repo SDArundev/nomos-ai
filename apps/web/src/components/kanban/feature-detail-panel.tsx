@@ -1,4 +1,10 @@
-import { FEATURE_VALID_TRANSITIONS, type FeatureStatus, ModelSchema, ThinkingLevelSchema, PlanningModeSchema } from "@nomos-ai/types";
+import {
+	FEATURE_VALID_TRANSITIONS,
+	type FeatureStatus,
+	ModelSchema,
+	PlanningModeSchema,
+	ThinkingLevelSchema,
+} from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Play, Square } from "lucide-react";
@@ -318,7 +324,9 @@ export function FeatureDetailPanel({
 										Stop Execution
 									</Button>
 								)}
-								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]?.map((nextStatus) => (
+								{FEATURE_VALID_TRANSITIONS[
+									feature.data.status as FeatureStatus
+								]?.map((nextStatus) => (
 									<Button
 										key={nextStatus}
 										variant="outline"
@@ -329,38 +337,56 @@ export function FeatureDetailPanel({
 										Move to {nextStatus}
 									</Button>
 								))}
-								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]?.length === 0 && feature.data.status !== "pending" && feature.data.status !== "in_progress" && (
-									<p className="text-muted-foreground text-sm">
-										No available transitions from this status.
-									</p>
-								)}
+								{FEATURE_VALID_TRANSITIONS[feature.data.status as FeatureStatus]
+									?.length === 0 &&
+									feature.data.status !== "pending" &&
+									feature.data.status !== "in_progress" && (
+										<p className="text-muted-foreground text-sm">
+											No available transitions from this status.
+										</p>
+									)}
 							</div>
 						</div>
 
-						{feature.data && (() => {
-							const modelResult = ModelSchema.safeParse(feature.data.model);
-							const thinkingLevelResult = ThinkingLevelSchema.safeParse(feature.data.thinkingLevel);
-							const planningModeResult = PlanningModeSchema.safeParse(feature.data.planningMode);
+						{feature.data &&
+							(() => {
+								const modelResult = ModelSchema.safeParse(feature.data.model);
+								const thinkingLevelResult = ThinkingLevelSchema.safeParse(
+									feature.data.thinkingLevel,
+								);
+								const planningModeResult = PlanningModeSchema.safeParse(
+									feature.data.planningMode,
+								);
 
-							return (
-								<>
-									<StartExecutionDialog
-										open={startDialogOpen}
-										onOpenChange={setStartDialogOpen}
-										featureId={feature.data.id}
-										projectId={feature.data.projectId}
-										defaultModel={modelResult.success ? modelResult.data : undefined}
-										defaultThinkingLevel={thinkingLevelResult.success ? thinkingLevelResult.data : undefined}
-										defaultPlanningMode={planningModeResult.success ? planningModeResult.data : undefined}
-									/>
-									<StopExecutionDialog
-										open={stopDialogOpen}
-										onOpenChange={setStopDialogOpen}
-										featureId={feature.data.id}
-									/>
-								</>
-							);
-						})()}
+								return (
+									<>
+										<StartExecutionDialog
+											open={startDialogOpen}
+											onOpenChange={setStartDialogOpen}
+											featureId={feature.data.id}
+											projectId={feature.data.projectId}
+											defaultModel={
+												modelResult.success ? modelResult.data : undefined
+											}
+											defaultThinkingLevel={
+												thinkingLevelResult.success
+													? thinkingLevelResult.data
+													: undefined
+											}
+											defaultPlanningMode={
+												planningModeResult.success
+													? planningModeResult.data
+													: undefined
+											}
+										/>
+										<StopExecutionDialog
+											open={stopDialogOpen}
+											onOpenChange={setStopDialogOpen}
+											featureId={feature.data.id}
+										/>
+									</>
+								);
+							})()}
 					</div>
 				)}
 			</SheetContent>

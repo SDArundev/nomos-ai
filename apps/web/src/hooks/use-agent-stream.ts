@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { getEventsClient } from "@/lib/websocket";
 import type { AgentMessage } from "@/store/agent-store";
 import { useAgentStore } from "@/store/agent-store";
-import { getEventsClient } from "@/lib/websocket";
 
 interface ContentBlock {
 	type: string;
@@ -97,7 +97,11 @@ export function useAgentStream(sessionId: string | null) {
 						} else if (block.type === "tool_result" && block.tool_use_id) {
 							toolCallsRef.current = toolCallsRef.current.map((tc) =>
 								tc.id === block.tool_use_id
-									? { ...tc, result: block.content ?? "", completedAt: Date.now() }
+									? {
+											...tc,
+											result: block.content ?? "",
+											completedAt: Date.now(),
+										}
 									: tc,
 							);
 							setStreamState((prev) => ({

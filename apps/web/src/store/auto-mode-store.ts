@@ -32,8 +32,7 @@ export const useAutoModeStore = create<AutoModeStore>()(
 			},
 			events: [],
 
-			setStatus: (status) =>
-				set({ status }, undefined, "autoMode/setStatus"),
+			setStatus: (status) => set({ status }, undefined, "autoMode/setStatus"),
 			addEvent: (event) =>
 				set(
 					(state) => ({
@@ -42,8 +41,7 @@ export const useAutoModeStore = create<AutoModeStore>()(
 					undefined,
 					"autoMode/addEvent",
 				),
-			clearEvents: () =>
-				set({ events: [] }, undefined, "autoMode/clearEvents"),
+			clearEvents: () => set({ events: [] }, undefined, "autoMode/clearEvents"),
 		}),
 		{ name: "AutoModeStore" },
 	),

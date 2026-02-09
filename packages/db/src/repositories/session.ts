@@ -41,10 +41,15 @@ export const sessionRepository = {
 	},
 
 	async create(
-		data: Omit<AgentSessionInsert, "id" | "createdAt" | "updatedAt"> & { id?: string },
+		data: Omit<AgentSessionInsert, "id" | "createdAt" | "updatedAt"> & {
+			id?: string;
+		},
 	): Promise<AgentSessionSelect> {
 		const id = data.id ?? (await generateSessionId());
-		const rows = await db.insert(agentSession).values({ ...data, id }).returning();
+		const rows = await db
+			.insert(agentSession)
+			.values({ ...data, id })
+			.returning();
 		const row = rows[0];
 		if (!row) {
 			throw new Error("Failed to create session");
