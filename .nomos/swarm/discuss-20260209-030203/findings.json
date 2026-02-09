@@ -1,0 +1,105 @@
+{
+  "session": "discuss-20260209-030203",
+  "topic": "Strategic Direction Shift",
+  "verdict": "Accept Advocate direction + preserve Critic orchestration body + phased execution",
+  "scores": {
+    "advocate": 8,
+    "critic": 4,
+    "synthesis": 9,
+    "confidence": "HIGH"
+  },
+  "convergence_insight": "Keep AutoModeService as orchestration layer (circuit breaker, dependency resolution, abort, retry). Change what it orchestrates: invoke CLI skill pipeline instead of PipelineService.executeFeature(). PipelineService becomes checkpoint reader + event emitter. Critic's body gets Advocate's brain.",
+  "constraints_neither_considered": [
+    "fs.watch on macOS unreliable — checkpoint reader needs polling, not watching",
+    "At 500+ patterns, loading full JSON is ~17K tokens — add relevance_score + top-N loading",
+    "11 failed features (F031-F035 SDK issues) would block self-build sprint",
+    "856 test files quality/pass rate unknown — needs triage before refactoring",
+    "Skill pipeline bash scripts assume macOS/Linux with jq/git/tmux — portability concern for v2"
+  ],
+  "resolutions": [
+    {
+      "decision": "CLI-first identity",
+      "resolution": "YES",
+      "feasibility": 9,
+      "rationale": "Codebase already IS CLI-first — 35,700 vs 16,400 lines (2.2x ratio)"
+    },
+    {
+      "decision": "Strip web to monitoring dashboard",
+      "resolution": "YES — redirect investment, don't delete code",
+      "feasibility": 9,
+      "rationale": "63% of frontend is primary-interface code contradicting autonomous identity. Transformation is route swap + investment redirect."
+    },
+    {
+      "decision": "Intent-first UI",
+      "resolution": "YES — Phase 2 (Weeks 4-6)",
+      "feasibility": 6,
+      "rationale": "New functionality: expansion agent + Intent Box + Decomposition Preview. 3-5 features of work. Infrastructure exists but agent is unbuilt."
+    },
+    {
+      "decision": "Cut scope to ~30 features",
+      "resolution": "YES — trivial labeling exercise",
+      "feasibility": 10,
+      "rationale": "212 backlog features are empty JSON entries. Mark 30 as v1-target. Zero code changes."
+    },
+    {
+      "decision": "Converge dual pipeline",
+      "resolution": "YES — PipelineService becomes checkpoint reader",
+      "feasibility": 7,
+      "rationale": "App pipeline is 3% of skill pipeline (124 vs 1,190+ lines). Clear architecture but nontrivial integration edge cases."
+    },
+    {
+      "decision": "Security P0 fixes",
+      "resolution": "YES — Week 1",
+      "feasibility": 8,
+      "rationale": "FS traversal, rate limiter, projectRoot, bypassPermissions — all confirmed in code. ~15 lines across 4 files."
+    },
+    {
+      "decision": "Learning system as moat",
+      "resolution": "YES — JSON fine for v1, revisit at scale",
+      "feasibility": 8,
+      "rationale": "54 patterns, 20 antipatterns, 35 insight files. Real and unique. Scale concerns valid but premature."
+    },
+    {
+      "decision": "Desktop/Tauri",
+      "resolution": "MOOT — no code exists",
+      "feasibility": 10,
+      "rationale": "No apps/desktop/ directory. Never built. Decision already made by default."
+    }
+  ],
+  "action_plan": {
+    "week_1": [
+      "Security P0 fixes (4 files, ~15 lines)",
+      "Promote auto-mode dashboard to homepage (3 files, ~50 lines)",
+      "Label 30 features as v1-target (features.json)"
+    ],
+    "weeks_2_3": [
+      "Rewrite PipelineService as checkpoint reader",
+      "AutoModeService invokes CLI skill",
+      "Session consolidation"
+    ],
+    "weeks_4_6": [
+      "Build expansion agent (ART-001a)",
+      "Intent Box UI component",
+      "Decomposition Preview + batch create API"
+    ],
+    "weeks_7_9": [
+      "REST adapter for projects, sessions, learnings routers",
+      "API auth (Bearer tokens)"
+    ]
+  },
+  "do_not_do": [
+    "Delete the Kanban board",
+    "Build multi-provider support for v1",
+    "Build ServiceRegistry before pipeline convergence",
+    "Build Tauri desktop",
+    "Increase QA fix cycles before pipeline convergence"
+  ],
+  "data_corrections": {
+    "verified_features": 61,
+    "actual_new_features": 38,
+    "bug_fix_features": 23,
+    "success_rate": "85% (61/72 attempted)",
+    "web_pipeline_invocations": 0,
+    "desktop_code_exists": false
+  }
+}
