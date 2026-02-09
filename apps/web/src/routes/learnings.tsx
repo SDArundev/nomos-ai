@@ -21,7 +21,23 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
@@ -104,15 +120,13 @@ interface FeatureInsight {
 
 type TabId = "patterns" | "antipatterns" | "insights";
 
-const TABS: { id: TabId; label: string; icon: typeof BookOpen }[] = [
-	{ id: "patterns", label: "Pattern Catalog", icon: BookOpen },
-	{ id: "antipatterns", label: "Antipattern Warnings", icon: AlertTriangle },
-	{ id: "insights", label: "Insights Timeline", icon: Lightbulb },
-];
+type SortField = "name" | "confidence" | "status" | "category";
+type SortDir = "asc" | "desc";
 
 function LearningsComponent() {
-	const [activeTab, setActiveTab] = useState<TabId>("patterns");
 	const [categoryFilter, setCategoryFilter] = useState("all");
+	const [sortField, setSortField] = useState<SortField>("confidence");
+	const [sortDir, setSortDir] = useState<SortDir>("desc");
 
 	const patternsQuery = useQuery(orpc.learnings.listPatterns.queryOptions());
 	const antipatternsQuery = useQuery(
@@ -159,141 +173,221 @@ function LearningsComponent() {
 
 	const provenCount = patterns.filter((p) => p.status === "proven").length;
 
+	// Sort patterns
+	const sortedPatterns = [...filteredPatterns].sort((a, b) => {
+		const dir = sortDir === "asc" ? 1 : -1;
+		switch (sortField) {
+			case "name":
+				return dir * a.name.localeCompare(b.name);
+			case "confidence":
+				return dir * (a.confidence - b.confidence);
+			case "status":
+				return dir * a.status.localeCompare(b.status);
+			case "category":
+				return dir * a.category.localeCompare(b.category);
+			default:
+				return 0;
+		}
+	});
+
+	const handleSort = (field: SortField) => {
+		if (sortField === field) {
+			setSortDir(sortDir === "asc" ? "desc" : "asc");
+		} else {
+			setSortField(field);
+			setSortDir("desc");
+		}
+	};
+
+	const sortIndicator = (field: SortField) => {
+		if (sortField !== field) return null;
+		return sortDir === "asc" ? " \u2191" : " \u2193";
+	};
+
 	return (
-		<div className="container mx-auto max-w-5xl px-4 py-6">
-			<div className="mb-6">
-				<h1 className="font-bold text-2xl">Learnings</h1>
-				<p className="text-muted-foreground text-sm">
-					Patterns, antipatterns, and insights discovered during development.
-				</p>
-			</div>
-
-			{/* Summary Stats */}
-			{isLoading ? (
-				<div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-					{Array.from({ length: 4 }).map((_, i) => (
-						<Card key={i}>
-							<CardContent className="flex items-center gap-3 pt-6">
-								<Skeleton className="size-9" />
-								<div>
-									<Skeleton className="mb-1 h-6 w-8" />
-									<Skeleton className="h-4 w-16" />
-								</div>
-							</CardContent>
-						</Card>
-					))}
+		<TooltipProvider>
+			<div className="container mx-auto max-w-5xl px-4 py-6">
+				<div className="mb-6">
+					<h1 className="font-bold text-2xl">Learnings</h1>
+					<p className="text-muted-foreground text-sm">
+						Patterns, antipatterns, and insights discovered during development.
+					</p>
 				</div>
-			) : (
-				<div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-					<StatCard
-						label="Patterns"
-						value={patterns.length}
-						icon={<BookOpen className="size-4 text-blue-500" />}
-						sub={provenCount > 0 ? `${provenCount} proven` : undefined}
-					/>
-					<StatCard
-						label="Antipatterns"
-						value={antipatterns.length}
-						icon={<AlertTriangle className="size-4 text-orange-500" />}
-						sub={
-							severityCounts.critical
-								? `${severityCounts.critical} critical`
-								: undefined
-						}
-					/>
-					<StatCard
-						label="Insights"
-						value={insights.length}
-						icon={<Lightbulb className="size-4 text-yellow-500" />}
-					/>
-					<StatCard
-						label="Categories"
-						value={allCategories.length}
-						icon={<Brain className="size-4 text-purple-500" />}
-					/>
-				</div>
-			)}
 
-			{/* Tabs */}
-			<div className="mb-4 flex gap-2">
-				{TABS.map((tab) => (
-					<button
-						key={tab.id}
-						type="button"
-						onClick={() => setActiveTab(tab.id)}
-						className={cn(
-							"flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
-							activeTab === tab.id
-								? "bg-primary text-primary-foreground"
-								: "bg-muted text-muted-foreground hover:text-foreground",
+				{/* Summary Stats */}
+				{isLoading ? (
+					<div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Card key={i}>
+								<CardContent className="flex items-center gap-3 pt-6">
+									<Skeleton className="size-9" />
+									<div>
+										<Skeleton className="mb-1 h-6 w-8" />
+										<Skeleton className="h-4 w-16" />
+									</div>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				) : (
+					<div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+						<StatCard
+							label="Patterns"
+							value={patterns.length}
+							icon={<BookOpen className="size-4 text-blue-500" />}
+							sub={provenCount > 0 ? `${provenCount} proven` : undefined}
+						/>
+						<StatCard
+							label="Antipatterns"
+							value={antipatterns.length}
+							icon={<AlertTriangle className="size-4 text-orange-500" />}
+							sub={
+								severityCounts.critical
+									? `${severityCounts.critical} critical`
+									: undefined
+							}
+						/>
+						<StatCard
+							label="Insights"
+							value={insights.length}
+							icon={<Lightbulb className="size-4 text-yellow-500" />}
+						/>
+						<StatCard
+							label="Categories"
+							value={allCategories.length}
+							icon={<Brain className="size-4 text-purple-500" />}
+						/>
+					</div>
+				)}
+
+				{/* Tabs */}
+				<Tabs defaultValue="patterns">
+					<TabsList>
+						<TabsTrigger value="patterns">
+							<BookOpen className="size-4" />
+							Pattern Catalog
+						</TabsTrigger>
+						<TabsTrigger value="antipatterns">
+							<AlertTriangle className="size-4" />
+							Antipattern Warnings
+						</TabsTrigger>
+						<TabsTrigger value="insights">
+							<Lightbulb className="size-4" />
+							Insights Timeline
+						</TabsTrigger>
+					</TabsList>
+
+					{/* Category filter for patterns/antipatterns */}
+					<TabsContent value="patterns">
+						<CategoryFilter
+							categories={allCategories}
+							value={categoryFilter}
+							onChange={setCategoryFilter}
+						/>
+						{isLoading ? (
+							<LoadingSkeleton />
+						) : error ? (
+							<ErrorCard error={error} />
+						) : (
+							<PatternCatalog
+								patterns={sortedPatterns}
+								sortField={sortField}
+								sortDir={sortDir}
+								onSort={handleSort}
+								sortIndicator={sortIndicator}
+							/>
 						)}
-					>
-						<tab.icon className="size-4" />
-						{tab.label}
-					</button>
-				))}
-			</div>
+					</TabsContent>
 
-			{/* Category filter for patterns/antipatterns */}
-			{(activeTab === "patterns" || activeTab === "antipatterns") && (
-				<div className="mb-4 flex gap-2 overflow-x-auto">
-					<button
-						type="button"
-						onClick={() => setCategoryFilter("all")}
-						className={cn(
-							"whitespace-nowrap rounded-md px-2.5 py-1 text-xs transition-colors",
-							categoryFilter === "all"
-								? "bg-secondary text-secondary-foreground"
-								: "bg-muted/50 text-muted-foreground hover:text-foreground",
+					<TabsContent value="antipatterns">
+						<CategoryFilter
+							categories={allCategories}
+							value={categoryFilter}
+							onChange={setCategoryFilter}
+						/>
+						{isLoading ? (
+							<LoadingSkeleton />
+						) : error ? (
+							<ErrorCard error={error} />
+						) : (
+							<AntipatternWarnings antipatterns={filteredAntipatterns} />
 						)}
-					>
-						All
-					</button>
-					{allCategories.map((cat) => (
-						<button
-							key={cat}
-							type="button"
-							onClick={() => setCategoryFilter(cat)}
-							className={cn(
-								"whitespace-nowrap rounded-md px-2.5 py-1 text-xs transition-colors",
-								categoryFilter === cat
-									? "bg-secondary text-secondary-foreground"
-									: "bg-muted/50 text-muted-foreground hover:text-foreground",
-							)}
-						>
-							{cat}
-						</button>
-					))}
-				</div>
-			)}
+					</TabsContent>
 
-			{/* Tab content */}
-			{isLoading ? (
-				<div className="space-y-3">
-					{Array.from({ length: 3 }).map((_, i) => (
-						<Skeleton key={i} className="h-24 w-full" />
-					))}
-				</div>
-			) : error ? (
-				<Card>
-					<CardContent className="py-8 text-center text-destructive">
-						Failed to load learnings: {error.message}
-					</CardContent>
-				</Card>
-			) : (
-				<>
-					{activeTab === "patterns" && (
-						<PatternCatalog patterns={filteredPatterns} />
+					<TabsContent value="insights">
+						{isLoading ? (
+							<LoadingSkeleton />
+						) : error ? (
+							<ErrorCard error={error} />
+						) : (
+							<InsightsTimeline insights={insights} />
+						)}
+					</TabsContent>
+				</Tabs>
+			</div>
+		</TooltipProvider>
+	);
+}
+
+function CategoryFilter({
+	categories,
+	value,
+	onChange,
+}: {
+	categories: string[];
+	value: string;
+	onChange: (v: string) => void;
+}) {
+	return (
+		<div className="mb-4 flex gap-2 overflow-x-auto">
+			<button
+				type="button"
+				onClick={() => onChange("all")}
+				className={cn(
+					"whitespace-nowrap rounded-md px-2.5 py-1 text-xs transition-colors",
+					value === "all"
+						? "bg-secondary text-secondary-foreground"
+						: "bg-muted/50 text-muted-foreground hover:text-foreground",
+				)}
+			>
+				All
+			</button>
+			{categories.map((cat) => (
+				<button
+					key={cat}
+					type="button"
+					onClick={() => onChange(cat)}
+					className={cn(
+						"whitespace-nowrap rounded-md px-2.5 py-1 text-xs transition-colors",
+						value === cat
+							? "bg-secondary text-secondary-foreground"
+							: "bg-muted/50 text-muted-foreground hover:text-foreground",
 					)}
-					{activeTab === "antipatterns" && (
-						<AntipatternWarnings antipatterns={filteredAntipatterns} />
-					)}
-					{activeTab === "insights" && (
-						<InsightsTimeline insights={insights} />
-					)}
-				</>
-			)}
+				>
+					{cat}
+				</button>
+			))}
 		</div>
+	);
+}
+
+function LoadingSkeleton() {
+	return (
+		<div className="space-y-3">
+			{Array.from({ length: 3 }).map((_, i) => (
+				<Skeleton key={i} className="h-24 w-full" />
+			))}
+		</div>
+	);
+}
+
+function ErrorCard({ error }: { error: Error }) {
+	return (
+		<Card>
+			<CardContent className="py-8 text-center text-destructive">
+				Failed to load learnings: {error.message}
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -326,30 +420,6 @@ function StatCard({
 	);
 }
 
-// ── Confidence Bar ──────────────────────────────────────
-
-function ConfidenceBar({ value }: { value: number }) {
-	const pct = Math.round(value * 100);
-	const color =
-		value >= 0.8
-			? "bg-green-500"
-			: value >= 0.5
-				? "bg-yellow-500"
-				: "bg-red-500";
-
-	return (
-		<div className="flex items-center gap-2">
-			<div className="h-1.5 w-16 rounded-full bg-muted">
-				<div
-					className={cn("h-1.5 rounded-full", color)}
-					style={{ width: `${pct}%` }}
-				/>
-			</div>
-			<span className="text-muted-foreground text-xs">{pct}%</span>
-		</div>
-	);
-}
-
 // ── Status Badge ────────────────────────────────────────
 
 const STATUS_STYLES: Record<string, { variant: "default" | "secondary" | "outline"; className?: string }> = {
@@ -369,7 +439,19 @@ function StatusBadge({ status }: { status: string }) {
 
 // ── Pattern Catalog ──────────────────────────────────────
 
-function PatternCatalog({ patterns }: { patterns: Pattern[] }) {
+function PatternCatalog({
+	patterns,
+	sortField,
+	sortDir,
+	onSort,
+	sortIndicator,
+}: {
+	patterns: Pattern[];
+	sortField: SortField;
+	sortDir: SortDir;
+	onSort: (field: SortField) => void;
+	sortIndicator: (field: SortField) => string | null;
+}) {
 	const [expandedId, setExpandedId] = useState<string | null>(null);
 	const queryClient = useQueryClient();
 
@@ -423,99 +505,145 @@ function PatternCatalog({ patterns }: { patterns: Pattern[] }) {
 				</button>
 			</div>
 
-			{patterns.map((p) => {
-				const isExpanded = expandedId === p.id;
-				return (
-					<Card key={p.id}>
-						<button
-							type="button"
-							className="w-full text-left"
-							onClick={() => setExpandedId(isExpanded ? null : p.id)}
-						>
-							<CardHeader className="pb-2">
-								<div className="flex items-center justify-between gap-2">
-									<div className="flex items-center gap-2">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead className="w-8" />
+						<TableHead>
+							<button type="button" onClick={() => onSort("name")} className="flex items-center gap-1 hover:text-foreground">
+								Name{sortIndicator("name")}
+							</button>
+						</TableHead>
+						<TableHead>
+							<button type="button" onClick={() => onSort("category")} className="flex items-center gap-1 hover:text-foreground">
+								Category{sortIndicator("category")}
+							</button>
+						</TableHead>
+						<TableHead>
+							<button type="button" onClick={() => onSort("confidence")} className="flex items-center gap-1 hover:text-foreground">
+								Confidence{sortIndicator("confidence")}
+							</button>
+						</TableHead>
+						<TableHead>
+							<button type="button" onClick={() => onSort("status")} className="flex items-center gap-1 hover:text-foreground">
+								Status{sortIndicator("status")}
+							</button>
+						</TableHead>
+						<TableHead>Evidence</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{patterns.map((p) => {
+						const isExpanded = expandedId === p.id;
+						const pct = Math.round(p.confidence * 100);
+						return (
+							<>
+								<TableRow
+									key={p.id}
+									className="cursor-pointer"
+									onClick={() => setExpandedId(isExpanded ? null : p.id)}
+								>
+									<TableCell>
 										{isExpanded ? (
-											<ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+											<ChevronDown className="size-4 text-muted-foreground" />
 										) : (
-											<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+											<ChevronRight className="size-4 text-muted-foreground" />
 										)}
-										<CardTitle className="text-sm">
-											{p.name}
-										</CardTitle>
-									</div>
-									<div className="flex items-center gap-2">
-										<ConfidenceBar value={p.confidence} />
-										<StatusBadge status={p.status} />
+									</TableCell>
+									<TableCell>
+										<Tooltip>
+											<TooltipTrigger className="max-w-[200px] truncate text-left">
+												{p.name}
+											</TooltipTrigger>
+											<TooltipContent>{p.description}</TooltipContent>
+										</Tooltip>
+									</TableCell>
+									<TableCell>
 										<Badge variant="secondary">{p.category}</Badge>
+									</TableCell>
+									<TableCell>
+										<div className="flex items-center gap-2">
+											<Progress
+												value={pct}
+												className="w-16"
+											/>
+											<span className="text-muted-foreground text-xs">{pct}%</span>
+										</div>
+									</TableCell>
+									<TableCell>
+										<StatusBadge status={p.status} />
+									</TableCell>
+									<TableCell>
 										{p.evidenceCount != null && p.evidenceCount > 0 && (
 											<Badge variant="outline" className="text-xs">
-												{p.evidenceCount} evidence
+												{p.evidenceCount}
 											</Badge>
 										)}
-									</div>
-								</div>
-							</CardHeader>
-						</button>
-						{isExpanded && (
-							<CardContent className="border-t pt-4">
-								<div className="space-y-3 text-sm">
-									<p className="text-muted-foreground">{p.description}</p>
+									</TableCell>
+								</TableRow>
+								{isExpanded && (
+									<TableRow key={`${p.id}-detail`}>
+										<TableCell colSpan={6} className="bg-muted/30">
+											<div className="space-y-3 p-3 text-sm">
+												<p className="text-muted-foreground">{p.description}</p>
 
-									{p.recommendation && (
-										<div>
-											<p className="mb-1 font-medium text-muted-foreground text-xs">
-												Recommendation
-											</p>
-											<p>{p.recommendation}</p>
-										</div>
-									)}
-									{p.riskIfIgnored && (
-										<div className="flex items-start gap-2 rounded bg-yellow-500/10 p-2">
-											<AlertTriangle className="mt-0.5 size-4 shrink-0 text-yellow-500" />
-											<div>
-												<p className="mb-0.5 font-medium text-xs">
-													Risk if Ignored
-												</p>
-												<p className="text-xs">
-													{p.riskIfIgnored}
-												</p>
+												{p.recommendation && (
+													<div>
+														<p className="mb-1 font-medium text-muted-foreground text-xs">
+															Recommendation
+														</p>
+														<p>{p.recommendation}</p>
+													</div>
+												)}
+												{p.riskIfIgnored && (
+													<div className="flex items-start gap-2 rounded bg-yellow-500/10 p-2">
+														<AlertTriangle className="mt-0.5 size-4 shrink-0 text-yellow-500" />
+														<div>
+															<p className="mb-0.5 font-medium text-xs">
+																Risk if Ignored
+															</p>
+															<p className="text-xs">
+																{p.riskIfIgnored}
+															</p>
+														</div>
+													</div>
+												)}
+												{p.codeExample && (
+													<div>
+														<p className="mb-1 font-medium text-muted-foreground text-xs">
+															Code Example
+														</p>
+														<pre className="overflow-x-auto rounded bg-muted p-3 text-xs">
+															<code>{p.codeExample}</code>
+														</pre>
+													</div>
+												)}
+												{p.successRate != null && (
+													<div className="flex items-center gap-4 text-xs text-muted-foreground">
+														<span>Success rate: {Math.round(p.successRate * 100)}%</span>
+														{p.featuresApplied && (
+															<span>Applied to {p.featuresApplied.length} features</span>
+														)}
+													</div>
+												)}
+												{p.appliesTo && p.appliesTo.length > 0 && (
+													<div className="flex flex-wrap gap-1 pt-1">
+														{p.appliesTo.map((tag) => (
+															<Badge key={tag} variant="outline" className="text-xs">
+																{tag}
+															</Badge>
+														))}
+													</div>
+												)}
 											</div>
-										</div>
-									)}
-									{p.codeExample && (
-										<div>
-											<p className="mb-1 font-medium text-muted-foreground text-xs">
-												Code Example
-											</p>
-											<pre className="overflow-x-auto rounded bg-muted p-3 text-xs">
-												<code>{p.codeExample}</code>
-											</pre>
-										</div>
-									)}
-									{p.successRate != null && (
-										<div className="flex items-center gap-4 text-xs text-muted-foreground">
-											<span>Success rate: {Math.round(p.successRate * 100)}%</span>
-											{p.featuresApplied && (
-												<span>Applied to {p.featuresApplied.length} features</span>
-											)}
-										</div>
-									)}
-									{p.appliesTo && p.appliesTo.length > 0 && (
-										<div className="flex flex-wrap gap-1 pt-1">
-											{p.appliesTo.map((tag) => (
-												<Badge key={tag} variant="outline" className="text-xs">
-													{tag}
-												</Badge>
-											))}
-										</div>
-									)}
-								</div>
-							</CardContent>
-						)}
-					</Card>
-				);
-			})}
+										</TableCell>
+									</TableRow>
+								)}
+							</>
+						);
+					})}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }

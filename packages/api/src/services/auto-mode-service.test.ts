@@ -44,7 +44,6 @@ describe("AutoModeService", () => {
 	let events: { emit: ReturnType<typeof mock> };
 	let provider: { executeQuery: ReturnType<typeof mock> };
 	let pipelineService: {
-		setProjectRoot: ReturnType<typeof mock>;
 		pollCheckpoints: ReturnType<typeof mock>;
 		mapCheckpointToFeature: ReturnType<typeof mock>;
 		getLatestCheckpoint: ReturnType<typeof mock>;
@@ -89,7 +88,6 @@ describe("AutoModeService", () => {
 			}),
 		};
 		pipelineService = {
-			setProjectRoot: mock(() => {}),
 			pollCheckpoints: mock(() => Promise.resolve()),
 			mapCheckpointToFeature: mock(() => {}),
 			getLatestCheckpoint: mock(() => null),

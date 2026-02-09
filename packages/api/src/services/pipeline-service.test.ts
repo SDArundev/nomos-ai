@@ -114,7 +114,7 @@ describe("PipelineService", () => {
 	});
 
 	describe("readCheckpoint", () => {
-		test("returns null when projectRoot not set", () => {
+		test("returns null when no projectRoot provided", () => {
 			const result = service.readCheckpoint("F001", 1);
 			expect(result).toBeNull();
 		});
@@ -154,12 +154,11 @@ describe("PipelineService", () => {
 			expect(result).toBeNull();
 		});
 
-		test("uses instance projectRoot when no explicit root provided", () => {
-			service.setProjectRoot("/tmp/myroot");
+		test("reads checkpoint with explicit projectRoot", () => {
 			mockExistsSync.mockReturnValue(true);
 			mockReadFileSync.mockReturnValue(makeCheckpoint(2));
 
-			const result = service.readCheckpoint("F001", 2);
+			const result = service.readCheckpoint("F001", 2, "/tmp/myroot");
 			expect(result).not.toBeNull();
 			expect(result?.phase).toBe(2);
 		});
@@ -380,21 +379,20 @@ describe("PipelineService", () => {
 	});
 
 	describe("pollCheckpoints", () => {
-		test("rejects when projectRoot not set", async () => {
+		test("rejects when projectRoot not provided", async () => {
 			await expect(service.pollCheckpoints("F001", () => {})).rejects.toThrow(
-				"projectRoot not set",
+				"projectRoot is required",
 			);
 		});
 
 		test("stops polling when abort signal fires", async () => {
-			service.setProjectRoot("/tmp/root");
 			const abort = new AbortController();
 
 			// Abort immediately
 			abort.abort();
 
 			const onCheckpoint = mock(() => {});
-			await service.pollCheckpoints("F001", onCheckpoint, abort.signal);
+			await service.pollCheckpoints("F001", onCheckpoint, abort.signal, "/tmp/root");
 
 			expect(onCheckpoint).not.toHaveBeenCalled();
 		});

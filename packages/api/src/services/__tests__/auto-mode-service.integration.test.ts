@@ -48,7 +48,6 @@ function createMockSessionService(): SessionService {
 
 function createMockPipelineService(): PipelineService {
 	return {
-		setProjectRoot: mock(() => {}) as any,
 		pollCheckpoints: mock(async () => {}) as any,
 		mapCheckpointToFeature: mock(async () => {}) as any,
 		readCheckpoint: mock(() => null) as any,
@@ -171,7 +170,6 @@ describe("AutoModeService Integration", () => {
 			await new Promise((r) => setTimeout(r, 250));
 
 			// Pipeline service should have been told to poll
-			expect(pipeline.setProjectRoot).toHaveBeenCalled();
 			expect(pipeline.pollCheckpoints).toHaveBeenCalled();
 		});
 

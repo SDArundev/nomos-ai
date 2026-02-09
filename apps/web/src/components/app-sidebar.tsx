@@ -33,6 +33,7 @@ export function AppSidebar() {
 
 			{/* Sidebar */}
 			<aside
+				aria-label="Main navigation"
 				className={cn(
 					"flex h-full flex-col border-sidebar-border border-r bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-in-out",
 					collapsed ? "w-16" : "w-64",
@@ -82,6 +83,7 @@ export function AppSidebar() {
 									onClick={handleSignOut}
 									className="rounded-md p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 									title="Sign out"
+									aria-label="Sign out"
 								>
 									<LogOut className="size-4" />
 								</button>
