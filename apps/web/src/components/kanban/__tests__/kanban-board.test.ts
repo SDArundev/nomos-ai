@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
+import { FEATURE_VALID_TRANSITIONS } from "@nomos-ai/types";
 
 // Mock feature data
 const mockFeatures = [
@@ -39,15 +40,8 @@ const mockFeatures = [
 	},
 ];
 
-// Valid state transitions according to VALID_TRANSITIONS constant
-const VALID_TRANSITIONS: Record<string, string[]> = {
-	backlog: ["pending", "failed"],
-	pending: ["in_progress", "failed"],
-	in_progress: ["waiting_approval", "failed"],
-	waiting_approval: ["verified", "failed"],
-	verified: [],
-	failed: [],
-};
+// Use the canonical transitions from @nomos-ai/types
+const VALID_TRANSITIONS = FEATURE_VALID_TRANSITIONS;
 
 describe("KanbanBoard - State Transitions", () => {
 	it("validates backlog can transition to pending", () => {
@@ -103,9 +97,9 @@ describe("KanbanBoard - State Transitions", () => {
 		expect(VALID_TRANSITIONS[currentStatus]).toEqual([]);
 	});
 
-	it("prevents any transitions from failed status", () => {
+	it("allows failed to transition to pending (retry)", () => {
 		const currentStatus = "failed";
-		expect(VALID_TRANSITIONS[currentStatus]).toEqual([]);
+		expect(VALID_TRANSITIONS[currentStatus]).toContain("pending");
 	});
 });
 

@@ -52,6 +52,12 @@ function createMockPipelineService(): PipelineService {
 		mapCheckpointToFeature: mock(async () => {}) as any,
 		readCheckpoint: mock(() => null) as any,
 		getLatestCheckpoint: mock(() => null) as any,
+		runGateA: mock(async () => ({
+			overallStatus: "PASS",
+			typecheck: { status: "PASS", summary: "OK" },
+			lint: { status: "PASS", summary: "OK" },
+			test: { status: "PASS", summary: "OK" },
+		})) as any,
 	};
 }
 
@@ -88,11 +94,35 @@ const mockSessionDb = {
 	update: mock(async () => ({})) as any,
 };
 
+// Mock state machine to track transitions and avoid DB dependency leaks
+const mockTransitionFeatureStatus = mock(async (featureId: string, status: string, data?: Record<string, unknown>) => {
+	// Delegate to mockFeatureDb.update so existing assertions still work
+	await mockFeatureDb.update(featureId, { status, ...data });
+});
+
+mock.module("../../lib/feature-state-machine", () => ({
+	transitionFeatureStatus: mockTransitionFeatureStatus,
+	isValidTransition: mock(() => true),
+}));
+
+mock.module("../git-commit-service", () => ({
+	GitCommitService: class MockGitCommitService {
+		verifyCleanState = mock(async () => ({ clean: true, uncommittedFiles: [] }));
+		commitFeature = mock(async () => ({ hash: "abc123", filesChanged: 0 }));
+	},
+}));
+
 mock.module("@nomos-ai/db", () => ({
 	featureRepository: mockFeatureDb,
 	sessionRepository: mockSessionDb,
 	projectRepository: {
 		findById: mock(async () => ({ id: "proj1", path: "/Users/test/project" })),
+	},
+	worktreeRepository: {
+		findByFeatureId: mock(async () => undefined),
+		create: mock(async () => ({})),
+		markRemoved: mock(async () => {}),
+		findActive: mock(async () => []),
 	},
 }));
 

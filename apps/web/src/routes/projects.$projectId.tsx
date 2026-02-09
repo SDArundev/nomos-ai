@@ -13,6 +13,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import {
 	Sheet,
 	SheetContent,
@@ -51,6 +58,10 @@ function ProjectDetail() {
 	const queryClient = useQueryClient();
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const [showFeatureForm, setShowFeatureForm] = useState(false);
+	const [showImportDialog, setShowImportDialog] = useState(false);
+	const [selectedImportIds, setSelectedImportIds] = useState<Set<string>>(
+		new Set(),
+	);
 	const [editingFeature, setEditingFeature] = useState<
 		FeatureFromAPI | undefined
 	>(undefined);
@@ -71,7 +82,22 @@ function ProjectDetail() {
 		}),
 	);
 
+	const bulkAssociate = useMutation(
+		orpc.features.bulkAssociateProject.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.list.queryOptions().queryKey,
+				});
+				setSelectedImportIds(new Set());
+				setShowImportDialog(false);
+			},
+		}),
+	);
+
 	const features = allFeatures.data?.filter((f) => f.projectId === projectId);
+	const importableFeatures = allFeatures.data?.filter(
+		(f) => f.projectId !== projectId,
+	);
 
 	if (project.isLoading) {
 		return (
@@ -126,6 +152,13 @@ function ProjectDetail() {
 							}}
 						>
 							Create Feature
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setShowImportDialog(true)}
+						>
+							Import Features
 						</Button>
 						{confirmDelete ? (
 							<>
@@ -243,6 +276,73 @@ function ProjectDetail() {
 					</div>
 				</SheetContent>
 			</Sheet>
+
+			<Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+				<DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Import Features</DialogTitle>
+					</DialogHeader>
+					{importableFeatures && importableFeatures.length > 0 ? (
+						<>
+							<div className="grid gap-2">
+								{importableFeatures.map((feat) => (
+									<label
+										key={feat.id}
+										className="flex cursor-pointer items-center gap-3 rounded-md border p-3 hover:bg-accent/50"
+									>
+										<Checkbox
+											checked={selectedImportIds.has(feat.id)}
+											onCheckedChange={(checked) => {
+												setSelectedImportIds((prev) => {
+													const next = new Set(prev);
+													if (checked) {
+														next.add(feat.id);
+													} else {
+														next.delete(feat.id);
+													}
+													return next;
+												});
+											}}
+										/>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-medium text-sm">
+												{feat.title}
+											</p>
+											<p className="text-muted-foreground text-xs">
+												{feat.id} &middot; {feat.status}
+											</p>
+										</div>
+									</label>
+								))}
+							</div>
+							<div className="flex items-center justify-between pt-4">
+								<p className="text-muted-foreground text-sm">
+									{selectedImportIds.size} selected
+								</p>
+								<Button
+									disabled={
+										selectedImportIds.size === 0 || bulkAssociate.isPending
+									}
+									onClick={() =>
+										bulkAssociate.mutate({
+											featureIds: Array.from(selectedImportIds),
+											projectId,
+										})
+									}
+								>
+									{bulkAssociate.isPending
+										? "Importing..."
+										: `Import ${selectedImportIds.size} Feature${selectedImportIds.size === 1 ? "" : "s"}`}
+								</Button>
+							</div>
+						</>
+					) : (
+						<p className="text-muted-foreground py-4">
+							No features available to import.
+						</p>
+					)}
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

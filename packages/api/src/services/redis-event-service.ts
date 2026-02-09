@@ -4,6 +4,7 @@ import type {
 	EventType,
 } from "@nomos-ai/types";
 import Redis from "ioredis";
+import { eventLogger } from "../lib/logger";
 import type { IEventService } from "./event-service";
 
 const CHANNEL = "nomos:events";
@@ -56,9 +57,8 @@ export class RedisEventService implements IEventService {
 	emit(type: EventType, payload: unknown): void;
 	emit(type: EventType, payload: unknown): void {
 		const message = JSON.stringify({ type, payload });
-		this.pub.publish(CHANNEL, message).catch(() => {
-			// Fire-and-forget — if Redis is down, events are lost
-			// (same behavior as in-memory when process crashes)
+		this.pub.publish(CHANNEL, message).catch((err) => {
+			eventLogger.warn({ err, type }, "fire-and-forget Redis publish failed");
 		});
 	}
 

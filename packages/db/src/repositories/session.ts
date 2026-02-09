@@ -1,4 +1,4 @@
-import { count, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../index";
 import { createWithId } from "../lib/id-generation";
 import { agentSession } from "../schema/sessions";
@@ -29,16 +29,8 @@ export const sessionRepository = {
 			: undefined;
 
 		const [rows, totalResult] = await Promise.all([
-			db
-				.select()
-				.from(agentSession)
-				.where(where)
-				.limit(limit)
-				.offset(offset),
-			db
-				.select({ count: count() })
-				.from(agentSession)
-				.where(where),
+			db.select().from(agentSession).where(where).limit(limit).offset(offset),
+			db.select({ count: count() }).from(agentSession).where(where),
 		]);
 
 		return {
@@ -55,25 +47,37 @@ export const sessionRepository = {
 		return rows[0] ?? null;
 	},
 
-	async findByFeature(featureId: string): Promise<AgentSessionSelect[]> {
+	async findByFeature(
+		featureId: string,
+		userId?: string,
+	): Promise<AgentSessionSelect[]> {
+		const conditions = [eq(agentSession.featureId, featureId)];
+		if (userId) conditions.push(eq(agentSession.userId, userId));
 		return db
 			.select()
 			.from(agentSession)
-			.where(eq(agentSession.featureId, featureId));
+			.where(and(...conditions));
 	},
 
-	async findByStatus(status: string): Promise<AgentSessionSelect[]> {
+	async findByStatus(
+		status: string,
+		userId?: string,
+	): Promise<AgentSessionSelect[]> {
+		const conditions = [eq(agentSession.status, status)];
+		if (userId) conditions.push(eq(agentSession.userId, userId));
 		return db
 			.select()
 			.from(agentSession)
-			.where(eq(agentSession.status, status));
+			.where(and(...conditions));
 	},
 
-	async findActive(): Promise<AgentSessionSelect[]> {
+	async findActive(userId?: string): Promise<AgentSessionSelect[]> {
+		const conditions = [inArray(agentSession.status, ["pending", "running"])];
+		if (userId) conditions.push(eq(agentSession.userId, userId));
 		return db
 			.select()
 			.from(agentSession)
-			.where(inArray(agentSession.status, ["pending", "running"]));
+			.where(and(...conditions));
 	},
 
 	/** Find failed sessions that have an SDK session ID and feature ID, eligible for resume */

@@ -24,6 +24,9 @@ async function extractWsUserId(req: Request): Promise<string | null> {
 }
 
 // ── 1. Router ownership rejection patterns ───────────────────
+// TODO: Convert to real middleware/router integration tests that invoke actual
+// route handlers with mocked DB, verifying HTTP 403 responses instead of
+// testing inline string equality. Current tests are validation theater.
 
 describe("Security: Resource ownership enforcement", () => {
 	describe("Session ownership verification", () => {

@@ -25,6 +25,7 @@ function ProjectsIndex() {
 	const [showForm, setShowForm] = useState(false);
 	const [name, setName] = useState("");
 	const [path, setPath] = useState("");
+	const [description, setDescription] = useState("");
 
 	const createProject = useMutation(
 		orpc.projects.create.mutationOptions({
@@ -34,6 +35,7 @@ function ProjectsIndex() {
 				});
 				setName("");
 				setPath("");
+				setDescription("");
 				setShowForm(false);
 			},
 		}),
@@ -42,7 +44,11 @@ function ProjectsIndex() {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!name.trim() || !path.trim()) return;
-		createProject.mutate({ name: name.trim(), path: path.trim() });
+		createProject.mutate({
+			name: name.trim(),
+			path: path.trim(),
+			description: description.trim() || undefined,
+		});
 	};
 
 	return (
@@ -80,7 +86,24 @@ function ProjectsIndex() {
 									placeholder="/Users/me/projects/my-project"
 									required
 								/>
+								<p className="text-muted-foreground text-xs">
+									Absolute path to an existing project directory
+								</p>
 							</div>
+							<div className="space-y-2">
+								<Label htmlFor="project-description">Description</Label>
+								<Input
+									id="project-description"
+									value={description}
+									onChange={(e) => setDescription(e.target.value)}
+									placeholder="Optional project description"
+								/>
+							</div>
+							{createProject.isError && (
+								<p className="text-destructive text-sm">
+									{createProject.error?.message ?? "Failed to create project"}
+								</p>
+							)}
 							<Button type="submit" disabled={createProject.isPending}>
 								{createProject.isPending ? "Creating..." : "Create Project"}
 							</Button>

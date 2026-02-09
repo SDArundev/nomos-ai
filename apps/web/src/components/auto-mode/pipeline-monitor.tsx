@@ -1,11 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-	CheckCircle2,
-	Circle,
-	Clock,
-	Loader2,
-	XCircle,
-} from "lucide-react";
+import { CheckCircle2, Circle, Clock, Loader2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -48,12 +42,15 @@ function formatElapsed(ms: number): string {
 	return `${minutes}m ${seconds}s`;
 }
 
+const TERMINAL_STATUSES = new Set(["verified", "waiting_approval", "failed"]);
+
 export function PipelineMonitor({ featureId, status }: PipelineMonitorProps) {
 	const isActive = status === "in_progress";
+	const isTerminal = TERMINAL_STATUSES.has(status);
 	const [startTime] = useState(() => Date.now());
 	const [elapsed, setElapsed] = useState(0);
 
-	// Poll every 3s while the feature is in_progress
+	// Poll every 3s while the feature is in_progress, fetch once for terminal states
 	const progressQuery = useQuery(
 		orpc.pipeline.progress.queryOptions({
 			input: { featureId },
@@ -85,12 +82,29 @@ export function PipelineMonitor({ featureId, status }: PipelineMonitorProps) {
 			<CardHeader className="pb-3">
 				<div className="flex items-center justify-between">
 					<CardTitle className="text-sm">Pipeline Progress</CardTitle>
-					{isActive && (
+					{isActive ? (
 						<div className="flex items-center gap-1 text-muted-foreground text-xs">
 							<Clock className="size-3" />
 							{formatElapsed(elapsed)}
 						</div>
-					)}
+					) : isTerminal ? (
+						<span
+							className={cn(
+								"font-medium text-xs",
+								status === "failed"
+									? "text-red-500"
+									: status === "verified"
+										? "text-green-500"
+										: "text-yellow-500",
+							)}
+						>
+							{status === "failed"
+								? "Failed"
+								: status === "verified"
+									? "Completed"
+									: "Pending Review"}
+						</span>
+					) : null}
 				</div>
 			</CardHeader>
 			<CardContent>
@@ -140,7 +154,24 @@ export function PipelineMonitor({ featureId, status }: PipelineMonitorProps) {
 
 						{/* Current phase + checkpoint info */}
 						<div className="flex items-center justify-between text-xs">
-							{currentLabel ? (
+							{isTerminal ? (
+								<span
+									className={cn(
+										"font-medium",
+										status === "failed"
+											? "text-red-500"
+											: status === "verified"
+												? "text-green-500"
+												: "text-yellow-500",
+									)}
+								>
+									{status === "failed"
+										? "Pipeline failed"
+										: status === "verified"
+											? "Pipeline completed"
+											: "Awaiting approval"}
+								</span>
+							) : currentLabel ? (
 								<span className="font-medium text-blue-500">
 									Phase: {currentLabel}
 								</span>
