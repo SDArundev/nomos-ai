@@ -239,7 +239,9 @@ export class AutoModeService {
 						});
 				}
 
-				// Capture cost data from result messages
+				// Capture cost data from result messages.
+				// SDK total_cost_usd is cumulative across all turns within a single query() call,
+				// so we simply overwrite (not accumulate) with the final result message's cost data.
 				if (msg.type === "result" && msg.costData) {
 					costData = msg.costData;
 				}

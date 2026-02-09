@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
 	CheckCircle2,
+	DollarSign,
 	FolderOpen,
 	GitBranch,
 	Layers,
@@ -40,6 +41,7 @@ function DashboardComponent() {
 	const { session } = Route.useRouteContext();
 	const projects = useQuery(orpc.projects.list.queryOptions());
 	const features = useQuery(orpc.features.list.queryOptions());
+	const sessions = useQuery(orpc.sessions.list.queryOptions());
 
 	const featuresByStatus = (features.data ?? []).reduce(
 		(acc, f) => {
@@ -72,6 +74,11 @@ function DashboardComponent() {
 			{/* Auto-Mode Dashboard */}
 			<div className="mb-8">
 				<AutoModeDashboard />
+			</div>
+
+			{/* Cost Summary */}
+			<div className="mb-8">
+				<CostCard sessions={sessions.data ?? []} loading={sessions.isLoading} />
 			</div>
 
 			{/* Empty state: no projects */}
@@ -289,5 +296,135 @@ function StatusRow({
 				{count}
 			</span>
 		</div>
+	);
+}
+
+interface SessionData {
+	totalCostUsd?: string | null;
+	inputTokens?: number | null;
+	outputTokens?: number | null;
+	featureId?: string | null;
+	completedAt?: Date | string | null;
+}
+
+function formatCost(usd: number): string {
+	return usd < 0.01 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;
+}
+
+function formatTokens(count: number): string {
+	if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
+	if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
+	return String(count);
+}
+
+function CostCard({
+	sessions,
+	loading,
+}: {
+	sessions: SessionData[];
+	loading: boolean;
+}) {
+	const totalCost = sessions.reduce((sum, s) => {
+		return sum + (s.totalCostUsd ? Number.parseFloat(s.totalCostUsd) : 0);
+	}, 0);
+
+	const totalInput = sessions.reduce(
+		(sum, s) => sum + (s.inputTokens ?? 0),
+		0,
+	);
+	const totalOutput = sessions.reduce(
+		(sum, s) => sum + (s.outputTokens ?? 0),
+		0,
+	);
+
+	// Last session cost (most recently completed)
+	const completedSessions = sessions
+		.filter((s) => s.completedAt)
+		.sort((a, b) => {
+			const da = a.completedAt instanceof Date ? a.completedAt : new Date(a.completedAt ?? 0);
+			const db = b.completedAt instanceof Date ? b.completedAt : new Date(b.completedAt ?? 0);
+			return db.getTime() - da.getTime();
+		});
+	const lastCost = completedSessions[0]?.totalCostUsd
+		? Number.parseFloat(completedSessions[0].totalCostUsd)
+		: 0;
+
+	// Average cost per feature (unique features with cost)
+	const featureCosts = new Map<string, number>();
+	for (const s of sessions) {
+		if (s.featureId && s.totalCostUsd) {
+			const existing = featureCosts.get(s.featureId) ?? 0;
+			featureCosts.set(
+				s.featureId,
+				existing + Number.parseFloat(s.totalCostUsd),
+			);
+		}
+	}
+	const avgPerFeature =
+		featureCosts.size > 0
+			? [...featureCosts.values()].reduce((a, b) => a + b, 0) /
+				featureCosts.size
+			: 0;
+
+	if (loading) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2 text-base">
+						<DollarSign className="size-4" />
+						Cost Summary
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Skeleton key={i} className="h-12 w-full" />
+						))}
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	if (sessions.length === 0) {
+		return null;
+	}
+
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2 text-base">
+					<DollarSign className="size-4" />
+					Cost Summary
+				</CardTitle>
+				<CardDescription>
+					Token usage and costs across all sessions
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+					<div>
+						<p className="font-bold text-xl">{formatCost(totalCost)}</p>
+						<p className="text-muted-foreground text-xs">Total cost</p>
+					</div>
+					<div>
+						<p className="font-bold text-xl">{formatCost(lastCost)}</p>
+						<p className="text-muted-foreground text-xs">Last session</p>
+					</div>
+					<div>
+						<p className="font-bold text-xl">{formatCost(avgPerFeature)}</p>
+						<p className="text-muted-foreground text-xs">Avg per feature</p>
+					</div>
+					<div>
+						<p className="font-bold text-xl">
+							{formatTokens(totalInput + totalOutput)}
+						</p>
+						<p className="text-muted-foreground text-xs">
+							Total tokens ({formatTokens(totalInput)} in / {formatTokens(totalOutput)} out)
+						</p>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
