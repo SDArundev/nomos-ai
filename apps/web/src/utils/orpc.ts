@@ -32,9 +32,12 @@ export const queryClient = new QueryClient({
 
 export const link = new RPCLink({
 	url: `${env.VITE_SERVER_URL}/rpc`,
-	fetch(url, options) {
-		return fetch(url, {
-			...options,
+	headers: {
+		"X-Requested-With": "XMLHttpRequest",
+	},
+	fetch(request, init) {
+		return fetch(request, {
+			...init,
 			credentials: "include",
 		});
 	},

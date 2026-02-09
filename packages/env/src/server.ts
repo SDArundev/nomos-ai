@@ -31,6 +31,7 @@ export const env = createEnv({
 			.default("info"),
 		DATA_DIR: z.string().default("./apps/server/data"),
 		IS_CONTAINERIZED: z.coerce.boolean().default(false),
+		CLAUDE_BYPASS_PERMISSIONS: z.coerce.boolean().default(false),
 	},
 	runtimeEnv: process.env,
 	emptyStringAsUndefined: true,

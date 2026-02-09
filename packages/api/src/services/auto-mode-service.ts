@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { featureRepository, sessionRepository } from "@nomos-ai/db";
-import type { ProviderMessage } from "@nomos-ai/types";
+import { env } from "@nomos-ai/env/server";
+import type { PermissionMode, ProviderMessage } from "@nomos-ai/types";
 import {
 	areDependenciesSatisfied,
 	resolveDependencies,
@@ -43,7 +44,7 @@ export class AutoModeService {
 	private runningFeatures = new Map<string, AbortController>();
 	private retryTimers = new Set<ReturnType<typeof setTimeout>>();
 	private consecutiveFailures = 0;
-	private currentUserId: string | null = null;
+	private startedByUserId: string | null = null;
 
 	constructor(
 		private events: IEventService,
@@ -65,7 +66,7 @@ export class AutoModeService {
 		const projectRoot = validateProjectRoot(rawProjectRoot);
 		this.isRunning = true;
 		this.consecutiveFailures = 0;
-		this.currentUserId = userId;
+		this.startedByUserId = userId;
 		this.events.emit("auto-mode:started", { projectId, userId });
 
 		while (this.isRunning) {
@@ -90,7 +91,7 @@ export class AutoModeService {
 						type: "auto-mode:feature-skipped",
 						featureId: f.id,
 						reason: "dependencies_not_satisfied",
-						userId: this.currentUserId!,
+						userId,
 					});
 					return false;
 				}
@@ -100,7 +101,7 @@ export class AutoModeService {
 						type: "auto-mode:feature-skipped",
 						featureId: f.id,
 						reason: "max_retries_exceeded",
-						userId: this.currentUserId!,
+						userId,
 					});
 					return false;
 				}
@@ -110,7 +111,7 @@ export class AutoModeService {
 			if (!feature) {
 				this.events.emit("auto-mode:idle", {
 					projectId,
-					userId: this.currentUserId!,
+					userId,
 				});
 				await sleep(5000);
 				continue;
@@ -119,23 +120,23 @@ export class AutoModeService {
 			this.events.emit("auto-mode:event", {
 				type: "auto-mode:feature-queued",
 				featureId: feature.id,
-				userId: this.currentUserId!,
+				userId,
 			});
 
 			// Execute feature in background
-			this.executeFeature(feature.id, projectRoot).catch((err) => {
+			this.executeFeature(feature.id, projectRoot, userId).catch((err) => {
 				this.consecutiveFailures++;
 				this.events.emit("auto-mode:error", {
 					featureId: feature.id,
 					error: err instanceof Error ? err.message : String(err),
-					userId: this.currentUserId!,
+					userId,
 				});
 				if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
 					this.events.emit("auto-mode:event", {
 						type: "auto-mode:paused",
 						reason: "consecutive_failures",
 						count: this.consecutiveFailures,
-						userId: this.currentUserId!,
+						userId,
 					});
 					this.stop();
 				}
@@ -146,6 +147,7 @@ export class AutoModeService {
 	private async executeFeature(
 		featureId: string,
 		projectRoot: string,
+		userId: string,
 	): Promise<void> {
 		const abort = new AbortController();
 		this.runningFeatures.set(featureId, abort);
@@ -155,18 +157,18 @@ export class AutoModeService {
 			await featureRepository.update(featureId, {
 				status: "in_progress",
 				locked: true,
-				lockedBy: this.currentUserId!,
+				lockedBy: userId,
 				lockedAt: new Date(),
 			});
 
 			this.events.emit("feature:started", {
 				featureId,
-				userId: this.currentUserId!,
+				userId,
 			});
 
 			// Create a tracked agent session
 			const session = await this.sessionService.createPipelineSession({
-				userId: this.currentUserId!,
+				userId,
 				featureId,
 				model: "sonnet",
 			});
@@ -196,13 +198,13 @@ export class AutoModeService {
 					this.pipelineService.mapCheckpointToFeature(
 						featureId,
 						checkpoint,
-						this.currentUserId!,
+						userId,
 					);
 					this.events.emit("auto-mode:event", {
 						type: "auto-mode:checkpoint",
 						featureId,
 						checkpoint,
-						userId: this.currentUserId!,
+						userId,
 					});
 				},
 				abort.signal,
@@ -211,12 +213,17 @@ export class AutoModeService {
 
 			// Execute via SDK query() instead of CLI subprocess
 			let costData: ProviderMessage["costData"];
+			// SECURITY: bypassPermissions allows the agent to execute tools without user approval.
+			// Only enable via CLAUDE_BYPASS_PERMISSIONS=true in trusted/containerized environments.
+			const permissionMode: PermissionMode = env.CLAUDE_BYPASS_PERMISSIONS
+				? "bypassPermissions"
+				: "default";
 			const stream = this.provider.executeQuery({
 				prompt,
 				model: "sonnet",
 				cwd,
 				maxTurns: 50,
-				permissionMode: "bypassPermissions",
+				permissionMode,
 				thinkingLevel: "standard",
 				abortController: abort,
 			});
@@ -226,7 +233,7 @@ export class AutoModeService {
 				this.events.emit("agent:stream", {
 					sessionId: session.id,
 					message: msg,
-					userId: this.currentUserId!,
+					userId,
 				});
 
 				// Capture SDK session ID for potential resume
@@ -274,7 +281,7 @@ export class AutoModeService {
 
 			this.events.emit("feature:completed", {
 				featureId,
-				userId: this.currentUserId!,
+				userId,
 			});
 		} catch (err) {
 			// Increment retry count
@@ -292,7 +299,7 @@ export class AutoModeService {
 			this.events.emit("feature:error", {
 				featureId,
 				error: err instanceof Error ? err.message : String(err),
-				userId: this.currentUserId!,
+				userId,
 			});
 
 			// Schedule retry if under limit
@@ -306,7 +313,7 @@ export class AutoModeService {
 					featureId,
 					attempt: retryInfo.retryCount,
 					nextRetryMs: backoffMs,
-					userId: this.currentUserId!,
+					userId,
 				});
 
 				// Reset to pending after backoff so it gets picked up again
@@ -337,8 +344,8 @@ export class AutoModeService {
 			abort.abort();
 		}
 		this.runningFeatures.clear();
-		if (this.currentUserId) {
-			this.events.emit("auto-mode:stopped", { userId: this.currentUserId });
+		if (this.startedByUserId) {
+			this.events.emit("auto-mode:stopped", { userId: this.startedByUserId });
 		}
 	}
 
@@ -347,12 +354,14 @@ export class AutoModeService {
 		runningFeatures: string[];
 		consecutiveFailures: number;
 		config: AutoModeConfig;
+		startedByUserId: string | null;
 	} {
 		return {
 			isRunning: this.isRunning,
 			runningFeatures: Array.from(this.runningFeatures.keys()),
 			consecutiveFailures: this.consecutiveFailures,
 			config: { ...this.config },
+			startedByUserId: this.startedByUserId,
 		};
 	}
 
@@ -386,7 +395,6 @@ export class AutoModeService {
 		userId: string,
 	): Promise<void> {
 		const projectRoot = validateProjectRoot(rawProjectRoot);
-		this.currentUserId = userId;
 
 		// Resume the session (validates status, updates DB)
 		const session =
@@ -418,7 +426,7 @@ export class AutoModeService {
 		});
 
 		// Execute the feature — the SDK will use the resume option if sdkSessionId is set
-		this.executeFeature(featureId, projectRoot).catch((err) => {
+		this.executeFeature(featureId, projectRoot, userId).catch((err) => {
 			this.events.emit("auto-mode:error", {
 				featureId,
 				error: err instanceof Error ? err.message : String(err),
@@ -442,8 +450,6 @@ export class AutoModeService {
 			throw new Error(`Feature ${featureId} is already running`);
 		}
 
-		this.currentUserId = userId;
-
 		this.events.emit("auto-mode:event", {
 			type: "auto-mode:feature-queued",
 			featureId,
@@ -451,7 +457,7 @@ export class AutoModeService {
 		});
 
 		// executeFeature handles session creation, status updates, and cleanup
-		this.executeFeature(featureId, projectRoot).catch((err) => {
+		this.executeFeature(featureId, projectRoot, userId).catch((err) => {
 			this.events.emit("auto-mode:error", {
 				featureId,
 				error: err instanceof Error ? err.message : String(err),

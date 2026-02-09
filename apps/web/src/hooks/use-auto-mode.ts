@@ -70,8 +70,7 @@ export function useAutoMode() {
 		}),
 	);
 
-	const start = (projectId: string, projectRoot: string) =>
-		startMutation.mutate({ projectId, projectRoot });
+	const start = (projectId: string) => startMutation.mutate({ projectId });
 
 	const stop = () => stopMutation.mutate({});
 

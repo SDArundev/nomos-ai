@@ -27,6 +27,7 @@ export const patternRepository = {
 	async findRelevant(
 		category?: string,
 		minConfidence = 0.7,
+		userId?: string,
 	): Promise<PatternSelect[]> {
 		const conditions = [
 			gte(pattern.confidence, minConfidence),
@@ -34,6 +35,9 @@ export const patternRepository = {
 		];
 		if (category) {
 			conditions.push(eq(pattern.category, category));
+		}
+		if (userId) {
+			conditions.push(eq(pattern.userId, userId));
 		}
 		return db
 			.select()

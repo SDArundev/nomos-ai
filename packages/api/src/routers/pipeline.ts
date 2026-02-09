@@ -1,4 +1,4 @@
-import { featureRepository } from "@nomos-ai/db";
+import { featureRepository, projectRepository } from "@nomos-ai/db";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
@@ -17,7 +17,9 @@ export const pipelineRouter = {
 			if (!feature || feature.userId !== context.session.user.id) {
 				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
 			}
+			const project = await projectRepository.findById(feature.projectId);
+			const projectRoot = project?.path;
 			const service = getPipelineService();
-			return service.getProgress(input.featureId);
+			return service.getProgress(input.featureId, projectRoot);
 		}),
 };

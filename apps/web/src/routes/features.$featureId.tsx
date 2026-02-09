@@ -3,6 +3,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Pencil, Play, Save, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PipelineMonitor } from "@/components/auto-mode/pipeline-monitor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -123,9 +124,7 @@ function FeatureDetail() {
 	const feat = feature.data;
 
 	const canStartBuild =
-		feat.status !== "in_progress" &&
-		feat.status !== "verified" &&
-		!editing;
+		feat.status !== "in_progress" && feat.status !== "verified" && !editing;
 
 	return (
 		<div className="container mx-auto max-w-3xl px-4 py-6">
@@ -233,6 +232,9 @@ function FeatureDetail() {
 			</div>
 
 			<div className="grid gap-4">
+				{feat.status === "in_progress" && (
+					<PipelineMonitor featureId={featureId} status={feat.status} />
+				)}
 				<Card>
 					<CardHeader>
 						<CardTitle>Description</CardTitle>

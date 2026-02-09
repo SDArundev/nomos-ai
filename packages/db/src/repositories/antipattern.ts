@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../index";
 import { createWithId } from "../lib/id-generation";
 import { antipattern } from "../schema/antipatterns";
@@ -23,14 +23,24 @@ export const antipatternRepository = {
 		return rows[0] ?? null;
 	},
 
-	async findByCategory(category?: string): Promise<AntipatternSelect[]> {
+	async findByCategory(
+		category?: string,
+		userId?: string,
+	): Promise<AntipatternSelect[]> {
+		const conditions = [];
 		if (category) {
-			return db
-				.select()
-				.from(antipattern)
-				.where(eq(antipattern.category, category));
+			conditions.push(eq(antipattern.category, category));
 		}
-		return db.select().from(antipattern);
+		if (userId) {
+			conditions.push(eq(antipattern.userId, userId));
+		}
+		if (conditions.length === 0) {
+			return db.select().from(antipattern);
+		}
+		return db
+			.select()
+			.from(antipattern)
+			.where(and(...conditions));
 	},
 
 	async findBySeverity(severity: string): Promise<AntipatternSelect[]> {

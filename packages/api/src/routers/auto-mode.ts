@@ -17,7 +17,13 @@ export function getAutoModeService(): AutoModeService {
 		const pipeline = getPipelineService();
 		const worktree = getWorktreeService();
 		const sessions = getSessionService();
-		autoModeServiceInstance = new AutoModeService(events, provider, pipeline, worktree, sessions);
+		autoModeServiceInstance = new AutoModeService(
+			events,
+			provider,
+			pipeline,
+			worktree,
+			sessions,
+		);
 	}
 	return autoModeServiceInstance;
 }
@@ -45,34 +51,54 @@ export const autoModeRouter = {
 		.input(
 			z.object({
 				projectId: z.string(),
-				projectRoot: z.string(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
+			const project = await projectRepository.findById(input.projectId);
+			if (!project) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `Project not found: ${input.projectId}`,
+				});
+			}
+			if (project.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
 			const service = getAutoModeService();
 			service
-				.start(input.projectId, input.projectRoot, context.session.user.id)
+				.start(input.projectId, project.path, context.session.user.id)
 				.catch(() => {
 					// Errors handled via events
 				});
 			return { success: true, message: "Auto-mode started" };
 		}),
 
-	stop: protectedProcedure.handler(async () => {
+	stop: protectedProcedure.handler(async ({ context }) => {
 		const service = getAutoModeService();
+		const status = service.getStatus();
+		if (status.isRunning && status.startedByUserId !== context.session.user.id) {
+			throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+		}
 		service.stop();
 		return { success: true, message: "Auto-mode stopped" };
 	}),
 
-	status: protectedProcedure.handler(async () => {
+	status: protectedProcedure.handler(async ({ context }) => {
 		const service = getAutoModeService();
-		return service.getStatus();
+		const status = service.getStatus();
+		if (status.isRunning && status.startedByUserId !== context.session.user.id) {
+			throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+		}
+		return status;
 	}),
 
 	setConcurrency: protectedProcedure
 		.input(z.object({ max: z.number().int().min(1).max(5) }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const service = getAutoModeService();
+			const status = service.getStatus();
+			if (status.isRunning && status.startedByUserId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
 			service.setMaxConcurrency(input.max);
 			return { success: true };
 		}),
@@ -84,8 +110,12 @@ export const autoModeRouter = {
 				maxRetries: z.number().int().min(0).max(10).optional(),
 			}),
 		)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const service = getAutoModeService();
+			const status = service.getStatus();
+			if (status.isRunning && status.startedByUserId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
 			service.setConfig(input);
 			return { success: true, config: service.getConfig() };
 		}),
@@ -145,11 +175,9 @@ export const autoModeRouter = {
 				await featureRepository.update(input.featureId, { status: "pending" });
 			}
 
-			service
-				.startFeature(input.featureId, project.path, userId)
-				.catch(() => {
-					// Errors handled via events
-				});
+			service.startFeature(input.featureId, project.path, userId).catch(() => {
+				// Errors handled via events
+			});
 
 			return {
 				success: true,

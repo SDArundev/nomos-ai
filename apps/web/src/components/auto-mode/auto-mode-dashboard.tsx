@@ -57,7 +57,7 @@ export function AutoModeDashboard() {
 
 	const handleStart = () => {
 		if (projectId) {
-			start(projectId, ".");
+			start(projectId);
 		}
 	};
 
