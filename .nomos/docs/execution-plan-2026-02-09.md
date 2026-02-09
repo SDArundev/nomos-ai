@@ -3,7 +3,7 @@
 **Decision:** Docker Postgres (with Redis caching planned for later)
 **Goal:** Close the self-building loop — NOMOS builds itself from the dashboard
 **Source:** strategic-review-2026-02-09.md (4-agent analysis)
-**Last updated:** 2026-02-09T14:30Z
+**Last updated:** 2026-02-09T16:00Z
 
 ---
 
@@ -16,10 +16,10 @@
 | 1 | E: CI/Testing | DONE | cb6aec6 | CI fixed, postgres in CI, test skeleton |
 | 2 | C: Pipeline Unification | DONE | 2ed32cf | DB source of truth, API-first, Intent Box wired |
 | 2 | D: SDK Modernization | DONE | 2ed32cf | SDK query() replaces CLI, typed events, resume |
-| 3 | F: Self-Building Validation | IN PROGRESS | — | F2/F3 done, F1/F4 in progress |
-| 3 | G: Production Hardening | DONE | — | G1-G6 all complete, 1006 tests passing |
-| 3 | H: Strategic Cleanup | IN PROGRESS | — | Feature triage, learning loop, project.json |
-| 4 | I: Learning DB Migration | READY | — | Migrate learnings to DB tables (after H) |
+| 3 | F: Self-Building Validation | DONE | c201738 | 77 tests (cost tracking, crash recovery, loop validation). F1 needs manual test. |
+| 3 | G: Production Hardening | DONE | c201738 | Redis, Pino, health, Prometheus, E2E Playwright, CD pipeline. 1006 tests. |
+| 3 | H: Strategic Cleanup | DONE | c201738 | 285→139 features, learning loop closed, project.json, 8 epics created |
+| 4 | I: Learning DB Migration | READY | — | Migrate learnings from JSON to DB tables |
 
 **Commits:**
 - `cb6aec6` — Batch 1: Postgres migration, cleanup, CI fixes
