@@ -170,19 +170,19 @@ Execute safe, systematic refactoring operations with full traceability, validati
 
 | Agent | Phase | Purpose |
 |-------|-------|---------|
-| `explore-codebase` | Analysis (step-01) | Find usages, map dependencies |
+| `scout` | Analysis (step-01) | Find usages, map dependencies |
 | `code-architect` | Analysis + Planning (step-01, step-02) | Strategy, trade-offs, risk |
 | `code-writer` | Execution (step-04) | Apply refactoring changes |
 | `qa-smoke-tester` | Validation (step-05) | Verify app still runs |
 | `security-reviewer` | Validation (step-06) | Check for introduced vulnerabilities |
-| `test-coverage-analyzer` | Validation (step-05) | Ensure coverage maintained |
+| `code-reviewer` | Validation (step-05) | Ensure coverage maintained |
 
 ## Agent Launch Strategy
 
 ```
-Analysis:  2 agents in parallel (explore-codebase + code-architect)
+Analysis:  2 agents in parallel (scout + code-architect)
 Execution: 1 agent sequential (code-writer, with incremental validation)
-Validation: 3 agents in parallel (qa-smoke-tester + security-reviewer + test-coverage-analyzer)
+Validation: 3 agents in parallel (qa-smoke-tester + security-reviewer + code-reviewer)
 ```
 
 </agents>

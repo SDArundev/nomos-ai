@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -35,7 +35,7 @@ jobs:
       scaffolded: ${{ steps.check.outputs.scaffolded }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Check if project is scaffolded
         id: check
@@ -54,7 +54,7 @@ jobs:
     if: needs.check-scaffold.outputs.scaffolded == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -66,7 +66,6 @@ jobs:
 
       - name: Run bun audit
         run: bun pm audit
-        continue-on-error: true
 
       - name: Check for known vulnerabilities
         uses: actions/dependency-review-action@v4

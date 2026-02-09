@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../index";
-import { generateFeatureId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { feature } from "../schema/features";
 
 export type FeatureSelect = typeof feature.$inferSelect;
@@ -94,16 +94,18 @@ export const featureRepository = {
 			id?: string;
 		},
 	): Promise<FeatureSelect> {
-		const id = data.id ?? (await generateFeatureId());
-		const rows = await db
-			.insert(feature)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create feature");
+		if (data.id) {
+			const rows = await db
+				.insert(feature)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create feature");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(tx, feature, "F", 3, data) as Promise<FeatureSelect>;
+		});
 	},
 
 	async update(

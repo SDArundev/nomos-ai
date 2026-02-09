@@ -1,36 +1,52 @@
-import { resolve } from "node:path";
-import { createClient } from "@libsql/client";
 import { env } from "@nomos-ai/env/server";
-import { drizzle } from "drizzle-orm/libsql";
-import { resolveDbUrl } from "./resolve-url";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
-const monorepoRoot = resolve(import.meta.dirname, "../../..");
-const resolvedUrl = resolveDbUrl(env.DATABASE_URL, monorepoRoot);
-
-const client = createClient({
-	url: resolvedUrl,
+const client = postgres(env.DATABASE_URL, {
+	max: 20,
+	idle_timeout: 20,
+	connect_timeout: 10,
+	max_lifetime: 1800,
 });
+
+export async function closeDatabase(): Promise<void> {
+	await client.end({ timeout: 5 });
+}
 
 export const db = drizzle({ client, schema });
 
 export { sql } from "drizzle-orm";
 export {
+	createWithId,
+	generateAntipatternId,
 	generateFeatureId,
+	generateInsightId,
 	generateLearningId,
+	generateMetricId,
+	generatePatternId,
 	generateProjectId,
 	generateSessionId,
 } from "./lib/id-generation";
-export { backupDatabase, rollbackDatabase, runMigrations } from "./migrate";
+export { runMigrations } from "./migrate";
 export {
+	type AntipatternInsert,
+	type AntipatternSelect,
 	type ApiKeyInsert,
 	type ApiKeySelect,
+	antipatternRepository,
 	apiKeyRepository,
 	type EventInsert,
 	type EventSelect,
 	eventRepository,
 	type FeatureInsert,
+	type FeatureInsightInsert,
+	type FeatureInsightSelect,
+	type FeatureMetricInsert,
+	type FeatureMetricSelect,
 	type FeatureSelect,
+	featureInsightRepository,
+	featureMetricRepository,
 	featureRepository,
 	type LearningInsert,
 	type LearningSelect,
@@ -41,6 +57,9 @@ export {
 	type NotificationInsert,
 	type NotificationSelect,
 	notificationRepository,
+	type PatternInsert,
+	type PatternSelect,
+	patternRepository,
 	projectRepository,
 	type SettingInsert,
 	type SettingSelect,

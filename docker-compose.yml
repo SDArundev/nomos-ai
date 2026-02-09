@@ -1,20 +1,55 @@
 services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    volumes:
+      - nomos-pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=nomos
+      - POSTGRES_PASSWORD=nomos
+      - POSTGRES_DB=nomos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nomos -d nomos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - nomos-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   nomos:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "3001:3001"
-    volumes:
-      - nomos-data:/data
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATABASE_URL=file:/data/nomos.db
+      - DATABASE_URL=postgresql://nomos:nomos@postgres:5432/nomos
       - CORS_ORIGIN=http://localhost:3001
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-me-in-production}
       - BETTER_AUTH_URL=http://localhost:3001
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  nomos-data:
+  nomos-pgdata:
+  nomos-redis:

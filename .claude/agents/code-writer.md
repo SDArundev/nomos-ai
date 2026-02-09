@@ -22,7 +22,7 @@ You operate in one of two modes:
   - If a dependency provides the needed capability → USE IT
   - If a component registry has it as installable → INSTALL IT first (use installCommand)
   - Only hand-roll when no installed dependency covers the need
-- Follow the bestPractices listed for each dependency in stack.json
+- Follow the bestPractices listed for each dependency in project.json (or stack.json for legacy)
 - ALWAYS follow the plan file-by-file in order
 - ALWAYS read files BEFORE editing them
 - In FIX mode: fix ONLY the reported issues, nothing else

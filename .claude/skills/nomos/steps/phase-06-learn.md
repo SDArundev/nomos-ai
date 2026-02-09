@@ -17,9 +17,15 @@ Extract: `env`, `flags`, `feature_summary`, and all checkpoint data.
 
 ## 6.2 Check Condition
 
-Read feature status:
+Read feature status (**API mode preferred**, with file fallback):
 ```bash
-jq -r --arg id "{feature_id}" '.features[] | select(.id == $id) | .status' .nomos/features.json
+if [[ -n "$NOMOS_API_KEY" ]]; then
+  FEATURE_STATUS=$(curl -sf -H "Authorization: Bearer ${NOMOS_API_KEY}" \
+    "${NOMOS_API_URL:-http://localhost:3000}/api/features/{feature_id}" 2>/dev/null | jq -r '.status')
+fi
+if [[ -z "$FEATURE_STATUS" ]]; then
+  FEATURE_STATUS=$(jq -r --arg id "{feature_id}" '.features[] | select(.id == $id) | .status' .nomos/features.json)
+fi
 ```
 
 **IF status is `failed` or feature was `escalated`:**
@@ -57,13 +63,16 @@ historian_result = Task(
     1. Collect metrics via: bash .claude/skills/nomos/scripts/nomos.sh metrics {feature_id}
     2. Analyze patterns and anti-patterns
     3. Process candidate anti-patterns from cp-03
-    4. Update learning files (MERGE, don't overwrite)
-    5. Update codebase map
-    6. Write session insight
+    4. POST learnings to API (patterns, antipatterns, insights, metrics)
+       - API endpoints: POST /api/learnings/patterns, /api/learnings/antipatterns, /api/learnings/insights, /api/learnings/metrics
+       - Fallback: write to .nomos/learning/pending.json if server unreachable
+    5. Update local learning JSON files (always, as backup)
+    6. Update codebase map
+    7. Write session insight
 
     Return JSON: {metrics_recorded, patterns_extracted, antipatterns_extracted,
                    code_patterns_added, codebase_map_updated, insight_written,
-                   retrospective_summary}
+                   api_mode, pending_fallback, retrospective_summary}
   """
 )
 ```

@@ -1,8 +1,16 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+	boolean,
+	index,
+	integer,
+	numeric,
+	pgTable,
+	text,
+	timestamp,
+} from "drizzle-orm/pg-core";
 import { feature } from "./features";
 
-export const agentSession = sqliteTable(
+export const agentSession = pgTable(
 	"agent_session",
 	{
 		id: text("id").primaryKey(),
@@ -12,31 +20,36 @@ export const agentSession = sqliteTable(
 		}),
 		projectId: text("project_id"),
 		status: text("status").notNull(),
-		startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
-		completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+		startedAt: timestamp("started_at", {
+			withTimezone: true,
+			mode: "date",
+		}).notNull(),
+		completedAt: timestamp("completed_at", {
+			withTimezone: true,
+			mode: "date",
+		}),
 		output: text("output"),
 		error: text("error"),
-		// F258: SDK session + model + running state
 		sdkSessionId: text("sdk_session_id"),
 		model: text("model").default("sonnet"),
-		isRunning: integer("is_running", { mode: "boolean" }).default(false),
+		isRunning: boolean("is_running").default(false),
 		workingDirectory: text("working_directory"),
 		messageCount: integer("message_count").default(0),
-		// Cost tracking
-		totalCostUsd: text("total_cost_usd"),
+		totalCostUsd: numeric("total_cost_usd", { precision: 10, scale: 6 }),
 		inputTokens: integer("input_tokens"),
 		outputTokens: integer("output_tokens"),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
 			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => /* @__PURE__ */ new Date())
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
+			.$onUpdate(() => new Date())
 			.notNull(),
 	},
 	(table) => [
 		index("agent_session_status_idx").on(table.status),
 		index("agent_session_feature_id_idx").on(table.featureId),
+		index("agent_session_user_id_idx").on(table.userId),
 	],
 );
 

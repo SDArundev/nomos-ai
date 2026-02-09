@@ -1,8 +1,17 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+	boolean,
+	check,
+	index,
+	integer,
+	jsonb,
+	pgTable,
+	text,
+	timestamp,
+} from "drizzle-orm/pg-core";
 import { project } from "./projects";
 
-export const feature = sqliteTable(
+export const feature = pgTable(
 	"feature",
 	{
 		id: text("id").primaryKey(),
@@ -16,21 +25,21 @@ export const feature = sqliteTable(
 		phase: text("phase").notNull(),
 		priority: integer("priority"),
 		status: text("status").notNull(),
-		passes: integer("passes", { mode: "boolean" }).notNull().default(false),
-		acceptanceCriteria: text("acceptance_criteria", { mode: "json" })
+		passes: boolean("passes").notNull().default(false),
+		acceptanceCriteria: jsonb("acceptance_criteria")
 			.$type<string[]>()
 			.notNull(),
-		requirements: text("requirements", { mode: "json" }).$type<string[]>(),
-		dependencies: text("dependencies", { mode: "json" }).$type<string[]>(),
+		requirements: jsonb("requirements").$type<string[]>(),
+		dependencies: jsonb("dependencies").$type<string[]>(),
 		estimatedSize: text("estimated_size"),
-		preImplemented: integer("pre_implemented", { mode: "boolean" }),
+		preImplemented: boolean("pre_implemented"),
 		model: text("model"),
 		thinkingLevel: text("thinking_level"),
 		planningMode: text("planning_mode"),
-		requirePlanApproval: integer("require_plan_approval", { mode: "boolean" }),
-		skipTests: integer("skip_tests", { mode: "boolean" }),
+		requirePlanApproval: boolean("require_plan_approval"),
+		skipTests: boolean("skip_tests"),
 		retries: integer("retries").default(0),
-		descriptionHistory: text("description_history", { mode: "json" }).$type<
+		descriptionHistory: jsonb("description_history").$type<
 			Array<{
 				timestamp: string;
 				source: string;
@@ -40,18 +49,18 @@ export const feature = sqliteTable(
 		>(),
 		spec: text("spec"),
 		technicalNotes: text("technical_notes"),
-		testingRequirements: text("testing_requirements", { mode: "json" }).$type<{
+		testingRequirements: jsonb("testing_requirements").$type<{
 			unit?: string[];
 			integration?: string[];
 			e2e?: string[];
 			manual?: string[];
 		}>(),
-		files: text("files", { mode: "json" }).$type<{
+		files: jsonb("files").$type<{
 			create?: string[];
 			modify?: string[];
 			delete?: string[];
 		}>(),
-		imagePaths: text("image_paths", { mode: "json" }).$type<
+		imagePaths: jsonb("image_paths").$type<
 			Array<{
 				id: string;
 				path: string;
@@ -60,7 +69,7 @@ export const feature = sqliteTable(
 				content?: string;
 			}>
 		>(),
-		textFilePaths: text("text_file_paths", { mode: "json" }).$type<
+		textFilePaths: jsonb("text_file_paths").$type<
 			Array<{
 				id: string;
 				path: string;
@@ -71,7 +80,7 @@ export const feature = sqliteTable(
 		>(),
 		error: text("error"),
 		summary: text("summary"),
-		planSpec: text("plan_spec", { mode: "json" }).$type<{
+		planSpec: jsonb("plan_spec").$type<{
 			status?: string;
 			content?: string;
 			version?: number;
@@ -83,32 +92,42 @@ export const feature = sqliteTable(
 			};
 		}>(),
 		branchName: text("branch_name"),
-		// F258: worktree + locking + pipeline fields
-		useWorktree: integer("use_worktree", { mode: "boolean" }).default(false),
-		locked: integer("locked", { mode: "boolean" }).default(false),
+		useWorktree: boolean("use_worktree").default(false),
+		locked: boolean("locked").default(false),
 		lockedBy: text("locked_by"),
-		lockedAt: integer("locked_at", { mode: "timestamp_ms" }),
+		lockedAt: timestamp("locked_at", { withTimezone: true, mode: "date" }),
 		pipelineStep: text("pipeline_step"),
 		lastCompletedStep: text("last_completed_step"),
 		retryCount: integer("retry_count").default(0),
-		lastFailureAt: integer("last_failure_at", { mode: "timestamp_ms" }),
-		tags: text("tags", { mode: "json" }).$type<string[]>(),
-		titleGenerating: integer("title_generating", { mode: "boolean" }),
-		startedAt: integer("started_at", { mode: "timestamp_ms" }),
-		completedAt: integer("completed_at", { mode: "timestamp_ms" }),
-		verifiedAt: integer("verified_at", { mode: "timestamp_ms" }),
+		lastFailureAt: timestamp("last_failure_at", {
+			withTimezone: true,
+			mode: "date",
+		}),
+		tags: jsonb("tags").$type<string[]>(),
+		titleGenerating: boolean("title_generating"),
+		startedAt: timestamp("started_at", { withTimezone: true, mode: "date" }),
+		completedAt: timestamp("completed_at", {
+			withTimezone: true,
+			mode: "date",
+		}),
+		verifiedAt: timestamp("verified_at", { withTimezone: true, mode: "date" }),
 		completedBy: text("completed_by"),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		// New columns
+		release: text("release"),
+		failureReason: text("failure_reason"),
+		restoredAt: timestamp("restored_at", { withTimezone: true, mode: "date" }),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
 			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => /* @__PURE__ */ new Date())
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
+			.$onUpdate(() => new Date())
 			.notNull(),
 	},
 	(table) => [
 		index("feature_status_idx").on(table.status),
 		index("feature_phase_idx").on(table.phase),
 		index("feature_project_id_idx").on(table.projectId),
+		check("feature_status_enum", sql`status IN ('backlog', 'pending', 'in_progress', 'waiting_approval', 'verified', 'failed')`),
 	],
 );

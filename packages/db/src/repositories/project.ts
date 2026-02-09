@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../index";
-import { generateProjectId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { project } from "../schema/projects";
 
 type ProjectSelect = typeof project.$inferSelect;
@@ -36,16 +36,18 @@ export const projectRepository = {
 			id?: string;
 		},
 	): Promise<ProjectSelect> {
-		const id = data.id ?? (await generateProjectId());
-		const rows = await db
-			.insert(project)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create project");
+		if (data.id) {
+			const rows = await db
+				.insert(project)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create project");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(tx, project, "P", 3, data) as Promise<ProjectSelect>;
+		});
 	},
 
 	async update(

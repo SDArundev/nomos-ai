@@ -1,12 +1,7 @@
-import {
-	integer,
-	sqliteTable,
-	text,
-	uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createSettingId } from "../lib/ids";
 
-export const setting = sqliteTable(
+export const setting = pgTable(
 	"setting",
 	{
 		id: text("id").primaryKey().$defaultFn(createSettingId),
@@ -14,7 +9,7 @@ export const setting = sqliteTable(
 		value: text("value").notNull(),
 		scope: text("scope").notNull(),
 		scopeId: text("scope_id"),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},

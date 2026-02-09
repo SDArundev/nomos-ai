@@ -1,11 +1,12 @@
-import { type ChildProcess, spawn } from "node:child_process";
 import { resolve } from "node:path";
-import { featureRepository } from "@nomos-ai/db";
+import { featureRepository, sessionRepository } from "@nomos-ai/db";
+import type { ProviderMessage } from "@nomos-ai/types";
 import {
 	areDependenciesSatisfied,
 	resolveDependencies,
 } from "../lib/dependency-resolver";
-import type { EventService } from "./event-service";
+import type { AgentProvider } from "./claude-provider";
+import type { IEventService } from "./event-service";
 import type { PipelineService } from "./pipeline-service";
 import type { SessionService } from "./session-service";
 import type { WorktreeService } from "./worktree-service";
@@ -45,7 +46,8 @@ export class AutoModeService {
 	private currentUserId: string | null = null;
 
 	constructor(
-		private events: EventService,
+		private events: IEventService,
+		private provider: AgentProvider,
 		private pipelineService: PipelineService,
 		private worktreeService: WorktreeService,
 		private sessionService: SessionService,
@@ -166,7 +168,7 @@ export class AutoModeService {
 			const session = await this.sessionService.createPipelineSession({
 				userId: this.currentUserId!,
 				featureId,
-				model: "claude-cli",
+				model: "sonnet",
 			});
 
 			// Create worktree if needed
@@ -186,23 +188,6 @@ export class AutoModeService {
 			// Auto-mode always runs with auto=true, test=true, merge=false
 			// (merge is not done automatically — features go to waiting_approval)
 			const prompt = `Read .claude/skills/nomos/SKILL.md and follow the FIRST ACTION instructions for feature ${featureId}. Flags: auto=true, test=true, merge=false`;
-
-			// Spawn claude CLI as subprocess
-			const proc = spawn(
-				"claude",
-				["--dangerously-skip-permissions", "-p", prompt],
-				{
-					cwd,
-					env: { ...process.env },
-					stdio: ["ignore", "pipe", "pipe"],
-				},
-			);
-
-			// Wire abort signal to kill the subprocess
-			const onAbort = () => {
-				proc.kill();
-			};
-			abort.signal.addEventListener("abort", onAbort);
 
 			// Set project root for checkpoint resolution and start polling
 			this.pipelineService.setProjectRoot(cwd);
@@ -225,37 +210,45 @@ export class AutoModeService {
 				abort.signal,
 			);
 
-			// Stream stdout/stderr for logging/events
-			this.streamChildOutput(proc, session.id);
-
-			// Wait for subprocess to exit
-			const exitCode = await new Promise<number | null>((resolveCode) => {
-				proc.on("close", (code) => resolveCode(code));
-				proc.on("error", () => resolveCode(null));
+			// Execute via SDK query() instead of CLI subprocess
+			let costData: ProviderMessage["costData"];
+			const stream = this.provider.executeQuery({
+				prompt,
+				model: "sonnet",
+				cwd,
+				maxTurns: 50,
+				permissionMode: "bypassPermissions",
+				thinkingLevel: "standard",
+				abortController: abort,
 			});
 
-			// Clean up abort listener
-			abort.signal.removeEventListener("abort", onAbort);
+			for await (const msg of stream) {
+				// Emit structured messages for dashboard consumers
+				this.events.emit("agent:stream", {
+					sessionId: session.id,
+					message: msg,
+					userId: this.currentUserId!,
+				});
+
+				// Capture SDK session ID for potential resume
+				if (msg.session_id) {
+					sessionRepository
+						.update(session.id, { sdkSessionId: msg.session_id })
+						.catch(() => {
+							// Fire-and-forget — don't crash on DB errors
+						});
+				}
+
+				// Capture cost data from result messages
+				if (msg.type === "result" && msg.costData) {
+					costData = msg.costData;
+				}
+			}
 
 			// Wait for checkpoint polling to finish
 			await pollPromise.catch(() => {
 				// Polling may reject if aborted — that's fine
 			});
-
-			if (exitCode !== 0) {
-				throw new Error(
-					`Claude CLI exited with code ${exitCode} for feature ${featureId}`,
-				);
-			}
-
-			// Read final checkpoint data
-			const finalCheckpoint = this.pipelineService.getLatestCheckpoint(
-				featureId,
-				cwd,
-			);
-			const costData = finalCheckpoint?.data?.data as
-				| Record<string, unknown>
-				| undefined;
 
 			// Success
 			this.consecutiveFailures = 0;
@@ -269,8 +262,12 @@ export class AutoModeService {
 			await this.sessionService.completeSession(
 				session.id,
 				undefined,
-				typeof costData?.total_cost_usd === "number"
-					? { totalCostUsd: costData.total_cost_usd, inputTokens: 0, outputTokens: 0 }
+				costData
+					? {
+							totalCostUsd: costData.totalCostUsd,
+							inputTokens: costData.inputTokens,
+							outputTokens: costData.outputTokens,
+						}
 					: undefined,
 			);
 
@@ -329,29 +326,6 @@ export class AutoModeService {
 		}
 	}
 
-	/**
-	 * Attach listeners to a child process's stdout/stderr and emit as agent events.
-	 */
-	private streamChildOutput(proc: ChildProcess, sessionId: string): void {
-		proc.stdout?.on("data", (chunk: Buffer) => {
-			this.events.emit("agent:stream", {
-				sessionId,
-				channel: "stdout",
-				text: chunk.toString(),
-				userId: this.currentUserId!,
-			});
-		});
-
-		proc.stderr?.on("data", (chunk: Buffer) => {
-			this.events.emit("agent:stream", {
-				sessionId,
-				channel: "stderr",
-				text: chunk.toString(),
-				userId: this.currentUserId!,
-			});
-		});
-	}
-
 	stop(): void {
 		this.isRunning = false;
 		for (const timer of this.retryTimers) {
@@ -399,5 +373,89 @@ export class AutoModeService {
 
 	getConfig(): AutoModeConfig {
 		return { ...this.config };
+	}
+
+	/**
+	 * Resume a failed session by re-running its feature with the SDK resume option.
+	 * Uses the stored sdkSessionId to continue from where the previous run left off.
+	 */
+	async resumeSession(
+		sessionId: string,
+		rawProjectRoot: string,
+		userId: string,
+	): Promise<void> {
+		const projectRoot = validateProjectRoot(rawProjectRoot);
+		this.currentUserId = userId;
+
+		// Resume the session (validates status, updates DB)
+		const session =
+			await this.sessionService.resumeSession(sessionId);
+
+		if (!session.featureId) {
+			throw new Error("Cannot resume session without a feature ID");
+		}
+
+		const featureId = session.featureId;
+
+		if (this.runningFeatures.has(featureId)) {
+			throw new Error(`Feature ${featureId} is already running`);
+		}
+
+		// Reset feature to in_progress
+		await featureRepository.update(featureId, {
+			status: "in_progress",
+			locked: true,
+			lockedBy: userId,
+			lockedAt: new Date(),
+			error: null,
+		});
+
+		this.events.emit("auto-mode:event", {
+			type: "auto-mode:feature-queued",
+			featureId,
+			userId,
+		});
+
+		// Execute the feature — the SDK will use the resume option if sdkSessionId is set
+		this.executeFeature(featureId, projectRoot).catch((err) => {
+			this.events.emit("auto-mode:error", {
+				featureId,
+				error: err instanceof Error ? err.message : String(err),
+				userId,
+			});
+		});
+	}
+
+	/**
+	 * Start a pipeline for a single feature (triggered from Intent Box / dashboard).
+	 * Unlike `start()`, this does not enter a loop — it runs one feature and returns.
+	 */
+	async startFeature(
+		featureId: string,
+		rawProjectRoot: string,
+		userId: string,
+	): Promise<void> {
+		const projectRoot = validateProjectRoot(rawProjectRoot);
+
+		if (this.runningFeatures.has(featureId)) {
+			throw new Error(`Feature ${featureId} is already running`);
+		}
+
+		this.currentUserId = userId;
+
+		this.events.emit("auto-mode:event", {
+			type: "auto-mode:feature-queued",
+			featureId,
+			userId,
+		});
+
+		// executeFeature handles session creation, status updates, and cleanup
+		this.executeFeature(featureId, projectRoot).catch((err) => {
+			this.events.emit("auto-mode:error", {
+				featureId,
+				error: err instanceof Error ? err.message : String(err),
+				userId,
+			});
+		});
 	}
 }

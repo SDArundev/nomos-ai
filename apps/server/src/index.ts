@@ -1,12 +1,22 @@
 import { createContext } from "@nomos-ai/api/context";
+import { serverLogger } from "@nomos-ai/api/lib/logger";
+import { registry, requestDuration } from "@nomos-ai/api/lib/metrics";
 import { apiKeyAuthMiddleware } from "@nomos-ai/api/middleware/api-key-auth";
 import { createRestAdapter } from "@nomos-ai/api/rest-adapter";
 import { getEventService } from "@nomos-ai/api/routers/agent";
 import { appRouter } from "@nomos-ai/api/routers/index";
 import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
+import { ingestPendingLearnings } from "@nomos-ai/api/services/learning-ingestion";
+import { RedisEventService } from "@nomos-ai/api/services/redis-event-service";
 import { auth } from "@nomos-ai/auth";
-import { db, runMigrations, sql } from "@nomos-ai/db";
+import {
+	closeDatabase,
+	db,
+	runMigrations,
+	sessionRepository,
+	sql,
+} from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -23,8 +33,42 @@ import { createWebSocketHandlers, type WSData } from "./lib/websocket";
 try {
 	await runMigrations();
 } catch (error) {
-	console.error("Failed to run database migrations:", error);
+	serverLogger.fatal({ err: error }, "Failed to run database migrations");
 	process.exit(1);
+}
+
+// Clean up orphaned sessions from previous server instances
+try {
+	const orphaned = await sessionRepository.findActive();
+	if (orphaned.length > 0) {
+		for (const session of orphaned) {
+			await sessionRepository.update(session.id, {
+				status: "failed",
+				isRunning: false,
+				error: "Server restarted, session orphaned",
+				completedAt: new Date(),
+			});
+		}
+		serverLogger.info(
+			{ count: orphaned.length },
+			"Cleaned up orphaned sessions",
+		);
+	}
+} catch (error) {
+	serverLogger.warn({ err: error }, "Session cleanup failed (non-fatal)");
+}
+
+// Ingest pending learnings from CLI fallback
+try {
+	const result = await ingestPendingLearnings();
+	if (result.ingested > 0) {
+		serverLogger.info(result, "Ingested pending learnings");
+	}
+} catch (error) {
+	serverLogger.warn(
+		{ err: error },
+		"Pending learnings ingestion failed (non-fatal)",
+	);
 }
 
 const app = new Hono<{ Variables: { orpcContext: any } }>();
@@ -80,11 +124,34 @@ app.use(
 		origin: env.CORS_ORIGIN.includes(",")
 			? env.CORS_ORIGIN.split(",").map((o) => o.trim())
 			: env.CORS_ORIGIN,
-		allowMethods: ["GET", "POST", "OPTIONS"],
-		allowHeaders: ["Content-Type", "Authorization"],
+		allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+		allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 		credentials: true,
 	}),
 );
+
+// CSRF protection: require X-Requested-With header on state-changing requests
+app.use("/api/*", async (c, next) => {
+	const method = c.req.method;
+	if (method === "GET" || method === "OPTIONS") return next();
+	// better-auth handles its own CSRF protection
+	if (c.req.path.startsWith("/api/auth/")) return next();
+	const xrw = c.req.header("X-Requested-With");
+	if (xrw !== "XMLHttpRequest") {
+		return c.json({ error: "CSRF validation failed" }, 403);
+	}
+	await next();
+});
+
+app.use("/rpc/*", async (c, next) => {
+	const method = c.req.method;
+	if (method === "GET" || method === "OPTIONS") return next();
+	const xrw = c.req.header("X-Requested-With");
+	if (xrw !== "XMLHttpRequest") {
+		return c.json({ error: "CSRF validation failed" }, 403);
+	}
+	await next();
+});
 
 // Security headers
 app.use("/*", async (c, next) => {
@@ -104,6 +171,29 @@ app.use("/*", async (c, next) => {
 			"max-age=31536000; includeSubDomains",
 		);
 	}
+});
+
+// Request duration tracking for Prometheus
+app.use("/*", async (c, next) => {
+	const start = performance.now();
+	await next();
+	const duration = (performance.now() - start) / 1000;
+	// Normalize path to avoid high-cardinality labels
+	const path = c.req.path
+		.replace(/\/[a-f0-9-]{36}/g, "/:id")
+		.replace(/\/[A-Z]+-?\d+/g, "/:id");
+	requestDuration.observe(
+		{ method: c.req.method, path, status: String(c.res.status) },
+		duration,
+	);
+});
+
+// Prometheus metrics endpoint (no auth required)
+app.get("/metrics", async (c) => {
+	const metrics = await registry.metrics();
+	return c.text(metrics, 200, {
+		"Content-Type": registry.contentType,
+	});
 });
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
@@ -170,7 +260,7 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
 	],
 	interceptors: [
 		onError((error) => {
-			console.error(error);
+			serverLogger.error({ err: error }, "OpenAPI handler error");
 		}),
 	],
 });
@@ -178,7 +268,7 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
 export const rpcHandler = new RPCHandler(appRouter, {
 	interceptors: [
 		onError((error) => {
-			console.error(error);
+			serverLogger.error({ err: error }, "RPC handler error");
 		}),
 	],
 });
@@ -227,27 +317,10 @@ app.get("/", (c) => {
 	return c.text("OK");
 });
 
-app.get("/health", async (c) => {
-	let database: "connected" | "disconnected" = "connected";
-	try {
-		await db.run(sql`SELECT 1`);
-	} catch {
-		database = "disconnected";
-		return c.json(
-			{
-				status: "unhealthy",
-				version: "0.1.0",
-				database,
-				uptime: process.uptime(),
-				timestamp: new Date().toISOString(),
-			},
-			503,
-		);
-	}
+app.get("/health", (c) => {
 	return c.json({
 		status: "ok",
 		version: "0.1.0",
-		database,
 		uptime: process.uptime(),
 		timestamp: new Date().toISOString(),
 	});
@@ -261,10 +334,15 @@ app.get("/ready", async (c) => {
 
 	// Check DB connectivity
 	try {
-		await db.run(sql`SELECT 1`);
+		await db.execute(sql`SELECT 1`);
 		checks.db = true;
 	} catch {
 		// DB not ready
+	}
+
+	// Check Redis connectivity (only if configured)
+	if (eventService instanceof RedisEventService) {
+		checks.redis = await eventService.ping();
 	}
 
 	// Check WebSocket broadcaster initialized (clientCount getter exists)
@@ -293,7 +371,7 @@ app.onError((err, c) => {
 	if (err instanceof HTTPException) {
 		return err.getResponse();
 	}
-	console.error("Unhandled error:", err);
+	serverLogger.error({ err }, "Unhandled error");
 	const message =
 		process.env.NODE_ENV === "production"
 			? "Internal Server Error"
@@ -301,7 +379,17 @@ app.onError((err, c) => {
 	return c.json({ error: message }, 500);
 });
 
-console.log(`Server ready on port ${env.PORT}`);
+serverLogger.info({ port: env.PORT }, "Server ready");
+
+// Graceful shutdown
+const shutdown = async () => {
+	serverLogger.info("Shutting down...");
+	terminalService.killAll();
+	await closeDatabase();
+	process.exit(0);
+};
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 export default {
 	port: env.PORT,

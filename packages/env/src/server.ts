@@ -9,12 +9,10 @@ export const env = createEnv({
 			.min(1)
 			.refine(
 				(url) =>
-					url.startsWith("file:") ||
-					url.startsWith("libsql://") ||
-					url.startsWith("http"),
+					url.startsWith("postgresql://") || url.startsWith("postgres://"),
 				{
 					message:
-						'DATABASE_URL must start with "file:" for SQLite, "libsql://" for Turso, or "http" for remote',
+						'DATABASE_URL must start with "postgresql://" or "postgres://"',
 				},
 			),
 		BETTER_AUTH_SECRET: z.string().min(32),
@@ -27,6 +25,10 @@ export const env = createEnv({
 		CLAUDE_MODEL: z.string().default("claude-sonnet-4-5-20250929"),
 		NOMOS_MOCK_AGENT: z.coerce.boolean().default(false),
 		ALLOWED_ROOT_DIRECTORY: z.string().optional(),
+		REDIS_URL: z.string().url().optional(),
+		LOG_LEVEL: z
+			.enum(["debug", "info", "warn", "error"])
+			.default("info"),
 		DATA_DIR: z.string().default("./apps/server/data"),
 		IS_CONTAINERIZED: z.coerce.boolean().default(false),
 	},

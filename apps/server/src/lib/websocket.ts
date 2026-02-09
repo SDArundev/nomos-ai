@@ -1,5 +1,5 @@
 import type { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
-import type { EventService } from "@nomos-ai/api/services/event-service";
+import type { IEventService } from "@nomos-ai/api/services/event-service";
 import type { TerminalService } from "@nomos-ai/api/services/terminal-service";
 import type { ServerWebSocket } from "bun";
 
@@ -12,7 +12,7 @@ export interface WSData {
 export function createWebSocketHandlers(
 	broadcaster: EventBroadcaster,
 	terminalService?: TerminalService,
-	events?: EventService,
+	events?: IEventService,
 ) {
 	// Track terminal WebSocket clients by sessionId
 	const terminalClients = new Map<string, Set<ServerWebSocket<WSData>>>();
@@ -68,9 +68,17 @@ export function createWebSocketHandlers(
 				terminalService
 			) {
 				try {
+					const session = terminalService.getSession(ws.data.sessionId);
+					if (session.userId !== ws.data.userId) {
+						console.warn(
+							`Terminal session ownership mismatch: session ${ws.data.sessionId} owned by ${session.userId}, accessed by ${ws.data.userId}`,
+						);
+						ws.close(4403, "Forbidden: session ownership mismatch");
+						return;
+					}
 					terminalService.write(ws.data.sessionId, String(message));
 				} catch {
-					// Session may have been killed
+					// Session may have been killed or not found
 				}
 			}
 		},

@@ -3,6 +3,7 @@ import { Command } from "cmdk";
 import {
 	Activity,
 	Bot,
+	Brain,
 	Columns3,
 	FileJson,
 	Home,
@@ -25,6 +26,7 @@ const navItems = [
 	{ label: "Kanban Board", icon: Columns3, to: "/kanban" },
 	{ label: "Agent Chat", icon: Bot, to: "/agent" },
 	{ label: "Activity", icon: Activity, to: "/activity" },
+	{ label: "Learnings", icon: Brain, to: "/learnings" },
 	{ label: "Terminal", icon: Terminal, to: "/terminal" },
 	{ label: "Spec", icon: FileJson, to: "/spec" },
 	{ label: "Import Features", icon: Import, to: "/features/import" },

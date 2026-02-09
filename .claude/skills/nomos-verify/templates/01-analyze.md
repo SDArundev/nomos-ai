@@ -25,7 +25,7 @@
 
 {bugs_findings}
 
-### Dimension: Quality (code-quality-reviewer)
+### Dimension: Quality (scout)
 
 {quality_findings}
 
@@ -37,7 +37,7 @@
 
 {security_findings}
 
-### Dimension: Testing (test-coverage-analyzer)
+### Dimension: Testing (code-reviewer)
 
 {testing_findings}
 

@@ -283,6 +283,6 @@ Proven recipes for common improvements to the NOMOS system.
 **Steps:**
 1. **Define category** — Choose ID following `CAT-XXX` format (3 uppercase letters)
 2. **Add to features.json** — Add to categories array with name and description
-3. **Add to app_spec.json** — If categories are listed there
+3. **Add to project.json** — If categories are listed there
 4. **Add patterns** — If the category has known patterns, add to `learning/patterns.json`
 5. **Validate:** Category ID is unique, follows naming convention

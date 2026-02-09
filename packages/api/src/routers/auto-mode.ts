@@ -1,8 +1,9 @@
-import { featureRepository } from "@nomos-ai/db";
+import { featureRepository, projectRepository } from "@nomos-ai/db";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { AutoModeService } from "../services/auto-mode-service";
+import { ClaudeProvider } from "../services/claude-provider";
 import { PipelineService } from "../services/pipeline-service";
 import { WorktreeService } from "../services/worktree-service";
 import { getEventService, getSessionService } from "./agent";
@@ -12,10 +13,11 @@ let autoModeServiceInstance: AutoModeService | null = null;
 export function getAutoModeService(): AutoModeService {
 	if (!autoModeServiceInstance) {
 		const events = getEventService();
+		const provider = ClaudeProvider.create();
 		const pipeline = getPipelineService();
 		const worktree = getWorktreeService();
 		const sessions = getSessionService();
-		autoModeServiceInstance = new AutoModeService(events, pipeline, worktree, sessions);
+		autoModeServiceInstance = new AutoModeService(events, provider, pipeline, worktree, sessions);
 	}
 	return autoModeServiceInstance;
 }
@@ -105,6 +107,53 @@ export const autoModeRouter = {
 			return {
 				success: true,
 				message: `Reset retry count for ${input.featureId}`,
+			};
+		}),
+
+	startFeature: protectedProcedure
+		.input(
+			z.object({
+				featureId: z.string().min(1),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+
+			// Verify feature exists and belongs to user
+			const feature = await featureRepository.findById(input.featureId);
+			if (!feature) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `Feature not found: ${input.featureId}`,
+				});
+			}
+			if (feature.userId !== userId) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
+
+			// Get project to determine projectRoot
+			const project = await projectRepository.findById(feature.projectId);
+			if (!project) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `Project not found for feature ${input.featureId}`,
+				});
+			}
+
+			const service = getAutoModeService();
+
+			// Update feature to pending so executeFeature can transition it
+			if (feature.status === "backlog") {
+				await featureRepository.update(input.featureId, { status: "pending" });
+			}
+
+			service
+				.startFeature(input.featureId, project.path, userId)
+				.catch(() => {
+					// Errors handled via events
+				});
+
+			return {
+				success: true,
+				message: `Pipeline started for ${input.featureId}`,
 			};
 		}),
 };

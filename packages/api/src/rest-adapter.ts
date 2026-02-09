@@ -35,6 +35,18 @@
  * - POST /api/learnings → POST /rpc/learnings.create
  * - PATCH /api/learnings/:id → POST /rpc/learnings.update
  * - DELETE /api/learnings/:id → POST /rpc/learnings.delete
+ * - GET /api/learnings/relevant → POST /rpc/learnings.relevant
+ * - POST /api/learnings/curate → POST /rpc/learnings.curate
+ * - GET /api/learnings/patterns → POST /rpc/learnings.listPatterns
+ * - POST /api/learnings/patterns → POST /rpc/learnings.createPattern
+ * - GET /api/learnings/antipatterns → POST /rpc/learnings.listAntipatterns
+ * - POST /api/learnings/antipatterns → POST /rpc/learnings.createAntipattern
+ * - GET /api/learnings/insights → POST /rpc/learnings.listInsights
+ * - GET /api/learnings/insights/:featureId → POST /rpc/learnings.getInsight
+ * - POST /api/learnings/insights → POST /rpc/learnings.createInsight
+ * - GET /api/learnings/metrics → POST /rpc/learnings.listMetrics
+ * - GET /api/learnings/metrics/:featureId → POST /rpc/learnings.getMetric
+ * - POST /api/learnings/metrics → POST /rpc/learnings.createMetric
  *
  * API Keys:
  * - GET /api/keys → POST /rpc/apiKeys.list
@@ -45,6 +57,7 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import type { Context as ORPCContext } from "./context";
+import { restLogger } from "./lib/logger";
 
 /**
  * Create REST API routes that wrap oRPC RPC handler
@@ -167,6 +180,22 @@ export function createRestAdapter(rpcHandler: any) {
 		});
 	});
 
+	// GET /api/features/export - Export features as JSON (replaces features.json)
+	app.get("/features/export", async (c: Context) => {
+		const projectId = c.req.query("projectId");
+		return callRPC(
+			c,
+			"features.exportJson",
+			projectId ? { projectId } : undefined,
+		);
+	});
+
+	// POST /api/features/:id/start - Start pipeline for a feature
+	app.post("/features/:id/start", async (c: Context) => {
+		const featureId = c.req.param("id");
+		return callRPC(c, "autoMode.startFeature", { featureId });
+	});
+
 	// GET /api/features/dependencies/:projectId - Get dependency order
 	app.get("/features/dependencies/:projectId", async (c: Context) => {
 		const projectId = c.req.param("projectId");
@@ -255,6 +284,17 @@ export function createRestAdapter(rpcHandler: any) {
 		});
 	});
 
+	// POST /api/sessions/:id/resume - Resume a failed session
+	app.post("/sessions/:id/resume", async (c: Context) => {
+		const id = c.req.param("id");
+		return callRPC(c, "sessions.resume", { id });
+	});
+
+	// GET /api/sessions/resumable - List resumable sessions
+	app.get("/sessions/resumable", async (c: Context) => {
+		return callRPC(c, "sessions.listResumable", {});
+	});
+
 	// ── Learnings ─────────────────────────────────────────────
 
 	// GET /api/learnings - List learnings with optional filtering
@@ -303,6 +343,86 @@ export function createRestAdapter(rpcHandler: any) {
 		return result;
 	});
 
+	// GET /api/learnings/relevant - Get relevant patterns/antipatterns
+	app.get("/learnings/relevant", async (c: Context) => {
+		const category = c.req.query("category");
+		const minConfidence = c.req.query("minConfidence");
+		const type = c.req.query("type");
+
+		const input = {
+			...(category && { category }),
+			...(minConfidence && { minConfidence: Number.parseFloat(minConfidence) }),
+			...(type && { type }),
+		};
+
+		return callRPC(
+			c,
+			"learnings.relevant",
+			Object.keys(input).length > 0 ? input : undefined,
+		);
+	});
+
+	// POST /api/learnings/curate - Run pattern curation
+	app.post("/learnings/curate", async (c: Context) => {
+		return callRPC(c, "learnings.curate", undefined);
+	});
+
+	// POST /api/learnings/patterns - Create pattern
+	app.post("/learnings/patterns", async (c: Context) => {
+		const body = await c.req.json();
+		return callRPC(c, "learnings.createPattern", body);
+	});
+
+	// GET /api/learnings/patterns - List patterns
+	app.get("/learnings/patterns", async (c: Context) => {
+		return callRPC(c, "learnings.listPatterns", undefined);
+	});
+
+	// POST /api/learnings/antipatterns - Create antipattern
+	app.post("/learnings/antipatterns", async (c: Context) => {
+		const body = await c.req.json();
+		return callRPC(c, "learnings.createAntipattern", body);
+	});
+
+	// GET /api/learnings/antipatterns - List antipatterns
+	app.get("/learnings/antipatterns", async (c: Context) => {
+		return callRPC(c, "learnings.listAntipatterns", undefined);
+	});
+
+	// POST /api/learnings/insights - Create feature insight
+	app.post("/learnings/insights", async (c: Context) => {
+		const body = await c.req.json();
+		return callRPC(c, "learnings.createInsight", body);
+	});
+
+	// GET /api/learnings/insights/:featureId - Get insight for feature
+	app.get("/learnings/insights/:featureId", async (c: Context) => {
+		const featureId = c.req.param("featureId");
+		return callRPC(c, "learnings.getInsight", { featureId });
+	});
+
+	// GET /api/learnings/insights - List all insights
+	app.get("/learnings/insights", async (c: Context) => {
+		return callRPC(c, "learnings.listInsights", undefined);
+	});
+
+	// POST /api/learnings/metrics - Create feature metric
+	app.post("/learnings/metrics", async (c: Context) => {
+		const body = await c.req.json();
+		return callRPC(c, "learnings.createMetric", body);
+	});
+
+	// GET /api/learnings/metrics/:featureId - Get metric for feature
+	app.get("/learnings/metrics/:featureId", async (c: Context) => {
+		const featureId = c.req.param("featureId");
+		return callRPC(c, "learnings.getMetric", { featureId });
+	});
+
+	// GET /api/learnings/metrics - List all metrics
+	app.get("/learnings/metrics", async (c: Context) => {
+		return callRPC(c, "learnings.listMetrics", undefined);
+	});
+
 	// ── API Keys ──────────────────────────────────────────────
 
 	// GET /api/keys - List API keys
@@ -329,7 +449,7 @@ export function createRestAdapter(rpcHandler: any) {
  * Handle errors and convert to HTTP responses
  */
 function handleError(c: Context, error: any) {
-	console.error("REST API Error:", error);
+	restLogger.error({ err: error }, "REST API error");
 
 	// Handle oRPC errors
 	if (error.code) {

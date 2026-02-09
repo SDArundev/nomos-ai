@@ -1,6 +1,7 @@
 import { featureRepository } from "@nomos-ai/db";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { validateSpec } from "../lib/spec-validator";
 import { SpecService } from "../services/spec-service";
 
 let specServiceInstance: SpecService | null = null;
@@ -26,10 +27,17 @@ export const specRouter = {
 						errors: [{ path: "", message: "No spec found" }],
 					},
 				};
-			const validation = service.validate(
+			const validation = validateSpec(
 				spec as unknown as Record<string, unknown>,
 			);
 			return { spec, validation };
+		}),
+
+	getProjectConfig: protectedProcedure
+		.input(z.object({ projectPath: z.string() }))
+		.handler(async ({ input }) => {
+			const service = getSpecService();
+			return service.loadProjectConfig(input.projectPath);
 		}),
 
 	updateSpec: protectedProcedure
@@ -41,15 +49,17 @@ export const specRouter = {
 		)
 		.handler(async ({ input }) => {
 			const service = getSpecService();
-			const validation = service.validate(
+			const validation = validateSpec(
 				input.spec as Record<string, unknown>,
 			);
 			if (!validation.valid) {
 				return { success: false, errors: validation.errors };
 			}
-			await service.saveSpec(
+			await service.saveProjectConfig(
 				input.projectPath,
-				input.spec as unknown as Parameters<SpecService["saveSpec"]>[1],
+				input.spec as unknown as Parameters<
+					SpecService["saveProjectConfig"]
+				>[1],
 			);
 			return {
 				success: true,

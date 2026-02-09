@@ -42,6 +42,7 @@ const { AutoModeService } = await import("./auto-mode-service");
 
 describe("AutoModeService", () => {
 	let events: { emit: ReturnType<typeof mock> };
+	let provider: { executeQuery: ReturnType<typeof mock> };
 	let pipelineService: {
 		setProjectRoot: ReturnType<typeof mock>;
 		pollCheckpoints: ReturnType<typeof mock>;
@@ -49,6 +50,11 @@ describe("AutoModeService", () => {
 		getLatestCheckpoint: ReturnType<typeof mock>;
 	};
 	let worktreeService: { create: ReturnType<typeof mock> };
+	let sessionService: {
+		createPipelineSession: ReturnType<typeof mock>;
+		completeSession: ReturnType<typeof mock>;
+		failSession: ReturnType<typeof mock>;
+	};
 	let service: InstanceType<typeof AutoModeService>;
 
 	beforeEach(() => {
@@ -67,6 +73,21 @@ describe("AutoModeService", () => {
 		});
 
 		events = { emit: mock(() => {}) };
+		provider = {
+			executeQuery: mock(async function* () {
+				yield {
+					type: "result",
+					subtype: "success",
+					session_id: "sdk-session-1",
+					result: "done",
+					costData: {
+						totalCostUsd: 0.05,
+						inputTokens: 1000,
+						outputTokens: 500,
+					},
+				};
+			}),
+		};
 		pipelineService = {
 			setProjectRoot: mock(() => {}),
 			pollCheckpoints: mock(() => Promise.resolve()),
@@ -76,11 +97,20 @@ describe("AutoModeService", () => {
 		worktreeService = {
 			create: mock(() => Promise.resolve({ path: "/tmp/wt" })),
 		};
+		sessionService = {
+			createPipelineSession: mock(() =>
+				Promise.resolve({ id: "sess_001", userId: "user_001", status: "running" }),
+			),
+			completeSession: mock(() => Promise.resolve()),
+			failSession: mock(() => Promise.resolve()),
+		};
 
 		service = new AutoModeService(
 			events as any,
+			provider as any,
 			pipelineService as any,
 			worktreeService as any,
+			sessionService as any,
 		);
 	});
 

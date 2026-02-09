@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../index";
-import { generateLearningId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { learning } from "../schema/learnings";
 
 export type LearningSelect = typeof learning.$inferSelect;
@@ -55,16 +55,24 @@ export const learningRepository = {
 			id?: string;
 		},
 	): Promise<LearningSelect> {
-		const id = data.id ?? (await generateLearningId());
-		const rows = await db
-			.insert(learning)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create learning");
+		if (data.id) {
+			const rows = await db
+				.insert(learning)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create learning");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(
+				tx,
+				learning,
+				"L",
+				3,
+				data,
+			) as Promise<LearningSelect>;
+		});
 	},
 
 	async update(

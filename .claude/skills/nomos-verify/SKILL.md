@@ -47,18 +47,17 @@ Read-only codebase analysis with parallel dimension-based agents and optional fi
 | Depth | Dimensions | Agents |
 |-------|-----------|--------|
 | Quick (`-q`) | Bugs + Requirements | `code-reviewer`, `qa-reviewer` |
-| Standard | Bugs + Quality + Requirements | + `code-quality-reviewer` |
-| Deep (`-d`) | ALL 5 | + `security-reviewer`, `test-coverage-analyzer` |
+| Standard | Bugs + Quality + Requirements | + `scout` |
+| Deep (`-d`) | ALL 5 | + `security-reviewer`, `code-reviewer` (coverage) |
 
 ## Agents
 
 | Agent | Dimension | Depth |
 |-------|-----------|-------|
-| `code-reviewer` | Bugs | Quick+ |
+| `code-reviewer` | Bugs + Coverage | Quick+ |
 | `qa-reviewer` | Requirements | Quick+ |
-| `code-quality-reviewer` | Quality | Standard+ |
+| `scout` | Quality | Standard+ |
 | `security-reviewer` | Security | Deep |
-| `test-coverage-analyzer` | Testing | Deep |
 | `code-writer` | Fix loop | Step 03 only |
 
 ## Step Files

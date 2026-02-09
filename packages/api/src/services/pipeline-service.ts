@@ -7,7 +7,7 @@ import type {
 	PipelineStepStatus,
 } from "@nomos-ai/types";
 import { z } from "zod";
-import type { EventService } from "./event-service";
+import type { IEventService } from "./event-service";
 
 // ---------------------------------------------------------------------------
 // Checkpoint Zod schema
@@ -93,7 +93,7 @@ const POLL_INTERVAL_MS = 2_000;
 export class PipelineService {
 	private projectRoot: string | null = null;
 
-	constructor(private events: EventService) {}
+	constructor(private events: IEventService) {}
 
 	/**
 	 * Set the project root for checkpoint resolution.

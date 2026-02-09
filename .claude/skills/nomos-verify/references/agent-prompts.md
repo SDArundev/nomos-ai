@@ -49,10 +49,10 @@ Prompt: |
   Set Dimension: Bugs for all findings.
 ```
 
-### Dimension 2: Quality (code-quality-reviewer)
+### Dimension 2: Quality (scout)
 
 ```
-Task agent: code-quality-reviewer
+Task agent: scout
 Prompt: |
   ## Code Quality Analysis: Feature-First Verification
 
@@ -144,10 +144,10 @@ Prompt: |
   Set Dimension: Security for all findings.
 ```
 
-### Dimension 5: Testing (test-coverage-analyzer)
+### Dimension 5: Testing (code-reviewer)
 
 ```
-Task agent: test-coverage-analyzer
+Task agent: code-reviewer
 Prompt: |
   ## Test Coverage Analysis: Feature-First Verification
 
@@ -215,10 +215,10 @@ Prompt: |
   Set Dimension: Bugs for all findings.
 ```
 
-### Dimension 2: Quality (code-quality-reviewer) — Codebase
+### Dimension 2: Quality (scout) — Codebase
 
 ```
-Task agent: code-quality-reviewer
+Task agent: scout
 Prompt: |
   ## Code Quality: Codebase Health Check
 
@@ -303,10 +303,10 @@ Prompt: |
   Set Dimension: Security for all findings.
 ```
 
-### Dimension 5: Testing (test-coverage-analyzer) — Codebase
+### Dimension 5: Testing (code-reviewer) — Codebase
 
 ```
-Task agent: test-coverage-analyzer
+Task agent: code-reviewer
 Prompt: |
   ## Test Coverage Audit: Codebase Health Check
 

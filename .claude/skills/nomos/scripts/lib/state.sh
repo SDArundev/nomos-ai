@@ -3,6 +3,24 @@
 # Commands: cmd_state (start, claim, complete, verify, reset, fail, retry, preverify, get, next)
 # Depends on: FEATURES_FILE, TIMESTAMP, LOCKS_DIR, atomic_update, acquire_lock, release_lock
 
+# Sync feature status to REST API (best-effort, non-blocking)
+# Falls back silently if API is unavailable
+_sync_status_to_api() {
+    local feature_id="$1"
+    local status="$2"
+    local api_url="${NOMOS_API_URL:-}"
+    local api_key="${NOMOS_API_KEY:-}"
+
+    if [[ -n "$api_key" && -n "$api_url" ]]; then
+        curl -sf -X POST \
+            -H "Authorization: Bearer ${api_key}" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\": \"${status}\"}" \
+            "${api_url}/api/features/${feature_id}/status" \
+            >/dev/null 2>&1 || true
+    fi
+}
+
 cmd_state() {
     local action="$1"
     local feature_id="$2"
@@ -34,6 +52,7 @@ cmd_state() {
                 )
 EOF
 )"
+            _sync_status_to_api "$feature_id" "in_progress"
             echo "ok $feature_id: status -> in_progress"
             ;;
 
@@ -118,6 +137,7 @@ EOF
                 )
 EOF
 )"
+            _sync_status_to_api "$feature_id" "waiting_approval"
             echo "ok $feature_id: status -> waiting_approval, passes -> true"
             ;;
 
@@ -132,6 +152,7 @@ EOF
                 )
 EOF
 )"
+            _sync_status_to_api "$feature_id" "verified"
             echo "ok $feature_id: status -> verified, passes -> true"
             ;;
 
@@ -154,6 +175,7 @@ EOF
             jq --arg id "$feature_id" --arg reason "$failure_reason" --arg ts "$TIMESTAMP" \
               '.features |= map(if .id == $id then .status = "failed" | .failureReason = $reason | .failedAt = $ts else . end)' \
               "$FEATURES_FILE" > "${FEATURES_FILE}.tmp" && mv "${FEATURES_FILE}.tmp" "$FEATURES_FILE"
+            _sync_status_to_api "$feature_id" "failed"
             echo "ok $feature_id: status -> failed (reason: $failure_reason)"
             ;;
 

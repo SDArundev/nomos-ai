@@ -79,13 +79,20 @@ export class MockProvider implements AgentProvider {
 			},
 		} as ProviderMessage;
 
-		// Final result
+		// Final result with simulated cost data
 		await sleep(100);
 		yield {
 			type: "result",
 			subtype: "success",
 			session_id: sessionId,
 			result: accumulated,
+			costData: {
+				totalCostUsd: 0.003,
+				inputTokens: 150,
+				outputTokens: words.length * 2,
+				cacheReadInputTokens: 50,
+				cacheCreationInputTokens: 0,
+			},
 		} as ProviderMessage;
 	}
 }

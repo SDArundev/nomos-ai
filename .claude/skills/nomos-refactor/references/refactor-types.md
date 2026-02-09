@@ -8,14 +8,14 @@ Type-specific strategies, agent configurations, and expected outputs for each re
 
 | Type | Agents | Risk | Requires Replacement | Output Files |
 |------|--------|------|---------------------|--------------|
-| `dependency` | explore-codebase, code-architect, code-writer, security-reviewer | MEDIUM | Yes | analysis, plan, diff-summary |
-| `move` | explore-codebase, code-writer | LOW-MEDIUM | Yes | analysis, plan, diff-summary |
-| `rename` | explore-codebase, code-writer | LOW | Yes | analysis, plan, diff-summary |
-| `optimize` | explore-codebase, code-architect, code-writer | MEDIUM-HIGH | No | analysis, plan, diff-summary |
-| `extract` | explore-codebase, code-architect, code-writer | MEDIUM | Yes (module name) | analysis, plan, diff-summary |
-| `inline` | explore-codebase, code-writer | LOW | No | analysis, plan, diff-summary |
-| `modernize` | explore-codebase, code-architect, code-writer | MEDIUM | Yes | analysis, plan, diff-summary, migration-guide |
-| `structure` | explore-codebase, code-architect, code-writer, qa-smoke-tester | HIGH | Yes | analysis, plan, diff-summary, migration-guide |
+| `dependency` | scout, code-architect, code-writer, security-reviewer | MEDIUM | Yes | analysis, plan, diff-summary |
+| `move` | scout, code-writer | LOW-MEDIUM | Yes | analysis, plan, diff-summary |
+| `rename` | scout, code-writer | LOW | Yes | analysis, plan, diff-summary |
+| `optimize` | scout, code-architect, code-writer | MEDIUM-HIGH | No | analysis, plan, diff-summary |
+| `extract` | scout, code-architect, code-writer | MEDIUM | Yes (module name) | analysis, plan, diff-summary |
+| `inline` | scout, code-writer | LOW | No | analysis, plan, diff-summary |
+| `modernize` | scout, code-architect, code-writer | MEDIUM | Yes | analysis, plan, diff-summary, migration-guide |
+| `structure` | scout, code-architect, code-writer, qa-smoke-tester | HIGH | Yes | analysis, plan, diff-summary, migration-guide |
 
 ---
 

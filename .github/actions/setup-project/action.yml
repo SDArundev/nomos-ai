@@ -39,4 +39,4 @@ runs:
     - name: Build shared packages
       if: inputs.build-packages == 'true'
       shell: bash
-      run: bun run build:packages
+      run: bun run build

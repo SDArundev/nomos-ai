@@ -10,11 +10,11 @@
 		}
 	},
 	"scripts": {
-		"db:local": "turso dev --db-file local.db",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:studio": "drizzle-kit studio",
-		"db:migrate": "drizzle-kit migrate"
+		"db:migrate": "drizzle-kit migrate",
+		"seed-learnings": "bun run src/scripts/seed-learnings.ts"
 	},
 	"devDependencies": {
 		"typescript": "catalog:",
@@ -26,7 +26,6 @@
 		"zod": "catalog:",
 		"@nomos-ai/env": "workspace:*",
 		"drizzle-orm": "^0.45.1",
-		"@libsql/client": "catalog:",
-		"libsql": "catalog:"
+		"postgres": "^3.4.7"
 	}
 }

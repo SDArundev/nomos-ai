@@ -45,9 +45,37 @@ bash .claude/skills/nomos/scripts/nomos.sh state next
 
 ## 1.3 Validate Feature
 
+**Try REST API first (DB is source of truth), fall back to features.json for standalone CLI use.**
+
+### 1.3a API Mode (preferred)
+
+Check if NOMOS server is reachable and API key is configured:
+
+```bash
+NOMOS_API_URL="${NOMOS_API_URL:-http://localhost:3000}"
+NOMOS_API_KEY="${NOMOS_API_KEY:-}"
+
+if [[ -n "$NOMOS_API_KEY" ]]; then
+  FEATURE_JSON=$(curl -sf -H "Authorization: Bearer ${NOMOS_API_KEY}" \
+    "${NOMOS_API_URL}/api/features/${feature_id}" 2>/dev/null)
+fi
+```
+
+If `FEATURE_JSON` is non-empty and valid, use it. The API returns the feature object directly with fields: `id`, `title`, `description`, `phase`, `priority`, `dependencies`, `acceptanceCriteria`, `status`, `category`, `passes`, `estimatedSize`.
+
+Set `{feature_source} = "api"`.
+
+### 1.3b Fallback: features.json
+
+If the API is unreachable or `NOMOS_API_KEY` is not set, fall back to the local file:
+
 ```bash
 jq -e --arg id "{feature_id}" '.features[] | select(.id == $id)' .nomos/features.json
 ```
+
+Set `{feature_source} = "file"`.
+
+### 1.3c Extract & Validate
 
 Extract: `id`, `title`, `description`, `phase`, `priority`, `dependencies`, `acceptanceCriteria`, `status`, `category`.
 
@@ -61,7 +89,17 @@ Extract: `id`, `title`, `description`, `phase`, `priority`, `dependencies`, `acc
 
 ## 1.4 Check Dependencies
 
-All dependencies must have `passes: true`. If any unverified:
+**API mode:** Fetch all project features from API and check dependency status:
+```bash
+if [[ "{feature_source}" == "api" && -n "$NOMOS_API_KEY" ]]; then
+  ALL_FEATURES=$(curl -sf -H "Authorization: Bearer ${NOMOS_API_KEY}" \
+    "${NOMOS_API_URL}/api/features" 2>/dev/null)
+fi
+```
+
+**File mode:** Read from features.json as before.
+
+All dependencies must have `passes: true` (or `status: "verified"`). If any unverified:
 - In auto mode: fail with `unverified_dependency`
 - Otherwise: ask user
 
@@ -145,7 +183,33 @@ bash .claude/skills/nomos/scripts/tmux-session.sh setup {feature_id}
 
 ---
 
-## 1.10 Dispatch Scout Agent
+## 1.10 Load Relevant Learning Context
+
+Read patterns and antipatterns from the learning system, filtered by feature category:
+
+```bash
+CATEGORY="{category}"  # e.g., CAT-AGT, CAT-FE, CAT-API
+
+# Read patterns relevant to this category
+RELEVANT_PATTERNS=$(jq --arg cat "$CATEGORY" '[.patterns[] | select(
+  (.applies_to // [] | any(. == $cat)) or
+  (.applies_to // [] | any(. == "all")) or
+  (.category == "infra")
+) | {id, name, recommendation, gotcha: (.gotcha // .gotchas // null), risk_if_ignored}]' .nomos/learning/patterns.json)
+
+# Read antipatterns relevant to this category
+RELEVANT_ANTIPATTERNS=$(jq --arg cat "$CATEGORY" '[.antipatterns[] | select(
+  (.category == "security") or
+  (.severity == "CRITICAL") or
+  (.severity == "HIGH")
+) | {id, name, prevention, severity}]' .nomos/learning/antipatterns.json)
+```
+
+These will be passed to the scout agent and included in cp-01.json for Phase 2.
+
+---
+
+## 1.11 Dispatch Scout Agent
 
 <critical>
 Use the Task tool to dispatch the scout agent with a FRESH context window.
@@ -166,9 +230,16 @@ scout_result = Task(
     Acceptance Criteria: {acceptance_criteria}
     Dependencies: {dependencies}
 
+    Relevant patterns from learning system:
+    {RELEVANT_PATTERNS}
+
+    Relevant antipatterns to avoid:
+    {RELEVANT_ANTIPATTERNS}
+
     Working directory: {PROJECT_ROOT}
 
     Follow the workflow in .claude/agents/scout.md.
+    Include the relevant patterns and antipatterns in your output.
     Return ONLY a JSON object (no markdown, no explanation).
   """
 )
@@ -182,7 +253,7 @@ bash .claude/skills/nomos/scripts/nomos.sh state preverify {feature_id}
 
 ---
 
-## 1.11 Write cp-01.json
+## 1.12 Write cp-01.json
 
 Using Write tool, create `.nomos/output/{feature_id}/cp-01.json`:
 
@@ -198,7 +269,9 @@ Using Write tool, create `.nomos/output/{feature_id}/cp-01.json`:
     "output_dir": "{OUTPUT_DIR}",
     "server_port": {SERVER_PORT},
     "web_port": {WEB_PORT},
-    "project_root": "{PROJECT_ROOT}"
+    "project_root": "{PROJECT_ROOT}",
+    "feature_source": "{feature_source}",
+    "nomos_api_url": "{NOMOS_API_URL}"
   },
   "flags": {
     "auto": {auto},
@@ -216,13 +289,17 @@ Using Write tool, create `.nomos/output/{feature_id}/cp-01.json`:
     "phase": "{phase}",
     "dependencies": [{dependencies}]
   },
+  "learning": {
+    "patterns": {RELEVANT_PATTERNS},
+    "antipatterns": {RELEVANT_ANTIPATTERNS}
+  },
   "data": {scout_result}
 }
 ```
 
 ---
 
-## 1.12 Show Summary and Proceed
+## 1.13 Show Summary and Proceed
 
 ```
 NOMOS v4: {feature_id} - {feature_title}

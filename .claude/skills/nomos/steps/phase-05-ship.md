@@ -78,8 +78,18 @@ PR_NUMBER=$(gh pr view --json number -q '.number')
 
 ## 5.5 Record PR URL
 
-State is already `waiting_approval` (set by phase 4). Record the PR URL on the feature:
+State is already `waiting_approval` (set by phase 4). Record the PR URL on the feature.
 
+**API mode (preferred):** If `env.feature_source == "api"` and `NOMOS_API_KEY` is set:
+```bash
+curl -sf -X PATCH \
+  -H "Authorization: Bearer ${NOMOS_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"prUrl\": \"$PR_URL\", \"prCreatedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+  "${NOMOS_API_URL}/api/features/{feature_id}"
+```
+
+**File fallback:**
 ```bash
 jq --arg id "{feature_id}" --arg url "$PR_URL" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
   .features |= map(if .id == $id then .prUrl = $url | .prCreatedAt = $ts else . end)

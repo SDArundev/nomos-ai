@@ -8,7 +8,8 @@
       "category": "typescript",
       "source": "learning",
       "first_seen": "F032",
-      "last_seen": "F032"
+      "last_seen": "F032",
+      "id": "PAT-038"
     },
     {
       "id": "AGT-001",
@@ -60,7 +61,7 @@
       "id": "PAT-001",
       "name": "CLI_SCAFFOLD_FIRST",
       "description": "Use established CLI scaffolds (better-t-stack, create-next-app, etc.) for initial project setup rather than manual configuration",
-      "category": "project-setup",
+      "category": "infra",
       "evidence_count": 1,
       "last_seen": "F001",
       "applies_to": [
@@ -111,7 +112,7 @@
       "id": "PAT-003",
       "name": "WORKTREE_ENV_ISOLATION",
       "description": "Git worktrees need separate .env files with absolute paths for DATABASE_URL",
-      "category": "git-workflow",
+      "category": "infra",
       "evidence_count": 6,
       "last_seen": "F016",
       "applies_to": [
@@ -145,7 +146,7 @@
       "id": "PAT-004",
       "name": "BIOME_AUTO_FIX",
       "description": "Biome can auto-fix most formatting and lint issues",
-      "category": "code-quality",
+      "category": "infra",
       "evidence_count": 1,
       "last_seen": "F001",
       "applies_to": [
@@ -326,7 +327,7 @@
       "id": "PAT-011",
       "name": "GOOD_PLANNING",
       "description": "Clear feature scope with specific acceptance criteria leads to zero-retry implementations",
-      "category": "process",
+      "category": "infra",
       "evidence_count": 5,
       "last_seen": "F016",
       "applies_to": [
@@ -357,7 +358,7 @@
       "id": "PAT-012",
       "name": "FOCUSED_SCOPE",
       "description": "Features that change 3 or fewer core files are completed faster and with fewer issues",
-      "category": "process",
+      "category": "infra",
       "evidence_count": 5,
       "last_seen": "F016",
       "applies_to": [
@@ -388,7 +389,7 @@
       "id": "PAT-013",
       "name": "PATTERN_REUSE",
       "description": "Reusing well-known patterns (Hono error handlers, oRPC routing, Bun serve export, health checks, TanStack Router auth guards, route structure) reduces implementation time and errors. F013 completed in 4 min by copying F012 template. F014 copied both F012 and F013. F015 reused F001 scaffold as-is and filled 2 gaps. F016 reused F015 error handling pattern for health endpoint. F017 reused F015 protectedProcedure pattern as base for CRUD router. F018 copied F017 project router template with new entity and transition validation logic. F019 reused feature.ts template with session-specific status transitions and duration tracking. F020 reused route structure from F001 scaffold (beforeLoad auth guards, component layout, query pattern) for 3 new routes.",
-      "category": "multi-layer",
+      "category": "infra",
       "evidence_count": 10,
       "last_seen": "F022",
       "applies_to": [
@@ -458,7 +459,7 @@
       "id": "PAT-015",
       "name": "DEPENDENCY_VERIFICATION",
       "description": "Always verify external packages are installed before marking feature complete. After adding imports, check package.json and run dev server.",
-      "category": "dependencies",
+      "category": "infra",
       "evidence_count": 1,
       "last_seen": "F024",
       "applies_to": [
@@ -487,7 +488,7 @@
       "id": "PAT-022",
       "name": "TANSTACK_FORM_ARRAY_FIELDS",
       "description": "Use TanStack Form mode=\"array\" for dynamic list fields (e.g., acceptance criteria). Fields support pushValue()/removeValue() for add/remove buttons with validation on array length.",
-      "category": "react-forms",
+      "category": "frontend",
       "evidence_count": 1,
       "last_seen": "F028",
       "applies_to": [
@@ -511,7 +512,7 @@
       "id": "PAT-023",
       "name": "SHEET_FORM_INTEGRATION_PATTERN",
       "description": "Combine Sheet (sidebar modal) with form components for create/edit workflows. Sheet holds form, handles open state via Zustand UI store. Form prop controls edit vs create mode with conditional mutations.",
-      "category": "react-components",
+      "category": "frontend",
       "evidence_count": 1,
       "last_seen": "F028",
       "applies_to": [
@@ -535,7 +536,7 @@
       "id": "PAT-024",
       "name": "ZUSTAND_MULTI_ITEM_BOOLEAN_STATE",
       "description": "Extend Zustand UISlice to manage multi-item boolean state (e.g., collapsed columns) using Record<string, boolean>. Use spread operator with computed key to update individual items without replacing entire object.",
-      "category": "state-management",
+      "category": "frontend",
       "evidence_count": 1,
       "last_seen": "F029",
       "applies_to": [
@@ -559,7 +560,7 @@
       "id": "PAT-025",
       "name": "ICON_BUTTON_ACCESSIBILITY_LABELS",
       "description": "Icon-only buttons require context-aware aria-labels that describe the action and reflect current state. Labels should change based on state (e.g., 'Expand column' when collapsed, 'Collapse column' when expanded).",
-      "category": "accessibility",
+      "category": "frontend",
       "evidence_count": 1,
       "last_seen": "F029",
       "applies_to": [
@@ -583,7 +584,7 @@
       "id": "PAT-029",
       "name": "ZOD_DISCRIMINATED_UNION_MESSAGES",
       "description": "Use Zod discriminatedUnion for polymorphic message types in WebSocket protocols. Define separate schemas per message type, then union with discriminator field for type-safe routing and validation.",
-      "category": "typescript-validation",
+      "category": "typescript",
       "evidence_count": 1,
       "last_seen": "F034",
       "applies_to": [
@@ -607,7 +608,7 @@
       "id": "PAT-030",
       "name": "PER_CLIENT_SUBSCRIPTION_STATE",
       "description": "Track per-client subscription state in broadcaster using client ID + Set<EventType> map. Handle subscribe/unsubscribe atomically, prevent duplicate subscriptions.",
-      "category": "architecture",
+      "category": "server",
       "evidence_count": 1,
       "last_seen": "F034",
       "applies_to": [
@@ -631,7 +632,7 @@
       "id": "PAT-031",
       "name": "WEBSOCKET_RECONNECTION_RESUBSCRIBE",
       "description": "On WebSocket reconnect, client automatically resends full subscription list. Server sends \"subscribed\" response confirming subscriptions. Prevents subscription loss on temporary disconnection.",
-      "category": "resilience",
+      "category": "server",
       "evidence_count": 1,
       "last_seen": "F034",
       "applies_to": [
@@ -736,7 +737,7 @@
         "state-machines"
       ],
       "recommendation": "Define VALID_TRANSITIONS record at top of router file mapping current state to allowed next states. Check transitions in updateStatus and bulkUpdateStatus procedures before calling repository.",
-      "codeExample": "const VALID_TRANSITIONS: Record<string, string[]> = {\n  [FEATURE_STATUS.BACKLOG]: [FEATURE_STATUS.PENDING, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.PENDING]: [FEATURE_STATUS.IN_PROGRESS, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.IN_PROGRESS]: [FEATURE_STATUS.WAITING_APPROVAL, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.VERIFIED]: [],\n};\n\n// In updateStatus handler:\nconst allowed = VALID_TRANSITIONS[feat.status];\nif (!allowed || !allowed.includes(input.status)) {\n  throw new ORPCError('BAD_REQUEST', {\n    message: `Invalid status transition: ${feat.status} → ${input.status}`,\n  });\n}",
+      "codeExample": "const VALID_TRANSITIONS: Record<string, string[]> = {\n  [FEATURE_STATUS.BACKLOG]: [FEATURE_STATUS.PENDING, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.PENDING]: [FEATURE_STATUS.IN_PROGRESS, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.IN_PROGRESS]: [FEATURE_STATUS.WAITING_APPROVAL, FEATURE_STATUS.FAILED],\n  [FEATURE_STATUS.VERIFIED]: [],\n};\n\n// In updateStatus handler:\nconst allowed = VALID_TRANSITIONS[feat.status];\nif (!allowed || !allowed.includes(input.status)) {\n  throw new ORPCError('BAD_REQUEST', {\n    message: `Invalid status transition: ${feat.status} \u2192 ${input.status}`,\n  });\n}",
       "keyPoints": [
         "Define transitions at router level (not in repository) for business logic clarity",
         "Check transitions before fetching from DB to fail fast on invalid requests",
@@ -744,7 +745,7 @@
         "Return detailed error messages showing which transitions are invalid and why",
         "Terminal states (VERIFIED, FAILED) should have empty arrays [] to prevent further transitions"
       ],
-      "testCoverage": "Test valid transitions (backlog→pending, pending→in_progress, etc.), invalid transitions (verified→backlog), bulk operations with mixed validity, error message format",
+      "testCoverage": "Test valid transitions (backlog\u2192pending, pending\u2192in_progress, etc.), invalid transitions (verified\u2192backlog), bulk operations with mixed validity, error message format",
       "confidence": 0.8,
       "success_rate": 1.0,
       "risk_if_ignored": "HIGH",
@@ -1101,7 +1102,7 @@
       "id": "WS-002",
       "name": "ASYNC_ERROR_MESSAGE_CAPTURE",
       "description": "In async error handlers, capture error message/stack BEFORE attempting any async operations. Async operations (like DB updates) may fail, masking the original error.",
-      "category": "error-handling",
+      "category": "server",
       "evidence_count": 1,
       "last_seen": "F035",
       "applies_to": [
@@ -1217,7 +1218,7 @@
       "id": "PAT-017",
       "name": "CLIPBOARD_TIMEOUT_CLEANUP",
       "description": "In useCopyToClipboard hook, always clear timeout in cleanup function to prevent memory leaks when component unmounts during copy operation",
-      "category": "react-hooks",
+      "category": "frontend",
       "confidence": 0.9,
       "evidence_count": 1,
       "first_seen": "F036",
@@ -1243,7 +1244,7 @@
       "id": "PAT-018",
       "name": "COPY_PENDING_CONTENT_NOT_FINAL",
       "description": "Copy function should include pendingContent (streaming partial messages) in addition to finalized message content",
-      "category": "react-patterns",
+      "category": "frontend",
       "confidence": 0.9,
       "evidence_count": 1,
       "first_seen": "F036",
@@ -1267,8 +1268,8 @@
     {
       "id": "PAT-032",
       "name": "SEQUENTIAL_MUTATION_CHAINING_WITH_FALLBACK",
-      "description": "For complex workflows requiring multiple mutations (createSession -> updateStatus -> sendMessage), chain with .mutateAsync() and error boundaries. If intermediate mutation fails, previous changes may be orphaned—acceptable for MVP with caveat in documentation.",
-      "category": "react-mutations",
+      "description": "For complex workflows requiring multiple mutations (createSession -> updateStatus -> sendMessage), chain with .mutateAsync() and error boundaries. If intermediate mutation fails, previous changes may be orphaned\u2014acceptable for MVP with caveat in documentation.",
+      "category": "frontend",
       "evidence_count": 1,
       "last_seen": "F039",
       "applies_to": [
@@ -1291,7 +1292,7 @@
       "id": "PAT-033",
       "name": "DIALOG_WITH_ENUM_SELECT_DROPDOWNS",
       "description": "Confirmation dialogs with multiple Select dropdowns for enum options (Model, ThinkingLevel, PlanningMode). Each Select uses Base-UI pattern with form state management. Defaults from parent feature data.",
-      "category": "react-forms",
+      "category": "frontend",
       "evidence_count": 1,
       "last_seen": "F039",
       "applies_to": [
@@ -1314,7 +1315,7 @@
       "id": "PAT-034",
       "name": "CONDITIONAL_BUTTON_VISIBILITY_BY_STATUS",
       "description": "Action buttons in detail panels visible only for specific statuses (Start Execution visible when status=pending). Use status check in render logic with conditional className to match panel styling.",
-      "category": "react-components",
+      "category": "frontend",
       "evidence_count": 1,
       "last_seen": "F039",
       "applies_to": [
@@ -1337,7 +1338,6 @@
       "id": "PAT-035",
       "name": "BACKEND_PRE_IMPLEMENTATION_DETECTION",
       "description": "When Phase 1 scout identifies backend dependency already exists (method, endpoint, service), Phase 3 scope reduces to UI wiring only. Signals lower implementation complexity.",
-      "type": "planning",
       "first_seen": "F040",
       "occurrences": 1,
       "affected_features": [
@@ -1348,13 +1348,13 @@
       "related_files": [
         "stop-execution-dialog.tsx",
         "feature-detail-panel.tsx"
-      ]
+      ],
+      "category": "infra"
     },
     {
       "id": "PAT-036",
       "name": "SESSION_RESOURCE_LOOKUP_PATTERN",
       "description": "Pattern for finding active resources by feature ID from list endpoint. Handles: multiple resources per feature, stale status, IDOR checks.",
-      "type": "code_pattern",
       "first_seen": "F040",
       "occurrences": 1,
       "language": "tsx",
@@ -1366,13 +1366,13 @@
       "gotchas": "Must validate: 1) Session exists, 2) User owns session (auth check), 3) Status field is synchronized with isRunning",
       "related_files": [
         "stop-execution-dialog.tsx"
-      ]
+      ],
+      "category": "infra"
     },
     {
       "id": "PAT-037",
       "name": "DESTRUCTIVE_ACTION_CONFIRMATION_PATTERN",
       "description": "Pattern for confirming destructive actions in React: dialog with warning text, disabled button during loading, error toast feedback. Reusable component.",
-      "type": "code_pattern",
       "first_seen": "F040",
       "occurrences": 1,
       "language": "tsx",
@@ -1385,10 +1385,11 @@
       "implementation_notes": "Always include: 1) Warning icon/text, 2) Confirmation button disabled during mutation, 3) Error toast on failure, 4) Success toast on completion",
       "related_files": [
         "stop-execution-dialog.tsx"
-      ]
+      ],
+      "category": "infra"
     },
     {
-      "id": "PAT-017",
+      "id": "PAT-039",
       "name": "TYPE_SYSTEM_PRODUCER_CONSUMER_SYNC",
       "description": "When adding new fields to shared types (e.g., toolCalls interface), ALL producers AND consumers must be updated. Adding timestamps to tool call types requires updates at 3 levels: database schema, shared types, WebSocket stream handler, UI component.",
       "category": "typescript",
@@ -1411,6 +1412,6 @@
       ]
     }
   ],
-  "last_updated": "2026-02-08T15:30:00Z",
+  "last_updated": "2026-02-09T12:00:00Z",
   "confidence_formula": "min(1.0, 0.1 + (evidence_count * 0.1) + (success_rate * 0.4))"
 }

@@ -1,8 +1,8 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
-export const apiKey = sqliteTable(
+export const apiKey = pgTable(
 	"api_key",
 	{
 		id: text("id").primaryKey(),
@@ -13,13 +13,16 @@ export const apiKey = sqliteTable(
 		keyHash: text("key_hash").notNull().unique(),
 		keyPrefix: text("key_prefix").notNull(),
 		status: text("status").notNull().default("active"),
-		lastUsedAt: integer("last_used_at", { mode: "timestamp_ms" }),
-		expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		lastUsedAt: timestamp("last_used_at", {
+			withTimezone: true,
+			mode: "date",
+		}),
+		expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
 			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
 			.$onUpdate(() => new Date())
 			.notNull(),
 	},

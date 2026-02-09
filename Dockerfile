@@ -35,13 +35,12 @@ COPY --from=builder /app/apps/server ./apps/server
 COPY --from=builder /app/apps/web/dist ./apps/server/public
 COPY --from=builder /app/packages ./packages
 
-# Create data directory for SQLite
-RUN mkdir -p /data && chown -R nomos:nomos /app /data
+RUN chown -R nomos:nomos /app
 
 USER nomos
 
 ENV NODE_ENV=production
-ENV DATABASE_URL=file:/data/nomos.db
+ENV DATABASE_URL=postgresql://nomos:nomos@postgres:5432/nomos
 
 EXPOSE 3001
 

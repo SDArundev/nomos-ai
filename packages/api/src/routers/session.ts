@@ -1,4 +1,4 @@
-import { sessionRepository } from "@nomos-ai/db";
+import { projectRepository, sessionRepository } from "@nomos-ai/db";
 import {
 	FeatureIdSchema,
 	ModelSchema,
@@ -14,6 +14,7 @@ import { protectedProcedure } from "../index";
 import { createAgentSession } from "../services/agent-service";
 import { handleRepositoryError } from "../utils/error-handler";
 import { getSessionService } from "./agent";
+import { getAutoModeService } from "./auto-mode";
 
 const listSessionsInput = z
 	.object({
@@ -204,4 +205,52 @@ export const sessionRouter = {
 				getSessionService(),
 			);
 		}),
+
+	/** Resume a failed pipeline session */
+	resume: protectedProcedure
+		.input(z.object({ id: SessionIdSchema }))
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+			const session = await verifySessionOwnership(input.id, userId);
+
+			if (session.status !== "failed") {
+				throw new ORPCError("BAD_REQUEST", {
+					message: `Cannot resume session in status "${session.status}" — only failed sessions can be resumed`,
+				});
+			}
+			if (!session.featureId) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Cannot resume session without a feature ID",
+				});
+			}
+
+			// Find the project to get the project root
+			const project = session.projectId
+				? await projectRepository.findById(session.projectId)
+				: null;
+			const projectRoot =
+				project?.path ??
+				session.workingDirectory ??
+				process.cwd();
+
+			const service = getAutoModeService();
+			service
+				.resumeSession(input.id, projectRoot, userId)
+				.catch(() => {
+					// Errors handled via events
+				});
+
+			return {
+				success: true,
+				message: `Resuming session ${input.id} for feature ${session.featureId}`,
+			};
+		}),
+
+	/** List failed sessions that can be resumed */
+	listResumable: protectedProcedure.handler(async ({ context }) => {
+		const userId = context.session.user.id;
+		const sessionService = getSessionService();
+		const sessions = await sessionService.findResumableSessions();
+		return sessions.filter((s) => s.userId === userId);
+	}),
 };

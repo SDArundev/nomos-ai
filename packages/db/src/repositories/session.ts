@@ -1,6 +1,6 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "../index";
-import { generateSessionId } from "../lib/id-generation";
+import { createWithId } from "../lib/id-generation";
 import { agentSession } from "../schema/sessions";
 
 type AgentSessionSelect = typeof agentSession.$inferSelect;
@@ -40,21 +40,37 @@ export const sessionRepository = {
 			.where(inArray(agentSession.status, ["pending", "running"]));
 	},
 
+	/** Find failed sessions that have an SDK session ID and feature ID, eligible for resume */
+	async findResumable(): Promise<AgentSessionSelect[]> {
+		return db
+			.select()
+			.from(agentSession)
+			.where(eq(agentSession.status, "failed"));
+	},
+
 	async create(
 		data: Omit<AgentSessionInsert, "id" | "createdAt" | "updatedAt"> & {
 			id?: string;
 		},
 	): Promise<AgentSessionSelect> {
-		const id = data.id ?? (await generateSessionId());
-		const rows = await db
-			.insert(agentSession)
-			.values({ ...data, id })
-			.returning();
-		const row = rows[0];
-		if (!row) {
-			throw new Error("Failed to create session");
+		if (data.id) {
+			const rows = await db
+				.insert(agentSession)
+				.values({ ...data, id: data.id })
+				.returning();
+			const row = rows[0];
+			if (!row) throw new Error("Failed to create session");
+			return row;
 		}
-		return row;
+		return db.transaction(async (tx) => {
+			return createWithId(
+				tx,
+				agentSession,
+				"S",
+				3,
+				data,
+			) as Promise<AgentSessionSelect>;
+		});
 	},
 
 	async update(
@@ -77,7 +93,7 @@ export const sessionRepository = {
 		const rows = await db
 			.update(agentSession)
 			.set({
-				output: sql`CASE WHEN ${agentSession.output} IS NULL THEN ${text} ELSE ${agentSession.output} || char(10) || ${text} END`,
+				output: sql`CASE WHEN ${agentSession.output} IS NULL THEN ${text} ELSE ${agentSession.output} || chr(10) || ${text} END`,
 			})
 			.where(eq(agentSession.id, id))
 			.returning();
