@@ -1,18 +1,30 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+	boolean,
+	index,
+	pgTable,
+	text,
+	timestamp,
+} from "drizzle-orm/pg-core";
 import { createNotificationId } from "../lib/ids";
+import { feature } from "./features";
+import { project } from "./projects";
 
-export const notification = sqliteTable(
+export const notification = pgTable(
 	"notification",
 	{
 		id: text("id").primaryKey().$defaultFn(createNotificationId),
 		type: text("type").notNull(),
 		title: text("title").notNull(),
 		message: text("message").notNull(),
-		read: integer("read", { mode: "boolean" }).default(false),
-		dismissed: integer("dismissed", { mode: "boolean" }).default(false),
-		featureId: text("feature_id"),
-		projectId: text("project_id").notNull(),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
+		read: boolean("read").default(false),
+		dismissed: boolean("dismissed").default(false),
+		featureId: text("feature_id").references(() => feature.id, {
+			onDelete: "set null",
+		}),
+		projectId: text("project_id")
+			.notNull()
+			.references(() => project.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},

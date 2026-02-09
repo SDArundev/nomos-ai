@@ -9,12 +9,10 @@ export const env = createEnv({
 			.min(1)
 			.refine(
 				(url) =>
-					url.startsWith("file:") ||
-					url.startsWith("libsql://") ||
-					url.startsWith("http"),
+					url.startsWith("postgresql://") || url.startsWith("postgres://"),
 				{
 					message:
-						'DATABASE_URL must start with "file:" for SQLite, "libsql://" for Turso, or "http" for remote',
+						'DATABASE_URL must start with "postgresql://" or "postgres://"',
 				},
 			),
 		BETTER_AUTH_SECRET: z.string().min(32),

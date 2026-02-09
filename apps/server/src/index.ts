@@ -6,7 +6,7 @@ import { appRouter } from "@nomos-ai/api/routers/index";
 import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
 import { auth } from "@nomos-ai/auth";
-import { db, runMigrations, sql } from "@nomos-ai/db";
+import { db, runMigrations, sessionRepository, sql } from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -25,6 +25,24 @@ try {
 } catch (error) {
 	console.error("Failed to run database migrations:", error);
 	process.exit(1);
+}
+
+// Clean up orphaned sessions from previous server instances
+try {
+	const orphaned = await sessionRepository.findActive();
+	if (orphaned.length > 0) {
+		for (const session of orphaned) {
+			await sessionRepository.update(session.id, {
+				status: "failed",
+				isRunning: false,
+				error: "Server restarted, session orphaned",
+				completedAt: new Date(),
+			});
+		}
+		console.log(`[db] Cleaned up ${orphaned.length} orphaned sessions`);
+	}
+} catch (error) {
+	console.warn("[db] Session cleanup failed (non-fatal):", error);
 }
 
 const app = new Hono<{ Variables: { orpcContext: any } }>();
@@ -230,7 +248,7 @@ app.get("/", (c) => {
 app.get("/health", async (c) => {
 	let database: "connected" | "disconnected" = "connected";
 	try {
-		await db.run(sql`SELECT 1`);
+		await db.execute(sql`SELECT 1`);
 	} catch {
 		database = "disconnected";
 		return c.json(
@@ -261,7 +279,7 @@ app.get("/ready", async (c) => {
 
 	// Check DB connectivity
 	try {
-		await db.run(sql`SELECT 1`);
+		await db.execute(sql`SELECT 1`);
 		checks.db = true;
 	} catch {
 		// DB not ready

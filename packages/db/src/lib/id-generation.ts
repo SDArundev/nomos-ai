@@ -33,7 +33,9 @@ async function getNextId(
 			attempt++;
 			const isConstraintViolation =
 				error instanceof Error &&
-				(error.message.includes("UNIQUE constraint") ||
+				(error.message.includes("unique constraint") ||
+					error.message.includes("duplicate key") ||
+					error.message.includes("UNIQUE constraint") ||
 					error.message.includes("SQLITE_CONSTRAINT"));
 			if (!isConstraintViolation || attempt >= maxRetries) {
 				throw error;

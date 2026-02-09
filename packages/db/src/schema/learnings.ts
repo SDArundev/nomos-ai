@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { feature } from "./features";
 
-export const learning = sqliteTable(
+export const learning = pgTable(
 	"learning",
 	{
 		id: text("id").primaryKey(),
@@ -13,7 +13,7 @@ export const learning = sqliteTable(
 		category: text("category").notNull(),
 		pattern: text("pattern"),
 		antiPattern: text("anti_pattern"),
-		context: text("context", { mode: "json" }).$type<{
+		context: jsonb("context").$type<{
 			problem?: string;
 			solution?: string;
 			codeExample?: string;
@@ -21,13 +21,13 @@ export const learning = sqliteTable(
 			recommendation?: string;
 		}>(),
 		severity: text("severity"),
-		tags: text("tags", { mode: "json" }).$type<string[]>(),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		tags: jsonb("tags").$type<string[]>(),
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
 			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => /* @__PURE__ */ new Date())
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
+			.$onUpdate(() => new Date())
 			.notNull(),
 	},
 	(table) => [

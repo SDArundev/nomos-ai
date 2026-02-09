@@ -2,7 +2,6 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
-import { resolveDbUrl } from "./src/resolve-url";
 
 const monorepoRoot = resolve(__dirname, "../..");
 
@@ -22,38 +21,37 @@ const loadedPath = envPaths.find((p) => {
 });
 
 if (!process.env.DATABASE_URL) {
-	console.error("❌ DATABASE_URL not found. Tried paths:", envPaths);
+	console.error("DATABASE_URL not found. Tried paths:", envPaths);
 	console.error(
-		"💡 Ensure .env file exists with DATABASE_URL=file:./apps/server/data/nomos.db",
+		"Ensure .env file exists with DATABASE_URL=postgresql://nomos:nomos@localhost:5432/nomos",
 	);
 	process.exit(1);
 }
 
 // Validate DATABASE_URL format
 if (
-	!process.env.DATABASE_URL.startsWith("file:") &&
-	!process.env.DATABASE_URL.startsWith("libsql://") &&
-	!process.env.DATABASE_URL.startsWith("http")
+	!process.env.DATABASE_URL.startsWith("postgresql://") &&
+	!process.env.DATABASE_URL.startsWith("postgres://")
 ) {
-	console.error(`❌ Invalid DATABASE_URL format: ${process.env.DATABASE_URL}`);
+	console.error(`Invalid DATABASE_URL format: ${process.env.DATABASE_URL}`);
 	console.error(
-		'💡 DATABASE_URL must start with "file:" for SQLite, "libsql://" for Turso, or "http" for remote',
+		'DATABASE_URL must start with "postgresql://" or "postgres://"',
 	);
 	process.exit(1);
 }
 
-const resolvedUrl = resolveDbUrl(process.env.DATABASE_URL, monorepoRoot);
-
 if (loadedPath) {
-	console.log(`✅ Loaded env from: ${loadedPath}`);
+	console.log(`Loaded env from: ${loadedPath}`);
 }
-console.log(`✅ Resolved DATABASE_URL: ${resolvedUrl}`);
+console.log(
+	`Using DATABASE_URL: ${process.env.DATABASE_URL.replace(/:[^:@]+@/, ":***@")}`,
+);
 
 export default defineConfig({
 	schema: "./src/schema",
 	out: "./src/migrations",
-	dialect: "turso",
+	dialect: "postgresql",
 	dbCredentials: {
-		url: resolvedUrl,
+		url: process.env.DATABASE_URL,
 	},
 });

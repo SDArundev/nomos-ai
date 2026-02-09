@@ -17,8 +17,6 @@
 			"@orpc/openapi": "^1.12.2",
 			"@orpc/zod": "^1.12.2",
 			"better-auth": "^1.4.9",
-			"@libsql/client": "0.15.15",
-			"libsql": "0.5.22",
 			"@orpc/client": "^1.12.2"
 		}
 	},
@@ -33,7 +31,6 @@
 		"db:studio": "turbo -F @nomos-ai/db db:studio",
 		"db:generate": "turbo -F @nomos-ai/db db:generate",
 		"db:migrate": "turbo -F @nomos-ai/db db:migrate",
-		"db:local": "turbo -F @nomos-ai/db db:local",
 		"check": "turbo lint",
 		"test": "bun test",
 		"test:ci": "bun test",
@@ -43,10 +40,7 @@
 	"dependencies": {
 		"@nomos-ai/env": "workspace:*",
 		"@nomos-ai/types": "workspace:*",
-		"@radix-ui/react-dialog": "^1.1.15",
 		"dotenv": "catalog:",
-		"react-markdown": "^10.1.0",
-		"rehype-sanitize": "^6.0.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

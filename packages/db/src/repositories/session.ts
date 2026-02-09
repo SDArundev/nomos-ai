@@ -77,7 +77,7 @@ export const sessionRepository = {
 		const rows = await db
 			.update(agentSession)
 			.set({
-				output: sql`CASE WHEN ${agentSession.output} IS NULL THEN ${text} ELSE ${agentSession.output} || char(10) || ${text} END`,
+				output: sql`CASE WHEN ${agentSession.output} IS NULL THEN ${text} ELSE ${agentSession.output} || chr(10) || ${text} END`,
 			})
 			.where(eq(agentSession.id, id))
 			.returning();

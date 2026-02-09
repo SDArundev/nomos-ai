@@ -7900,7 +7900,7 @@
       "status": "backlog",
       "priority": 1,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "security",
@@ -7921,7 +7921,7 @@
       "status": "backlog",
       "priority": 1,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "fix:F035"
@@ -7941,7 +7941,7 @@
       "status": "backlog",
       "priority": 1,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "security",
@@ -7961,7 +7961,7 @@
       "status": "backlog",
       "priority": 1,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "security",
@@ -7982,7 +7982,7 @@
       "status": "backlog",
       "priority": 2,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "security",
@@ -8002,7 +8002,7 @@
       "status": "backlog",
       "priority": 2,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "security",
@@ -8022,7 +8022,7 @@
       "status": "backlog",
       "priority": 3,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "fix:F018"
@@ -8041,7 +8041,7 @@
       "status": "backlog",
       "priority": 3,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "fix:F025"
@@ -8059,7 +8059,7 @@
       "status": "backlog",
       "priority": 3,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "fix:F020"
@@ -8077,7 +8077,7 @@
       "status": "backlog",
       "priority": 3,
       "passes": false,
-      "category": "fix",
+      "category": "CAT-FIX",
       "tags": [
         "swarm-audit",
         "fix:F033"
@@ -8088,48 +8088,5 @@
       ],
       "createdAt": "2026-02-08T19:58:24Z"
     }
-  ],
-  "summary": {
-    "totalFeatures": 265,
-    "byCategory": {
-      "CAT-PRJ": 9,
-      "CAT-KAN": 27,
-      "CAT-AGT": 24,
-      "CAT-AUT": 11,
-      "CAT-GIT": 15,
-      "CAT-TRM": 11,
-      "CAT-GHB": 4,
-      "CAT-THM": 8,
-      "CAT-DXP": 16,
-      "CAT-SEC": 11,
-      "CAT-CFG": 10,
-      "CAT-NTF": 8,
-      "CAT-SPC": 7,
-      "CAT-MEM": 8,
-      "CAT-DEP": 3,
-      "CAT-DSK": 8,
-      "CAT-API": 7,
-      "CAT-DBS": 10,
-      "CAT-TST": 12,
-      "CAT-OBS": 9
-    },
-    "byPhase": {
-      "phase-1": 66,
-      "phase-2": 79,
-      "phase-3": 46,
-      "phase-4": 37
-    },
-    "byStatus": {
-      "backlog": 229,
-      "pending": 3,
-      "in_progress": 0,
-      "waiting_approval": 0,
-      "verified": 33,
-      "failed": 0
-    },
-    "byPasses": {
-      "passed": 33,
-      "notPassed": 232
-    }
-  }
+  ]
 }

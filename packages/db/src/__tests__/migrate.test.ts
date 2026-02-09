@@ -13,22 +13,6 @@ describe("Database Package - Migration", () => {
 			expect(existsSync(migrationsDir)).toBe(true);
 		});
 
-		it("has initial auth migration", () => {
-			const migration = resolve(
-				import.meta.dirname,
-				"../migrations/0000_clear_selene.sql",
-			);
-			expect(existsSync(migration)).toBe(true);
-		});
-
-		it("has schema tables migration", () => {
-			const migrationsDir = resolve(import.meta.dirname, "../migrations");
-			// Find a migration file starting with 0001
-			const files = new Bun.Glob("0001_*.sql").scanSync(migrationsDir);
-			const migrationFiles = [...files];
-			expect(migrationFiles.length).toBe(1);
-		});
-
 		it("has migration journal", () => {
 			const journal = resolve(
 				import.meta.dirname,
@@ -44,7 +28,7 @@ describe("Database Package - Migration", () => {
 			);
 			const journal = await Bun.file(journalPath).json();
 			expect(journal.entries).toBeDefined();
-			expect(journal.entries.length).toBe(9);
+			expect(journal.entries.length).toBeGreaterThanOrEqual(1);
 		});
 	});
 
@@ -59,7 +43,7 @@ describe("Database Package - Migration", () => {
 				resolve(import.meta.dirname, "../migrate.ts"),
 			).text();
 			expect(migrateSource).toContain("export async function runMigrations");
-			expect(migrateSource).toContain("drizzle-orm/libsql/migrator");
+			expect(migrateSource).toContain("drizzle-orm/postgres-js/migrator");
 		});
 	});
 });

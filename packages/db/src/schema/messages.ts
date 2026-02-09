@@ -1,14 +1,17 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { createMessageId } from "../lib/ids";
+import { agentSession } from "./sessions";
 
-export const message = sqliteTable(
+export const message = pgTable(
 	"message",
 	{
 		id: text("id").primaryKey().$defaultFn(createMessageId),
-		sessionId: text("session_id").notNull(),
+		sessionId: text("session_id")
+			.notNull()
+			.references(() => agentSession.id, { onDelete: "cascade" }),
 		role: text("role").notNull(),
 		content: text("content").notNull(),
-		toolCalls: text("tool_calls", { mode: "json" }).$type<
+		toolCalls: jsonb("tool_calls").$type<
 			Array<{
 				id: string;
 				name: string;
@@ -19,7 +22,7 @@ export const message = sqliteTable(
 			}>
 		>(),
 		thinkingContent: text("thinking_content"),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},

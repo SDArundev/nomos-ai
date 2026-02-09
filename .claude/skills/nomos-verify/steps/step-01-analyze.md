@@ -96,8 +96,8 @@ This ensures true parallel execution.
 | Depth | Agents to Launch |
 |-------|-----------------|
 | `quick` | `code-reviewer` + `qa-reviewer` (2 agents) |
-| `standard` | `code-reviewer` + `code-quality-reviewer` + `qa-reviewer` (3 agents) |
-| `deep` | `code-reviewer` + `code-quality-reviewer` + `qa-reviewer` + `security-reviewer` + `test-coverage-analyzer` (5 agents) |
+| `standard` | `code-reviewer` + `scout` + `qa-reviewer` (3 agents) |
+| `deep` | `code-reviewer` + `scout` + `qa-reviewer` + `security-reviewer` (4 agents) |
 
 **For each agent:**
 1. Use the prompt template from `references/agent-prompts.md`

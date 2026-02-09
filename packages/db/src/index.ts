@@ -1,16 +1,9 @@
-import { resolve } from "node:path";
-import { createClient } from "@libsql/client";
 import { env } from "@nomos-ai/env/server";
-import { drizzle } from "drizzle-orm/libsql";
-import { resolveDbUrl } from "./resolve-url";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
-const monorepoRoot = resolve(import.meta.dirname, "../../..");
-const resolvedUrl = resolveDbUrl(env.DATABASE_URL, monorepoRoot);
-
-const client = createClient({
-	url: resolvedUrl,
-});
+const client = postgres(env.DATABASE_URL);
 
 export const db = drizzle({ client, schema });
 
@@ -21,7 +14,7 @@ export {
 	generateProjectId,
 	generateSessionId,
 } from "./lib/id-generation";
-export { backupDatabase, rollbackDatabase, runMigrations } from "./migrate";
+export { runMigrations } from "./migrate";
 export {
 	type ApiKeyInsert,
 	type ApiKeySelect,

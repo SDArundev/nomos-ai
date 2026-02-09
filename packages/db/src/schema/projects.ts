@@ -1,20 +1,24 @@
 import { sql } from "drizzle-orm";
 import {
 	index,
-	integer,
-	sqliteTable,
+	jsonb,
+	pgTable,
 	text,
+	timestamp,
 	uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+} from "drizzle-orm/pg-core";
+import { user } from "./auth";
 
-export const project = sqliteTable(
+export const project = pgTable(
 	"project",
 	{
 		id: text("id").primaryKey(),
-		userId: text("user_id").notNull(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
 		name: text("name").notNull(),
 		path: text("path").notNull(),
-		settings: text("settings", { mode: "json" })
+		settings: jsonb("settings")
 			.$type<Record<string, unknown>>()
 			.default({
 				theme: "system",
@@ -24,12 +28,12 @@ export const project = sqliteTable(
 			})
 			.notNull(),
 		status: text("status").notNull().default("draft"),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
 			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => /* @__PURE__ */ new Date())
+		updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+			.default(sql`now()`)
+			.$onUpdate(() => new Date())
 			.notNull(),
 	},
 	(table) => [

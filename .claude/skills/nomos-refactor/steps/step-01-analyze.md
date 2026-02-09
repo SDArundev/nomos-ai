@@ -48,7 +48,7 @@ Launch in parallel based on refactor type:
 ```javascript
 const agents = [
   {
-    type: "explore-codebase",
+    type: "scout",
     prompt: `Analyze usage of "${target}" in the codebase:
       1. Find all imports/references
       2. Map which files depend on it
@@ -61,7 +61,7 @@ const agents = [
 // Add type-specific analysis
 if (refactor_type === "dependency") {
   agents.push({
-    type: "explore-codebase",
+    type: "scout",
     prompt: `Analyze the ${target} package:
       1. Which functions/exports are used?
       2. Are there type imports?
