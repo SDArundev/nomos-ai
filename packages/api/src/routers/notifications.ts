@@ -1,4 +1,4 @@
-import { projectRepository } from "@nomos-ai/db";
+import { notificationRepository, projectRepository } from "@nomos-ai/db";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
@@ -47,7 +47,12 @@ export const notificationsRouter = {
 
 	markRead: protectedProcedure
 		.input(z.object({ id: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const n = await notificationRepository.findById(input.id);
+			if (!n) {
+				throw new ORPCError("NOT_FOUND", { message: "Notification not found" });
+			}
+			await verifyProjectOwnership(n.projectId, context.session.user.id);
 			const service = getNotificationService();
 			await service.markRead(input.id);
 			return { success: true };
@@ -64,7 +69,12 @@ export const notificationsRouter = {
 
 	dismiss: protectedProcedure
 		.input(z.object({ id: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const n = await notificationRepository.findById(input.id);
+			if (!n) {
+				throw new ORPCError("NOT_FOUND", { message: "Notification not found" });
+			}
+			await verifyProjectOwnership(n.projectId, context.session.user.id);
 			const service = getNotificationService();
 			await service.dismiss(input.id);
 			return { success: true };

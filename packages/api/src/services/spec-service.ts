@@ -1,5 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { lstat, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import type { FeatureInsert } from "@nomos-ai/db";
 
 interface ProjectConfig {
@@ -47,14 +47,64 @@ interface AppSpec {
 
 export class SpecService {
 	/**
+	 * Validate that a resolved file path is contained within the given project root.
+	 * Prevents path traversal via ../ or symlinks.
+	 */
+	private async validatePath(
+		projectPath: string,
+		filePath: string,
+	): Promise<string> {
+		const root = resolve(projectPath);
+		const resolved = resolve(filePath);
+
+		if (resolved.includes("\0")) {
+			throw new Error("Path traversal detected");
+		}
+
+		if (!resolved.startsWith(`${root}/`) && resolved !== root) {
+			throw new Error("Path traversal detected");
+		}
+
+		// Check for symlinks before following them
+		try {
+			const stats = await lstat(resolved);
+			if (stats.isSymbolicLink()) {
+				throw new Error("Symlinks are not allowed");
+			}
+		} catch (e) {
+			if (
+				e instanceof Error &&
+				(e.message === "Symlinks are not allowed" ||
+					e.message === "Path traversal detected")
+			) {
+				throw e;
+			}
+			// File may not exist yet — allow
+		}
+
+		// Resolve real path to prevent symlink-based traversal
+		let real: string;
+		try {
+			real = await realpath(resolved);
+		} catch {
+			real = resolved;
+		}
+
+		if (!real.startsWith(`${root}/`) && real !== root) {
+			throw new Error("Path traversal detected");
+		}
+
+		return real;
+	}
+
+	/**
 	 * Load project.json (preferred) or app_spec.json (legacy fallback) from a project path.
 	 */
-	async loadProjectConfig(
-		projectPath: string,
-	): Promise<ProjectConfig | null> {
+	async loadProjectConfig(projectPath: string): Promise<ProjectConfig | null> {
 		const projectJsonPath = join(projectPath, ".nomos", "project.json");
+		const safePath = await this.validatePath(projectPath, projectJsonPath);
 		try {
-			const content = await readFile(projectJsonPath, "utf-8");
+			const content = await readFile(safePath, "utf-8");
 			return JSON.parse(content) as ProjectConfig;
 		} catch {
 			// Fallback: try loading app_spec.json and converting
@@ -82,8 +132,9 @@ export class SpecService {
 	 */
 	async loadSpec(projectPath: string): Promise<AppSpec | null> {
 		const specPath = join(projectPath, ".nomos", "app_spec.json");
+		const safePath = await this.validatePath(projectPath, specPath);
 		try {
-			const content = await readFile(specPath, "utf-8");
+			const content = await readFile(safePath, "utf-8");
 			return JSON.parse(content) as AppSpec;
 		} catch {
 			return null;
@@ -98,8 +149,9 @@ export class SpecService {
 		config: ProjectConfig,
 	): Promise<void> {
 		const configPath = join(projectPath, ".nomos", "project.json");
-		await mkdir(dirname(configPath), { recursive: true });
-		await writeFile(configPath, JSON.stringify(config, null, "\t"), "utf-8");
+		const safePath = await this.validatePath(projectPath, configPath);
+		await mkdir(dirname(safePath), { recursive: true });
+		await writeFile(safePath, JSON.stringify(config, null, "\t"), "utf-8");
 	}
 
 	/**

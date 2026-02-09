@@ -252,7 +252,8 @@ export const learningRouter = {
 
 	relevant: protectedProcedure
 		.input(relevantInput)
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
 			const category = input?.category;
 			const minConfidence = input?.minConfidence ?? 0.7;
 			const type = input?.type ?? "all";
@@ -261,13 +262,13 @@ export const learningRouter = {
 			const includeAntipatterns = type !== "patterns";
 
 			const patterns = includePatterns
-				? await patternRepository.findRelevant(category, minConfidence)
+				? await patternRepository.findRelevant(category, minConfidence, userId)
 				: [];
 			const antipatterns = includeAntipatterns
-				? await antipatternRepository.findByCategory(category)
+				? await antipatternRepository.findByCategory(category, userId)
 				: [];
 			const allPatterns = includePatterns
-				? await patternRepository.findAll()
+				? await patternRepository.findByUser(userId)
 				: [];
 
 			return {
@@ -302,8 +303,8 @@ export const learningRouter = {
 			}
 		}),
 
-	listPatterns: protectedProcedure.handler(async () => {
-		return patternRepository.findAll();
+	listPatterns: protectedProcedure.handler(async ({ context }) => {
+		return patternRepository.findByUser(context.session.user.id);
 	}),
 
 	// ── Antipattern CRUD ────────────────────────────────────
@@ -321,8 +322,8 @@ export const learningRouter = {
 			}
 		}),
 
-	listAntipatterns: protectedProcedure.handler(async () => {
-		return antipatternRepository.findAll();
+	listAntipatterns: protectedProcedure.handler(async ({ context }) => {
+		return antipatternRepository.findByUser(context.session.user.id);
 	}),
 
 	// ── Feature insight CRUD ────────────────────────────────
@@ -342,7 +343,7 @@ export const learningRouter = {
 
 	getInsight: protectedProcedure
 		.input(z.object({ featureId: FeatureIdSchema }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const insight = await featureInsightRepository.findByFeature(
 				input.featureId,
 			);
@@ -351,11 +352,14 @@ export const learningRouter = {
 					message: `Insight not found for feature: ${input.featureId}`,
 				});
 			}
+			if (insight.userId && insight.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
 			return insight;
 		}),
 
-	listInsights: protectedProcedure.handler(async () => {
-		return featureInsightRepository.findAll();
+	listInsights: protectedProcedure.handler(async ({ context }) => {
+		return featureInsightRepository.findByUser(context.session.user.id);
 	}),
 
 	// ── Feature metric CRUD ─────────────────────────────────
@@ -368,9 +372,7 @@ export const learningRouter = {
 					...input,
 					userId: context.session.user.id,
 					startedAt: input.startedAt ? new Date(input.startedAt) : undefined,
-					verifiedAt: input.verifiedAt
-						? new Date(input.verifiedAt)
-						: undefined,
+					verifiedAt: input.verifiedAt ? new Date(input.verifiedAt) : undefined,
 				});
 			} catch (error) {
 				handleRepositoryError(error, "create metric");
@@ -379,7 +381,7 @@ export const learningRouter = {
 
 	getMetric: protectedProcedure
 		.input(z.object({ featureId: FeatureIdSchema }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
 			const metric = await featureMetricRepository.findByFeature(
 				input.featureId,
 			);
@@ -388,17 +390,21 @@ export const learningRouter = {
 					message: `Metric not found for feature: ${input.featureId}`,
 				});
 			}
+			if (metric.userId && metric.userId !== context.session.user.id) {
+				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			}
 			return metric;
 		}),
 
-	listMetrics: protectedProcedure.handler(async () => {
-		return featureMetricRepository.findAll();
+	listMetrics: protectedProcedure.handler(async ({ context }) => {
+		return featureMetricRepository.findByUser(context.session.user.id);
 	}),
 
 	// ── I6: Pattern curation ────────────────────────────────
 
-	curate: protectedProcedure.handler(async () => {
-		const allPatterns = await patternRepository.findAll();
+	curate: protectedProcedure.handler(async ({ context }) => {
+		const userId = context.session.user.id;
+		const allPatterns = await patternRepository.findByUser(userId);
 
 		let pruned = 0;
 		let promoted = 0;

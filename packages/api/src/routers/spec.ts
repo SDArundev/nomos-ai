@@ -1,4 +1,5 @@
-import { featureRepository } from "@nomos-ai/db";
+import { featureRepository, projectRepository } from "@nomos-ai/db";
+import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { validateSpec } from "../lib/spec-validator";
@@ -13,10 +14,22 @@ function getSpecService(): SpecService {
 	return specServiceInstance;
 }
 
+async function verifyProjectPathOwnership(projectPath: string, userId: string) {
+	const project = await projectRepository.findByPath(userId, projectPath);
+	if (!project) {
+		throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+	}
+	return project;
+}
+
 export const specRouter = {
 	getSpec: protectedProcedure
 		.input(z.object({ projectPath: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifyProjectPathOwnership(
+				input.projectPath,
+				context.session.user.id,
+			);
 			const service = getSpecService();
 			const spec = await service.loadSpec(input.projectPath);
 			if (!spec)
@@ -35,7 +48,11 @@ export const specRouter = {
 
 	getProjectConfig: protectedProcedure
 		.input(z.object({ projectPath: z.string() }))
-		.handler(async ({ input }) => {
+		.handler(async ({ input, context }) => {
+			await verifyProjectPathOwnership(
+				input.projectPath,
+				context.session.user.id,
+			);
 			const service = getSpecService();
 			return service.loadProjectConfig(input.projectPath);
 		}),
@@ -47,11 +64,13 @@ export const specRouter = {
 				spec: z.record(z.string(), z.unknown()),
 			}),
 		)
-		.handler(async ({ input }) => {
-			const service = getSpecService();
-			const validation = validateSpec(
-				input.spec as Record<string, unknown>,
+		.handler(async ({ input, context }) => {
+			await verifyProjectPathOwnership(
+				input.projectPath,
+				context.session.user.id,
 			);
+			const service = getSpecService();
+			const validation = validateSpec(input.spec as Record<string, unknown>);
 			if (!validation.valid) {
 				return { success: false, errors: validation.errors };
 			}
@@ -76,6 +95,10 @@ export const specRouter = {
 			}),
 		)
 		.handler(async ({ input, context }) => {
+			await verifyProjectPathOwnership(
+				input.projectPath,
+				context.session.user.id,
+			);
 			const service = getSpecService();
 			const spec = await service.loadSpec(input.projectPath);
 			if (!spec) {
