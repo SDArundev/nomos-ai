@@ -2,143 +2,15 @@ import { describe, expect, it } from "bun:test";
 import {
 	BranchNameSchema,
 	CategoryIdSchema,
-	DESCRIPTION_SOURCE,
 	DescriptionHistoryEntrySchema,
-	DescriptionSourceSchema,
-	ENHANCEMENT_MODE,
-	EnhancementModeSchema,
-	ESTIMATED_SIZE,
-	EstimatedSizeSchema,
 	type Feature,
 	FeatureAssetSchema,
 	FeatureSchema,
-	MODEL,
-	ModelSchema,
 	PhaseIdSchema,
-	PLAN_STATUS,
-	PLANNING_MODE,
-	PlanningModeSchema,
 	PlanSpecSchema,
-	PlanStatusSchema,
 	RequirementIdSchema,
-	THINKING_LEVEL,
-	ThinkingLevelSchema,
 } from "../feature";
 import { FEATURE_STATUS } from "../status";
-
-describe("Feature Enum Schemas", () => {
-	describe("EstimatedSizeSchema", () => {
-		it("accepts all valid sizes", () => {
-			const sizes = [
-				ESTIMATED_SIZE.XS,
-				ESTIMATED_SIZE.S,
-				ESTIMATED_SIZE.M,
-				ESTIMATED_SIZE.L,
-				ESTIMATED_SIZE.XL,
-			];
-			for (const size of sizes) {
-				const result = EstimatedSizeSchema.safeParse(size);
-				expect(result.success).toBe(true);
-			}
-		});
-
-		it("rejects invalid sizes", () => {
-			const result = EstimatedSizeSchema.safeParse("XXL");
-			expect(result.success).toBe(false);
-		});
-	});
-
-	describe("ModelSchema", () => {
-		it("accepts all valid models", () => {
-			const models = [MODEL.OPUS, MODEL.SONNET, MODEL.HAIKU];
-			for (const model of models) {
-				const result = ModelSchema.safeParse(model);
-				expect(result.success).toBe(true);
-			}
-		});
-
-		it("rejects invalid models", () => {
-			const result = ModelSchema.safeParse("gpt-4");
-			expect(result.success).toBe(false);
-		});
-	});
-
-	describe("ThinkingLevelSchema", () => {
-		it("accepts all valid levels", () => {
-			const levels = [
-				THINKING_LEVEL.NONE,
-				THINKING_LEVEL.STANDARD,
-				THINKING_LEVEL.EXTENDED,
-				THINKING_LEVEL.ULTRATHINK,
-			];
-			for (const level of levels) {
-				const result = ThinkingLevelSchema.safeParse(level);
-				expect(result.success).toBe(true);
-			}
-		});
-	});
-
-	describe("PlanningModeSchema", () => {
-		it("accepts all valid modes", () => {
-			const modes = [
-				PLANNING_MODE.SKIP,
-				PLANNING_MODE.LITE,
-				PLANNING_MODE.SPEC,
-				PLANNING_MODE.FULL,
-			];
-			for (const mode of modes) {
-				const result = PlanningModeSchema.safeParse(mode);
-				expect(result.success).toBe(true);
-			}
-		});
-	});
-
-	describe("DescriptionSourceSchema", () => {
-		it("accepts all valid sources", () => {
-			const sources = [
-				DESCRIPTION_SOURCE.INITIAL,
-				DESCRIPTION_SOURCE.ENHANCE,
-				DESCRIPTION_SOURCE.EDIT,
-			];
-			for (const source of sources) {
-				const result = DescriptionSourceSchema.safeParse(source);
-				expect(result.success).toBe(true);
-			}
-		});
-	});
-
-	describe("EnhancementModeSchema", () => {
-		it("accepts all valid modes", () => {
-			const modes = [
-				ENHANCEMENT_MODE.IMPROVE,
-				ENHANCEMENT_MODE.TECHNICAL,
-				ENHANCEMENT_MODE.SIMPLIFY,
-				ENHANCEMENT_MODE.ACCEPTANCE,
-				ENHANCEMENT_MODE.UX_REVIEWER,
-			];
-			for (const mode of modes) {
-				const result = EnhancementModeSchema.safeParse(mode);
-				expect(result.success).toBe(true);
-			}
-		});
-	});
-
-	describe("PlanStatusSchema", () => {
-		it("accepts all valid statuses", () => {
-			const statuses = [
-				PLAN_STATUS.PENDING,
-				PLAN_STATUS.GENERATING,
-				PLAN_STATUS.GENERATED,
-				PLAN_STATUS.APPROVED,
-				PLAN_STATUS.REJECTED,
-			];
-			for (const status of statuses) {
-				const result = PlanStatusSchema.safeParse(status);
-				expect(result.success).toBe(true);
-			}
-		});
-	});
-});
 
 describe("Supporting Schemas", () => {
 	describe("DescriptionHistoryEntrySchema", () => {

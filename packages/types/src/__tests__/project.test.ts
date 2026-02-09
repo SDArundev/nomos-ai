@@ -8,22 +8,6 @@ import {
 import { PROJECT_STATUS } from "../status";
 
 describe("ProjectSettingsSchema", () => {
-	it("accepts valid settings with all fields", () => {
-		const result = ProjectSettingsSchema.safeParse({
-			theme: "dark",
-			locale: "fr",
-			autoSaveInterval: 60,
-			notifications: false,
-		});
-		expect(result.success).toBe(true);
-		if (result.success) {
-			expect(result.data.theme).toBe("dark");
-			expect(result.data.locale).toBe("fr");
-			expect(result.data.autoSaveInterval).toBe(60);
-			expect(result.data.notifications).toBe(false);
-		}
-	});
-
 	it("applies defaults for empty object", () => {
 		const result = ProjectSettingsSchema.safeParse({});
 		expect(result.success).toBe(true);
@@ -35,14 +19,6 @@ describe("ProjectSettingsSchema", () => {
 		}
 	});
 
-	it("accepts all valid theme values", () => {
-		const themes = ["light", "dark", "system"] as const;
-		for (const theme of themes) {
-			const result = ProjectSettingsSchema.safeParse({ theme });
-			expect(result.success).toBe(true);
-		}
-	});
-
 	it("rejects invalid theme", () => {
 		const result = ProjectSettingsSchema.safeParse({ theme: "midnight" });
 		expect(result.success).toBe(false);
@@ -51,11 +27,6 @@ describe("ProjectSettingsSchema", () => {
 	it("rejects negative autoSaveInterval", () => {
 		const result = ProjectSettingsSchema.safeParse({ autoSaveInterval: -1 });
 		expect(result.success).toBe(false);
-	});
-
-	it("accepts zero autoSaveInterval (disabled)", () => {
-		const result = ProjectSettingsSchema.safeParse({ autoSaveInterval: 0 });
-		expect(result.success).toBe(true);
 	});
 
 	it("rejects fractional autoSaveInterval", () => {

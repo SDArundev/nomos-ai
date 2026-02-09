@@ -8,6 +8,11 @@ import type {
 } from "@nomos-ai/types";
 import { z } from "zod";
 import type { IEventService } from "./event-service";
+import {
+	QualityGateService,
+	type QualityGateResult,
+	type TestGateResult,
+} from "./quality-gate-service";
 
 // ---------------------------------------------------------------------------
 // Checkpoint Zod schema
@@ -366,6 +371,47 @@ export class PipelineService {
 		}));
 
 		return { currentStep, completedPhase, steps };
+	}
+
+	// -----------------------------------------------------------------------
+	// Public: Gate A — quality gates (typecheck + lint + test)
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Run all quality gates (typecheck, lint, test) for a feature's worktree.
+	 * Returns aggregate gate results for use in Phase 4 Gate A.
+	 */
+	async runGateA(
+		featureId: string,
+		worktreePath: string,
+	): Promise<{
+		typecheck: QualityGateResult;
+		lint: QualityGateResult;
+		test: TestGateResult;
+		overallStatus: "PASS" | "FAIL";
+	}> {
+		const service = new QualityGateService();
+
+		const [typecheck, lint, test] = await Promise.all([
+			service.runTypeCheck(worktreePath),
+			service.runLintCheck(worktreePath),
+			service.runTests(worktreePath),
+		]);
+
+		const overallStatus =
+			typecheck.status === "PASS" &&
+			lint.status === "PASS" &&
+			test.status === "PASS"
+				? "PASS"
+				: "FAIL";
+
+		this.events.emit("pipeline:gate-completed", {
+			featureId,
+			gate: "A",
+			status: overallStatus,
+		});
+
+		return { typecheck, lint, test, overallStatus };
 	}
 
 	// -----------------------------------------------------------------------

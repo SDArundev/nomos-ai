@@ -16,6 +16,7 @@ export const eventTypeSchema = z.enum([
 	// Pipeline events
 	"pipeline:step-started",
 	"pipeline:step-completed",
+	"pipeline:gate-completed",
 	// Auto-mode events
 	"auto-mode:started",
 	"auto-mode:stopped",
@@ -105,6 +106,7 @@ export interface EventPayloadMap {
 	"feature:verified": FeatureEventPayload;
 	"pipeline:step-started": unknown;
 	"pipeline:step-completed": unknown;
+	"pipeline:gate-completed": unknown;
 	"auto-mode:started": AutoModeStartedPayload;
 	"auto-mode:stopped": AutoModeStoppedPayload;
 	"auto-mode:idle": AutoModeStartedPayload;
