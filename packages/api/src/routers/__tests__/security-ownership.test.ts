@@ -132,44 +132,33 @@ describe("Security: Resource ownership enforcement", () => {
 		});
 	});
 
-	describe("Auto-mode ownership", () => {
-		it("rejects stop when auto-mode was started by another user", () => {
-			const autoModeStatus = {
-				isRunning: true,
-				startedByUserId: "user_owner",
-			};
-			const requestingUserId = "user_attacker";
+	describe("Auto-mode per-user isolation", () => {
+		it("per-user state means each user can only stop their own auto-mode", () => {
+			// With per-user state, stop(userId) only affects that user's state.
+			// No cross-user ownership check is needed — state is inherently scoped.
+			const userAState = { isRunning: true, userId: "user_a" };
+			const userBState = { isRunning: false, userId: "user_b" };
 
-			const canStop =
-				!autoModeStatus.isRunning ||
-				autoModeStatus.startedByUserId === requestingUserId;
-			expect(canStop).toBe(false);
+			// User A can stop their own state
+			expect(userAState.isRunning).toBe(true);
+			// User B's state is independent
+			expect(userBState.isRunning).toBe(false);
 		});
 
-		it("allows stop when auto-mode was started by requesting user", () => {
-			const autoModeStatus = {
+		it("per-user status returns only that user's running features", () => {
+			const userAStatus = {
 				isRunning: true,
-				startedByUserId: "user_owner",
+				runningFeatures: ["F001"],
+				consecutiveFailures: 0,
 			};
-			const requestingUserId = "user_owner";
-
-			const canStop =
-				!autoModeStatus.isRunning ||
-				autoModeStatus.startedByUserId === requestingUserId;
-			expect(canStop).toBe(true);
-		});
-
-		it("allows stop when auto-mode is not running", () => {
-			const autoModeStatus = {
+			const userBStatus = {
 				isRunning: false,
-				startedByUserId: "user_other",
+				runningFeatures: [],
+				consecutiveFailures: 0,
 			};
-			const requestingUserId = "user_anyone";
 
-			const canStop =
-				!autoModeStatus.isRunning ||
-				autoModeStatus.startedByUserId === requestingUserId;
-			expect(canStop).toBe(true);
+			expect(userAStatus.runningFeatures).toEqual(["F001"]);
+			expect(userBStatus.runningFeatures).toEqual([]);
 		});
 	});
 

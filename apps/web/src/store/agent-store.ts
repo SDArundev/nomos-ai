@@ -31,18 +31,14 @@ export interface AgentSession {
 }
 
 interface AgentStore {
-	sessions: AgentSession[];
 	activeSessionId: string | null;
+	/** Transient message buffer: merges history query data with streaming messages */
 	messages: AgentMessage[];
-	isStreaming: boolean;
 	isSending: boolean;
 
-	setSessions: (sessions: AgentSession[]) => void;
-	addSession: (session: AgentSession) => void;
 	setActiveSession: (id: string | null) => void;
 	setMessages: (messages: AgentMessage[]) => void;
 	addMessage: (message: AgentMessage) => void;
-	setIsStreaming: (streaming: boolean) => void;
 	setIsSending: (sending: boolean) => void;
 	clearMessages: () => void;
 }
@@ -50,20 +46,10 @@ interface AgentStore {
 export const useAgentStore = create<AgentStore>()(
 	devtools(
 		(set) => ({
-			sessions: [],
 			activeSessionId: null,
 			messages: [],
-			isStreaming: false,
 			isSending: false,
 
-			setSessions: (sessions) =>
-				set({ sessions }, undefined, "agent/setSessions"),
-			addSession: (session) =>
-				set(
-					(state) => ({ sessions: [...state.sessions, session] }),
-					undefined,
-					"agent/addSession",
-				),
 			setActiveSession: (id) =>
 				set({ activeSessionId: id }, undefined, "agent/setActiveSession"),
 			setMessages: (messages) =>
@@ -74,8 +60,6 @@ export const useAgentStore = create<AgentStore>()(
 					undefined,
 					"agent/addMessage",
 				),
-			setIsStreaming: (streaming) =>
-				set({ isStreaming: streaming }, undefined, "agent/setIsStreaming"),
 			setIsSending: (sending) =>
 				set({ isSending: sending }, undefined, "agent/setIsSending"),
 			clearMessages: () =>

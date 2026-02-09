@@ -20,7 +20,7 @@ export async function apiKeyAuthMiddleware(c: Context, next: Next) {
 	const token = authHeader.slice(7);
 
 	if (!token.startsWith(API_KEY_PREFIX)) {
-		return next();
+		return c.json({ error: "Invalid API key format" }, 401);
 	}
 
 	const keyHash = await hashApiKey(token);

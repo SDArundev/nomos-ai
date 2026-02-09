@@ -19,7 +19,6 @@ export function AgentChat() {
 	const setActiveSession = useAgentStore((s) => s.setActiveSession);
 	const messages = useAgentStore((s) => s.messages);
 	const setMessages = useAgentStore((s) => s.setMessages);
-	const setSessions = useAgentStore((s) => s.setSessions);
 	const isSending = useAgentStore((s) => s.isSending);
 	const setIsSending = useAgentStore((s) => s.setIsSending);
 
@@ -55,14 +54,8 @@ export function AgentChat() {
 		wasStreaming.current = isStreaming;
 	}, [isStreaming, activeSessionId, queryClient, setIsSending]);
 
-	// Fetch sessions
+	// Fetch sessions — React Query is the sole data source
 	const sessionsQuery = useQuery(orpc.agent.listSessions.queryOptions());
-
-	useEffect(() => {
-		if (sessionsQuery.data) {
-			setSessions(sessionsQuery.data as AgentSession[]);
-		}
-	}, [sessionsQuery.data, setSessions]);
 
 	// Fetch history when session changes
 	const historyQuery = useQuery({

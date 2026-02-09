@@ -114,7 +114,7 @@ describe("AutoModeService", () => {
 
 	describe("getStatus", () => {
 		test("returns initial status when not running", () => {
-			const status = service.getStatus();
+			const status = service.getStatus("user_001");
 			expect(status.isRunning).toBe(false);
 			expect(status.runningFeatures).toEqual([]);
 			expect(status.consecutiveFailures).toBe(0);
@@ -153,21 +153,19 @@ describe("AutoModeService", () => {
 	describe("stop", () => {
 		test("sets isRunning to false and clears state", () => {
 			// Start is async loop, so we test stop independently
-			service.stop();
-			const status = service.getStatus();
+			service.stop("user_001");
+			const status = service.getStatus("user_001");
 			expect(status.isRunning).toBe(false);
 			expect(status.runningFeatures).toEqual([]);
 		});
 
-		test("emits auto-mode:stopped event when userId is set", () => {
-			// We can't easily set currentUserId without starting,
-			// but stop() guards with if(currentUserId)
-			service.stop();
-			// No userId set, so no event emitted
+		test("emits auto-mode:stopped event", () => {
+			service.stop("user_001");
 			const stopCalls = (events.emit.mock.calls as any[][]).filter(
 				(c) => c[0] === "auto-mode:stopped",
 			);
-			expect(stopCalls).toHaveLength(0);
+			expect(stopCalls).toHaveLength(1);
+			expect(stopCalls[0][1]).toEqual({ userId: "user_001" });
 		});
 	});
 
@@ -202,7 +200,7 @@ describe("AutoModeService", () => {
 			).rejects.toThrow("Auto-mode is already running");
 
 			// Clean up
-			service.stop();
+			service.stop("user_001");
 		});
 
 		test("rejects projectRoot outside allowed directories", async () => {
@@ -228,7 +226,7 @@ describe("AutoModeService", () => {
 			);
 			expect(startedCalls).toHaveLength(1);
 
-			service.stop();
+			service.stop("user_001");
 		});
 
 		test("accepts projectRoot under /tmp", async () => {
@@ -243,10 +241,10 @@ describe("AutoModeService", () => {
 			await new Promise((r) => setTimeout(r, 20));
 
 			// isRunning should be true (loop is running)
-			expect(service.getStatus().isRunning).toBe(true);
+			expect(service.getStatus("user_001").isRunning).toBe(true);
 
-			service.stop();
-			expect(service.getStatus().isRunning).toBe(false);
+			service.stop("user_001");
+			expect(service.getStatus("user_001").isRunning).toBe(false);
 		});
 	});
 });

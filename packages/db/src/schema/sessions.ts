@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
 	boolean,
+	check,
 	index,
 	integer,
 	numeric,
@@ -50,6 +51,10 @@ export const agentSession = pgTable(
 		index("agent_session_status_idx").on(table.status),
 		index("agent_session_feature_id_idx").on(table.featureId),
 		index("agent_session_user_id_idx").on(table.userId),
+		check(
+			"agent_session_status_check",
+			sql`status IN ('pending', 'running', 'completed', 'failed')`,
+		),
 	],
 );
 
