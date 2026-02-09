@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
 	AlertTriangle,
 	Archive,
@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
 	Card,
 	CardContent,
@@ -39,17 +40,12 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/learnings")({
 	component: LearningsComponent,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({ to: "/login", throw: true });
-		}
-	},
+	beforeLoad: requireAuth,
 });
 
 // ── Types matching API responses ──────────────────────────
@@ -127,6 +123,13 @@ function LearningsComponent() {
 	const [categoryFilter, setCategoryFilter] = useState("all");
 	const [sortField, setSortField] = useState<SortField>("confidence");
 	const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+	const [patternPage, setPatternPage] = useState(1);
+	const [patternPageSize, setPatternPageSize] = useState(20);
+	const [antipatternPage, setAntipatternPage] = useState(1);
+	const [antipatternPageSize, setAntipatternPageSize] = useState(20);
+	const [insightPage, setInsightPage] = useState(1);
+	const [insightPageSize, setInsightPageSize] = useState(20);
 
 	const patternsQuery = useQuery(orpc.learnings.listPatterns.queryOptions());
 	const antipatternsQuery = useQuery(
@@ -282,20 +285,38 @@ function LearningsComponent() {
 						<CategoryFilter
 							categories={allCategories}
 							value={categoryFilter}
-							onChange={setCategoryFilter}
+							onChange={(v) => {
+								setCategoryFilter(v);
+								setPatternPage(1);
+							}}
 						/>
 						{isLoading ? (
 							<LoadingSkeleton />
 						) : error ? (
 							<ErrorCard error={error} />
 						) : (
-							<PatternCatalog
-								patterns={sortedPatterns}
-								sortField={sortField}
-								sortDir={sortDir}
-								onSort={handleSort}
-								sortIndicator={sortIndicator}
-							/>
+							<>
+								<PatternCatalog
+									patterns={sortedPatterns.slice(
+										(patternPage - 1) * patternPageSize,
+										patternPage * patternPageSize,
+									)}
+									sortField={sortField}
+									sortDir={sortDir}
+									onSort={handleSort}
+									sortIndicator={sortIndicator}
+								/>
+								<PaginationControls
+									page={patternPage}
+									pageSize={patternPageSize}
+									total={sortedPatterns.length}
+									onPageChange={setPatternPage}
+									onPageSizeChange={(ps) => {
+										setPatternPageSize(ps);
+										setPatternPage(1);
+									}}
+								/>
+							</>
 						)}
 					</TabsContent>
 
@@ -303,14 +324,34 @@ function LearningsComponent() {
 						<CategoryFilter
 							categories={allCategories}
 							value={categoryFilter}
-							onChange={setCategoryFilter}
+							onChange={(v) => {
+								setCategoryFilter(v);
+								setAntipatternPage(1);
+							}}
 						/>
 						{isLoading ? (
 							<LoadingSkeleton />
 						) : error ? (
 							<ErrorCard error={error} />
 						) : (
-							<AntipatternWarnings antipatterns={filteredAntipatterns} />
+							<>
+								<AntipatternWarnings
+									antipatterns={filteredAntipatterns.slice(
+										(antipatternPage - 1) * antipatternPageSize,
+										antipatternPage * antipatternPageSize,
+									)}
+								/>
+								<PaginationControls
+									page={antipatternPage}
+									pageSize={antipatternPageSize}
+									total={filteredAntipatterns.length}
+									onPageChange={setAntipatternPage}
+									onPageSizeChange={(ps) => {
+										setAntipatternPageSize(ps);
+										setAntipatternPage(1);
+									}}
+								/>
+							</>
 						)}
 					</TabsContent>
 
@@ -320,7 +361,24 @@ function LearningsComponent() {
 						) : error ? (
 							<ErrorCard error={error} />
 						) : (
-							<InsightsTimeline insights={insights} />
+							<>
+								<InsightsTimeline
+									insights={insights.slice(
+										(insightPage - 1) * insightPageSize,
+										insightPage * insightPageSize,
+									)}
+								/>
+								<PaginationControls
+									page={insightPage}
+									pageSize={insightPageSize}
+									total={insights.length}
+									onPageChange={setInsightPage}
+									onPageSizeChange={(ps) => {
+										setInsightPageSize(ps);
+										setInsightPage(1);
+									}}
+								/>
+							</>
 						)}
 					</TabsContent>
 				</Tabs>

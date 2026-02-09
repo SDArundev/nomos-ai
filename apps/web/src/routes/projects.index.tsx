@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,17 +11,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/projects/")({
 	component: ProjectsIndex,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({ to: "/login", throw: true });
-		}
-	},
+	beforeLoad: requireAuth,
 });
 
 function ProjectsIndex() {

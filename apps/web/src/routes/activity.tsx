@@ -1,7 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ActivityFeed } from "@/components/activity/activity-feed";
-import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 
 const EVENT_TYPE_FILTERS = [
 	{ label: "All", value: "" },
@@ -13,12 +13,7 @@ const EVENT_TYPE_FILTERS = [
 
 export const Route = createFileRoute("/activity")({
 	component: ActivityComponent,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({ to: "/login", throw: true });
-		}
-	},
+	beforeLoad: requireAuth,
 });
 
 function ActivityComponent() {

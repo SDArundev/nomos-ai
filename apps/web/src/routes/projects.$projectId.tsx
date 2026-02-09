@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Link,
-	redirect,
 	useNavigate,
 } from "@tanstack/react-router";
 import { useState } from "react";
@@ -21,7 +20,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 import { orpc } from "@/utils/orpc";
 
 // Feature type from database - inferred from API router
@@ -41,12 +40,7 @@ type FeatureFromAPI = {
 
 export const Route = createFileRoute("/projects/$projectId")({
 	component: ProjectDetail,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({ to: "/login", throw: true });
-		}
-	},
+	beforeLoad: requireAuth,
 });
 
 import { FEATURE_STATUS_COLORS as statusColors } from "@/lib/status-display";

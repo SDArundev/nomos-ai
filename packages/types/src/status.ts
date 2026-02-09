@@ -89,7 +89,7 @@ export const FEATURE_VALID_TRANSITIONS: Record<FeatureStatus, FeatureStatus[]> =
 			FEATURE_STATUS.FAILED,
 		],
 		[FEATURE_STATUS.VERIFIED]: [],
-		[FEATURE_STATUS.FAILED]: [],
+		[FEATURE_STATUS.FAILED]: [FEATURE_STATUS.PENDING],
 	};
 
 /** Valid session status transitions (state machine) */

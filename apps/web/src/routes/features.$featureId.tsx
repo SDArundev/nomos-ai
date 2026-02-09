@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Pencil, Play, Save, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,17 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/features/$featureId")({
 	component: FeatureDetail,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({ to: "/login", throw: true });
-		}
-	},
+	beforeLoad: requireAuth,
 });
 
 import { FEATURE_STATUS_COLORS as statusColors } from "@/lib/status-display";

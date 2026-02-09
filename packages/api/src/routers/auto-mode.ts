@@ -2,6 +2,7 @@ import { featureRepository, projectRepository } from "@nomos-ai/db";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { transitionFeatureStatus } from "../lib/feature-state-machine";
 import { AutoModeService } from "../services/auto-mode-service";
 import { ClaudeProvider } from "../services/claude-provider";
 import { PipelineService } from "../services/pipeline-service";
@@ -133,7 +134,7 @@ export const autoModeRouter = {
 				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
 			}
 			await featureRepository.resetRetryCount(input.featureId);
-			await featureRepository.update(input.featureId, { status: "pending" });
+			await transitionFeatureStatus(input.featureId, "pending");
 			return {
 				success: true,
 				message: `Reset retry count for ${input.featureId}`,
@@ -172,7 +173,7 @@ export const autoModeRouter = {
 
 			// Update feature to pending so executeFeature can transition it
 			if (feature.status === "backlog") {
-				await featureRepository.update(input.featureId, { status: "pending" });
+				await transitionFeatureStatus(input.featureId, "pending");
 			}
 
 			service.startFeature(input.featureId, project.path, userId).catch(() => {

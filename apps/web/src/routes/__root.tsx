@@ -7,6 +7,7 @@ import {
 	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
+	redirect,
 	useMatchRoute,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -14,6 +15,7 @@ import { useCallback, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandPalette } from "@/components/command-palette";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { KeyboardShortcutsHelp } from "@/components/keyboard-shortcuts-help";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -29,6 +31,21 @@ export interface RouterAppContext {
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	component: RootComponent,
+	beforeLoad: async ({ location }) => {
+		const isLoginRoute = location.pathname === "/login";
+
+		// Don't redirect if already on login page
+		if (isLoginRoute) return;
+
+		const session = await authClient.getSession();
+		if (!session.data) {
+			redirect({
+				to: "/login",
+				search: { returnTo: location.pathname },
+				throw: true,
+			});
+		}
+	},
 	head: () => ({
 		meta: [
 			{
@@ -60,8 +77,9 @@ function RootComponent() {
 	const showShell = isAuthenticated && !isLoginRoute;
 
 	const [paletteOpen, setPaletteOpen] = useState(false);
+	const [showHelp, setShowHelp] = useState(false);
 	const openPalette = useCallback(() => setPaletteOpen(true), []);
-	useKeyboardShortcuts(openPalette);
+	useKeyboardShortcuts(openPalette, () => setShowHelp(true));
 
 	return (
 		<>
@@ -101,6 +119,7 @@ function RootComponent() {
 				)}
 				<Toaster richColors />
 				<CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+				<KeyboardShortcutsHelp open={showHelp} onOpenChange={setShowHelp} />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />
 			<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
