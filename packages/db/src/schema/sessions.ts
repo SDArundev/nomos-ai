@@ -22,6 +22,10 @@ export const agentSession = sqliteTable(
 		isRunning: integer("is_running", { mode: "boolean" }).default(false),
 		workingDirectory: text("working_directory"),
 		messageCount: integer("message_count").default(0),
+		// Cost tracking
+		totalCostUsd: text("total_cost_usd"),
+		inputTokens: integer("input_tokens"),
+		outputTokens: integer("output_tokens"),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),

@@ -365,7 +365,7 @@ describe("agent-service", () => {
 				"Glob",
 				"Grep",
 			]);
-			expect(result.agentConfig.permissionMode).toBe("bypassPermissions");
+			expect(result.agentConfig.permissionMode).toBe("default");
 		});
 
 		test("uses feature model when valid", async () => {

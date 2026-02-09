@@ -120,6 +120,9 @@ CREATE TABLE IF NOT EXISTS \`agent_session\` (
 	\`is_running\` integer DEFAULT false,
 	\`working_directory\` text,
 	\`message_count\` integer DEFAULT 0,
+	\`total_cost_usd\` text,
+	\`input_tokens\` integer,
+	\`output_tokens\` integer,
 	\`created_at\` integer DEFAULT (cast(unixepoch('subsec') * 1000 as integer)) NOT NULL,
 	\`updated_at\` integer DEFAULT (cast(unixepoch('subsec') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (\`feature_id\`) REFERENCES \`feature\`(\`id\`) ON UPDATE no action ON DELETE cascade

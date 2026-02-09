@@ -9,6 +9,7 @@ import {
 	Plus,
 } from "lucide-react";
 import { ActivityFeed } from "@/components/activity/activity-feed";
+import { AutoModeDashboard } from "@/components/auto-mode/auto-mode-dashboard";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -59,8 +60,13 @@ function DashboardComponent() {
 					Welcome back, {session.data?.user.name ?? "there"}
 				</h1>
 				<p className="text-muted-foreground">
-					Here's an overview of your workspace.
+					Autonomous development studio overview.
 				</p>
+			</div>
+
+			{/* Auto-Mode Dashboard — primary view */}
+			<div className="mb-8">
+				<AutoModeDashboard />
 			</div>
 
 			{/* Empty state: no projects */}

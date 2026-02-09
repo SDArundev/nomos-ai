@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import { featureRepository, sessionRepository } from "@nomos-ai/db";
 import { SESSION_STATUS } from "@nomos-ai/types";
 import {
@@ -9,6 +10,16 @@ import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
 import type { PipelineService } from "./pipeline-service";
 import type { WorktreeService } from "./worktree-service";
+
+const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
+
+function validateProjectRoot(projectRoot: string): string {
+	const resolved = resolve(projectRoot);
+	if (!ALLOWED_ROOTS.some((root) => resolved.startsWith(`${root}/`))) {
+		throw new Error("projectRoot must be under an allowed directory");
+	}
+	return resolved;
+}
 
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,6 +38,7 @@ export class AutoModeService {
 	private isRunning = false;
 	private config: AutoModeConfig = { maxConcurrency: 1, maxRetries: MAX_RETRIES };
 	private runningFeatures = new Map<string, AbortController>();
+	private retryTimers = new Set<ReturnType<typeof setTimeout>>();
 	private consecutiveFailures = 0;
 	private projectContext: string | null = null;
 	private currentUserId: string | null = null;
@@ -40,13 +52,14 @@ export class AutoModeService {
 
 	async start(
 		projectId: string,
-		projectRoot: string,
+		rawProjectRoot: string,
 		userId: string,
 	): Promise<void> {
 		if (this.isRunning) {
 			throw new Error("Auto-mode is already running");
 		}
 
+		const projectRoot = validateProjectRoot(rawProjectRoot);
 		this.isRunning = true;
 		this.consecutiveFailures = 0;
 		this.currentUserId = userId;
@@ -253,13 +266,15 @@ export class AutoModeService {
 				});
 
 				// Reset to pending after backoff so it gets picked up again
-				setTimeout(async () => {
+				const timer = setTimeout(async () => {
+					this.retryTimers.delete(timer);
 					try {
 						await featureRepository.update(featureId, { status: "pending" });
 					} catch {
 						// Feature may have been manually handled
 					}
 				}, backoffMs);
+				this.retryTimers.add(timer);
 			}
 
 			throw err;
@@ -270,6 +285,10 @@ export class AutoModeService {
 
 	stop(): void {
 		this.isRunning = false;
+		for (const timer of this.retryTimers) {
+			clearTimeout(timer);
+		}
+		this.retryTimers.clear();
 		for (const [, abort] of this.runningFeatures) {
 			abort.abort();
 		}

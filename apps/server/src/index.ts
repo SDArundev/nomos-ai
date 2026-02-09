@@ -36,8 +36,10 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 100;
 
 app.use("/*", async (c, next) => {
-	const ip =
-		c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
+	const server = c.env as unknown as
+		| { requestIP?: (req: Request) => { address: string } | null }
+		| undefined;
+	const ip = server?.requestIP?.(c.req.raw)?.address ?? "unknown";
 	const now = Date.now();
 	const cutoff = now - RATE_LIMIT_WINDOW_MS;
 

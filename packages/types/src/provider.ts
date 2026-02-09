@@ -43,6 +43,14 @@ export const providerMessageSchema = z.object({
 		.optional(),
 	result: z.string().optional(),
 	error: z.string().optional(),
+	// Cost tracking (populated on "result" messages)
+	costData: z
+		.object({
+			totalCostUsd: z.number(),
+			inputTokens: z.number(),
+			outputTokens: z.number(),
+		})
+		.optional(),
 });
 export type ProviderMessage = z.infer<typeof providerMessageSchema>;
 
@@ -65,5 +73,6 @@ export const executeOptionsSchema = z.object({
 	abortController: z.custom<AbortController>().optional(),
 	sdkSessionId: z.string().optional(),
 	thinkingLevel: thinkingLevelSchema.default("standard"),
+	maxBudgetUsd: z.number().positive().optional(),
 });
 export type ExecuteOptions = z.infer<typeof executeOptionsSchema>;

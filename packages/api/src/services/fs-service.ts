@@ -1,13 +1,18 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
-import { relative, resolve } from "node:path";
+import { resolve } from "node:path";
 
 export class FSService {
 	constructor(private allowedRoot: string) {}
 
 	private validatePath(requestedPath: string): string {
+		if (requestedPath.includes("\0")) {
+			throw new Error("Path traversal detected");
+		}
 		const resolved = resolve(this.allowedRoot, requestedPath);
-		const rel = relative(this.allowedRoot, resolved);
-		if (rel.startsWith("..") || resolve(resolved) !== resolved) {
+		if (
+			!resolved.startsWith(`${this.allowedRoot}/`) &&
+			resolved !== this.allowedRoot
+		) {
 			throw new Error("Path traversal detected");
 		}
 		return resolved;

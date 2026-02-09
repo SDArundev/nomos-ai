@@ -1,11 +1,23 @@
+import { resolve } from "node:path";
 import { featureRepository, worktreeRepository } from "@nomos-ai/db";
-import type { EventService } from "./event-service";
 import {
 	branchExists,
 	createBranch,
 	worktreeAdd,
 	worktreeRemove,
 } from "../lib/git-utils";
+import type { EventService } from "./event-service";
+
+/** Allowed base directories for project roots */
+const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
+
+function validateProjectRoot(projectRoot: string): string {
+	const resolved = resolve(projectRoot);
+	if (!ALLOWED_ROOTS.some((root) => resolved.startsWith(`${root}/`))) {
+		throw new Error("projectRoot must be under an allowed directory");
+	}
+	return resolved;
+}
 
 interface CreateWorktreeInput {
 	featureId: string;
@@ -18,7 +30,8 @@ export class WorktreeService {
 	constructor(private events: EventService) {}
 
 	async create(input: CreateWorktreeInput) {
-		const { featureId, branchName, projectRoot, baseBranch = "main" } = input;
+		const { featureId, branchName, baseBranch = "main" } = input;
+		const projectRoot = validateProjectRoot(input.projectRoot);
 		const worktreePath = `${projectRoot}/.worktrees/${featureId}`;
 
 		// Look up feature to get userId
@@ -46,7 +59,8 @@ export class WorktreeService {
 		return worktree;
 	}
 
-	async remove(featureId: string, projectRoot: string): Promise<void> {
+	async remove(featureId: string, rawProjectRoot: string): Promise<void> {
+		const projectRoot = validateProjectRoot(rawProjectRoot);
 		const worktree = await worktreeRepository.findByFeatureId(featureId);
 		if (!worktree) return;
 
