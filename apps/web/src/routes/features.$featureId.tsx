@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { Pencil, Save, X } from "lucide-react";
+import { Pencil, Play, Save, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,24 @@ function FeatureDetail() {
 		}),
 	);
 
+	const startBuild = useMutation(
+		orpc.autoMode.startFeature.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.get.queryOptions({ input: { id: featureId } })
+						.queryKey,
+				});
+				queryClient.invalidateQueries({
+					queryKey: orpc.features.list.queryOptions().queryKey,
+				});
+				toast.success("Pipeline started");
+			},
+			onError: (error) => {
+				toast.error(error.message || "Failed to start build");
+			},
+		}),
+	);
+
 	const startEditing = () => {
 		if (!feature.data) return;
 		setEditTitle(feature.data.title);
@@ -104,6 +122,11 @@ function FeatureDetail() {
 
 	const feat = feature.data;
 
+	const canStartBuild =
+		feat.status !== "in_progress" &&
+		feat.status !== "verified" &&
+		!editing;
+
 	return (
 		<div className="container mx-auto max-w-3xl px-4 py-6">
 			<div className="mb-6">
@@ -147,10 +170,20 @@ function FeatureDetail() {
 								</Button>
 							</>
 						) : (
-							<Button size="sm" variant="outline" onClick={startEditing}>
-								<Pencil className="mr-1 size-4" />
-								Edit
-							</Button>
+							<>
+								<Button
+									size="sm"
+									onClick={() => startBuild.mutate({ featureId })}
+									disabled={!canStartBuild || startBuild.isPending}
+								>
+									<Play className="mr-1 size-4" />
+									{startBuild.isPending ? "Starting..." : "Start Build"}
+								</Button>
+								<Button size="sm" variant="outline" onClick={startEditing}>
+									<Pencil className="mr-1 size-4" />
+									Edit
+								</Button>
+							</>
 						)}
 					</div>
 				</div>

@@ -1,16 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
 	AlertTriangle,
+	Archive,
 	BookOpen,
 	Brain,
 	ChevronDown,
 	ChevronRight,
 	Lightbulb,
 	Shield,
+	Sparkles,
 	TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -33,24 +36,70 @@ export const Route = createFileRoute("/learnings")({
 	},
 });
 
-interface LearningEntry {
+// ── Types matching API responses ──────────────────────────
+
+interface Pattern {
 	id: string;
-	userId: string;
-	featureId?: string | null;
+	userId: string | null;
+	name: string;
+	description: string;
 	category: string;
-	pattern?: string | null;
-	antiPattern?: string | null;
-	context?: {
-		problem?: string;
-		solution?: string;
-		codeExample?: string;
-		gotcha?: string;
-		recommendation?: string;
-	} | null;
-	severity?: string | null;
-	tags?: string[] | null;
-	createdAt: Date;
-	updatedAt: Date;
+	confidence: number;
+	evidenceCount: number | null;
+	successRate: number | null;
+	riskIfIgnored: string | null;
+	codeExample: string | null;
+	recommendation: string | null;
+	appliesTo: string[] | null;
+	featuresApplied: string[] | null;
+	featuresSucceeded: string[] | null;
+	firstSeen: string | null;
+	lastSeen: string | null;
+	status: string;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+}
+
+interface Antipattern {
+	id: string;
+	userId: string | null;
+	name: string;
+	description: string;
+	category: string;
+	severity: string;
+	evidenceCount: number | null;
+	prevention: string | null;
+	whatWentWrong: string | null;
+	lesson: string | null;
+	fixApplied: string | null;
+	lastSeen: string | null;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+}
+
+interface FeatureInsight {
+	id: string;
+	userId: string | null;
+	featureId: string;
+	acceptanceCriteria: Array<{
+		criterion: string;
+		status: string;
+		details?: string;
+	}> | null;
+	discoveries: Array<{
+		discovery: string;
+		context: string;
+		lesson: string;
+		benefit?: string;
+		code_pattern?: string;
+	}> | null;
+	patternsApplied: string[] | null;
+	whatWorked: string[] | null;
+	whatFailed: string[] | null;
+	whatCouldImprove: string[] | null;
+	recommendations: string[] | null;
+	createdAt: Date | string;
+	updatedAt: Date | string;
 }
 
 type TabId = "patterns" | "antipatterns" | "insights";
@@ -61,30 +110,34 @@ const TABS: { id: TabId; label: string; icon: typeof BookOpen }[] = [
 	{ id: "insights", label: "Insights Timeline", icon: Lightbulb },
 ];
 
-const CATEGORIES = [
-	"all",
-	"typescript",
-	"frontend",
-	"server",
-	"database",
-	"testing",
-	"infra",
-	"security",
-	"websocket",
-] as const;
-
 function LearningsComponent() {
 	const [activeTab, setActiveTab] = useState<TabId>("patterns");
 	const [categoryFilter, setCategoryFilter] = useState("all");
 
-	const learnings = useQuery(orpc.learnings.list.queryOptions());
-
-	const allLearnings = (learnings.data ?? []) as LearningEntry[];
-	const patterns = allLearnings.filter((l) => l.pattern);
-	const antipatterns = allLearnings.filter((l) => l.antiPattern);
-	const insights = allLearnings.filter(
-		(l) => l.featureId && !l.pattern && !l.antiPattern,
+	const patternsQuery = useQuery(orpc.learnings.listPatterns.queryOptions());
+	const antipatternsQuery = useQuery(
+		orpc.learnings.listAntipatterns.queryOptions(),
 	);
+	const insightsQuery = useQuery(orpc.learnings.listInsights.queryOptions());
+
+	const patterns = (patternsQuery.data ?? []) as Pattern[];
+	const antipatterns = (antipatternsQuery.data ?? []) as Antipattern[];
+	const insights = (insightsQuery.data ?? []) as FeatureInsight[];
+
+	const isLoading =
+		patternsQuery.isLoading ||
+		antipatternsQuery.isLoading ||
+		insightsQuery.isLoading;
+	const error =
+		patternsQuery.error || antipatternsQuery.error || insightsQuery.error;
+
+	// Build category list from actual data
+	const allCategories = [
+		...new Set([
+			...patterns.map((p) => p.category),
+			...antipatterns.map((a) => a.category),
+		]),
+	].sort();
 
 	const filteredPatterns =
 		categoryFilter === "all"
@@ -97,12 +150,14 @@ function LearningsComponent() {
 
 	const severityCounts = antipatterns.reduce(
 		(acc, a) => {
-			const sev = (a.severity ?? "low").toLowerCase();
+			const sev = a.severity.toLowerCase();
 			acc[sev] = (acc[sev] ?? 0) + 1;
 			return acc;
 		},
 		{} as Record<string, number>,
 	);
+
+	const provenCount = patterns.filter((p) => p.status === "proven").length;
 
 	return (
 		<div className="container mx-auto max-w-5xl px-4 py-6">
@@ -114,7 +169,7 @@ function LearningsComponent() {
 			</div>
 
 			{/* Summary Stats */}
-			{learnings.isLoading ? (
+			{isLoading ? (
 				<div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
 					{Array.from({ length: 4 }).map((_, i) => (
 						<Card key={i}>
@@ -134,6 +189,7 @@ function LearningsComponent() {
 						label="Patterns"
 						value={patterns.length}
 						icon={<BookOpen className="size-4 text-blue-500" />}
+						sub={provenCount > 0 ? `${provenCount} proven` : undefined}
 					/>
 					<StatCard
 						label="Antipatterns"
@@ -152,9 +208,7 @@ function LearningsComponent() {
 					/>
 					<StatCard
 						label="Categories"
-						value={
-							new Set(allLearnings.map((l) => l.category)).size
-						}
+						value={allCategories.length}
 						icon={<Brain className="size-4 text-purple-500" />}
 					/>
 				</div>
@@ -183,7 +237,19 @@ function LearningsComponent() {
 			{/* Category filter for patterns/antipatterns */}
 			{(activeTab === "patterns" || activeTab === "antipatterns") && (
 				<div className="mb-4 flex gap-2 overflow-x-auto">
-					{CATEGORIES.map((cat) => (
+					<button
+						type="button"
+						onClick={() => setCategoryFilter("all")}
+						className={cn(
+							"whitespace-nowrap rounded-md px-2.5 py-1 text-xs transition-colors",
+							categoryFilter === "all"
+								? "bg-secondary text-secondary-foreground"
+								: "bg-muted/50 text-muted-foreground hover:text-foreground",
+						)}
+					>
+						All
+					</button>
+					{allCategories.map((cat) => (
 						<button
 							key={cat}
 							type="button"
@@ -195,23 +261,23 @@ function LearningsComponent() {
 									: "bg-muted/50 text-muted-foreground hover:text-foreground",
 							)}
 						>
-							{cat === "all" ? "All" : cat}
+							{cat}
 						</button>
 					))}
 				</div>
 			)}
 
 			{/* Tab content */}
-			{learnings.isLoading ? (
+			{isLoading ? (
 				<div className="space-y-3">
 					{Array.from({ length: 3 }).map((_, i) => (
 						<Skeleton key={i} className="h-24 w-full" />
 					))}
 				</div>
-			) : learnings.error ? (
+			) : error ? (
 				<Card>
 					<CardContent className="py-8 text-center text-destructive">
-						Failed to load learnings: {learnings.error.message}
+						Failed to load learnings: {error.message}
 					</CardContent>
 				</Card>
 			) : (
@@ -260,10 +326,68 @@ function StatCard({
 	);
 }
 
+// ── Confidence Bar ──────────────────────────────────────
+
+function ConfidenceBar({ value }: { value: number }) {
+	const pct = Math.round(value * 100);
+	const color =
+		value >= 0.8
+			? "bg-green-500"
+			: value >= 0.5
+				? "bg-yellow-500"
+				: "bg-red-500";
+
+	return (
+		<div className="flex items-center gap-2">
+			<div className="h-1.5 w-16 rounded-full bg-muted">
+				<div
+					className={cn("h-1.5 rounded-full", color)}
+					style={{ width: `${pct}%` }}
+				/>
+			</div>
+			<span className="text-muted-foreground text-xs">{pct}%</span>
+		</div>
+	);
+}
+
+// ── Status Badge ────────────────────────────────────────
+
+const STATUS_STYLES: Record<string, { variant: "default" | "secondary" | "outline"; className?: string }> = {
+	proven: { variant: "default", className: "bg-green-600 hover:bg-green-700" },
+	active: { variant: "secondary" },
+	archived: { variant: "outline", className: "text-muted-foreground" },
+};
+
+function StatusBadge({ status }: { status: string }) {
+	const style = STATUS_STYLES[status] ?? STATUS_STYLES.active;
+	return (
+		<Badge variant={style.variant} className={style.className}>
+			{status}
+		</Badge>
+	);
+}
+
 // ── Pattern Catalog ──────────────────────────────────────
 
-function PatternCatalog({ patterns }: { patterns: LearningEntry[] }) {
+function PatternCatalog({ patterns }: { patterns: Pattern[] }) {
 	const [expandedId, setExpandedId] = useState<string | null>(null);
+	const queryClient = useQueryClient();
+
+	const curate = useMutation(
+		orpc.learnings.curate.mutationOptions({
+			onSuccess: (data) => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.learnings.listPatterns.queryOptions().queryKey,
+				});
+				toast.success(
+					`Curation complete: ${data.promoted} promoted, ${data.pruned} pruned`,
+				);
+			},
+			onError: (error) => {
+				toast.error(error.message || "Curation failed");
+			},
+		}),
+	);
 
 	if (patterns.length === 0) {
 		return (
@@ -282,6 +406,23 @@ function PatternCatalog({ patterns }: { patterns: LearningEntry[] }) {
 
 	return (
 		<div className="space-y-2">
+			{/* Curation controls */}
+			<div className="mb-3 flex justify-end">
+				<button
+					type="button"
+					onClick={() => curate.mutate({})}
+					disabled={curate.isPending}
+					className={cn(
+						"flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors",
+						"bg-muted text-muted-foreground hover:text-foreground",
+						curate.isPending && "opacity-50 cursor-not-allowed",
+					)}
+				>
+					<Sparkles className="size-3.5" />
+					{curate.isPending ? "Curating..." : "Run Curation"}
+				</button>
+			</div>
+
 			{patterns.map((p) => {
 				const isExpanded = expandedId === p.id;
 				return (
@@ -300,71 +441,69 @@ function PatternCatalog({ patterns }: { patterns: LearningEntry[] }) {
 											<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
 										)}
 										<CardTitle className="text-sm">
-											{p.pattern}
+											{p.name}
 										</CardTitle>
 									</div>
 									<div className="flex items-center gap-2">
+										<ConfidenceBar value={p.confidence} />
+										<StatusBadge status={p.status} />
 										<Badge variant="secondary">{p.category}</Badge>
-										{p.featureId && (
-											<Badge variant="outline">{p.featureId}</Badge>
+										{p.evidenceCount != null && p.evidenceCount > 0 && (
+											<Badge variant="outline" className="text-xs">
+												{p.evidenceCount} evidence
+											</Badge>
 										)}
 									</div>
 								</div>
 							</CardHeader>
 						</button>
-						{isExpanded && p.context && (
+						{isExpanded && (
 							<CardContent className="border-t pt-4">
 								<div className="space-y-3 text-sm">
-									{p.context.problem && (
+									<p className="text-muted-foreground">{p.description}</p>
+
+									{p.recommendation && (
 										<div>
 											<p className="mb-1 font-medium text-muted-foreground text-xs">
-												Problem
+												Recommendation
 											</p>
-											<p>{p.context.problem}</p>
+											<p>{p.recommendation}</p>
 										</div>
 									)}
-									{p.context.solution && (
-										<div>
-											<p className="mb-1 font-medium text-muted-foreground text-xs">
-												Solution
-											</p>
-											<p>{p.context.solution}</p>
+									{p.riskIfIgnored && (
+										<div className="flex items-start gap-2 rounded bg-yellow-500/10 p-2">
+											<AlertTriangle className="mt-0.5 size-4 shrink-0 text-yellow-500" />
+											<div>
+												<p className="mb-0.5 font-medium text-xs">
+													Risk if Ignored
+												</p>
+												<p className="text-xs">
+													{p.riskIfIgnored}
+												</p>
+											</div>
 										</div>
 									)}
-									{p.context.codeExample && (
+									{p.codeExample && (
 										<div>
 											<p className="mb-1 font-medium text-muted-foreground text-xs">
 												Code Example
 											</p>
 											<pre className="overflow-x-auto rounded bg-muted p-3 text-xs">
-												<code>{p.context.codeExample}</code>
+												<code>{p.codeExample}</code>
 											</pre>
 										</div>
 									)}
-									{p.context.recommendation && (
-										<div>
-											<p className="mb-1 font-medium text-muted-foreground text-xs">
-												Recommendation
-											</p>
-											<p>{p.context.recommendation}</p>
+									{p.successRate != null && (
+										<div className="flex items-center gap-4 text-xs text-muted-foreground">
+											<span>Success rate: {Math.round(p.successRate * 100)}%</span>
+											{p.featuresApplied && (
+												<span>Applied to {p.featuresApplied.length} features</span>
+											)}
 										</div>
 									)}
-									{p.context.gotcha && (
-										<div className="flex items-start gap-2 rounded bg-yellow-500/10 p-2">
-											<AlertTriangle className="mt-0.5 size-4 shrink-0 text-yellow-500" />
-											<div>
-												<p className="mb-0.5 font-medium text-xs">
-													Gotcha
-												</p>
-												<p className="text-xs">
-													{p.context.gotcha}
-												</p>
-											</div>
-										</div>
-									)}
-									{p.tags && p.tags.length > 0 && (
+									{p.appliesTo && p.appliesTo.length > 0 && (
 										<div className="flex flex-wrap gap-1 pt-1">
-											{p.tags.map((tag) => (
+											{p.appliesTo.map((tag) => (
 												<Badge key={tag} variant="outline" className="text-xs">
 													{tag}
 												</Badge>
@@ -409,15 +548,15 @@ const SEVERITY_CONFIG: Record<
 	},
 };
 
-function getSeverityConfig(severity?: string | null) {
-	const key = (severity ?? "low").toLowerCase();
+function getSeverityConfig(severity: string) {
+	const key = severity.toLowerCase();
 	return SEVERITY_CONFIG[key] ?? SEVERITY_CONFIG.low;
 }
 
 function AntipatternWarnings({
 	antipatterns,
 }: {
-	antipatterns: LearningEntry[];
+	antipatterns: Antipattern[];
 }) {
 	const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -446,7 +585,7 @@ function AntipatternWarnings({
 			acc[cat].push(ap);
 			return acc;
 		},
-		{} as Record<string, LearningEntry[]>,
+		{} as Record<string, Antipattern[]>,
 	);
 
 	return (
@@ -483,72 +622,69 @@ function AntipatternWarnings({
 															)}
 														/>
 														<CardTitle className="text-sm">
-															{ap.antiPattern}
+															{ap.name}
 														</CardTitle>
 													</div>
-													<Badge
-														variant="outline"
-														className={cn(
-															"uppercase",
-															config.color,
+													<div className="flex items-center gap-2">
+														<Badge
+															variant="outline"
+															className={cn(
+																"uppercase",
+																config.color,
+															)}
+														>
+															{ap.severity}
+														</Badge>
+														{ap.evidenceCount != null && ap.evidenceCount > 0 && (
+															<Badge variant="outline" className="text-xs">
+																{ap.evidenceCount}x seen
+															</Badge>
 														)}
-													>
-														{ap.severity ?? "low"}
-													</Badge>
+													</div>
 												</div>
 											</CardHeader>
 										</button>
-										{isExpanded && ap.context && (
+										{isExpanded && (
 											<CardContent className="border-t pt-4">
 												<div className="space-y-3 text-sm">
-													{ap.context.problem && (
+													<p className="text-muted-foreground">
+														{ap.description}
+													</p>
+													{ap.whatWentWrong && (
 														<div>
 															<p className="mb-1 font-medium text-muted-foreground text-xs">
 																What Went Wrong
 															</p>
-															<p>{ap.context.problem}</p>
+															<p>{ap.whatWentWrong}</p>
 														</div>
 													)}
-													{ap.context.solution && (
+													{ap.fixApplied && (
 														<div>
 															<p className="mb-1 font-medium text-muted-foreground text-xs">
 																Fix Applied
 															</p>
-															<p>{ap.context.solution}</p>
+															<p>{ap.fixApplied}</p>
 														</div>
 													)}
-													{ap.context.recommendation && (
+													{ap.prevention && (
 														<div className="flex items-start gap-2 rounded bg-blue-500/10 p-2">
 															<TrendingUp className="mt-0.5 size-4 shrink-0 text-blue-500" />
 															<div>
 																<p className="mb-0.5 font-medium text-xs">
-																	Prevention Tip
+																	Prevention
 																</p>
 																<p className="text-xs">
-																	{ap.context.recommendation}
+																	{ap.prevention}
 																</p>
 															</div>
 														</div>
 													)}
-													{ap.context.gotcha && (
+													{ap.lesson && (
 														<div>
 															<p className="mb-1 font-medium text-muted-foreground text-xs">
 																Lesson Learned
 															</p>
-															<p>{ap.context.gotcha}</p>
-														</div>
-													)}
-													{ap.tags && ap.tags.length > 0 && (
-														<div className="flex flex-wrap gap-1 pt-1">
-															{ap.tags.map((tag) => (
-																<Badge
-																	key={tag}
-																	variant="outline"
-																	className="text-xs"
-																>
-																	{tag}
-																</Badge>
-															))}
+															<p>{ap.lesson}</p>
 														</div>
 													)}
 												</div>
@@ -566,7 +702,7 @@ function AntipatternWarnings({
 
 // ── Insights Timeline ────────────────────────────────────
 
-function InsightsTimeline({ insights }: { insights: LearningEntry[] }) {
+function InsightsTimeline({ insights }: { insights: FeatureInsight[] }) {
 	const [expandedId, setExpandedId] = useState<string | null>(null);
 
 	if (insights.length === 0) {
@@ -584,13 +720,13 @@ function InsightsTimeline({ insights }: { insights: LearningEntry[] }) {
 		);
 	}
 
-	const sorted = [...insights].sort(
-		(a, b) => {
-			const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-			const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
-			return dateB.getTime() - dateA.getTime();
-		},
-	);
+	const sorted = [...insights].sort((a, b) => {
+		const dateA =
+			a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+		const dateB =
+			b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+		return dateB.getTime() - dateA.getTime();
+	});
 
 	return (
 		<div className="relative space-y-0">
@@ -599,12 +735,22 @@ function InsightsTimeline({ insights }: { insights: LearningEntry[] }) {
 
 			{sorted.map((insight) => {
 				const isExpanded = expandedId === insight.id;
-				const date = insight.createdAt instanceof Date ? insight.createdAt : new Date(insight.createdAt);
+				const date =
+					insight.createdAt instanceof Date
+						? insight.createdAt
+						: new Date(insight.createdAt);
 				const formattedDate = date.toLocaleDateString("en-US", {
 					month: "short",
 					day: "numeric",
 					year: "numeric",
 				});
+
+				const hasContent =
+					(insight.discoveries && insight.discoveries.length > 0) ||
+					(insight.whatWorked && insight.whatWorked.length > 0) ||
+					(insight.whatFailed && insight.whatFailed.length > 0) ||
+					(insight.patternsApplied && insight.patternsApplied.length > 0) ||
+					(insight.recommendations && insight.recommendations.length > 0);
 
 				return (
 					<div key={insight.id} className="relative pl-10 pb-6">
@@ -622,13 +768,8 @@ function InsightsTimeline({ insights }: { insights: LearningEntry[] }) {
 								<span className="text-muted-foreground text-xs">
 									{formattedDate}
 								</span>
-								{insight.featureId && (
-									<Badge variant="outline" className="text-xs">
-										{insight.featureId}
-									</Badge>
-								)}
-								<Badge variant="secondary" className="text-xs">
-									{insight.category}
+								<Badge variant="outline" className="text-xs">
+									{insight.featureId}
 								</Badge>
 							</div>
 							<div className="mt-1 flex items-center gap-1">
@@ -638,66 +779,121 @@ function InsightsTimeline({ insights }: { insights: LearningEntry[] }) {
 									<ChevronRight className="size-3.5 text-muted-foreground" />
 								)}
 								<p className="text-sm">
-									{insight.context?.problem ??
-										insight.context?.solution ??
+									{insight.discoveries?.[0]?.discovery ??
 										`Insight for ${insight.featureId}`}
 								</p>
 							</div>
 						</button>
 
-						{isExpanded && insight.context && (
+						{isExpanded && hasContent && (
 							<Card className="mt-2">
 								<CardContent className="pt-4">
 									<div className="space-y-3 text-sm">
-										{insight.context.problem && (
-											<div>
-												<p className="mb-1 font-medium text-muted-foreground text-xs">
-													Discovery
-												</p>
-												<p>{insight.context.problem}</p>
-											</div>
-										)}
-										{insight.context.solution && (
-											<div>
-												<p className="mb-1 font-medium text-muted-foreground text-xs">
-													What Worked
-												</p>
-												<p>{insight.context.solution}</p>
-											</div>
-										)}
-										{insight.context.recommendation && (
-											<div>
-												<p className="mb-1 font-medium text-muted-foreground text-xs">
-													Recommendation
-												</p>
-												<p>{insight.context.recommendation}</p>
-											</div>
-										)}
-										{insight.context.codeExample && (
-											<div>
-												<p className="mb-1 font-medium text-muted-foreground text-xs">
-													Code Reference
-												</p>
-												<pre className="overflow-x-auto rounded bg-muted p-3 text-xs">
-													<code>
-														{insight.context.codeExample}
-													</code>
-												</pre>
-											</div>
-										)}
-										{insight.tags && insight.tags.length > 0 && (
-											<div className="flex flex-wrap gap-1 pt-1">
-												{insight.tags.map((tag) => (
-													<Badge
-														key={tag}
-														variant="outline"
-														className="text-xs"
-													>
-														{tag}
-													</Badge>
-												))}
-											</div>
-										)}
+										{insight.discoveries &&
+											insight.discoveries.length > 0 && (
+												<div>
+													<p className="mb-1 font-medium text-muted-foreground text-xs">
+														Discoveries
+													</p>
+													<ul className="space-y-2">
+														{insight.discoveries.map((d, i) => (
+															<li key={i} className="rounded bg-muted/50 p-2">
+																<p className="font-medium text-xs">
+																	{d.discovery}
+																</p>
+																<p className="mt-0.5 text-muted-foreground text-xs">
+																	{d.context}
+																</p>
+																{d.lesson && (
+																	<p className="mt-0.5 text-xs italic">
+																		Lesson: {d.lesson}
+																	</p>
+																)}
+															</li>
+														))}
+													</ul>
+												</div>
+											)}
+										{insight.whatWorked &&
+											insight.whatWorked.length > 0 && (
+												<div>
+													<p className="mb-1 font-medium text-muted-foreground text-xs">
+														What Worked
+													</p>
+													<ul className="space-y-1">
+														{insight.whatWorked.map((item, i) => (
+															<li
+																key={i}
+																className="flex items-start gap-1.5 text-xs"
+															>
+																<span className="mt-0.5 text-green-500">
+																	+
+																</span>
+																{item}
+															</li>
+														))}
+													</ul>
+												</div>
+											)}
+										{insight.whatFailed &&
+											insight.whatFailed.length > 0 && (
+												<div>
+													<p className="mb-1 font-medium text-muted-foreground text-xs">
+														What Failed
+													</p>
+													<ul className="space-y-1">
+														{insight.whatFailed.map((item, i) => (
+															<li
+																key={i}
+																className="flex items-start gap-1.5 text-xs"
+															>
+																<span className="mt-0.5 text-red-500">
+																	-
+																</span>
+																{item}
+															</li>
+														))}
+													</ul>
+												</div>
+											)}
+										{insight.patternsApplied &&
+											insight.patternsApplied.length > 0 && (
+												<div>
+													<p className="mb-1 font-medium text-muted-foreground text-xs">
+														Patterns Applied
+													</p>
+													<div className="flex flex-wrap gap-1">
+														{insight.patternsApplied.map((pat) => (
+															<Badge
+																key={pat}
+																variant="outline"
+																className="text-xs"
+															>
+																{pat}
+															</Badge>
+														))}
+													</div>
+												</div>
+											)}
+										{insight.recommendations &&
+											insight.recommendations.length > 0 && (
+												<div>
+													<p className="mb-1 font-medium text-muted-foreground text-xs">
+														Recommendations
+													</p>
+													<ul className="space-y-1">
+														{insight.recommendations.map((rec, i) => (
+															<li
+																key={i}
+																className="flex items-start gap-1.5 text-xs"
+															>
+																<TrendingUp className="mt-0.5 size-3 shrink-0 text-blue-500" />
+																{rec}
+															</li>
+														))}
+													</ul>
+												</div>
+											)}
 									</div>
 								</CardContent>
 							</Card>
