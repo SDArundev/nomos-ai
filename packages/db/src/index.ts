@@ -9,19 +9,32 @@ export const db = drizzle({ client, schema });
 
 export { sql } from "drizzle-orm";
 export {
+	generateAntipatternId,
 	generateFeatureId,
+	generateInsightId,
 	generateLearningId,
+	generateMetricId,
+	generatePatternId,
 	generateProjectId,
 	generateSessionId,
 } from "./lib/id-generation";
 export { runMigrations } from "./migrate";
 export {
+	type AntipatternInsert,
+	type AntipatternSelect,
+	antipatternRepository,
 	type ApiKeyInsert,
 	type ApiKeySelect,
 	apiKeyRepository,
 	type EventInsert,
 	type EventSelect,
 	eventRepository,
+	type FeatureInsightInsert,
+	type FeatureInsightSelect,
+	featureInsightRepository,
+	type FeatureMetricInsert,
+	type FeatureMetricSelect,
+	featureMetricRepository,
 	type FeatureInsert,
 	type FeatureSelect,
 	featureRepository,
@@ -34,6 +47,9 @@ export {
 	type NotificationInsert,
 	type NotificationSelect,
 	notificationRepository,
+	type PatternInsert,
+	type PatternSelect,
+	patternRepository,
 	projectRepository,
 	type SettingInsert,
 	type SettingSelect,

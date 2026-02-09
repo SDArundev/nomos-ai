@@ -1,7 +1,11 @@
 import { sql } from "drizzle-orm";
 import { db } from "../index";
+import { antipattern } from "../schema/antipatterns";
+import { featureInsight } from "../schema/feature-insights";
+import { featureMetric } from "../schema/feature-metrics";
 import { feature } from "../schema/features";
 import { learning } from "../schema/learnings";
+import { pattern } from "../schema/patterns";
 import { project } from "../schema/projects";
 import { agentSession } from "../schema/sessions";
 
@@ -10,7 +14,11 @@ async function getNextId(
 		| typeof feature
 		| typeof project
 		| typeof agentSession
-		| typeof learning,
+		| typeof learning
+		| typeof pattern
+		| typeof antipattern
+		| typeof featureInsight
+		| typeof featureMetric,
 	prefix: string,
 ): Promise<string> {
 	const maxRetries = 3;
@@ -61,4 +69,20 @@ export async function generateSessionId(): Promise<string> {
 
 export async function generateLearningId(): Promise<string> {
 	return getNextId(learning, "L");
+}
+
+export async function generatePatternId(): Promise<string> {
+	return getNextId(pattern, "PAT-");
+}
+
+export async function generateAntipatternId(): Promise<string> {
+	return getNextId(antipattern, "ANTI-");
+}
+
+export async function generateInsightId(): Promise<string> {
+	return getNextId(featureInsight, "INS-");
+}
+
+export async function generateMetricId(): Promise<string> {
+	return getNextId(featureMetric, "MET-");
 }

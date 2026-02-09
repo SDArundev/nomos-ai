@@ -19,7 +19,7 @@
 | 3 | F: Self-Building Validation | DONE | c201738 | 77 tests (cost tracking, crash recovery, loop validation). F1 needs manual test. |
 | 3 | G: Production Hardening | DONE | c201738 | Redis, Pino, health, Prometheus, E2E Playwright, CD pipeline. 1006 tests. |
 | 3 | H: Strategic Cleanup | DONE | c201738 | 285→139 features, learning loop closed, project.json, 8 epics created |
-| 4 | I: Learning DB Migration | READY | — | Migrate learnings from JSON to DB tables |
+| 4 | I: Learning DB Migration | DONE | — | 4 new tables, migration script, API endpoints, curation, dashboard tab |
 
 **Commits:**
 - `cb6aec6` — Batch 1: Postgres migration, cleanup, CI fixes
@@ -96,16 +96,16 @@
 
 ---
 
-## Batch 4 — READY (after Batch 3 commits)
+## Batch 4 — DONE
 
-### Stream I: Learning DB Migration
-- [ ] I1: Create DB tables: patterns, antipatterns, feature_insights, feature_metrics
-- [ ] I2: Migration script: JSON files → DB tables
-- [ ] I3: Update Phase 6 historian to write to DB (POST /api/learnings/patterns)
-- [ ] I4: CLI fallback: write to .nomos/learning/pending.json when server is down
-- [ ] I5: Add /api/learnings/relevant endpoint for Phase 1/2 queries
-- [ ] I6: Add pattern curation automation (prune low-confidence, promote high-reuse)
-- [ ] I7: Dashboard learnings tab (pattern catalog, antipattern warnings, insights timeline)
+### Stream I: Learning DB Migration — DONE
+- [x] I1: Create DB tables: patterns, antipatterns, feature_insights, feature_metrics (Drizzle schemas + migration SQL)
+- [x] I2: Migration script: seed-learnings.ts reads JSON files → inserts into DB (idempotent)
+- [x] I3: Update Phase 6 historian to write to DB (POST /api/learnings/patterns, antipatterns, insights, metrics)
+- [x] I4: CLI fallback: pending.json ingested on server startup via learning-ingestion.ts
+- [x] I5: GET /api/learnings/relevant endpoint (filter by category, minConfidence, type)
+- [x] I6: POST /api/learnings/curate endpoint (prune low-confidence, promote proven, flag duplicates)
+- [x] I7: Dashboard learnings tab with 3 sub-tabs (Pattern Catalog, Antipattern Warnings, Insights Timeline)
 
 ---
 

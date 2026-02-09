@@ -1,4 +1,9 @@
 export {
+	type AntipatternInsert,
+	type AntipatternSelect,
+	antipatternRepository,
+} from "./antipattern";
+export {
 	type ApiKeyInsert,
 	type ApiKeySelect,
 	apiKeyRepository,
@@ -8,6 +13,16 @@ export {
 	type EventSelect,
 	eventRepository,
 } from "./event";
+export {
+	type FeatureInsightInsert,
+	type FeatureInsightSelect,
+	featureInsightRepository,
+} from "./feature-insight";
+export {
+	type FeatureMetricInsert,
+	type FeatureMetricSelect,
+	featureMetricRepository,
+} from "./feature-metric";
 export {
 	type FeatureInsert,
 	type FeatureSelect,
@@ -28,6 +43,11 @@ export {
 	type NotificationSelect,
 	notificationRepository,
 } from "./notification";
+export {
+	type PatternInsert,
+	type PatternSelect,
+	patternRepository,
+} from "./pattern";
 export { projectRepository } from "./project";
 export { sessionRepository } from "./session";
 export {

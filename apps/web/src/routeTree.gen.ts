@@ -13,6 +13,7 @@ import { Route as TerminalRouteImport } from './routes/terminal'
 import { Route as SpecRouteImport } from './routes/spec'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LearningsRouteImport } from './routes/learnings'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AgentRouteImport } from './routes/agent'
@@ -41,6 +42,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearningsRoute = LearningsRouteImport.update({
+  id: '/learnings',
+  path: '/learnings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KanbanRoute = KanbanRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
+  '/learnings': typeof LearningsRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/spec': typeof SpecRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
+  '/learnings': typeof LearningsRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/spec': typeof SpecRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/agent': typeof AgentRoute
   '/dashboard': typeof DashboardRoute
   '/kanban': typeof KanbanRoute
+  '/learnings': typeof LearningsRoute
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/spec': typeof SpecRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/agent'
     | '/dashboard'
     | '/kanban'
+    | '/learnings'
     | '/login'
     | '/settings'
     | '/spec'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/agent'
     | '/dashboard'
     | '/kanban'
+    | '/learnings'
     | '/login'
     | '/settings'
     | '/spec'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/agent'
     | '/dashboard'
     | '/kanban'
+    | '/learnings'
     | '/login'
     | '/settings'
     | '/spec'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   AgentRoute: typeof AgentRoute
   DashboardRoute: typeof DashboardRoute
   KanbanRoute: typeof KanbanRoute
+  LearningsRoute: typeof LearningsRoute
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
   SpecRoute: typeof SpecRoute
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learnings': {
+      id: '/learnings'
+      path: '/learnings'
+      fullPath: '/learnings'
+      preLoaderRoute: typeof LearningsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kanban': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentRoute: AgentRoute,
   DashboardRoute: DashboardRoute,
   KanbanRoute: KanbanRoute,
+  LearningsRoute: LearningsRoute,
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
   SpecRoute: SpecRoute,

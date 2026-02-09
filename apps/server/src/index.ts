@@ -5,6 +5,7 @@ import { getEventService } from "@nomos-ai/api/routers/agent";
 import { appRouter } from "@nomos-ai/api/routers/index";
 import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
+import { ingestPendingLearnings } from "@nomos-ai/api/services/learning-ingestion";
 import { RedisEventService } from "@nomos-ai/api/services/redis-event-service";
 import { auth } from "@nomos-ai/auth";
 import { serverLogger } from "@nomos-ai/api/lib/logger";
@@ -46,6 +47,16 @@ try {
 	}
 } catch (error) {
 	serverLogger.warn({ err: error }, "Session cleanup failed (non-fatal)");
+}
+
+// Ingest pending learnings from CLI fallback
+try {
+	const result = await ingestPendingLearnings();
+	if (result.ingested > 0) {
+		serverLogger.info(result, "Ingested pending learnings");
+	}
+} catch (error) {
+	serverLogger.warn({ err: error }, "Pending learnings ingestion failed (non-fatal)");
 }
 
 const app = new Hono<{ Variables: { orpcContext: any } }>();

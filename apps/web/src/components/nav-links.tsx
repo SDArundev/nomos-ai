@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import {
 	Activity,
 	Bot,
+	Brain,
 	Columns3,
 	FileJson,
 	FolderKanban,
@@ -24,6 +25,7 @@ const navItems = [
 	{ to: "/kanban", label: "Kanban", icon: Columns3 },
 	{ to: "/agent", label: "Agent", icon: Bot },
 	{ to: "/activity", label: "Activity", icon: Activity },
+	{ to: "/learnings", label: "Learnings", icon: Brain },
 	{ to: "/terminal", label: "Terminal", icon: Terminal },
 	{ to: "/spec", label: "Spec", icon: FileJson },
 	{ to: "/features/import", label: "Import", icon: Import },
