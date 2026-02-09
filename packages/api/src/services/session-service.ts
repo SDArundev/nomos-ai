@@ -117,9 +117,47 @@ export class SessionService {
 		});
 	}
 
+	/** Resume a failed session — marks it as running again */
+	async resumeSession(sessionId: string): Promise<SessionRecord> {
+		const session = await sessionRepository.findById(sessionId);
+		if (!session) {
+			throw new Error(`Session not found: ${sessionId}`);
+		}
+		if (session.status !== "failed") {
+			throw new Error(
+				`Cannot resume session in status "${session.status}" — only failed sessions can be resumed`,
+			);
+		}
+		if (!session.featureId) {
+			throw new Error("Cannot resume session without a feature ID");
+		}
+
+		const updated = await sessionRepository.update(sessionId, {
+			status: SESSION_STATUS.RUNNING,
+			isRunning: true,
+			error: null,
+			completedAt: null,
+		});
+
+		this.events.emit("agent:stream", {
+			type: "session:resumed",
+			sessionId,
+			userId: session.userId,
+			featureId: session.featureId,
+		});
+
+		return updated;
+	}
+
 	/** Get the count of active (pending/running) sessions */
 	async getActiveSessionsCount(): Promise<number> {
 		const active = await sessionRepository.findActive();
 		return active.length;
+	}
+
+	/** Find failed sessions eligible for resume */
+	async findResumableSessions(): Promise<SessionRecord[]> {
+		const failed = await sessionRepository.findResumable();
+		return failed.filter((s) => s.featureId != null);
 	}
 }

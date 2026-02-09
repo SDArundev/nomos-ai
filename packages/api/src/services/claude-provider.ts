@@ -1,5 +1,14 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
-import type { ExecuteOptions, ProviderMessage } from "@nomos-ai/types";
+import type {
+	SDKAssistantMessage,
+	SDKMessage,
+	SDKResultMessage,
+} from "@anthropic-ai/claude-agent-sdk";
+import type {
+	ContentBlock,
+	ExecuteOptions,
+	ProviderMessage,
+} from "@nomos-ai/types";
 import { THINKING_TOKEN_BUDGET } from "@nomos-ai/types";
 
 const MODEL_ALIASES: Record<string, string> = {
@@ -87,6 +96,71 @@ function delayWithJitter(attempt: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, delay + jitter));
 }
 
+/**
+ * Extract cost data from an SDK result message using typed fields.
+ */
+function extractCostData(
+	result: SDKResultMessage,
+): ProviderMessage["costData"] {
+	if (result.total_cost_usd == null) return undefined;
+	return {
+		totalCostUsd: result.total_cost_usd,
+		inputTokens: result.usage.input_tokens,
+		outputTokens: result.usage.output_tokens,
+		cacheReadInputTokens: result.usage.cache_read_input_tokens,
+		cacheCreationInputTokens: result.usage.cache_creation_input_tokens,
+	};
+}
+
+/**
+ * Convert an SDK message to a ProviderMessage, returning undefined for
+ * message types we don't forward (system, stream_event, tool_progress, etc.).
+ */
+function toProviderMessage(message: SDKMessage): ProviderMessage | undefined {
+	switch (message.type) {
+		case "assistant": {
+			const assistantMsg = message as SDKAssistantMessage;
+			const content: ContentBlock[] = [];
+			for (const block of assistantMsg.message.content) {
+				if (block.type === "text") {
+					content.push({ type: "text", text: block.text });
+				} else if (block.type === "thinking") {
+					content.push({
+						type: "thinking",
+						thinking: "thinking" in block ? String(block.thinking) : "",
+					});
+				} else if (block.type === "tool_use") {
+					content.push({
+						type: "tool_use",
+						name: block.name,
+						input: block.input,
+						tool_use_id: block.id,
+					});
+				}
+			}
+			return {
+				type: "assistant",
+				session_id: assistantMsg.session_id,
+				message: { role: "assistant", content },
+			};
+		}
+		case "result": {
+			const resultMsg = message as SDKResultMessage;
+			return {
+				type: "result",
+				subtype: resultMsg.subtype === "success" ? "success" : "error",
+				session_id: resultMsg.session_id,
+				...(resultMsg.subtype === "success" && {
+					result: resultMsg.result,
+				}),
+				costData: extractCostData(resultMsg),
+			};
+		}
+		default:
+			return undefined;
+	}
+}
+
 export interface AgentProvider {
 	executeQuery(options: ExecuteOptions): AsyncGenerator<ProviderMessage>;
 }
@@ -136,24 +210,9 @@ export class ClaudeProvider implements AgentProvider {
 				const stream = query(sdkOptions);
 
 				for await (const message of stream) {
-					const type = (message as { type?: string }).type;
-					if (type === "assistant" || type === "result" || type === "error") {
-						const msg = message as ProviderMessage;
-						// Extract cost data from SDK result messages
-						if (type === "result") {
-							const sdkResult = message as {
-								total_cost_usd?: number;
-								usage?: { input_tokens?: number; output_tokens?: number };
-							};
-							if (sdkResult.total_cost_usd != null) {
-								msg.costData = {
-									totalCostUsd: sdkResult.total_cost_usd,
-									inputTokens: sdkResult.usage?.input_tokens ?? 0,
-									outputTokens: sdkResult.usage?.output_tokens ?? 0,
-								};
-							}
-						}
-						yield msg;
+					const providerMsg = toProviderMessage(message);
+					if (providerMsg) {
+						yield providerMsg;
 					}
 				}
 

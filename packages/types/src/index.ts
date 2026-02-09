@@ -5,8 +5,25 @@ export {
 	MODEL_MAP,
 } from "./agent";
 export {
+	type AgentCompletePayload,
+	agentCompletePayloadSchema,
+	type AgentErrorPayload,
+	agentErrorPayloadSchema,
+	type AgentStreamPayload,
+	agentStreamPayloadSchema,
+	type AutoModeErrorPayload,
+	autoModeErrorPayloadSchema,
+	type AutoModeStartedPayload,
+	autoModeStartedPayloadSchema,
+	type AutoModeStoppedPayload,
+	autoModeStoppedPayloadSchema,
 	type EventCallback,
+	type EventPayloadMap,
 	type EventType,
+	type FeatureErrorPayload,
+	featureErrorPayloadSchema,
+	type FeatureEventPayload,
+	featureEventPayloadSchema,
 	eventTypeSchema,
 } from "./event";
 export {

@@ -45,9 +45,37 @@ bash .claude/skills/nomos/scripts/nomos.sh state next
 
 ## 1.3 Validate Feature
 
+**Try REST API first (DB is source of truth), fall back to features.json for standalone CLI use.**
+
+### 1.3a API Mode (preferred)
+
+Check if NOMOS server is reachable and API key is configured:
+
+```bash
+NOMOS_API_URL="${NOMOS_API_URL:-http://localhost:3000}"
+NOMOS_API_KEY="${NOMOS_API_KEY:-}"
+
+if [[ -n "$NOMOS_API_KEY" ]]; then
+  FEATURE_JSON=$(curl -sf -H "Authorization: Bearer ${NOMOS_API_KEY}" \
+    "${NOMOS_API_URL}/api/features/${feature_id}" 2>/dev/null)
+fi
+```
+
+If `FEATURE_JSON` is non-empty and valid, use it. The API returns the feature object directly with fields: `id`, `title`, `description`, `phase`, `priority`, `dependencies`, `acceptanceCriteria`, `status`, `category`, `passes`, `estimatedSize`.
+
+Set `{feature_source} = "api"`.
+
+### 1.3b Fallback: features.json
+
+If the API is unreachable or `NOMOS_API_KEY` is not set, fall back to the local file:
+
 ```bash
 jq -e --arg id "{feature_id}" '.features[] | select(.id == $id)' .nomos/features.json
 ```
+
+Set `{feature_source} = "file"`.
+
+### 1.3c Extract & Validate
 
 Extract: `id`, `title`, `description`, `phase`, `priority`, `dependencies`, `acceptanceCriteria`, `status`, `category`.
 
@@ -61,7 +89,17 @@ Extract: `id`, `title`, `description`, `phase`, `priority`, `dependencies`, `acc
 
 ## 1.4 Check Dependencies
 
-All dependencies must have `passes: true`. If any unverified:
+**API mode:** Fetch all project features from API and check dependency status:
+```bash
+if [[ "{feature_source}" == "api" && -n "$NOMOS_API_KEY" ]]; then
+  ALL_FEATURES=$(curl -sf -H "Authorization: Bearer ${NOMOS_API_KEY}" \
+    "${NOMOS_API_URL}/api/features" 2>/dev/null)
+fi
+```
+
+**File mode:** Read from features.json as before.
+
+All dependencies must have `passes: true` (or `status: "verified"`). If any unverified:
 - In auto mode: fail with `unverified_dependency`
 - Otherwise: ask user
 
@@ -198,7 +236,9 @@ Using Write tool, create `.nomos/output/{feature_id}/cp-01.json`:
     "output_dir": "{OUTPUT_DIR}",
     "server_port": {SERVER_PORT},
     "web_port": {WEB_PORT},
-    "project_root": "{PROJECT_ROOT}"
+    "project_root": "{PROJECT_ROOT}",
+    "feature_source": "{feature_source}",
+    "nomos_api_url": "{NOMOS_API_URL}"
   },
   "flags": {
     "auto": {auto},

@@ -14,9 +14,9 @@
 | 1 | A: Cleanup & Hygiene | DONE | cleanup-agent | 607MB freed, 5 agents deleted, skills updated, features.json cleaned |
 | 1 | B: Postgres Migration | DONE | postgres-agent | 30+ files, 11 schema files converted, FKs added, seed script, 665 tests pass |
 | 1 | E: CI/Testing | DONE | ci-agent | CI fixed, postgres in CI, deps moved, test skeleton created |
-| 2 | C: Pipeline Unification | READY | — | DB as single source of truth — unblocked by B |
-| 2 | D: SDK Modernization | READY | — | D2/D3 done early by cleanup-agent — unblocked by B |
-| 3 | F: Self-Building Validation | BLOCKED (on C+D) | — | End-to-end loop test |
+| 2 | C: Pipeline Unification | DONE | pipeline-agent | C1-C5 complete. Auth normalized, API-first features, Intent Box wired, export endpoint, 16 tests |
+| 2 | D: SDK Modernization | DONE | sdk-agent | D1-D7 all complete. CLI subprocess replaced with SDK query(), typed events, session resume |
+| 3 | F: Self-Building Validation | READY | — | End-to-end loop test — unblocked by C+D |
 | 3 | G: Production Hardening | BLOCKED (on C+D) | — | Redis, logging, monitoring |
 
 **Batch 1 COMPLETE.** All 3 streams done. Changes uncommitted — need user `.env` update + `docker compose up -d postgres` + commit.
@@ -93,12 +93,12 @@
 **Estimated effort:** 1-2 days
 **Depends on:** Stream B (postgres must be working)
 **Tasks:**
-- [ ] C1: Modify CLI pipeline Phase 1 to read features from REST API when server is running (fallback to features.json for standalone)
-- [ ] C2: Wire Intent Box → AutoModeService end-to-end (feature created in web → pipeline starts → results in dashboard)
-- [ ] C3: Fix API key auth context shape (handlers shouldn't break with API key auth)
-- [ ] C4: Add integration tests for Intent Box → Pipeline → Dashboard flow
-- [ ] C5: Make features.json a read-only export/cache (generated from DB)
-- [ ] C6: Test the self-building loop: create feature from dashboard, auto-implement, verify
+- [x] C1: CLI pipeline Phase 1 reads features from REST API (fallback to features.json) — DONE (pipeline-agent). Updated phase-01, phase-05, phase-06 steps. Auto-mode passes NOMOS_API_URL to subprocess.
+- [x] C2: Wire Intent Box → AutoModeService end-to-end — DONE (pipeline-agent). Added `startFeature()` method, `autoMode.startFeature` endpoint, REST `/api/features/:id/start`, "Create & Start" button in DecompositionPreview.
+- [x] C3: Fix API key auth context shape — DONE (pipeline-agent). Explicit AuthenticatedUser/AuthenticatedSession/Context interfaces. Both auth methods produce same shape.
+- [x] C4: Integration tests — DONE (pipeline-agent). 16 tests: pipeline lifecycle, status transitions, cost tracking, config management, auth context, feature export.
+- [x] C5: features.json read-only export from DB — DONE (pipeline-agent). `features.exportJson` endpoint, `/api/features/export` REST route, state.sh syncs to API.
+- [ ] C6: Test the self-building loop: create feature from dashboard, auto-implement, verify — NEEDS MANUAL TESTING
 
 ### Stream D: SDK Modernization
 **Agent type:** general-purpose (needs write access)
@@ -106,13 +106,13 @@
 **Depends on:** Stream B (postgres must be working)
 **Partially done:** D2/D3 (deprecated agent refs) completed early by cleanup-agent in Stream A
 **Tasks:**
-- [ ] D1: Fix cost data extraction fragility in ClaudeProvider (use official SDK types)
+- [x] D1: Fix cost data extraction fragility in ClaudeProvider (use official SDK types) — DONE (sdk-agent)
 - [x] D2: Update nomos-verify skill to use v4 agents — DONE (Stream A)
 - [x] D3: Update nomos-refactor skill to use v4 agents — DONE (Stream A)
-- [ ] D4: Evaluate V2 Session API (`unstable_v2_createSession`) for crash recovery
-- [ ] D5: Replace CLI subprocess with SDK `query()` in AutoModeService (major refactor)
-- [ ] D6: Stream structured output to dashboard (not raw stdout)
-- [ ] D7: Add session resume capability on crash/restart
+- [x] D4: Evaluate V2 Session API — DONE (sdk-agent). Recommendation: Use V1 `query()` for D5, adopt V2 when stable. See `v2-session-api-evaluation.md`
+- [x] D5: Replace CLI subprocess with SDK `query()` in AutoModeService — DONE (sdk-agent). Removed child_process, uses AgentProvider.executeQuery(), structured event emission, cost tracking from SDK result
+- [x] D6: Stream structured output to dashboard — DONE (sdk-agent). Typed event payloads (EventPayloadMap), typed EventService.emit() overloads, agent:stream now sends ProviderMessage
+- [x] D7: Add session resume capability — DONE (sdk-agent). SessionService.resumeSession(), AutoModeService.resumeSession(), POST /api/sessions/:id/resume, GET /api/sessions/resumable, sessionRepository.findResumable()
 
 ---
 

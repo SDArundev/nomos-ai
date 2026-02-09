@@ -49,6 +49,8 @@ export const providerMessageSchema = z.object({
 			totalCostUsd: z.number(),
 			inputTokens: z.number(),
 			outputTokens: z.number(),
+			cacheReadInputTokens: z.number().optional(),
+			cacheCreationInputTokens: z.number().optional(),
 		})
 		.optional(),
 });

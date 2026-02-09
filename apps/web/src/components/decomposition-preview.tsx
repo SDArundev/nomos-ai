@@ -1,6 +1,6 @@
 import type { EstimatedSize } from "@nomos-ai/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, RefreshCw, Trash2, X } from "lucide-react";
+import { Play, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -62,13 +62,31 @@ export function DecompositionPreview({
 		...spec.acceptanceCriteria,
 	]);
 
+	const [startAfterCreate, setStartAfterCreate] = useState(false);
+
+	const startPipeline = useMutation(
+		orpc.autoMode.startFeature.mutationOptions({
+			onSuccess: () => {
+				toast.success("Pipeline started");
+			},
+			onError: (error) => {
+				toast.error(error.message || "Failed to start pipeline");
+			},
+		}),
+	);
+
 	const createFeature = useMutation(
 		orpc.features.create.mutationOptions({
-			onSuccess: () => {
+			onSuccess: (data) => {
 				queryClient.invalidateQueries({
 					queryKey: orpc.features.list.queryOptions().queryKey,
 				});
-				toast.success("Feature created");
+				if (startAfterCreate && data?.id) {
+					toast.success("Feature created, starting pipeline...");
+					startPipeline.mutate({ featureId: data.id });
+				} else {
+					toast.success("Feature created");
+				}
 				onCreated();
 			},
 			onError: (error) => {
@@ -77,13 +95,14 @@ export function DecompositionPreview({
 		}),
 	);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent, autoStart = false) => {
 		e.preventDefault();
 		const filteredCriteria = criteria.filter((c) => c.trim().length > 0);
 		if (filteredCriteria.length === 0) {
 			toast.error("At least one acceptance criterion is required");
 			return;
 		}
+		setStartAfterCreate(autoStart);
 		createFeature.mutate({
 			projectId,
 			title: title.trim(),
@@ -92,7 +111,7 @@ export function DecompositionPreview({
 			phase,
 			estimatedSize: estimatedSize as EstimatedSize,
 			acceptanceCriteria: filteredCriteria,
-			status: "backlog",
+			status: autoStart ? "pending" : "backlog",
 		});
 	};
 
@@ -226,6 +245,16 @@ export function DecompositionPreview({
 					<div className="flex gap-2 pt-2">
 						<Button type="submit" disabled={createFeature.isPending}>
 							{createFeature.isPending ? "Creating..." : "Create Feature"}
+						</Button>
+						<Button
+							type="button"
+							disabled={createFeature.isPending || startPipeline.isPending}
+							onClick={(e) => handleSubmit(e, true)}
+						>
+							<Play className="mr-1 size-3" />
+							{createFeature.isPending || startPipeline.isPending
+								? "Starting..."
+								: "Create & Start"}
 						</Button>
 						<Button
 							type="button"

@@ -17,9 +17,15 @@ Extract: `env`, `flags`, `feature_summary`, and all checkpoint data.
 
 ## 6.2 Check Condition
 
-Read feature status:
+Read feature status (**API mode preferred**, with file fallback):
 ```bash
-jq -r --arg id "{feature_id}" '.features[] | select(.id == $id) | .status' .nomos/features.json
+if [[ -n "$NOMOS_API_KEY" ]]; then
+  FEATURE_STATUS=$(curl -sf -H "Authorization: Bearer ${NOMOS_API_KEY}" \
+    "${NOMOS_API_URL:-http://localhost:3000}/api/features/{feature_id}" 2>/dev/null | jq -r '.status')
+fi
+if [[ -z "$FEATURE_STATUS" ]]; then
+  FEATURE_STATUS=$(jq -r --arg id "{feature_id}" '.features[] | select(.id == $id) | .status' .nomos/features.json)
+fi
 ```
 
 **IF status is `failed` or feature was `escalated`:**

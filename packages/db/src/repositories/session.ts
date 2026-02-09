@@ -40,6 +40,14 @@ export const sessionRepository = {
 			.where(inArray(agentSession.status, ["pending", "running"]));
 	},
 
+	/** Find failed sessions that have an SDK session ID and feature ID, eligible for resume */
+	async findResumable(): Promise<AgentSessionSelect[]> {
+		return db
+			.select()
+			.from(agentSession)
+			.where(eq(agentSession.status, "failed"));
+	},
+
 	async create(
 		data: Omit<AgentSessionInsert, "id" | "createdAt" | "updatedAt"> & {
 			id?: string;

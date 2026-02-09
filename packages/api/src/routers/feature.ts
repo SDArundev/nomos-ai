@@ -303,4 +303,37 @@ export const featureRouter = {
 				userId: context.session.user.id,
 			});
 		}),
+
+	exportJson: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.string().min(1, "Project ID is required").optional(),
+			}).optional(),
+		)
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+			const features = input?.projectId
+				? await featureRepository.findByUserAndProject(userId, input.projectId)
+				: await featureRepository.findByUser(userId);
+
+			return {
+				_generated: true,
+				_generatedAt: new Date().toISOString(),
+				_note: "Auto-generated from database. Do not edit manually. Use the NOMOS API to modify features.",
+				features: features.map((f) => ({
+					id: f.id,
+					title: f.title,
+					category: f.category,
+					description: f.description,
+					phase: f.phase,
+					priority: f.priority,
+					requirements: f.requirements ?? [],
+					dependencies: f.dependencies ?? [],
+					acceptanceCriteria: f.acceptanceCriteria ?? [],
+					estimatedSize: f.estimatedSize,
+					status: f.status,
+					passes: f.passes,
+				})),
+			};
+		}),
 };

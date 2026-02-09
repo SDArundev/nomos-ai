@@ -167,6 +167,22 @@ export function createRestAdapter(rpcHandler: any) {
 		});
 	});
 
+	// GET /api/features/export - Export features as JSON (replaces features.json)
+	app.get("/features/export", async (c: Context) => {
+		const projectId = c.req.query("projectId");
+		return callRPC(
+			c,
+			"features.exportJson",
+			projectId ? { projectId } : undefined,
+		);
+	});
+
+	// POST /api/features/:id/start - Start pipeline for a feature
+	app.post("/features/:id/start", async (c: Context) => {
+		const featureId = c.req.param("id");
+		return callRPC(c, "autoMode.startFeature", { featureId });
+	});
+
 	// GET /api/features/dependencies/:projectId - Get dependency order
 	app.get("/features/dependencies/:projectId", async (c: Context) => {
 		const projectId = c.req.param("projectId");
@@ -253,6 +269,17 @@ export function createRestAdapter(rpcHandler: any) {
 			sessionId,
 			content: body.content,
 		});
+	});
+
+	// POST /api/sessions/:id/resume - Resume a failed session
+	app.post("/sessions/:id/resume", async (c: Context) => {
+		const id = c.req.param("id");
+		return callRPC(c, "sessions.resume", { id });
+	});
+
+	// GET /api/sessions/resumable - List resumable sessions
+	app.get("/sessions/resumable", async (c: Context) => {
+		return callRPC(c, "sessions.listResumable");
 	});
 
 	// ── Learnings ─────────────────────────────────────────────
