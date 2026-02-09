@@ -1,6 +1,6 @@
 import type { FeatureStatus } from "@nomos-ai/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CheckSquare, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { FeatureDetailPanel } from "@/components/kanban/feature-detail-panel";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { KanbanFilterBar } from "@/components/kanban/kanban-filter-bar";
 import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
 	Dialog,
 	DialogContent,
@@ -19,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/store";
 import { orpc } from "@/utils/orpc";
 
@@ -27,24 +28,29 @@ const searchSchema = z.object({
 	search: z.string().optional(),
 	category: z.string().optional(),
 	phase: z.string().optional(),
+	page: z.number().int().min(1).optional(),
+	pageSize: z.number().int().min(1).max(200).optional(),
 });
 
 export const Route = createFileRoute("/kanban")({
 	component: KanbanPage,
 	validateSearch: searchSchema,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({ to: "/login", throw: true });
-		}
-	},
+	beforeLoad: requireAuth,
 });
 
 function KanbanPage() {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate({ from: Route.fullPath });
 	const searchParams = Route.useSearch();
-	const features = useQuery(orpc.features.list.queryOptions());
+	const page = searchParams.page ?? 1;
+	const pageSize = searchParams.pageSize ?? 50;
+	const offset = (page - 1) * pageSize;
+
+	const features = useQuery(
+		orpc.features.listPaginated.queryOptions({
+			input: { limit: pageSize, offset },
+		}),
+	);
 
 	const selectedFeatureId = useAppStore((state) => state.selectedFeatureId);
 	const setSelectedFeature = useAppStore((state) => state.setSelectedFeature);
@@ -65,7 +71,7 @@ function KanbanPage() {
 		orpc.features.updateStatus.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
-					queryKey: orpc.features.list.queryOptions().queryKey,
+					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
 				});
 				toast.success("Feature status updated");
 			},
@@ -79,7 +85,7 @@ function KanbanPage() {
 		orpc.features.create.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
-					queryKey: orpc.features.list.queryOptions().queryKey,
+					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
 				});
 				toast.success("Feature created");
 				setShowNewFeature(false);
@@ -99,7 +105,7 @@ function KanbanPage() {
 		orpc.features.bulkUpdateStatus.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
-					queryKey: orpc.features.list.queryOptions().queryKey,
+					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
 				});
 				toast.success(`Updated ${selectedIds.size} features`);
 				setSelectedIds(new Set());
@@ -115,7 +121,7 @@ function KanbanPage() {
 		orpc.features.bulkDelete.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries({
-					queryKey: orpc.features.list.queryOptions().queryKey,
+					queryKey: orpc.features.listPaginated.queryOptions({ input: {} }).queryKey,
 				});
 				toast.success(`Deleted ${selectedIds.size} features`);
 				setSelectedIds(new Set());
@@ -170,8 +176,10 @@ function KanbanPage() {
 		setDetailPanelOpen(true);
 	};
 
+	const totalFeatures = features.data?.total ?? 0;
+
 	// Filter features client-side
-	const filteredFeatures = (features.data ?? []).filter((feature) => {
+	const filteredFeatures = (features.data?.rows ?? []).filter((feature) => {
 		if (searchParams.search) {
 			const searchLower = searchParams.search.toLowerCase();
 			if (!feature.title.toLowerCase().includes(searchLower)) {
@@ -281,7 +289,7 @@ function KanbanPage() {
 
 	return (
 		<div className="flex h-full flex-col">
-			<div className="border-b px-6 py-4">
+			<div className="border-b px-6 py-4 shrink-0">
 				<div className="mb-4 flex items-center justify-between">
 					<div>
 						<h1 className="font-bold text-2xl">Kanban Board</h1>
@@ -356,6 +364,27 @@ function KanbanPage() {
 					selectable={selectable}
 					selectedIds={selectedIds}
 					onToggleSelect={handleToggleSelect}
+				/>
+			</div>
+			<div className="shrink-0 border-t px-6">
+				<PaginationControls
+					page={page}
+					pageSize={pageSize}
+					total={totalFeatures}
+					onPageChange={(p) =>
+						navigate({
+							search: { ...searchParams, page: p === 1 ? undefined : p },
+						})
+					}
+					onPageSizeChange={(ps) =>
+						navigate({
+							search: {
+								...searchParams,
+								page: undefined,
+								pageSize: ps === 50 ? undefined : ps,
+							},
+						})
+					}
 				/>
 			</div>
 			<FeatureDetailPanel

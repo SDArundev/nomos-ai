@@ -88,8 +88,9 @@ describe("PipelineService", () => {
 
 		// Re-set default implementations after reset (reset clears them)
 		mockFeatureRepository.update.mockImplementation(() => Promise.resolve({}));
+		// Default findById returns a feature in "in_progress" status so state machine transitions work
 		mockFeatureRepository.findById.mockImplementation(() =>
-			Promise.resolve(null),
+			Promise.resolve({ id: "F001", status: "in_progress" }),
 		);
 
 		events = { emit: mock(() => {}) };
@@ -284,11 +285,14 @@ describe("PipelineService", () => {
 			expect(updateArgs[1].passes).toBe(true);
 		});
 
-		test("phase 4 sets status to waiting_approval", () => {
+		test("phase 4 sets status to waiting_approval", async () => {
 			const cp = JSON.parse(
 				makeCheckpoint(4, "completed", { verdict: "PASS" }),
 			);
 			service.mapCheckpointToFeature("F001", cp);
+
+			// State machine does findById + update async — wait for microtask
+			await new Promise((r) => setTimeout(r, 10));
 
 			const updateArgs = mockFeatureRepository.update.mock.calls[0] as any[];
 			expect(updateArgs[1].status).toBe("waiting_approval");
@@ -307,10 +311,17 @@ describe("PipelineService", () => {
 			expect(updateArgs[1].branchName).toBe("feature/F001");
 		});
 
-		test("phase 6 with merge flag sets status to verified", () => {
+		test("phase 6 with merge flag sets status to verified", async () => {
+			// Feature must be in waiting_approval for verified transition
+			mockFeatureRepository.findById.mockImplementation(() =>
+				Promise.resolve({ id: "F001", status: "waiting_approval" }),
+			);
 			const cpRaw = JSON.parse(makeCheckpoint(6));
 			cpRaw.flags.merge = true;
 			service.mapCheckpointToFeature("F001", cpRaw);
+
+			// State machine does findById + update async — wait for microtask
+			await new Promise((r) => setTimeout(r, 10));
 
 			const updateArgs = mockFeatureRepository.update.mock.calls[0] as any[];
 			expect(updateArgs[1].status).toBe("verified");
@@ -327,11 +338,14 @@ describe("PipelineService", () => {
 			expect(updateArgs[1].completedAt).toBeInstanceOf(Date);
 		});
 
-		test("failed checkpoint sets status to failed with error", () => {
+		test("failed checkpoint sets status to failed with error", async () => {
 			const cp = JSON.parse(
 				makeCheckpoint(3, "failed", { error: "Build broke" }),
 			);
 			service.mapCheckpointToFeature("F001", cp);
+
+			// State machine does findById + update async — wait for microtask
+			await new Promise((r) => setTimeout(r, 10));
 
 			const updateArgs = mockFeatureRepository.update.mock.calls[0] as any[];
 			expect(updateArgs[1].status).toBe("failed");

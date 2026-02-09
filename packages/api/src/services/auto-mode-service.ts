@@ -6,6 +6,7 @@ import {
 	areDependenciesSatisfied,
 	resolveDependencies,
 } from "../lib/dependency-resolver";
+import { transitionFeatureStatus } from "../lib/feature-state-machine";
 import type { AgentProvider } from "./claude-provider";
 import type { IEventService } from "./event-service";
 import type { PipelineService } from "./pipeline-service";
@@ -153,9 +154,8 @@ export class AutoModeService {
 		this.runningFeatures.set(featureId, abort);
 
 		try {
-			// Mark as in_progress
-			await featureRepository.update(featureId, {
-				status: "in_progress",
+			// Mark as in_progress via state machine
+			await transitionFeatureStatus(featureId, "in_progress", {
 				locked: true,
 				lockedBy: userId,
 				lockedAt: new Date(),
@@ -260,8 +260,7 @@ export class AutoModeService {
 
 			// Success
 			this.consecutiveFailures = 0;
-			await featureRepository.update(featureId, {
-				status: "waiting_approval",
+			await transitionFeatureStatus(featureId, "waiting_approval", {
 				locked: false,
 				lockedBy: null,
 				lockedAt: null,
@@ -288,8 +287,7 @@ export class AutoModeService {
 			await featureRepository.incrementRetryCount(featureId);
 			const retryInfo = await featureRepository.getRetryInfo(featureId);
 
-			await featureRepository.update(featureId, {
-				status: "failed",
+			await transitionFeatureStatus(featureId, "failed", {
 				error: err instanceof Error ? err.message : String(err),
 				locked: false,
 				lockedBy: null,
@@ -320,7 +318,7 @@ export class AutoModeService {
 				const timer = setTimeout(async () => {
 					this.retryTimers.delete(timer);
 					try {
-						await featureRepository.update(featureId, { status: "pending" });
+						await transitionFeatureStatus(featureId, "pending");
 					} catch {
 						// Feature may have been manually handled
 					}
@@ -410,9 +408,8 @@ export class AutoModeService {
 			throw new Error(`Feature ${featureId} is already running`);
 		}
 
-		// Reset feature to in_progress
-		await featureRepository.update(featureId, {
-			status: "in_progress",
+		// Reset feature to in_progress via state machine
+		await transitionFeatureStatus(featureId, "in_progress", {
 			locked: true,
 			lockedBy: userId,
 			lockedAt: new Date(),

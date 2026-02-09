@@ -6,6 +6,7 @@ import {
 	gitPush,
 	gitRebase,
 } from "../lib/git-utils";
+import { transitionFeatureStatus } from "../lib/feature-state-machine";
 import type { IEventService } from "./event-service";
 
 export interface MergeResult {
@@ -81,9 +82,8 @@ export class GitMergeService {
 		// 5. Push main
 		await gitPush("origin", "main", projectRoot);
 
-		// 6. Update feature status
-		await featureRepository.update(featureId, {
-			status: "verified",
+		// 6. Update feature status via state machine
+		await transitionFeatureStatus(featureId, "verified", {
 			verifiedAt: new Date(),
 		});
 

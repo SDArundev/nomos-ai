@@ -13,6 +13,7 @@ import {
 	type QualityGateResult,
 	type TestGateResult,
 } from "./quality-gate-service";
+import { transitionFeatureStatus } from "../lib/feature-state-machine";
 
 // ---------------------------------------------------------------------------
 // Checkpoint Zod schema
@@ -271,6 +272,9 @@ export class PipelineService {
 			lastCompletedStep: step?.id ?? null,
 		};
 
+		// Determine target status for state machine transition (if any)
+		let targetStatus: string | null = null;
+
 		// Phase 2: plan overview -> summary
 		if (checkpoint.phase === 2 && typeof data.plan_overview === "string") {
 			update.summary = data.plan_overview;
@@ -288,7 +292,7 @@ export class PipelineService {
 
 		// Phase 4: verdict + status transition
 		if (checkpoint.phase === 4) {
-			update.status = "waiting_approval";
+			targetStatus = "waiting_approval";
 			if (data.verdict === "PASS") {
 				update.passes = true;
 			}
@@ -307,7 +311,7 @@ export class PipelineService {
 		// Phase 6: conditional verify (if merge flag was set)
 		if (checkpoint.phase === 6) {
 			if (checkpoint.flags.merge) {
-				update.status = "verified";
+				targetStatus = "verified";
 				update.verifiedAt = new Date();
 			}
 			update.completedAt = new Date();
@@ -315,7 +319,7 @@ export class PipelineService {
 
 		// Failed checkpoint -> feature failed
 		if (checkpoint.status === "failed") {
-			update.status = "failed";
+			targetStatus = "failed";
 			const errorMsg =
 				typeof data.error === "string"
 					? data.error
@@ -331,9 +335,21 @@ export class PipelineService {
 		}
 
 		// Fire-and-forget DB update (errors logged, not thrown)
-		featureRepository.update(featureId, update).catch(() => {
-			// Swallow — polling should not crash on transient DB errors
-		});
+		// Use state machine for status transitions, direct update for data-only changes
+		if (targetStatus) {
+			const { status: _, ...dataOnly } = update;
+			transitionFeatureStatus(
+				featureId,
+				targetStatus as import("@nomos-ai/types").FeatureStatus,
+				Object.keys(dataOnly).length > 0 ? dataOnly : undefined,
+			).catch(() => {
+				// Swallow — polling should not crash on transient DB errors
+			});
+		} else {
+			featureRepository.update(featureId, update).catch(() => {
+				// Swallow — polling should not crash on transient DB errors
+			});
+		}
 	}
 
 	// -----------------------------------------------------------------------

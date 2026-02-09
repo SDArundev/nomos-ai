@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import {
 	CheckCircle2,
 	DollarSign,
@@ -12,6 +13,7 @@ import { ActivityFeed } from "@/components/activity/activity-feed";
 import { AutoModeDashboard } from "@/components/auto-mode/auto-mode-dashboard";
 import { IntentBox } from "@/components/intent-box";
 import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
 	Card,
 	CardContent,
@@ -21,27 +23,35 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 import { orpc } from "@/utils/orpc";
+
+const dashboardSearchSchema = z.object({
+	sessionPage: z.number().int().min(1).optional(),
+	sessionPageSize: z.number().int().min(1).max(200).optional(),
+});
 
 export const Route = createFileRoute("/dashboard")({
 	component: DashboardComponent,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({
-				to: "/login",
-				throw: true,
-			});
-		}
-		return { session };
-	},
+	validateSearch: dashboardSearchSchema,
+	beforeLoad: requireAuth,
 });
 
 function DashboardComponent() {
-	const { session } = Route.useRouteContext();
+	const { data: session } = authClient.useSession();
+	const navigate = useNavigate({ from: Route.fullPath });
+	const searchParams = Route.useSearch();
+	const sessionPage = searchParams.sessionPage ?? 1;
+	const sessionPageSize = searchParams.sessionPageSize ?? 20;
+	const sessionOffset = (sessionPage - 1) * sessionPageSize;
+
 	const projects = useQuery(orpc.projects.list.queryOptions());
 	const features = useQuery(orpc.features.list.queryOptions());
-	const sessions = useQuery(orpc.sessions.list.queryOptions());
+	const sessions = useQuery(
+		orpc.sessions.listPaginated.queryOptions({
+			input: { limit: sessionPageSize, offset: sessionOffset },
+		}),
+	);
 
 	const featuresByStatus = (features.data ?? []).reduce(
 		(acc, f) => {
@@ -59,7 +69,7 @@ function DashboardComponent() {
 		<div className="container mx-auto max-w-5xl px-4 py-6">
 			<div className="mb-8">
 				<h1 className="font-bold text-2xl">
-					Welcome back, {session.data?.user.name ?? "there"}
+					Welcome back, {session?.user.name ?? "there"}
 				</h1>
 				<p className="text-muted-foreground">
 					Autonomous development studio overview.
@@ -78,7 +88,29 @@ function DashboardComponent() {
 
 			{/* Cost Summary */}
 			<div className="mb-8">
-				<CostCard sessions={sessions.data ?? []} loading={sessions.isLoading} />
+				<CostCard sessions={sessions.data?.rows ?? []} loading={sessions.isLoading} />
+				<PaginationControls
+					page={sessionPage}
+					pageSize={sessionPageSize}
+					total={sessions.data?.total ?? 0}
+					onPageChange={(p) =>
+						navigate({
+							search: {
+								...searchParams,
+								sessionPage: p === 1 ? undefined : p,
+							},
+						})
+					}
+					onPageSizeChange={(ps) =>
+						navigate({
+							search: {
+								...searchParams,
+								sessionPage: undefined,
+								sessionPageSize: ps === 20 ? undefined : ps,
+							},
+						})
+					}
+				/>
 			</div>
 
 			{/* Empty state: no projects */}

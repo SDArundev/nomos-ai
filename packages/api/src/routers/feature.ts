@@ -13,6 +13,10 @@ import {
 	getBlockingDependencies,
 	resolveDependencies,
 } from "../lib/dependency-resolver";
+import {
+	isValidTransition,
+	transitionFeatureStatus,
+} from "../lib/feature-state-machine";
 import { ExpansionService } from "../services/expansion-service";
 import { handleRepositoryError } from "../utils/error-handler";
 
@@ -194,14 +198,14 @@ export const featureRouter = {
 				throw new ORPCError("FORBIDDEN", { message: "Access denied" });
 			}
 
-			const allowed = FEATURE_VALID_TRANSITIONS[feat.status as FeatureStatus];
-			if (!allowed || !allowed.includes(input.status)) {
+			if (!isValidTransition(feat.status as FeatureStatus, input.status)) {
 				throw new ORPCError("BAD_REQUEST", {
 					message: `Invalid status transition: ${feat.status} → ${input.status}`,
 				});
 			}
 
-			return featureRepository.update(input.id, { status: input.status });
+			await transitionFeatureStatus(input.id, input.status);
+			return featureRepository.findById(input.id);
 		}),
 
 	getDependencyOrder: protectedProcedure

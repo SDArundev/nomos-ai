@@ -1,13 +1,13 @@
 import type { EstimatedSize, FeatureStatus } from "@nomos-ai/types";
 import { FEATURE_PHASES } from "@nomos-ai/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
+import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/store";
 import { orpc } from "@/utils/orpc";
 
@@ -24,12 +24,7 @@ interface ImportFeature {
 
 export const Route = createFileRoute("/features/import")({
 	component: ImportComponent,
-	beforeLoad: async () => {
-		const session = await authClient.getSession();
-		if (!session.data) {
-			redirect({ to: "/login", throw: true });
-		}
-	},
+	beforeLoad: requireAuth,
 });
 
 function ImportComponent() {

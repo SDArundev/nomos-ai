@@ -10,11 +10,13 @@ import { Label } from "./ui/label";
 
 export default function SignUpForm({
 	onSwitchToSignIn,
+	returnTo,
 }: {
 	onSwitchToSignIn: () => void;
+	returnTo?: string;
 }) {
 	const navigate = useNavigate({
-		from: "/",
+		from: "/login",
 	});
 	const { isPending } = authClient.useSession();
 
@@ -34,7 +36,7 @@ export default function SignUpForm({
 				{
 					onSuccess: () => {
 						navigate({
-							to: "/dashboard",
+							to: returnTo || "/dashboard",
 						});
 						toast.success("Sign up successful");
 					},

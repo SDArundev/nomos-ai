@@ -58,9 +58,14 @@ describe("Feature Status Transitions", () => {
 		expect(allowed).not.toContain(next);
 	});
 
-	it("should reject transitions from terminal states", () => {
+	it("should reject transitions from verified (terminal)", () => {
 		expect(VALID_TRANSITIONS[FEATURE_STATUS.VERIFIED]).toEqual([]);
-		expect(VALID_TRANSITIONS[FEATURE_STATUS.FAILED]).toEqual([]);
+	});
+
+	it("should allow retry transition from failed → pending", () => {
+		expect(VALID_TRANSITIONS[FEATURE_STATUS.FAILED]).toEqual([
+			FEATURE_STATUS.PENDING,
+		]);
 	});
 
 	it("should reject backward transitions", () => {
