@@ -14,7 +14,8 @@
 		"db:generate": "drizzle-kit generate",
 		"db:studio": "drizzle-kit studio",
 		"db:migrate": "drizzle-kit migrate",
-		"seed-learnings": "bun run src/scripts/seed-learnings.ts"
+		"seed-learnings": "bun run src/scripts/seed-learnings.ts",
+		"reconcile-status": "bun run src/scripts/reconcile-feature-status.ts"
 	},
 	"devDependencies": {
 		"typescript": "catalog:",

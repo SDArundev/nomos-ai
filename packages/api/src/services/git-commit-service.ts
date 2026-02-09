@@ -86,4 +86,24 @@ export class GitCommitService {
 	async getStatus(worktreePath: string): Promise<GitStatus> {
 		return gitStatus(worktreePath);
 	}
+
+	/**
+	 * Verify that the working tree is clean (no uncommitted changes).
+	 * Returns clean status and list of uncommitted files if dirty.
+	 */
+	async verifyCleanState(worktreePath: string): Promise<{
+		clean: boolean;
+		uncommittedFiles: string[];
+	}> {
+		const status = await gitStatus(worktreePath);
+		const uncommittedFiles = [
+			...status.staged,
+			...status.unstaged,
+			...status.untracked,
+		];
+		return {
+			clean: uncommittedFiles.length === 0,
+			uncommittedFiles,
+		};
+	}
 }

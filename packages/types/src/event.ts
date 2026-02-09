@@ -12,6 +12,8 @@ export const eventTypeSchema = z.enum([
 	"feature:progress",
 	"feature:completed",
 	"feature:error",
+	"feature:gate-failed",
+	"feature:committed",
 	"feature:verified",
 	// Pipeline events
 	"pipeline:step-started",
@@ -103,6 +105,8 @@ export interface EventPayloadMap {
 	"feature:progress": FeatureEventPayload;
 	"feature:completed": FeatureEventPayload;
 	"feature:error": FeatureErrorPayload;
+	"feature:gate-failed": unknown;
+	"feature:committed": unknown;
 	"feature:verified": FeatureEventPayload;
 	"pipeline:step-started": unknown;
 	"pipeline:step-completed": unknown;

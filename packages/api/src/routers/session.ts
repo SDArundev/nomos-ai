@@ -83,15 +83,12 @@ export const sessionRouter = {
 		.handler(async ({ input, context }) => {
 			const userId = context.session.user.id;
 			if (input?.status) {
-				const sessions = await sessionRepository.findByStatus(input.status);
-				return sessions.filter((s) => s.userId === userId);
+				return sessionRepository.findByStatus(input.status, userId);
 			}
 			if (input?.featureId) {
-				const sessions = await sessionRepository.findByFeature(input.featureId);
-				return sessions.filter((s) => s.userId === userId);
+				return sessionRepository.findByFeature(input.featureId, userId);
 			}
-			const sessions = await sessionRepository.findAll();
-			return sessions.filter((s) => s.userId === userId);
+			return sessionRepository.findPaginated({ userId }).then((r) => r.rows);
 		}),
 
 	listPaginated: protectedProcedure
@@ -159,9 +156,7 @@ export const sessionRouter = {
 		}),
 
 	listActive: protectedProcedure.handler(async ({ context }) => {
-		const userId = context.session.user.id;
-		const sessions = await sessionRepository.findActive();
-		return sessions.filter((s) => s.userId === userId);
+		return sessionRepository.findActive(context.session.user.id);
 	}),
 
 	updateStatus: protectedProcedure
@@ -244,16 +239,12 @@ export const sessionRouter = {
 				? await projectRepository.findById(session.projectId)
 				: null;
 			const projectRoot =
-				project?.path ??
-				session.workingDirectory ??
-				process.cwd();
+				project?.path ?? session.workingDirectory ?? process.cwd();
 
 			const service = getAutoModeService();
-			service
-				.resumeSession(input.id, projectRoot, userId)
-				.catch(() => {
-					// Errors handled via events
-				});
+			service.resumeSession(input.id, projectRoot, userId).catch(() => {
+				// Errors handled via events
+			});
 
 			return {
 				success: true,

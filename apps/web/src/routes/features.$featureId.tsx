@@ -232,9 +232,9 @@ function FeatureDetail() {
 			</div>
 
 			<div className="grid gap-4">
-				{feat.status === "in_progress" && (
-					<PipelineMonitor featureId={featureId} status={feat.status} />
-				)}
+				{["in_progress", "waiting_approval", "verified", "failed"].includes(
+					feat.status,
+				) && <PipelineMonitor featureId={featureId} status={feat.status} />}
 				<Card>
 					<CardHeader>
 						<CardTitle>Description</CardTitle>

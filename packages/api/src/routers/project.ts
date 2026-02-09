@@ -1,9 +1,13 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { projectRepository } from "@nomos-ai/db";
 import { ProjectIdSchema, ProjectStatusSchema } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { handleRepositoryError } from "../utils/error-handler";
+
+const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
 
 const createProjectInput = z.object({
 	name: z.string().min(1, "Project name is required").max(100),
@@ -13,6 +17,7 @@ const createProjectInput = z.object({
 		.refine((p) => p.startsWith("/") || /^[A-Za-z]:/.test(p), {
 			message: "Path must be an absolute path",
 		}),
+	description: z.string().max(500).optional(),
 	status: ProjectStatusSchema.optional(),
 	settings: z
 		.object({
@@ -76,22 +81,48 @@ export const projectRouter = {
 	create: protectedProcedure
 		.input(createProjectInput)
 		.handler(async ({ input, context }) => {
+			// Validate path is under an allowed root
+			const resolvedPath = resolve(input.path);
+			if (
+				!ALLOWED_ROOTS.some((root) => resolvedPath.startsWith(`${root}/`))
+			) {
+				throw new ORPCError("BAD_REQUEST", {
+					message:
+						"Project path must be under an allowed directory (/home, /Users, /tmp, /var/projects)",
+				});
+			}
+
+			// Validate path exists on disk
+			if (!existsSync(resolvedPath)) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: `Directory does not exist: ${resolvedPath}`,
+				});
+			}
+
 			const existing = await projectRepository.findByPath(
 				context.session.user.id,
-				input.path,
+				resolvedPath,
 			);
 			if (existing) {
 				throw new ORPCError("CONFLICT", {
-					message: `You already have a project with path "${input.path}"`,
+					message: `You already have a project with path "${resolvedPath}"`,
 				});
 			}
 			try {
+				const settings: Record<string, unknown> = {
+					...(input.settings ?? {}),
+				};
+				if (input.description) {
+					settings.description = input.description;
+				}
+
 				return await projectRepository.create({
 					userId: context.session.user.id,
 					name: input.name,
-					path: input.path,
+					path: resolvedPath,
 					status: input.status,
-					settings: input.settings as Record<string, unknown> | undefined,
+					settings:
+						Object.keys(settings).length > 0 ? settings : undefined,
 				});
 			} catch (error) {
 				handleRepositoryError(error, "create project");

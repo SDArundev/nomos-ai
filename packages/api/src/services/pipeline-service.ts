@@ -7,13 +7,14 @@ import type {
 	PipelineStepStatus,
 } from "@nomos-ai/types";
 import { z } from "zod";
+import { transitionFeatureStatus } from "../lib/feature-state-machine";
+import { pipelineLogger } from "../lib/logger";
 import type { IEventService } from "./event-service";
 import {
-	QualityGateService,
 	type QualityGateResult,
+	QualityGateService,
 	type TestGateResult,
 } from "./quality-gate-service";
-import { transitionFeatureStatus } from "../lib/feature-state-machine";
 
 // ---------------------------------------------------------------------------
 // Checkpoint Zod schema
@@ -342,12 +343,18 @@ export class PipelineService {
 				featureId,
 				targetStatus as import("@nomos-ai/types").FeatureStatus,
 				Object.keys(dataOnly).length > 0 ? dataOnly : undefined,
-			).catch(() => {
-				// Swallow — polling should not crash on transient DB errors
+			).catch((err) => {
+				pipelineLogger.warn(
+					{ err, featureId, targetStatus },
+					"fire-and-forget status transition failed",
+				);
 			});
 		} else {
-			featureRepository.update(featureId, update).catch(() => {
-				// Swallow — polling should not crash on transient DB errors
+			featureRepository.update(featureId, update).catch((err) => {
+				pipelineLogger.warn(
+					{ err, featureId },
+					"fire-and-forget feature update failed",
+				);
 			});
 		}
 	}

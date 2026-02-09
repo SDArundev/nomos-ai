@@ -9,6 +9,7 @@ import {
 import { transitionFeatureStatus } from "../lib/feature-state-machine";
 import type { AgentProvider } from "./claude-provider";
 import type { IEventService } from "./event-service";
+import { GitCommitService } from "./git-commit-service";
 import type { PipelineService } from "./pipeline-service";
 import type { SessionService } from "./session-service";
 import type { WorktreeService } from "./worktree-service";
@@ -258,7 +259,82 @@ export class AutoModeService {
 				// Polling may reject if aborted — that's fine
 			});
 
-			// Success
+			// Run quality gates (typecheck + lint + test) as server-enforced check
+			const gateResult = await this.pipelineService.runGateA(featureId, cwd);
+
+			if (gateResult.overallStatus === "FAIL") {
+				const gateErrors = [
+					gateResult.typecheck.status === "FAIL"
+						? gateResult.typecheck.summary
+						: null,
+					gateResult.lint.status === "FAIL"
+						? gateResult.lint.summary
+						: null,
+					gateResult.test.status === "FAIL"
+						? gateResult.test.summary
+						: null,
+				]
+					.filter(Boolean)
+					.join("; ");
+
+				this.events.emit("feature:gate-failed", {
+					featureId,
+					gate: "A",
+					errors: gateErrors,
+					userId,
+				});
+
+				await transitionFeatureStatus(featureId, "failed", {
+					error: `Quality gate failed: ${gateErrors}`,
+					locked: false,
+					lockedBy: null,
+					lockedAt: null,
+				});
+
+				await this.sessionService.completeSession(
+					session.id,
+					`Quality gate failed: ${gateErrors}`,
+					costData
+						? {
+								totalCostUsd: costData.totalCostUsd,
+								inputTokens: costData.inputTokens,
+								outputTokens: costData.outputTokens,
+							}
+						: undefined,
+				);
+
+				// Throw so the outer catch block handles retry logic
+				throw new Error(`Quality gate failed: ${gateErrors}`);
+			}
+
+			// Git safety net: verify clean state, commit if agent left uncommitted changes
+			const gitCommitService = new GitCommitService(this.events);
+			const gitState = await gitCommitService.verifyCleanState(cwd);
+			if (!gitState.clean) {
+				try {
+					const commitResult = await gitCommitService.commitFeature(
+						featureId,
+						cwd,
+					);
+					this.events.emit("feature:committed", {
+						featureId,
+						hash: commitResult.hash,
+						filesChanged: commitResult.filesChanged,
+						userId,
+					});
+				} catch {
+					// If commit fails (e.g., no worktree record), log but don't block
+					this.events.emit("auto-mode:event", {
+						type: "auto-mode:git-commit-skipped",
+						featureId,
+						reason: "commit_failed",
+						uncommittedFiles: gitState.uncommittedFiles,
+						userId,
+					});
+				}
+			}
+
+			// Quality gates passed — proceed to waiting_approval
 			this.consecutiveFailures = 0;
 			await transitionFeatureStatus(featureId, "waiting_approval", {
 				locked: false,

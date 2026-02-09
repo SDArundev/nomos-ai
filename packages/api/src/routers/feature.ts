@@ -1,10 +1,11 @@
-import { featureRepository } from "@nomos-ai/db";
+import { featureRepository, projectRepository } from "@nomos-ai/db";
 import {
 	FEATURE_VALID_TRANSITIONS,
 	FeatureIdSchema,
 	type FeatureStatus,
 	FeatureStatusSchema,
 	PhaseIdSchema,
+	ProjectIdSchema,
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
@@ -321,6 +322,81 @@ export const featureRouter = {
 				projectId: input.projectId,
 				userId: context.session.user.id,
 			});
+		}),
+
+	associateProject: protectedProcedure
+		.input(
+			z.object({
+				featureId: FeatureIdSchema,
+				projectId: ProjectIdSchema,
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+
+			// Verify feature ownership
+			const feat = await featureRepository.findById(input.featureId);
+			if (!feat || feat.userId !== userId) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `Feature not found: ${input.featureId}`,
+				});
+			}
+
+			// Verify project ownership
+			const proj = await projectRepository.findById(input.projectId);
+			if (!proj || proj.userId !== userId) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `Project not found: ${input.projectId}`,
+				});
+			}
+
+			return featureRepository.update(input.featureId, {
+				projectId: input.projectId,
+			});
+		}),
+
+	bulkAssociateProject: protectedProcedure
+		.input(
+			z.object({
+				featureIds: z.array(FeatureIdSchema).min(1).max(500),
+				projectId: ProjectIdSchema,
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const userId = context.session.user.id;
+
+			// Verify project ownership
+			const proj = await projectRepository.findById(input.projectId);
+			if (!proj || proj.userId !== userId) {
+				throw new ORPCError("NOT_FOUND", {
+					message: `Project not found: ${input.projectId}`,
+				});
+			}
+
+			// Verify all features belong to the user
+			const userFeatures = await featureRepository.findByUser(userId);
+			const userIds = new Set(userFeatures.map((f) => f.id));
+			const unauthorized = input.featureIds.filter(
+				(id) => !userIds.has(id),
+			);
+			if (unauthorized.length > 0) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "Access denied to some features",
+				});
+			}
+
+			const results = [];
+			for (const featureId of input.featureIds) {
+				try {
+					await featureRepository.update(featureId, {
+						projectId: input.projectId,
+					});
+					results.push({ id: featureId, success: true });
+				} catch {
+					results.push({ id: featureId, success: false });
+				}
+			}
+			return results;
 		}),
 
 	exportJson: protectedProcedure
