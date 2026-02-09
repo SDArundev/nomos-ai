@@ -3,7 +3,6 @@ import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { AutoModeService } from "../services/auto-mode-service";
-import { ClaudeProvider } from "../services/claude-provider";
 import { PipelineService } from "../services/pipeline-service";
 import { WorktreeService } from "../services/worktree-service";
 import { getEventService } from "./agent";
@@ -15,8 +14,7 @@ export function getAutoModeService(): AutoModeService {
 		const events = getEventService();
 		const pipeline = getPipelineService();
 		const worktree = getWorktreeService();
-		const provider = ClaudeProvider.create();
-		autoModeServiceInstance = new AutoModeService(events, pipeline, worktree, provider);
+		autoModeServiceInstance = new AutoModeService(events, pipeline, worktree);
 	}
 	return autoModeServiceInstance;
 }
@@ -103,6 +101,9 @@ export const autoModeRouter = {
 			}
 			await featureRepository.resetRetryCount(input.featureId);
 			await featureRepository.update(input.featureId, { status: "pending" });
-			return { success: true, message: `Reset retry count for ${input.featureId}` };
+			return {
+				success: true,
+				message: `Reset retry count for ${input.featureId}`,
+			};
 		}),
 };

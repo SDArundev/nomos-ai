@@ -32,11 +32,22 @@ const { buildSystemPrompt, configureTools, createAgentSession } = await import(
 
 const { MODEL_MAP } = await import("@nomos-ai/types");
 
+// Mock SessionService for createAgentSession tests
+const mockSessionService = {
+	createAgentSession: mock(() => Promise.resolve(null)),
+	createPipelineSession: mock(() => Promise.resolve(null)),
+	createInteractiveSession: mock(() => Promise.resolve(null)),
+	completeSession: mock(() => Promise.resolve(null)),
+	failSession: mock(() => Promise.resolve(null)),
+	getActiveSessionsCount: mock(() => Promise.resolve(0)),
+};
+
 describe("agent-service", () => {
 	beforeEach(() => {
 		mockFeatureRepository.findById.mockClear();
 		mockSessionRepository.create.mockClear();
 		mockGenerateSessionId.mockClear();
+		mockSessionService.createAgentSession.mockClear();
 	});
 
 	describe("MODEL_MAP constant", () => {
@@ -303,10 +314,13 @@ describe("agent-service", () => {
 			mockFeatureRepository.findById.mockResolvedValueOnce(null);
 
 			await expect(
-				createAgentSession({
-					featureId: "F999",
-					userId: "user_001",
-				}),
+				createAgentSession(
+					{
+						featureId: "F999",
+						userId: "user_001",
+					},
+					mockSessionService as any,
+				),
 			).rejects.toThrow("Feature not found: F999");
 		});
 
@@ -347,13 +361,15 @@ describe("agent-service", () => {
 			};
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
-			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("S001");
+			mockSessionService.createAgentSession.mockResolvedValueOnce(mockSession);
 
-			const result = await createAgentSession({
-				featureId: "F010",
-				userId: "user_001",
-			});
+			const result = await createAgentSession(
+				{
+					featureId: "F010",
+					userId: "user_001",
+				},
+				mockSessionService as any,
+			);
 
 			expect(result.session).toEqual(mockSession);
 			expect(result.agentConfig.model).toBe(MODEL_MAP.sonnet); // default
@@ -405,13 +421,15 @@ describe("agent-service", () => {
 			};
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
-			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("S002");
+			mockSessionService.createAgentSession.mockResolvedValueOnce(mockSession);
 
-			const result = await createAgentSession({
-				featureId: "F011",
-				userId: "user_001",
-			});
+			const result = await createAgentSession(
+				{
+					featureId: "F011",
+					userId: "user_001",
+				},
+				mockSessionService as any,
+			);
 
 			expect(result.agentConfig.model).toBe(MODEL_MAP.opus);
 		});
@@ -453,13 +471,15 @@ describe("agent-service", () => {
 			};
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
-			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("S003");
+			mockSessionService.createAgentSession.mockResolvedValueOnce(mockSession);
 
-			const result = await createAgentSession({
-				featureId: "F012",
-				userId: "user_001",
-			});
+			const result = await createAgentSession(
+				{
+					featureId: "F012",
+					userId: "user_001",
+				},
+				mockSessionService as any,
+			);
 
 			// Should fall back to sonnet default
 			expect(result.agentConfig.model).toBe(MODEL_MAP.sonnet);
@@ -502,14 +522,16 @@ describe("agent-service", () => {
 			};
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
-			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("S004");
+			mockSessionService.createAgentSession.mockResolvedValueOnce(mockSession);
 
-			const result = await createAgentSession({
-				featureId: "F013",
-				userId: "user_001",
-				model: "haiku", // Override
-			});
+			const result = await createAgentSession(
+				{
+					featureId: "F013",
+					userId: "user_001",
+					model: "haiku", // Override
+				},
+				mockSessionService as any,
+			);
 
 			// Should use input model, not feature model
 			expect(result.agentConfig.model).toBe(MODEL_MAP.haiku);
@@ -552,14 +574,16 @@ describe("agent-service", () => {
 			};
 
 			mockFeatureRepository.findById.mockResolvedValueOnce(mockFeature);
-			mockSessionRepository.create.mockResolvedValueOnce(mockSession);
-			mockGenerateSessionId.mockResolvedValueOnce("S005");
+			mockSessionService.createAgentSession.mockResolvedValueOnce(mockSession);
 
-			const result = await createAgentSession({
-				featureId: "F014",
-				userId: "user_001",
-				tools: ["Read", "Write"],
-			});
+			const result = await createAgentSession(
+				{
+					featureId: "F014",
+					userId: "user_001",
+					tools: ["Read", "Write"],
+				},
+				mockSessionService as any,
+			);
 
 			expect(result.agentConfig.tools).toEqual(["Read", "Write"]);
 		});

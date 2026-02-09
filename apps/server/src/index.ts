@@ -1,7 +1,8 @@
 import { createContext } from "@nomos-ai/api/context";
-import { appRouter } from "@nomos-ai/api/routers/index";
+import { apiKeyAuthMiddleware } from "@nomos-ai/api/middleware/api-key-auth";
 import { createRestAdapter } from "@nomos-ai/api/rest-adapter";
 import { getEventService } from "@nomos-ai/api/routers/agent";
+import { appRouter } from "@nomos-ai/api/routers/index";
 import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
 import { auth } from "@nomos-ai/auth";
@@ -98,17 +99,28 @@ app.use("/*", async (c, next) => {
 		"default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data: https://cdn.jsdelivr.net",
 	);
 	if (process.env.NODE_ENV === "production") {
-		c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+		c.header(
+			"Strict-Transport-Security",
+			"max-age=31536000; includeSubDomains",
+		);
 	}
 });
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
+// API key Bearer token authentication (before route handlers, after auth)
+app.use("/rpc/*", apiKeyAuthMiddleware);
+app.use("/api/*", apiKeyAuthMiddleware);
+
 // WebSocket event service + broadcaster + terminal
 const eventService = getEventService();
 const broadcaster = new EventBroadcaster(eventService);
 const terminalService = getTerminalService();
-const wsHandlers = createWebSocketHandlers(broadcaster, terminalService, eventService);
+const wsHandlers = createWebSocketHandlers(
+	broadcaster,
+	terminalService,
+	eventService,
+);
 
 // Helper to extract userId from session cookie on WebSocket upgrade
 async function extractWsUserId(req: Request): Promise<string | null> {
@@ -264,7 +276,11 @@ app.get("/ready", async (c) => {
 
 app.notFound(async (c) => {
 	// SPA fallback: serve index.html for non-API routes in production
-	if (process.env.NODE_ENV === "production" && !c.req.path.startsWith("/rpc") && !c.req.path.startsWith("/api")) {
+	if (
+		process.env.NODE_ENV === "production" &&
+		!c.req.path.startsWith("/rpc") &&
+		!c.req.path.startsWith("/api")
+	) {
 		const file = Bun.file("./public/index.html");
 		if (await file.exists()) {
 			return c.html(await file.text());

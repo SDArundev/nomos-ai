@@ -13,6 +13,7 @@ import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { createAgentSession } from "../services/agent-service";
 import { handleRepositoryError } from "../utils/error-handler";
+import { getSessionService } from "./agent";
 
 const listSessionsInput = z
 	.object({
@@ -107,11 +108,9 @@ export const sessionRouter = {
 		.input(createSessionInput)
 		.handler(async ({ input, context }) => {
 			try {
-				return await sessionRepository.create({
+				return await getSessionService().createAgentSession({
 					userId: context.session.user.id,
 					featureId: input.featureId,
-					status: input.status,
-					startedAt: input.startedAt,
 				});
 			} catch (error) {
 				handleRepositoryError(error, "create session");
@@ -200,9 +199,9 @@ export const sessionRouter = {
 	createAgentSession: protectedProcedure
 		.input(createAgentSessionInput)
 		.handler(async ({ input, context }) => {
-			return createAgentSession({
-				...input,
-				userId: context.session.user.id,
-			});
+			return createAgentSession(
+				{ ...input, userId: context.session.user.id },
+				getSessionService(),
+			);
 		}),
 };

@@ -1,6 +1,7 @@
 import type { RouterClient } from "@orpc/server";
 import { protectedProcedure, publicProcedure } from "../index";
 import { agentRouter } from "./agent";
+import { apiKeysRouter } from "./api-keys";
 import { autoModeRouter } from "./auto-mode";
 import { eventsRouter } from "./events";
 import { featureRouter } from "./feature";
@@ -13,8 +14,8 @@ import { pipelineRouter } from "./pipeline";
 import { projectRouter } from "./project";
 import { sessionRouter } from "./session";
 import { settingsRouter } from "./settings";
-import { terminalRouter } from "./terminal";
 import { specRouter } from "./spec";
+import { terminalRouter } from "./terminal";
 import { worktreeRouter } from "./worktree";
 
 export const appRouter = {
@@ -43,6 +44,7 @@ export const appRouter = {
 	fs: fsRouter,
 	models: modelsRouter,
 	spec: specRouter,
+	apiKeys: apiKeysRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;

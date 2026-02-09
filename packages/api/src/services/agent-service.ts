@@ -16,6 +16,7 @@ import { ORPCError } from "@orpc/server";
 import { loadProjectContext } from "../lib/context-loader";
 import type { AgentProvider } from "./claude-provider";
 import type { EventService } from "./event-service";
+import type { SessionService } from "./session-service";
 
 /** Max concurrent running sessions across all users */
 const MAX_CONCURRENT_SESSIONS = 5;
@@ -121,6 +122,7 @@ export function configureTools(overrides?: string[]): string[] {
 
 export async function createAgentSession(
 	input: CreateAgentSessionInput,
+	sessionService: SessionService,
 ): Promise<AgentSessionResult> {
 	const feature = await featureRepository.findById(input.featureId);
 	if (!feature) {
@@ -139,11 +141,9 @@ export async function createAgentSession(
 	const modelKey: Model = input.model ?? featureModel ?? MODEL.SONNET;
 	const model = MODEL_MAP[modelKey];
 
-	const session = await sessionRepository.create({
+	const session = await sessionService.createAgentSession({
 		userId: input.userId,
 		featureId: input.featureId,
-		status: SESSION_STATUS.PENDING,
-		startedAt: new Date(),
 	});
 
 	return {
@@ -170,6 +170,7 @@ export class AgentService {
 	constructor(
 		private events: EventService,
 		private provider: AgentProvider,
+		private sessionService: SessionService,
 	) {}
 
 	async createSession(input: {
@@ -213,16 +214,12 @@ export class AgentService {
 			});
 		}
 
-		const session = await sessionRepository.create({
+		const session = await this.sessionService.createInteractiveSession({
 			userId: input.userId,
 			projectId: input.projectId,
-			featureId: input.featureId ?? null,
-			status: SESSION_STATUS.PENDING,
-			startedAt: new Date(),
-			model: input.model ?? "sonnet",
-			workingDirectory: input.workingDirectory ?? null,
-			isRunning: false,
-			messageCount: 0,
+			featureId: input.featureId,
+			model: input.model,
+			workingDirectory: input.workingDirectory,
 		});
 
 		return session;

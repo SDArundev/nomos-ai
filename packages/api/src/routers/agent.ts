@@ -5,9 +5,11 @@ import { protectedProcedure } from "../index";
 import { AgentService } from "../services/agent-service";
 import { ClaudeProvider } from "../services/claude-provider";
 import { EventService } from "../services/event-service";
+import { SessionService } from "../services/session-service";
 
 // Singleton instances shared across routers
 let eventServiceInstance: EventService | null = null;
+let sessionServiceInstance: SessionService | null = null;
 let agentServiceInstance: AgentService | null = null;
 
 export function getEventService(): EventService {
@@ -17,10 +19,17 @@ export function getEventService(): EventService {
 	return eventServiceInstance;
 }
 
+export function getSessionService(): SessionService {
+	if (!sessionServiceInstance) {
+		sessionServiceInstance = new SessionService(getEventService());
+	}
+	return sessionServiceInstance;
+}
+
 export function getAgentService(): AgentService {
 	if (!agentServiceInstance) {
 		const provider = ClaudeProvider.create();
-		agentServiceInstance = new AgentService(getEventService(), provider);
+		agentServiceInstance = new AgentService(getEventService(), provider, getSessionService());
 	}
 	return agentServiceInstance;
 }

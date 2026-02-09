@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { ActivityFeed } from "@/components/activity/activity-feed";
 import { AutoModeDashboard } from "@/components/auto-mode/auto-mode-dashboard";
+import { IntentBox } from "@/components/intent-box";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -64,7 +65,12 @@ function DashboardComponent() {
 				</p>
 			</div>
 
-			{/* Auto-Mode Dashboard — primary view */}
+			{/* Intent Box — primary input surface */}
+			<div className="mb-8">
+				<IntentBox />
+			</div>
+
+			{/* Auto-Mode Dashboard */}
 			<div className="mb-8">
 				<AutoModeDashboard />
 			</div>

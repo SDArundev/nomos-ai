@@ -6,6 +6,16 @@ export type CreateContextOptions = {
 };
 
 export async function createContext({ context }: CreateContextOptions) {
+	// Check for API key auth first (set by apiKeyAuthMiddleware)
+	const apiKeyUserId = context.get("apiKeyUserId") as string | undefined;
+	if (apiKeyUserId) {
+		return {
+			session: {
+				user: { id: apiKeyUserId },
+			},
+		};
+	}
+
 	const session = await auth.api.getSession({
 		headers: context.req.raw.headers,
 	});

@@ -13,6 +13,7 @@ import {
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
+import { ExpansionService } from "../services/expansion-service";
 import { handleRepositoryError } from "../utils/error-handler";
 
 const listFeaturesInput = z
@@ -270,5 +271,21 @@ export const featureRouter = {
 			} catch (error) {
 				handleRepositoryError(error, "bulk update feature status");
 			}
+		}),
+
+	expand: protectedProcedure
+		.input(
+			z.object({
+				text: z.string().min(1, "Text is required").max(2000),
+				projectId: z.string().min(1, "Project ID is required"),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const expansionService = new ExpansionService();
+			return expansionService.expandIntent({
+				naturalLanguage: input.text,
+				projectId: input.projectId,
+				userId: context.session.user.id,
+			});
 		}),
 };

@@ -44,7 +44,7 @@ describe("Database Package - Migration", () => {
 			);
 			const journal = await Bun.file(journalPath).json();
 			expect(journal.entries).toBeDefined();
-			expect(journal.entries.length).toBe(8);
+			expect(journal.entries.length).toBe(9);
 		});
 	});
 
