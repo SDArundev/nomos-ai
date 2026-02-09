@@ -1,5 +1,4 @@
 import { existsSync, realpathSync } from "node:fs";
-import { homedir } from "node:os";
 import { resolve } from "node:path";
 import * as pty from "node-pty";
 import { serverLogger } from "../lib/logger";

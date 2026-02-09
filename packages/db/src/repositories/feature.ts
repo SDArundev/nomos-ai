@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "../index";
 import { createWithId } from "../lib/id-generation";
 import { feature } from "../schema/features";
@@ -6,9 +6,43 @@ import { feature } from "../schema/features";
 export type FeatureSelect = typeof feature.$inferSelect;
 export type FeatureInsert = typeof feature.$inferInsert;
 
+export interface PaginatedResult<T> {
+	rows: T[];
+	total: number;
+}
+
 export const featureRepository = {
 	async findAll(): Promise<FeatureSelect[]> {
 		return db.select().from(feature);
+	},
+
+	async findPaginated(params: {
+		limit?: number;
+		offset?: number;
+		userId?: string;
+	}): Promise<PaginatedResult<FeatureSelect>> {
+		const limit = Math.min(params.limit ?? 50, 200);
+		const offset = params.offset ?? 0;
+
+		const where = params.userId ? eq(feature.userId, params.userId) : undefined;
+
+		const [rows, totalResult] = await Promise.all([
+			db
+				.select()
+				.from(feature)
+				.where(where)
+				.limit(limit)
+				.offset(offset),
+			db
+				.select({ count: count() })
+				.from(feature)
+				.where(where),
+		]);
+
+		return {
+			rows,
+			total: totalResult[0]?.count ?? 0,
+		};
 	},
 
 	async findById(id: string): Promise<FeatureSelect | null> {

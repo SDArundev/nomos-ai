@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { db } from "../index";
 import { createWithId } from "../lib/id-generation";
 import { learning } from "../schema/learnings";
@@ -6,9 +6,45 @@ import { learning } from "../schema/learnings";
 export type LearningSelect = typeof learning.$inferSelect;
 export type LearningInsert = typeof learning.$inferInsert;
 
+export interface PaginatedLearningResult {
+	rows: LearningSelect[];
+	total: number;
+}
+
 export const learningRepository = {
 	async findAll(): Promise<LearningSelect[]> {
 		return db.select().from(learning);
+	},
+
+	async findPaginated(params: {
+		limit?: number;
+		offset?: number;
+		userId?: string;
+	}): Promise<PaginatedLearningResult> {
+		const limit = Math.min(params.limit ?? 50, 200);
+		const offset = params.offset ?? 0;
+
+		const where = params.userId
+			? eq(learning.userId, params.userId)
+			: undefined;
+
+		const [rows, totalResult] = await Promise.all([
+			db
+				.select()
+				.from(learning)
+				.where(where)
+				.limit(limit)
+				.offset(offset),
+			db
+				.select({ count: count() })
+				.from(learning)
+				.where(where),
+		]);
+
+		return {
+			rows,
+			total: totalResult[0]?.count ?? 0,
+		};
 	},
 
 	async findByUser(userId: string): Promise<LearningSelect[]> {

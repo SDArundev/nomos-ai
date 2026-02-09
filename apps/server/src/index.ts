@@ -39,20 +39,47 @@ try {
 
 // Clean up orphaned sessions from previous server instances
 try {
-	const orphaned = await sessionRepository.findActive();
-	if (orphaned.length > 0) {
-		for (const session of orphaned) {
-			await sessionRepository.update(session.id, {
-				status: "failed",
-				isRunning: false,
-				error: "Server restarted, session orphaned",
-				completedAt: new Date(),
-			});
+	const activeSessions = await sessionRepository.findActive();
+	if (activeSessions.length > 0) {
+		const now = Date.now();
+		const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+		const events = getEventService();
+		let orphanedCount = 0;
+
+		for (const session of activeSessions) {
+			const updatedAt =
+				session.updatedAt instanceof Date
+					? session.updatedAt.getTime()
+					: Number(session.updatedAt);
+			const isStale = now - updatedAt > STALE_THRESHOLD_MS;
+
+			if (isStale) {
+				await sessionRepository.update(session.id, {
+					status: "failed",
+					isRunning: false,
+					error: "Server restarted, session orphaned (stale)",
+					completedAt: new Date(),
+				});
+				events.emit("session:orphaned", {
+					sessionId: session.id,
+					reason: "stale_on_restart",
+				});
+				orphanedCount++;
+			}
 		}
-		serverLogger.info(
-			{ count: orphaned.length },
-			"Cleaned up orphaned sessions",
-		);
+
+		if (orphanedCount > 0) {
+			serverLogger.info(
+				{ count: orphanedCount, total: activeSessions.length },
+				"Cleaned up orphaned sessions",
+			);
+		}
+		if (activeSessions.length > orphanedCount) {
+			serverLogger.info(
+				{ count: activeSessions.length - orphanedCount },
+				"Preserved recent active sessions (updated < 10 min ago)",
+			);
+		}
 	}
 } catch (error) {
 	serverLogger.warn({ err: error }, "Session cleanup failed (non-fatal)");

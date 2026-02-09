@@ -12,9 +12,9 @@ export default function Header() {
 	const autoMode = useAutoModeStatus();
 
 	return (
-		<div className="shrink-0 border-b">
+		<header className="shrink-0 border-b">
 			<div className="flex flex-row items-center justify-between px-2 py-1">
-				<Button variant="ghost" size="icon-sm" onClick={toggleSidebar}>
+				<Button variant="ghost" size="icon-sm" onClick={toggleSidebar} aria-label="Toggle sidebar">
 					<Menu />
 				</Button>
 				<div className="flex items-center gap-2">
@@ -30,6 +30,6 @@ export default function Header() {
 					<UserMenu />
 				</div>
 			</div>
-		</div>
+		</header>
 	);
 }

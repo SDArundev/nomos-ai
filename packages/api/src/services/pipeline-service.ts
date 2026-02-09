@@ -91,17 +91,7 @@ const POLL_INTERVAL_MS = 2_000;
 // ---------------------------------------------------------------------------
 
 export class PipelineService {
-	private projectRoot: string | null = null;
-
 	constructor(private events: IEventService) {}
-
-	/**
-	 * Set the project root for checkpoint resolution.
-	 * Must be called before polling or reading checkpoints without explicit root.
-	 */
-	setProjectRoot(root: string): void {
-		this.projectRoot = root;
-	}
 
 	// -----------------------------------------------------------------------
 	// Public: step definitions (consumed by pipeline router)
@@ -133,7 +123,7 @@ export class PipelineService {
 		phase: number,
 		projectRoot?: string,
 	): CheckpointData | null {
-		const root = projectRoot ?? this.projectRoot;
+		const root = projectRoot;
 		if (!root) return null;
 
 		const filePath = join(
@@ -161,7 +151,7 @@ export class PipelineService {
 		featureId: string,
 		projectRoot?: string,
 	): { phase: number; data: CheckpointData } | null {
-		const root = projectRoot ?? this.projectRoot;
+		const root = projectRoot;
 		if (!root) return null;
 
 		const dir = join(root, OUTPUT_DIR, featureId);
@@ -208,11 +198,12 @@ export class PipelineService {
 		featureId: string,
 		onCheckpoint: (cp: CheckpointData) => void,
 		signal?: AbortSignal,
+		projectRoot?: string,
 	): Promise<void> {
-		const root = this.projectRoot;
+		const root = projectRoot;
 		if (!root) {
 			return Promise.reject(
-				new Error("projectRoot not set — call setProjectRoot() first"),
+				new Error("projectRoot is required for checkpoint polling"),
 			);
 		}
 
@@ -344,7 +335,10 @@ export class PipelineService {
 	// Public: progress (consumed by pipeline router)
 	// -----------------------------------------------------------------------
 
-	async getProgress(featureId: string): Promise<{
+	async getProgress(
+		featureId: string,
+		projectRoot?: string,
+	): Promise<{
 		currentStep: string | null;
 		completedPhase: number | null;
 		steps: Array<{ id: string; name: string; status: string }>;
@@ -352,10 +346,10 @@ export class PipelineService {
 		const feature = await featureRepository.findById(featureId);
 		if (!feature) throw new Error(`Feature not found: ${featureId}`);
 
-		// Read live checkpoint data if projectRoot is set
+		// Read live checkpoint data if projectRoot is provided
 		let completedPhase: number | null = null;
-		if (this.projectRoot) {
-			const latest = this.getLatestCheckpoint(featureId);
+		if (projectRoot) {
+			const latest = this.getLatestCheckpoint(featureId, projectRoot);
 			completedPhase = latest?.phase ?? null;
 		}
 

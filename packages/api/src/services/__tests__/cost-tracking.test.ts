@@ -60,7 +60,6 @@ function createMockSessionService(): SessionService {
 
 function createMockPipelineService(): PipelineService {
 	return {
-		setProjectRoot: mock(() => {}),
 		pollCheckpoints: mock(async () => {}),
 		mapCheckpointToFeature: mock(async () => {}),
 		readCheckpoint: mock(() => null),

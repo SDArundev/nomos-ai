@@ -34,7 +34,7 @@ const navItems = [
 
 export function NavLinks({ collapsed }: NavLinksProps) {
 	return (
-		<nav className="flex flex-col gap-1 p-2">
+		<nav aria-label="Main menu" className="flex flex-col gap-1 p-2">
 			{navItems.map(({ to, label, icon: Icon }) => (
 				<Link
 					key={to}
@@ -45,6 +45,7 @@ export function NavLinks({ collapsed }: NavLinksProps) {
 					)}
 					activeProps={{
 						className: "bg-sidebar-accent text-sidebar-accent-foreground",
+						"aria-current": "page" as const,
 					}}
 				>
 					<Icon className="size-5 shrink-0" />

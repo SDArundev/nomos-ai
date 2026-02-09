@@ -189,9 +189,7 @@ export class AutoModeService {
 			// (merge is not done automatically — features go to waiting_approval)
 			const prompt = `Read .claude/skills/nomos/SKILL.md and follow the FIRST ACTION instructions for feature ${featureId}. Flags: auto=true, test=true, merge=false`;
 
-			// Set project root for checkpoint resolution and start polling
-			this.pipelineService.setProjectRoot(cwd);
-
+			// Start polling with explicit projectRoot (no shared state)
 			const pollPromise = this.pipelineService.pollCheckpoints(
 				featureId,
 				(checkpoint) => {
@@ -208,6 +206,7 @@ export class AutoModeService {
 					});
 				},
 				abort.signal,
+				cwd,
 			);
 
 			// Execute via SDK query() instead of CLI subprocess

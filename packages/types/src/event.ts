@@ -25,6 +25,8 @@ export const eventTypeSchema = z.enum([
 	// Worktree events
 	"worktree:init-started",
 	"worktree:init-completed",
+	// Session events
+	"session:orphaned",
 	// Terminal events
 	"terminal:output",
 	// Notification events
@@ -110,6 +112,7 @@ export interface EventPayloadMap {
 	"auto-mode:event": unknown;
 	"worktree:init-started": unknown;
 	"worktree:init-completed": unknown;
+	"session:orphaned": unknown;
 	"terminal:output": unknown;
 	"notification:created": unknown;
 }

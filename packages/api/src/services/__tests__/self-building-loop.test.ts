@@ -18,7 +18,6 @@ function createMockEventService(): EventService {
 
 function createMockPipelineService(): PipelineService {
 	return {
-		setProjectRoot: mock(() => {}),
 		pollCheckpoints: mock(async () => {}),
 		mapCheckpointToFeature: mock(async () => {}),
 		readCheckpoint: mock(() => null),
@@ -362,10 +361,9 @@ describe("Self-building loop validation (F1/F4)", () => {
 
 			// Wait for pipeline setup
 			await waitFor(
-				() => (pipeline.setProjectRoot as ReturnType<typeof mock>).mock.calls.length > 0,
+				() => (pipeline.pollCheckpoints as ReturnType<typeof mock>).mock.calls.length > 0,
 			);
 
-			expect(pipeline.setProjectRoot).toHaveBeenCalled();
 			expect(pipeline.pollCheckpoints).toHaveBeenCalled();
 		});
 	});
@@ -394,18 +392,16 @@ describe("Self-building loop validation (F1/F4)", () => {
 		test("PipelineService.readCheckpoint returns null when no file exists", () => {
 			const events = createMockEventService();
 			const realPipeline = new PipelineService(events);
-			realPipeline.setProjectRoot("/tmp/nonexistent-project");
 
-			const checkpoint = realPipeline.readCheckpoint("F000", 1);
+			const checkpoint = realPipeline.readCheckpoint("F000", 1, "/tmp/nonexistent-project");
 			expect(checkpoint).toBeNull();
 		});
 
 		test("PipelineService.getLatestCheckpoint returns null with no checkpoints", () => {
 			const events = createMockEventService();
 			const realPipeline = new PipelineService(events);
-			realPipeline.setProjectRoot("/tmp/nonexistent-project");
 
-			const latest = realPipeline.getLatestCheckpoint("F000");
+			const latest = realPipeline.getLatestCheckpoint("F000", "/tmp/nonexistent-project");
 			expect(latest).toBeNull();
 		});
 
@@ -762,10 +758,9 @@ describe("Self-building loop validation (F1/F4)", () => {
 
 			// Step 3: Verify pipeline was set up
 			await waitFor(
-				() => (pipeline.setProjectRoot as ReturnType<typeof mock>).mock.calls.length > 0,
+				() => (pipeline.pollCheckpoints as ReturnType<typeof mock>).mock.calls.length > 0,
 			);
 
-			expect(pipeline.setProjectRoot).toHaveBeenCalled();
 			expect(pipeline.pollCheckpoints).toHaveBeenCalled();
 
 			// Step 4: Verify events were emitted

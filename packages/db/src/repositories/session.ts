@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from "drizzle-orm";
+import { count, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../index";
 import { createWithId } from "../lib/id-generation";
 import { agentSession } from "../schema/sessions";
@@ -6,9 +6,45 @@ import { agentSession } from "../schema/sessions";
 type AgentSessionSelect = typeof agentSession.$inferSelect;
 type AgentSessionInsert = typeof agentSession.$inferInsert;
 
+export interface PaginatedSessionResult {
+	rows: AgentSessionSelect[];
+	total: number;
+}
+
 export const sessionRepository = {
 	async findAll(): Promise<AgentSessionSelect[]> {
 		return db.select().from(agentSession);
+	},
+
+	async findPaginated(params: {
+		limit?: number;
+		offset?: number;
+		userId?: string;
+	}): Promise<PaginatedSessionResult> {
+		const limit = Math.min(params.limit ?? 50, 200);
+		const offset = params.offset ?? 0;
+
+		const where = params.userId
+			? eq(agentSession.userId, params.userId)
+			: undefined;
+
+		const [rows, totalResult] = await Promise.all([
+			db
+				.select()
+				.from(agentSession)
+				.where(where)
+				.limit(limit)
+				.offset(offset),
+			db
+				.select({ count: count() })
+				.from(agentSession)
+				.where(where),
+		]);
+
+		return {
+			rows,
+			total: totalResult[0]?.count ?? 0,
+		};
 	},
 
 	async findById(id: string): Promise<AgentSessionSelect | null> {

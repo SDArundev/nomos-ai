@@ -94,6 +94,21 @@ export const sessionRouter = {
 			return sessions.filter((s) => s.userId === userId);
 		}),
 
+	listPaginated: protectedProcedure
+		.input(
+			z.object({
+				limit: z.number().int().min(1).max(200).optional(),
+				offset: z.number().int().min(0).optional(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			return sessionRepository.findPaginated({
+				limit: input.limit,
+				offset: input.offset,
+				userId: context.session.user.id,
+			});
+		}),
+
 	get: protectedProcedure
 		.input(z.object({ id: SessionIdSchema }))
 		.handler(async ({ input, context }) => {
