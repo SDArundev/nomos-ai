@@ -6,7 +6,7 @@ import {
 	resolveDependencies,
 } from "../lib/dependency-resolver";
 import type { AgentProvider } from "./claude-provider";
-import type { EventService } from "./event-service";
+import type { IEventService } from "./event-service";
 import type { PipelineService } from "./pipeline-service";
 import type { SessionService } from "./session-service";
 import type { WorktreeService } from "./worktree-service";
@@ -46,7 +46,7 @@ export class AutoModeService {
 	private currentUserId: string | null = null;
 
 	constructor(
-		private events: EventService,
+		private events: IEventService,
 		private provider: AgentProvider,
 		private pipelineService: PipelineService,
 		private worktreeService: WorktreeService,

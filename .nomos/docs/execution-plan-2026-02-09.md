@@ -3,186 +3,159 @@
 **Decision:** Docker Postgres (with Redis caching planned for later)
 **Goal:** Close the self-building loop — NOMOS builds itself from the dashboard
 **Source:** strategic-review-2026-02-09.md (4-agent analysis)
-**Last updated:** 2026-02-09T07:25Z
+**Last updated:** 2026-02-09T14:30Z
 
 ---
 
 ## Progress Tracker
 
-| Batch | Stream | Status | Agent | Notes |
-|-------|--------|--------|-------|-------|
-| 1 | A: Cleanup & Hygiene | DONE | cleanup-agent | 607MB freed, 5 agents deleted, skills updated, features.json cleaned |
-| 1 | B: Postgres Migration | DONE | postgres-agent | 30+ files, 11 schema files converted, FKs added, seed script, 665 tests pass |
-| 1 | E: CI/Testing | DONE | ci-agent | CI fixed, postgres in CI, deps moved, test skeleton created |
-| 2 | C: Pipeline Unification | DONE | pipeline-agent | C1-C5 complete. Auth normalized, API-first features, Intent Box wired, export endpoint, 16 tests |
-| 2 | D: SDK Modernization | DONE | sdk-agent | D1-D7 all complete. CLI subprocess replaced with SDK query(), typed events, session resume |
-| 3 | F: Self-Building Validation | READY | — | End-to-end loop test — unblocked by C+D |
-| 3 | G: Production Hardening | BLOCKED (on C+D) | — | Redis, logging, monitoring |
+| Batch | Stream | Status | Commit | Notes |
+|-------|--------|--------|--------|-------|
+| 1 | A: Cleanup & Hygiene | DONE | cb6aec6 | 607MB freed, 5 agents deleted, skills updated |
+| 1 | B: Postgres Migration | DONE | cb6aec6 | 30+ files, 11 schema files, FKs, seed script |
+| 1 | E: CI/Testing | DONE | cb6aec6 | CI fixed, postgres in CI, test skeleton |
+| 2 | C: Pipeline Unification | DONE | 2ed32cf | DB source of truth, API-first, Intent Box wired |
+| 2 | D: SDK Modernization | DONE | 2ed32cf | SDK query() replaces CLI, typed events, resume |
+| 3 | F: Self-Building Validation | IN PROGRESS | — | F2/F3 done, F1/F4 in progress |
+| 3 | G: Production Hardening | DONE | — | G1-G6 all complete, 1006 tests passing |
+| 3 | H: Strategic Cleanup | IN PROGRESS | — | Feature triage, learning loop, project.json |
+| 4 | I: Learning DB Migration | READY | — | Migrate learnings to DB tables (after H) |
 
-**Batch 1 COMPLETE.** All 3 streams done. Changes uncommitted — need user `.env` update + `docker compose up -d postgres` + commit.
-
-**Not yet committed.** All changes are staged file edits. Commit after Stream B completes and tests pass.
+**Commits:**
+- `cb6aec6` — Batch 1: Postgres migration, cleanup, CI fixes
+- `2ed32cf` — Batch 2: Pipeline unification, SDK modernization, test fixes (929 tests, 0 failures)
 
 ---
 
-## Batch 1 — Parallel (No Dependencies)
+## Batch 1 — DONE (cb6aec6)
 
 ### Stream A: Cleanup & Hygiene — DONE
-**Completed by:** cleanup-agent
-**Changes made:**
-- [x] A1: Deleted stale worktree F040 — freed 607 MB
-- [x] A2: CI `build:packages` → `build` (already fixed by ci-agent)
-- [x] A3: Deleted 5 deprecated agents (load-learnings, explore-codebase, explore-docs, code-quality-reviewer, test-coverage-analyzer)
-- [x] A4: Updated nomos-verify SKILL.md + 4 sub-files, nomos-refactor SKILL.md + 3 sub-files (replaced deprecated agent refs with v4 equivalents)
-- [x] A5: Deleted dead code: `packages/api/src/services/sdk-options.ts`
-- [x] A6: Removed 15 `.DS_Store` files (.gitignore already had entry)
-- [x] A7: Deleted stale locks (`.nomos/locks/default-ports.owner`, `F034.ports`)
-- [x] A8: Removed `ralph-loop` skill directory (6 files)
-- [x] A9: Normalized 10 features F276-F285 category "fix" → "CAT-FIX" (now 45 total CAT-FIX)
-- [x] A10: Removed stale summary block from features.json (was showing 265, actual 285)
+- [x] A1-A10: All complete. 607MB freed, 5 deprecated agents deleted, skills updated, features.json cleaned.
 
-### Stream B: Database Migration to Postgres — DONE
-**Completed by:** postgres-agent
-**Test results:** 665 tests pass, 0 failures, 0 type errors
-**Changes made (30+ files):**
-- [x] B1: Added postgres:17 service to docker-compose.yml with healthcheck + nomos-pgdata volume
-- [x] B2: Added commented-out redis stub in docker-compose.yml
-- [x] B3: Swapped @libsql/client + libsql → postgres (postgres.js driver)
-- [x] B4: Migrated all 11 schema files (sqliteTable→pgTable, integer→boolean, timestamp_ms→timestamp, text→jsonb, totalCostUsd→numeric)
-- [x] B5: Updated drizzle.config.ts for postgres dialect
-- [x] B6: Updated packages/db/src/index.ts (postgres driver + drizzle-orm/postgres-js)
-- [x] B7: Deleted resolve-url.ts (no longer needed)
-- [x] B8: Added all missing FK constraints (event, notification, worktree, message, project.userId)
-- [x] B9: Added release, failureReason, restoredAt columns to feature
-- [x] B10: Added userId index to agent_session
-- [x] B11: Archived SQLite migrations, generated fresh Postgres migration 0000_tiny_skin.sql
-- [x] B12: Updated Dockerfile + docker-compose.yml for postgresql:// DATABASE_URL
-- [x] B13: Updated packages/env server.ts to validate postgresql:// or postgres:// URLs
-- [x] B14: Created seed script: packages/db/src/scripts/seed.ts
-- [x] B15: Added session cleanup on startup in apps/server/src/index.ts
-- [x] B16: Updated session-repository.test.ts, migrate.test.ts for Postgres
-- [x] B17: 665 tests pass (some test count difference from mock refactoring)
-- [x] BONUS: Fixed better-auth adapter: "sqlite" → "pg" in packages/auth/src/index.ts
-- [x] BONUS: Fixed db.run() → db.execute() for Postgres in health endpoints
-- [x] BONUS: Fixed char(10) → chr(10) in session repository appendOutput
-- [x] BONUS: Created .env.example files with postgresql:// connection strings
+### Stream B: Postgres Migration — DONE
+- [x] B1-B17 + bonuses: All complete. 665 tests pass.
 
-**User actions required before running:**
-1. Update `.env`: `DATABASE_URL=postgresql://nomos:nomos@localhost:5432/nomos`
-2. `docker compose up -d postgres`
-3. `bun run db:migrate`
-4. (Optional) `bun run packages/db/src/scripts/seed.ts`
-
-### Stream E: Testing & CI Fixes — DONE
-**Completed by:** ci-agent
-**Changes made:**
-- [x] E1: Fixed `.github/actions/setup-project/action.yml` — `build:packages` → `build`
-- [x] E2: Fixed `actions/checkout@v6` → `actions/checkout@v4` (9 occurrences across 2 workflows)
-- [x] E3: Added Postgres service container to CI test jobs with healthcheck
-- [x] E4: *(deferred — coverage reporting not added yet)*
-- [x] E5: Removed `continue-on-error: true` from `bun pm audit` in security-audit.yml
-- [x] E6: Created integration test skeleton: `packages/api/src/services/__tests__/auto-mode-service.integration.test.ts` (4 describe blocks, 12 test.todo stubs)
-- [x] E7: Moved `react-markdown` from root to `apps/web/package.json` (others already there)
+### Stream E: CI/Testing — DONE
+- [x] E1-E7: All complete (E4 coverage deferred).
 
 ---
 
-## Batch 2 — After Stream B Completes
+## Batch 2 — DONE (2ed32cf)
 
-### Stream C: Pipeline Unification (DB as Single Source of Truth)
-**Agent type:** general-purpose (needs write access)
-**Estimated effort:** 1-2 days
-**Depends on:** Stream B (postgres must be working)
-**Tasks:**
-- [x] C1: CLI pipeline Phase 1 reads features from REST API (fallback to features.json) — DONE (pipeline-agent). Updated phase-01, phase-05, phase-06 steps. Auto-mode passes NOMOS_API_URL to subprocess.
-- [x] C2: Wire Intent Box → AutoModeService end-to-end — DONE (pipeline-agent). Added `startFeature()` method, `autoMode.startFeature` endpoint, REST `/api/features/:id/start`, "Create & Start" button in DecompositionPreview.
-- [x] C3: Fix API key auth context shape — DONE (pipeline-agent). Explicit AuthenticatedUser/AuthenticatedSession/Context interfaces. Both auth methods produce same shape.
-- [x] C4: Integration tests — DONE (pipeline-agent). 16 tests: pipeline lifecycle, status transitions, cost tracking, config management, auth context, feature export.
-- [x] C5: features.json read-only export from DB — DONE (pipeline-agent). `features.exportJson` endpoint, `/api/features/export` REST route, state.sh syncs to API.
-- [ ] C6: Test the self-building loop: create feature from dashboard, auto-implement, verify — NEEDS MANUAL TESTING
+### Stream C: Pipeline Unification — DONE
+- [x] C1: CLI pipeline Phase 1 reads features from REST API (fallback to features.json)
+- [x] C2: Intent Box → AutoModeService wired end-to-end ("Create & Start" button)
+- [x] C3: Auth context normalized (AuthenticatedUser type, both auth methods)
+- [x] C4: 16 integration tests (pipeline lifecycle, auth, feature export)
+- [x] C5: features.json export endpoint (DB is source of truth)
+- [ ] C6: Self-building loop manual test — NEEDS MANUAL TESTING
 
-### Stream D: SDK Modernization
-**Agent type:** general-purpose (needs write access)
-**Estimated effort:** 1-2 weeks
-**Depends on:** Stream B (postgres must be working)
-**Partially done:** D2/D3 (deprecated agent refs) completed early by cleanup-agent in Stream A
-**Tasks:**
-- [x] D1: Fix cost data extraction fragility in ClaudeProvider (use official SDK types) — DONE (sdk-agent)
-- [x] D2: Update nomos-verify skill to use v4 agents — DONE (Stream A)
-- [x] D3: Update nomos-refactor skill to use v4 agents — DONE (Stream A)
-- [x] D4: Evaluate V2 Session API — DONE (sdk-agent). Recommendation: Use V1 `query()` for D5, adopt V2 when stable. See `v2-session-api-evaluation.md`
-- [x] D5: Replace CLI subprocess with SDK `query()` in AutoModeService — DONE (sdk-agent). Removed child_process, uses AgentProvider.executeQuery(), structured event emission, cost tracking from SDK result
-- [x] D6: Stream structured output to dashboard — DONE (sdk-agent). Typed event payloads (EventPayloadMap), typed EventService.emit() overloads, agent:stream now sends ProviderMessage
-- [x] D7: Add session resume capability — DONE (sdk-agent). SessionService.resumeSession(), AutoModeService.resumeSession(), POST /api/sessions/:id/resume, GET /api/sessions/resumable, sessionRepository.findResumable()
+### Stream D: SDK Modernization — DONE
+- [x] D1: Cost extraction with proper SDK types (SDKResultMessage, extractCostData)
+- [x] D2-D3: Deprecated agent refs updated (done in Batch 1 Stream A)
+- [x] D4: V2 Session API evaluated → use V1 query() (see v2-session-api-evaluation.md)
+- [x] D5: CLI subprocess replaced with SDK query() in AutoModeService
+- [x] D6: Typed EventPayloadMap, EventService.emit() overloads
+- [x] D7: Session resume (POST /api/sessions/:id/resume, findResumable)
 
 ---
 
-## Batch 3 — After Streams C & D Complete
+## Batch 3 — IN PROGRESS (3 agents running in parallel)
 
-### Stream F: Self-Building Validation
-- [ ] F1: Run NOMOS from dashboard to implement a real feature on its own codebase
-- [ ] F2: Validate cost tracking end-to-end
-- [ ] F3: Test crash recovery (kill server mid-pipeline, restart, verify session cleanup)
-- [ ] F4: Test Intent Box → expansion → auto-mode → merge flow
+### Stream F: Self-Building Validation — DONE (validation-agent, F1 needs manual testing)
+- [x] F2: Cost tracking validated — 34 tests (extractCostData, toProviderMessage, classifyError, MockProvider, cost flow)
+- [x] F3: Crash recovery tested — 21 tests (startup cleanup, resumeSession, findResumable, full recovery flow)
+- [x] F4: Self-building loop validated — 22 tests (feature creation, startFeature triggers pipeline, PipelineService checkpoint reading, EventService typed events + subscriber isolation, session state transitions PENDING→RUNNING→COMPLETED/FAILED→RUNNING, full create→start→complete flow)
+- [ ] F1: NEEDS MANUAL TESTING — Run from dashboard with live server + Docker Postgres
 
-### Stream G: Production Hardening
-- [ ] G1: Add Redis for EventService (replace in-memory pub/sub)
-- [ ] G2: Add structured logging (Pino)
-- [ ] G3: Add health check with dependency status (DB, Redis)
-- [ ] G4: Add Prometheus metrics endpoint
-- [ ] G5: Add E2E tests with Playwright
-- [ ] G6: Add CD pipeline (GitHub Actions → Docker registry → deploy)
+### Stream G: Production Hardening — DONE (hardening-agent)
+- [x] G1: Redis EventService — ioredis, docker-compose redis enabled, REDIS_URL in env, RedisEventService with pub/sub, fallback to in-memory
+- [x] G2: Pino structured logging — replaced all console.log/error/warn, LOG_LEVEL config, JSON/pretty modes, child loggers per service
+- [x] G3: Health check — /health (liveness, always 200) and /ready (DB + Redis + WebSocket checks)
+- [x] G4: Prometheus metrics — prom-client, /metrics endpoint, request duration, feature/session/cost counters, default Node.js metrics
+- [x] G5: E2E Playwright tests — playwright.config.ts, smoke tests (login, dashboard, health/ready endpoints), .e2e.ts convention
+- [x] G6: CD pipeline — .github/workflows/cd.yml, GHCR push on main, sha+latest tags, health check against built image
+
+### Stream H: Strategic Cleanup — IN PROGRESS (cleanup-agent)
+- [ ] H1: Triage 11 waiting_approval features — IN PROGRESS (cleanup-agent)
+  - F004, F019, F031, F032, F034, F035, F224, F243, F260, F261, F262
+  - F034/F035 likely superseded by F259/F263
+- [ ] H2: Collapse features from 285 → ~80 active (blocked by H1)
+  - Archive aspirational phase-3/4 to .nomos/archive/features-aspirational.json
+  - Archive bulk granular micro-features to .nomos/archive/features-bulk-granular.json
+  - Merge micro-features into epics (terminal→1, git→1, auto-mode→1, themes→1)
+- [ ] H3: Close learning feedback loop
+  - Phase 1 scout reads relevant patterns (confidence >= 0.7)
+  - Phase 2 architect receives antipattern warnings
+  - Fix data integrity: duplicate PAT-017, unknown categories, inconsistent IDs
+  - Normalize 25+ categories → 8 (typescript, frontend, server, database, testing, infra, security, websocket)
+- [ ] H4: Replace app_spec.json with minimal project.json (~50 lines)
+  - Merge stack.json into project.json
+  - Update SpecService
+  - Archive app_spec.json and stack.json
 
 ---
 
-## Database Decision Record
+## Batch 4 — READY (after Batch 3 commits)
 
-**Choice:** PostgreSQL in Docker (docker-compose)
-**Rationale:**
-1. Concurrent access needed (AutoModeService + dashboard + CLI simultaneously)
-2. Real types: boolean, timestamp, jsonb, numeric (no more TEXT hacks)
-3. FK constraints properly enforced
-4. Easy migration to Neon cloud when NOMOS serves external projects (Stage 2)
-5. Redis can be added to same docker-compose for caching/events later
-6. Drizzle ORM abstracts dialect — schema migration is mechanical
-
-**Migration Strategy:**
-- Fresh Postgres migrations (not converted from SQLite)
-- `nomos db seed` imports features.json as one-time migration
-- SQLite migrations archived but not deleted (reference)
-- Tests updated to use Postgres (testcontainers or docker-compose)
-
-**Connection Config:**
-```
-DATABASE_URL=postgresql://nomos:nomos@localhost:5432/nomos
-REDIS_URL=redis://localhost:6379 (future)
-```
+### Stream I: Learning DB Migration
+- [ ] I1: Create DB tables: patterns, antipatterns, feature_insights, feature_metrics
+- [ ] I2: Migration script: JSON files → DB tables
+- [ ] I3: Update Phase 6 historian to write to DB (POST /api/learnings/patterns)
+- [ ] I4: CLI fallback: write to .nomos/learning/pending.json when server is down
+- [ ] I5: Add /api/learnings/relevant endpoint for Phase 1/2 queries
+- [ ] I6: Add pattern curation automation (prune low-confidence, promote high-reuse)
+- [ ] I7: Dashboard learnings tab (pattern catalog, antipattern warnings, insights timeline)
 
 ---
 
 ## Resume Instructions
 
 If resuming in a new session:
-1. Read this file: `.nomos/docs/execution-plan-2026-02-09.md`
-2. Read the strategic review: `.nomos/docs/strategic-review-2026-02-09.md`
-3. Check git status to see what streams completed
-4. Look at the Progress Tracker table above for current state
-5. If Stream B is still incomplete, review postgres-agent's partial work and continue
-6. Once Stream B is done, commit all Batch 1 changes, then spawn Batch 2 agents (Stream C + D)
 
-**Key decisions already made:**
+1. **Read this file first:** `.nomos/docs/execution-plan-2026-02-09.md`
+2. **Check git log:** `git log --oneline -5` to see latest commits
+3. **Check git status:** `git diff --stat HEAD` to see uncommitted changes
+4. **Check Progress Tracker** table above for current state
+
+### If Batch 3 agents were interrupted:
+
+**Check what completed:**
+```bash
+# Check test count (should be growing)
+bun test 2>&1 | tail -5
+
+# Check type errors
+bun run check-types 2>&1 | tail -5
+
+# Check what files changed
+git diff --stat HEAD
+```
+
+**Resume by task:**
+- If F tasks incomplete → spawn validation-agent for remaining F tasks
+- If G tasks incomplete → spawn hardening-agent for remaining G tasks
+- If H tasks incomplete → spawn cleanup-agent for remaining H tasks
+- If all Batch 3 done → commit, push, start Batch 4
+
+### Key decisions already made:
 - Docker Postgres (not SQLite, not Neon)
 - DB as single source of truth (not features.json)
-- Redis stub in docker-compose (for later)
-- Fresh pg migrations (not converted from sqlite)
-- V2 Session API evaluation (not mandatory adoption)
-- D2/D3 (deprecated agent refs in skills) already done by Stream A cleanup
+- V1 SDK query() (V2 too unstable — @alpha)
+- Redis via ioredis with in-memory fallback
+- features.json → seed-only file, DB is source of truth
+- app_spec.json → replaced by minimal project.json
+- Learning system: JSON → DB migration (Batch 4)
+- Pattern categories normalized to 8 (from 25+)
+- Feature list: 285 → ~80 active (aspirational/bulk archived)
 
-**Files changed (uncommitted — ALL Batch 1):**
-- Stream A: features.json, 5 deleted agents, 7 updated skill files, sdk-options.ts deleted, 15 .DS_Store removed, 2 locks deleted, ralph-loop/ removed
-- Stream E: 2 CI workflows, 1 composite action, root + web package.json, 1 new test file
-- Stream B: 30+ files — all schema/*.ts, index.ts, drizzle.config.ts, migrate.ts, docker-compose.yml, Dockerfile, env validation, auth adapter, server startup, repositories, seed script, test files, .env.example files, resolve-url.ts deleted, SQLite migrations archived
+### Architecture post-Batch 2:
+- AutoModeService uses SDK query() (not CLI subprocess)
+- Typed EventPayloadMap with EventService.emit() overloads
+- AuthenticatedUser type normalizes API key + session auth
+- Session resume: POST /api/sessions/:id/resume
+- Cost tracking: SDKResultMessage → extractCostData() → SessionService → DB
 
-**Next steps:**
-1. User: update .env, start postgres, run migrations
-2. Commit all Batch 1 changes
-3. Spawn Batch 2 agents (Stream C: Pipeline Unification + Stream D: SDK Modernization)
+### Test baseline:
+- Batch 1: 665 tests → Batch 2: 929 tests → Batch 3: growing (F2 +34, F3 +21 so far)
+- 0 type errors, 0 lint errors throughout

@@ -4,7 +4,19 @@ import type {
 	EventType,
 } from "@nomos-ai/types";
 
-export class EventService {
+/** Interface for event pub/sub — implemented by in-memory and Redis variants */
+export interface IEventService {
+	emit<T extends keyof EventPayloadMap>(
+		type: T,
+		payload: EventPayloadMap[T],
+	): void;
+	emit(type: EventType, payload: unknown): void;
+	subscribe(callback: EventCallback): () => void;
+	readonly subscriberCount: number;
+}
+
+/** In-memory event service — single-process only */
+export class EventService implements IEventService {
 	private subscribers = new Set<EventCallback>();
 
 	/** Emit a typed event with payload matching the EventPayloadMap */

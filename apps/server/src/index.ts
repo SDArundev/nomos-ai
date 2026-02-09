@@ -5,7 +5,10 @@ import { getEventService } from "@nomos-ai/api/routers/agent";
 import { appRouter } from "@nomos-ai/api/routers/index";
 import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
+import { RedisEventService } from "@nomos-ai/api/services/redis-event-service";
 import { auth } from "@nomos-ai/auth";
+import { serverLogger } from "@nomos-ai/api/lib/logger";
+import { registry, requestDuration } from "@nomos-ai/api/lib/metrics";
 import { db, runMigrations, sessionRepository, sql } from "@nomos-ai/db";
 import { env } from "@nomos-ai/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
@@ -23,7 +26,7 @@ import { createWebSocketHandlers, type WSData } from "./lib/websocket";
 try {
 	await runMigrations();
 } catch (error) {
-	console.error("Failed to run database migrations:", error);
+	serverLogger.fatal({ err: error }, "Failed to run database migrations");
 	process.exit(1);
 }
 
@@ -39,10 +42,10 @@ try {
 				completedAt: new Date(),
 			});
 		}
-		console.log(`[db] Cleaned up ${orphaned.length} orphaned sessions`);
+		serverLogger.info({ count: orphaned.length }, "Cleaned up orphaned sessions");
 	}
 } catch (error) {
-	console.warn("[db] Session cleanup failed (non-fatal):", error);
+	serverLogger.warn({ err: error }, "Session cleanup failed (non-fatal)");
 }
 
 const app = new Hono<{ Variables: { orpcContext: any } }>();
@@ -124,6 +127,27 @@ app.use("/*", async (c, next) => {
 	}
 });
 
+// Request duration tracking for Prometheus
+app.use("/*", async (c, next) => {
+	const start = performance.now();
+	await next();
+	const duration = (performance.now() - start) / 1000;
+	// Normalize path to avoid high-cardinality labels
+	const path = c.req.path.replace(/\/[a-f0-9-]{36}/g, "/:id").replace(/\/[A-Z]+-?\d+/g, "/:id");
+	requestDuration.observe(
+		{ method: c.req.method, path, status: String(c.res.status) },
+		duration,
+	);
+});
+
+// Prometheus metrics endpoint (no auth required)
+app.get("/metrics", async (c) => {
+	const metrics = await registry.metrics();
+	return c.text(metrics, 200, {
+		"Content-Type": registry.contentType,
+	});
+});
+
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 // API key Bearer token authentication (before route handlers, after auth)
@@ -188,7 +212,7 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
 	],
 	interceptors: [
 		onError((error) => {
-			console.error(error);
+			serverLogger.error({ err: error }, "OpenAPI handler error");
 		}),
 	],
 });
@@ -196,7 +220,7 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
 export const rpcHandler = new RPCHandler(appRouter, {
 	interceptors: [
 		onError((error) => {
-			console.error(error);
+			serverLogger.error({ err: error }, "RPC handler error");
 		}),
 	],
 });
@@ -245,27 +269,10 @@ app.get("/", (c) => {
 	return c.text("OK");
 });
 
-app.get("/health", async (c) => {
-	let database: "connected" | "disconnected" = "connected";
-	try {
-		await db.execute(sql`SELECT 1`);
-	} catch {
-		database = "disconnected";
-		return c.json(
-			{
-				status: "unhealthy",
-				version: "0.1.0",
-				database,
-				uptime: process.uptime(),
-				timestamp: new Date().toISOString(),
-			},
-			503,
-		);
-	}
+app.get("/health", (c) => {
 	return c.json({
 		status: "ok",
 		version: "0.1.0",
-		database,
 		uptime: process.uptime(),
 		timestamp: new Date().toISOString(),
 	});
@@ -283,6 +290,11 @@ app.get("/ready", async (c) => {
 		checks.db = true;
 	} catch {
 		// DB not ready
+	}
+
+	// Check Redis connectivity (only if configured)
+	if (eventService instanceof RedisEventService) {
+		checks.redis = await eventService.ping();
 	}
 
 	// Check WebSocket broadcaster initialized (clientCount getter exists)
@@ -311,7 +323,7 @@ app.onError((err, c) => {
 	if (err instanceof HTTPException) {
 		return err.getResponse();
 	}
-	console.error("Unhandled error:", err);
+	serverLogger.error({ err }, "Unhandled error");
 	const message =
 		process.env.NODE_ENV === "production"
 			? "Internal Server Error"
@@ -319,7 +331,7 @@ app.onError((err, c) => {
 	return c.json({ error: message }, 500);
 });
 
-console.log(`Server ready on port ${env.PORT}`);
+serverLogger.info({ port: env.PORT }, "Server ready");
 
 export default {
 	port: env.PORT,

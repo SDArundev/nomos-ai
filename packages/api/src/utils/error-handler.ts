@@ -1,4 +1,5 @@
 import { ORPCError } from "@orpc/server";
+import { restLogger } from "../lib/logger";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -20,7 +21,7 @@ export function handleRepositoryError(
 
 	// Always log internal details server-side
 	if (isProduction) {
-		console.error(`[${operation}] Repository error:`, internalMessage);
+		restLogger.error({ operation, error: internalMessage }, "Repository error");
 	}
 
 	if (error instanceof Error && error.message.includes("not found")) {

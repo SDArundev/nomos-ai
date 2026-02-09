@@ -1,20 +1,26 @@
 import { sessionRepository } from "@nomos-ai/db";
+import { env } from "@nomos-ai/env/server";
 import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { AgentService } from "../services/agent-service";
 import { ClaudeProvider } from "../services/claude-provider";
-import { EventService } from "../services/event-service";
+import { EventService, type IEventService } from "../services/event-service";
+import { RedisEventService } from "../services/redis-event-service";
 import { SessionService } from "../services/session-service";
 
 // Singleton instances shared across routers
-let eventServiceInstance: EventService | null = null;
+let eventServiceInstance: IEventService | null = null;
 let sessionServiceInstance: SessionService | null = null;
 let agentServiceInstance: AgentService | null = null;
 
-export function getEventService(): EventService {
+export function getEventService(): IEventService {
 	if (!eventServiceInstance) {
-		eventServiceInstance = new EventService();
+		if (env.REDIS_URL) {
+			eventServiceInstance = new RedisEventService(env.REDIS_URL);
+		} else {
+			eventServiceInstance = new EventService();
+		}
 	}
 	return eventServiceInstance;
 }

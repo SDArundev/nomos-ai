@@ -183,7 +183,33 @@ bash .claude/skills/nomos/scripts/tmux-session.sh setup {feature_id}
 
 ---
 
-## 1.10 Dispatch Scout Agent
+## 1.10 Load Relevant Learning Context
+
+Read patterns and antipatterns from the learning system, filtered by feature category:
+
+```bash
+CATEGORY="{category}"  # e.g., CAT-AGT, CAT-FE, CAT-API
+
+# Read patterns relevant to this category
+RELEVANT_PATTERNS=$(jq --arg cat "$CATEGORY" '[.patterns[] | select(
+  (.applies_to // [] | any(. == $cat)) or
+  (.applies_to // [] | any(. == "all")) or
+  (.category == "infra")
+) | {id, name, recommendation, gotcha: (.gotcha // .gotchas // null), risk_if_ignored}]' .nomos/learning/patterns.json)
+
+# Read antipatterns relevant to this category
+RELEVANT_ANTIPATTERNS=$(jq --arg cat "$CATEGORY" '[.antipatterns[] | select(
+  (.category == "security") or
+  (.severity == "CRITICAL") or
+  (.severity == "HIGH")
+) | {id, name, prevention, severity}]' .nomos/learning/antipatterns.json)
+```
+
+These will be passed to the scout agent and included in cp-01.json for Phase 2.
+
+---
+
+## 1.11 Dispatch Scout Agent
 
 <critical>
 Use the Task tool to dispatch the scout agent with a FRESH context window.
@@ -204,9 +230,16 @@ scout_result = Task(
     Acceptance Criteria: {acceptance_criteria}
     Dependencies: {dependencies}
 
+    Relevant patterns from learning system:
+    {RELEVANT_PATTERNS}
+
+    Relevant antipatterns to avoid:
+    {RELEVANT_ANTIPATTERNS}
+
     Working directory: {PROJECT_ROOT}
 
     Follow the workflow in .claude/agents/scout.md.
+    Include the relevant patterns and antipatterns in your output.
     Return ONLY a JSON object (no markdown, no explanation).
   """
 )
@@ -220,7 +253,7 @@ bash .claude/skills/nomos/scripts/nomos.sh state preverify {feature_id}
 
 ---
 
-## 1.11 Write cp-01.json
+## 1.12 Write cp-01.json
 
 Using Write tool, create `.nomos/output/{feature_id}/cp-01.json`:
 
@@ -256,13 +289,17 @@ Using Write tool, create `.nomos/output/{feature_id}/cp-01.json`:
     "phase": "{phase}",
     "dependencies": [{dependencies}]
   },
+  "learning": {
+    "patterns": {RELEVANT_PATTERNS},
+    "antipatterns": {RELEVANT_ANTIPATTERNS}
+  },
   "data": {scout_result}
 }
 ```
 
 ---
 
-## 1.12 Show Summary and Proceed
+## 1.13 Show Summary and Proceed
 
 ```
 NOMOS v4: {feature_id} - {feature_title}

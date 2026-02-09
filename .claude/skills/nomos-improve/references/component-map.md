@@ -186,9 +186,9 @@ nomos-verify → writes:
 | File | Purpose | Validates |
 |------|---------|-----------|
 | `schemas/feature.schema.json` | Feature backlog schema | features.json |
-| `schemas/app_spec.schema.json` | App specification schema | app_spec.json |
+| `schemas/feature.schema.json` | Feature backlog schema | features.json |
 | `features.json` | Feature backlog (source of truth) | — |
-| `app_spec.json` | Project specification | — |
+| `project.json` | Project config (meta, stack, settings, constitution) | — |
 
 ---
 

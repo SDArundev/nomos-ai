@@ -1,5 +1,5 @@
 import type { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
-import type { EventService } from "@nomos-ai/api/services/event-service";
+import type { IEventService } from "@nomos-ai/api/services/event-service";
 import type { TerminalService } from "@nomos-ai/api/services/terminal-service";
 import type { ServerWebSocket } from "bun";
 
@@ -12,7 +12,7 @@ export interface WSData {
 export function createWebSocketHandlers(
 	broadcaster: EventBroadcaster,
 	terminalService?: TerminalService,
-	events?: EventService,
+	events?: IEventService,
 ) {
 	// Track terminal WebSocket clients by sessionId
 	const terminalClients = new Map<string, Set<ServerWebSocket<WSData>>>();

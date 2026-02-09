@@ -45,6 +45,7 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import type { Context as ORPCContext } from "./context";
+import { restLogger } from "./lib/logger";
 
 /**
  * Create REST API routes that wrap oRPC RPC handler
@@ -279,7 +280,7 @@ export function createRestAdapter(rpcHandler: any) {
 
 	// GET /api/sessions/resumable - List resumable sessions
 	app.get("/sessions/resumable", async (c: Context) => {
-		return callRPC(c, "sessions.listResumable");
+		return callRPC(c, "sessions.listResumable", {});
 	});
 
 	// ── Learnings ─────────────────────────────────────────────
@@ -356,7 +357,7 @@ export function createRestAdapter(rpcHandler: any) {
  * Handle errors and convert to HTTP responses
  */
 function handleError(c: Context, error: any) {
-	console.error("REST API Error:", error);
+	restLogger.error({ err: error }, "REST API error");
 
 	// Handle oRPC errors
 	if (error.code) {

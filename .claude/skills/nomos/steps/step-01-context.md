@@ -80,18 +80,18 @@ Task: {feature_description}
 
 ### 1b. Load Tech Stack (BEFORE launching agents)
 
-Read `.nomos/stack.json` (if exists). This is a pre-computed inventory of all
-dependencies, frameworks, and component registries in the project.
+Read `.nomos/project.json` (if exists). This is the project configuration with
+meta, stack, settings, and constitution. Falls back to `.nomos/stack.json` for legacy projects.
 
 Set state variable:
-`{tech_stack}` = parsed contents of stack.json
+`{tech_stack}` = parsed contents of project.json (stack section) or stack.json
 
 Pass to ALL agents:
 - Key dependencies matching the feature's layer/category
 - Component registries with installed/available lists
 - Best practices for matched dependencies
 
-If stack.json does not exist: WARN and skip (agents fall back to codebase scanning).
+If neither project.json nor stack.json exists: WARN and skip (agents fall back to codebase scanning).
 
 ### 2. Launch Parallel Agents (SINGLE MESSAGE)
 

@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "name": "NOMOS AI",
+    "acronym": "Navigation, Orchestration, Memory, Observation, Shipping",
+    "version": "1.0.0",
+    "tagline": "Autonomous AI Development Studio",
+    "description": "Watch AI agents implement features while you focus on what matters.",
+    "repository": "https://github.com/SDArundev/nomos-ai"
+  },
+  "stack": {
+    "runtime": "bun",
+    "monorepo": "turborepo",
+    "frontend": ["React 19", "TanStack Router", "TanStack Query", "Zustand", "Tailwind 4", "shadcn/ui"],
+    "backend": ["Hono", "oRPC", "Drizzle ORM", "PostgreSQL", "Zod", "better-auth"],
+    "ai": ["Claude Agent SDK", "Claude Opus 4 / Sonnet 4.5 / Haiku 4.5"],
+    "tools": ["Biome", "TypeScript 5.7+", "Vitest", "Playwright"]
+  },
+  "settings": {
+    "qualityGates": ["bun run check-types", "bun run check", "bun run test", "bun run build"],
+    "gitBranch": "nomos/{feature-id}",
+    "commitFormat": "feat({feature-id}): {summary}",
+    "mainBranch": "main",
+    "maxAutoRetries": 3,
+    "defaultModel": "sonnet"
+  },
+  "constitution": [
+    "Every feature must have a complete specification before implementation begins.",
+    "All quality gates must pass before any merge to main branch.",
+    "Human approval is required for all merges to main branch.",
+    "Each feature must be developed in an isolated git worktree.",
+    "Each agent session works on exactly one feature.",
+    "Insights from each feature must be captured and persisted.",
+    "Auto-mode pauses after consecutive failures to prevent runaway errors."
+  ]
+}

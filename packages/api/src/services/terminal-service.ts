@@ -1,5 +1,5 @@
 import * as pty from "node-pty";
-import type { EventService } from "./event-service";
+import type { IEventService } from "./event-service";
 
 interface TerminalSession {
 	id: string;
@@ -16,7 +16,7 @@ const BATCH_INTERVAL = 4; // 4ms
 export class TerminalService {
 	private sessions = new Map<string, TerminalSession>();
 
-	constructor(private events: EventService) {}
+	constructor(private events: IEventService) {}
 
 	createSession(cwd: string, userId: string): string {
 		const id = crypto.randomUUID();

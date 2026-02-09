@@ -1,7 +1,19 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { FeatureInsert } from "@nomos-ai/db";
-import { validateSpec } from "../lib/spec-validator";
+
+interface ProjectConfig {
+	meta: {
+		name: string;
+		version: string;
+		tagline?: string;
+		description?: string;
+		repository?: string;
+	};
+	stack?: Record<string, unknown>;
+	settings?: Record<string, unknown>;
+	constitution?: string[];
+}
 
 interface AppSpec {
 	meta: {
@@ -35,7 +47,38 @@ interface AppSpec {
 
 export class SpecService {
 	/**
-	 * Load app_spec.json from a project path.
+	 * Load project.json (preferred) or app_spec.json (legacy fallback) from a project path.
+	 */
+	async loadProjectConfig(
+		projectPath: string,
+	): Promise<ProjectConfig | null> {
+		const projectJsonPath = join(projectPath, ".nomos", "project.json");
+		try {
+			const content = await readFile(projectJsonPath, "utf-8");
+			return JSON.parse(content) as ProjectConfig;
+		} catch {
+			// Fallback: try loading app_spec.json and converting
+			const spec = await this.loadSpec(projectPath);
+			if (!spec) return null;
+			return {
+				meta: {
+					name: spec.meta.name,
+					version: spec.meta.version,
+					tagline:
+						typeof spec.meta.tagline === "string"
+							? spec.meta.tagline
+							: spec.meta.tagline?.en,
+					description:
+						typeof spec.meta.description === "string"
+							? spec.meta.description
+							: spec.meta.description?.en,
+				},
+			};
+		}
+	}
+
+	/**
+	 * Load app_spec.json from a project path (legacy).
 	 */
 	async loadSpec(projectPath: string): Promise<AppSpec | null> {
 		const specPath = join(projectPath, ".nomos", "app_spec.json");
@@ -48,19 +91,15 @@ export class SpecService {
 	}
 
 	/**
-	 * Save app_spec.json to a project path.
+	 * Save project.json to a project path.
 	 */
-	async saveSpec(projectPath: string, spec: AppSpec): Promise<void> {
-		const specPath = join(projectPath, ".nomos", "app_spec.json");
-		await mkdir(dirname(specPath), { recursive: true });
-		await writeFile(specPath, JSON.stringify(spec, null, "\t"), "utf-8");
-	}
-
-	/**
-	 * Validate a spec object.
-	 */
-	validate(spec: Record<string, unknown>) {
-		return validateSpec(spec);
+	async saveProjectConfig(
+		projectPath: string,
+		config: ProjectConfig,
+	): Promise<void> {
+		const configPath = join(projectPath, ".nomos", "project.json");
+		await mkdir(dirname(configPath), { recursive: true });
+		await writeFile(configPath, JSON.stringify(config, null, "\t"), "utf-8");
 	}
 
 	/**

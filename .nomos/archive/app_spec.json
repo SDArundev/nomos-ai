@@ -1,0 +1,608 @@
+{
+	"$schema": "./schemas/app_spec.schema.json",
+	"meta": {
+		"name": "NOMOS AI",
+		"acronym": "Navigation, Orchestration, Memory, Observation, Shipping",
+		"version": "1.0.0",
+		"tagline": {
+			"en": "Autonomous AI Development Studio",
+			"fr": "Studio de Developpement IA Autonome"
+		},
+		"description": "Watch AI agents implement features while you focus on what matters. Describe features on a Kanban board, let Claude agents code them autonomously with human oversight at strategic decision points.",
+		"repository": "https://github.com/SDArundev/nomos-ai",
+		"createdAt": "2026-01-27",
+		"updatedAt": "2026-01-27"
+	},
+
+	"vision": {
+		"mission": "Enable fully autonomous software development where AI agents reliably implement features from specification to production with human oversight only at strategic decision points.",
+		"goals": [
+			"Enable fully autonomous feature development by AI agents",
+			"Maintain code quality through automated quality gates",
+			"Learn from each feature to improve future development",
+			"Provide human oversight at strategic decision points only",
+			"Scale to multiple parallel agents working on different features",
+			"Persist context and memory across sessions for continuity",
+			"Support auto-mode for continuous autonomous execution",
+			"Provide desktop app experience via Tauri"
+		],
+		"nonGoals": [
+			"Replace human judgment for architectural decisions",
+			"Operate without any human oversight",
+			"Support cloud deployment (local-first design)",
+			"Provide real-time collaboration features",
+			"Integrate with external project management tools"
+		],
+		"successMetrics": [
+			{
+				"metric": "Feature completion rate",
+				"target": ">90% first-attempt success",
+				"measurement": "Features verified without retries / total features"
+			},
+			{
+				"metric": "Quality gate pass rate",
+				"target": ">95% on first submission",
+				"measurement": "Features passing all gates / total submissions"
+			},
+			{
+				"metric": "Auto-mode uptime",
+				"target": ">99% when enabled",
+				"measurement": "Time in auto-mode without failures / total auto-mode time"
+			},
+			{
+				"metric": "Context recovery time",
+				"target": "<30 seconds",
+				"measurement": "Time from session start to productive work"
+			}
+		]
+	},
+
+	"constitution": {
+		"preamble": "NOMOS AI is governed by immutable principles that ensure quality, safety, and reliability. These articles cannot be overridden by any feature or configuration.",
+		"articles": [
+			{
+				"id": "ART-001",
+				"title": "Specification First",
+				"principle": "Every feature must have a complete specification before implementation begins.",
+				"rationale": "Specifications prevent scope creep and ensure clear acceptance criteria.",
+				"enforcement": "features.json requires title, description, and acceptanceCriteria fields."
+			},
+			{
+				"id": "ART-002",
+				"title": "Quality Gate Imperative",
+				"principle": "All quality gates must pass before any merge to main branch.",
+				"rationale": "Automated quality gates catch issues before they reach production.",
+				"enforcement": "TypeScript, lint, test, and security gates are blocking."
+			},
+			{
+				"id": "ART-003",
+				"title": "Human Approval Required",
+				"principle": "Human approval is required for all merges to main branch.",
+				"rationale": "Human oversight ensures accountability and catches issues AI might miss.",
+				"enforcement": "Features must reach waiting_approval state before merge."
+			},
+			{
+				"id": "ART-004",
+				"title": "Worktree Isolation",
+				"principle": "Each feature must be developed in an isolated git worktree.",
+				"rationale": "Isolation prevents cross-contamination and enables parallel development.",
+				"enforcement": "Agent execution requires worktree path; changes outside worktree are blocked."
+			},
+			{
+				"id": "ART-005",
+				"title": "Incremental Progress",
+				"principle": "Each agent session works on exactly one feature.",
+				"rationale": "Single-feature focus ensures quality and enables clear rollback.",
+				"enforcement": "Session creation requires exactly one featureId."
+			},
+			{
+				"id": "ART-006",
+				"title": "Learning Preservation",
+				"principle": "Insights from each feature must be captured and persisted.",
+				"rationale": "Learning accumulation improves future feature development.",
+				"enforcement": "Merge step requires learning capture in .nomos/learning/."
+			},
+			{
+				"id": "ART-007",
+				"title": "Fail-Safe Auto-Mode",
+				"principle": "Auto-mode pauses after consecutive failures to prevent runaway errors.",
+				"rationale": "Automatic pause prevents resource waste and accumulated errors.",
+				"enforcement": "Auto-mode pauses after 3 consecutive failures; requires human intervention."
+			}
+		]
+	},
+
+	"architecture": {
+		"type": "monorepo",
+		"runtime": "bun",
+		"buildSystem": "turborepo",
+		"stack": {
+			"frontend": [
+				"React 19",
+				"TanStack Router",
+				"TanStack Query",
+				"TanStack Form",
+				"Vite 6",
+				"Zustand",
+				"shadcn/ui",
+				"Tailwind CSS 4",
+				"Radix UI"
+			],
+			"backend": [
+				"Bun 1.3+",
+				"Hono",
+				"oRPC",
+				"Drizzle ORM",
+				"SQLite (libSQL)",
+				"Zod",
+				"Pino",
+				"better-auth"
+			],
+			"ai": [
+				"Claude Agent SDK (@anthropic-ai/claude-agent-sdk)",
+				"Claude Opus 4 / Sonnet 4 / Haiku 3",
+				"Extended Thinking (16k-64k tokens)",
+				"MCP (Model Context Protocol)"
+			],
+			"tools": [
+				"Turborepo",
+				"Biome",
+				"Ultracite",
+				"TypeScript 5.7+",
+				"Vitest",
+				"Playwright",
+				"Husky"
+			],
+			"infrastructure": [
+				"Tauri (desktop)",
+				"Git worktrees",
+				"WebSocket (real-time)",
+				"SQLite for persistence"
+			]
+		},
+		"components": {
+			"web": {
+				"description": "React frontend for visual project management",
+				"language": "typescript",
+				"framework": "react-19",
+				"responsibilities": [
+					"Kanban board UI for feature management",
+					"Feature detail views and editing",
+					"Real-time agent streaming via WebSocket",
+					"Git diff viewer and commit browser",
+					"Terminal integration with xterm.js",
+					"Settings and configuration UI",
+					"Auto-mode controls and monitoring"
+				],
+				"dependencies": ["server"]
+			},
+			"server": {
+				"description": "Hono backend for API, WebSocket, and agent execution",
+				"language": "typescript",
+				"framework": "hono",
+				"responsibilities": [
+					"oRPC procedures for type-safe API",
+					"WebSocket for real-time streaming",
+					"Agent execution engine with Claude SDK",
+					"Database operations via Drizzle",
+					"Git operations (worktree, commit, merge)",
+					"Auto-mode orchestration",
+					"Session authentication via better-auth"
+				],
+				"dependencies": ["db", "types"]
+			},
+			"desktop": {
+				"description": "Tauri desktop application wrapper",
+				"language": "rust",
+				"framework": "tauri",
+				"responsibilities": [
+					"Native desktop experience",
+					"System tray integration",
+					"File system access",
+					"Native notifications",
+					"Auto-updates"
+				],
+				"dependencies": ["web", "server"]
+			},
+			"packages/types": {
+				"description": "Shared TypeScript types and Zod schemas",
+				"language": "typescript",
+				"responsibilities": [
+					"Branded types (FeatureId, ProjectId, SessionId)",
+					"Zod schemas for validation",
+					"Type inference from schemas",
+					"Shared constants and enums"
+				]
+			},
+			"packages/db": {
+				"description": "Database layer with Drizzle ORM",
+				"language": "typescript",
+				"responsibilities": [
+					"Drizzle schema definitions",
+					"Migrations",
+					"Repository pattern implementations",
+					"Transaction utilities"
+				],
+				"dependencies": ["types"]
+			}
+		},
+		"dataFlow": [
+			{
+				"from": "web",
+				"to": "server",
+				"protocol": "oRPC over HTTP",
+				"data": "API calls (features, projects, sessions)"
+			},
+			{
+				"from": "server",
+				"to": "web",
+				"protocol": "WebSocket",
+				"data": "Real-time events (agent output, status updates)"
+			},
+			{
+				"from": "server",
+				"to": "Claude SDK",
+				"protocol": "Anthropic API",
+				"data": "Agent execution requests/responses"
+			},
+			{
+				"from": "server",
+				"to": "db",
+				"protocol": "Drizzle ORM",
+				"data": "CRUD operations"
+			}
+		]
+	},
+
+	"requirements": {
+		"functional": {
+			"REQ-PM-001": {
+				"title": "Multi-Project Support",
+				"description": "Support multiple projects with independent features and settings",
+				"priority": "high",
+				"acceptance": [
+					"Can create, switch between, and delete projects",
+					"Each project has isolated features and settings",
+					"Projects persist across sessions"
+				]
+			},
+			"REQ-KB-001": {
+				"title": "Kanban Board",
+				"description": "Visual Kanban board for feature management",
+				"priority": "critical",
+				"acceptance": [
+					"Display features in columns by status",
+					"Drag-and-drop to change status",
+					"Click to view/edit feature details",
+					"Real-time updates when status changes"
+				]
+			},
+			"REQ-AG-001": {
+				"title": "Agent Execution",
+				"description": "Execute Claude agent sessions for features",
+				"priority": "critical",
+				"acceptance": [
+					"Start agent session for a feature",
+					"Stream agent output in real-time",
+					"Display tool calls and results",
+					"Handle errors gracefully"
+				]
+			},
+			"REQ-AM-001": {
+				"title": "Auto-Mode",
+				"description": "Autonomous feature execution loop",
+				"priority": "high",
+				"acceptance": [
+					"Automatically pick next feature from queue",
+					"Execute features in sequence",
+					"Pause on consecutive failures",
+					"Resume with manual intervention"
+				]
+			},
+			"REQ-GT-001": {
+				"title": "Git Integration",
+				"description": "Git operations for feature isolation",
+				"priority": "critical",
+				"acceptance": [
+					"Create worktree for each feature",
+					"Commit changes with feature reference",
+					"Merge to main after approval",
+					"Cleanup worktree after merge"
+				]
+			}
+		},
+		"nonFunctional": {
+			"NFR-SEC-001": {
+				"title": "Security",
+				"category": "security",
+				"requirements": [
+					"Session-based authentication with better-auth",
+					"API key protection for Anthropic credentials",
+					"Input validation on all endpoints",
+					"CORS protection",
+					"Security headers on all responses"
+				]
+			},
+			"NFR-PERF-001": {
+				"title": "Performance",
+				"category": "performance",
+				"requirements": [
+					"API response time <100ms for CRUD operations",
+					"WebSocket latency <50ms for streaming",
+					"UI renders at 60fps",
+					"Database queries optimized with indexes"
+				],
+				"metrics": [
+					{
+						"name": "API Response Time",
+						"target": "<100ms p95",
+						"measurement": "Server-side timing"
+					}
+				]
+			},
+			"NFR-REL-001": {
+				"title": "Reliability",
+				"category": "reliability",
+				"requirements": [
+					"Graceful error handling",
+					"Session recovery after crashes",
+					"Database backup/restore",
+					"Automatic retry for transient failures"
+				]
+			},
+			"NFR-USE-001": {
+				"title": "Usability",
+				"category": "usability",
+				"requirements": [
+					"Keyboard shortcuts for common actions",
+					"Dark/light theme support",
+					"Responsive design for different screen sizes",
+					"Clear loading states and feedback"
+				]
+			},
+			"NFR-ACC-001": {
+				"title": "Accessibility",
+				"category": "accessibility",
+				"requirements": [
+					"WCAG 2.1 AA compliance",
+					"Keyboard navigation",
+					"Screen reader support",
+					"Sufficient color contrast"
+				]
+			}
+		}
+	},
+
+	"phases": [
+		{
+			"id": "phase-1",
+			"name": "Foundation",
+			"description": "Project setup, core types, database, basic UI",
+			"status": "planned",
+			"requirements": ["REQ-PM-001", "REQ-KB-001"],
+			"deliverables": [
+				"Monorepo scaffold with Turborepo",
+				"Shared types package with Zod schemas",
+				"Database schema and migrations",
+				"Basic Kanban board UI",
+				"Health check endpoint"
+			],
+			"exitCriteria": [
+				"Project builds successfully",
+				"Database migrations run",
+				"Kanban board renders features",
+				"Types are shared between frontend/backend"
+			]
+		},
+		{
+			"id": "phase-2",
+			"name": "Agent Integration",
+			"description": "Claude Agent SDK integration and execution engine",
+			"status": "planned",
+			"requirements": ["REQ-AG-001", "REQ-GT-001"],
+			"deliverables": [
+				"Claude Agent SDK integration",
+				"Agent session management",
+				"Real-time streaming via WebSocket",
+				"Git worktree operations",
+				"Quality gates chain"
+			],
+			"exitCriteria": [
+				"Agent can execute in worktree",
+				"Output streams to UI in real-time",
+				"Quality gates pass/fail correctly",
+				"Changes commit and merge"
+			]
+		},
+		{
+			"id": "phase-3",
+			"name": "Auto-Mode",
+			"description": "Autonomous execution loop and orchestration",
+			"status": "planned",
+			"requirements": ["REQ-AM-001"],
+			"deliverables": [
+				"Auto-mode execution loop",
+				"Feature queue management",
+				"Failure detection and pause",
+				"Follow-up instructions support"
+			],
+			"exitCriteria": [
+				"Auto-mode runs continuously",
+				"Pauses on consecutive failures",
+				"Resumes with intervention",
+				"Queue ordering works"
+			]
+		},
+		{
+			"id": "phase-4",
+			"name": "Desktop & Polish",
+			"description": "Tauri desktop app, themes, terminal",
+			"status": "planned",
+			"requirements": [],
+			"deliverables": [
+				"Tauri desktop wrapper",
+				"Terminal integration",
+				"Theme system",
+				"Keyboard shortcuts",
+				"Notifications"
+			],
+			"exitCriteria": [
+				"Desktop app builds for macOS/Linux",
+				"Terminal works in-app",
+				"Themes switch correctly",
+				"Shortcuts functional"
+			]
+		}
+	],
+
+	"constraints": {
+		"technical": [
+			"Must work offline (no cloud dependencies for core)",
+			"Must run on macOS and Linux",
+			"Database must be SQLite (portable, no server)",
+			"Must use Bun as primary runtime",
+			"All inputs validated with Zod schemas",
+			"API must be type-safe with oRPC"
+		],
+		"process": [
+			"All features must have specifications before implementation",
+			"Human approval required for merge to main",
+			"Quality gates must pass before merge",
+			"One feature per agent session",
+			"Learning captured after each merge"
+		],
+		"security": [
+			"No secrets in code or configuration",
+			"Agent tools scoped to worktree only",
+			"All user input validated",
+			"Session-based authentication required",
+			"Audit trail for state changes"
+		]
+	},
+
+	"boundaries": {
+		"always": [
+			"Read files in worktree",
+			"Write files in worktree",
+			"Run tests",
+			"Run linters",
+			"Git operations in worktree"
+		],
+		"askFirst": [
+			"Merge to main branch",
+			"Delete features",
+			"Change project settings",
+			"Install new dependencies",
+			"Modify database schema"
+		],
+		"never": [
+			"Access files outside worktree",
+			"Execute arbitrary shell commands",
+			"Access network without explicit permission",
+			"Modify system files",
+			"Access other projects' data"
+		]
+	},
+
+	"quality": {
+		"gates": [
+			{
+				"name": "TypeScript",
+				"command": "bun run check-types",
+				"blocking": true,
+				"description": "TypeScript compilation check"
+			},
+			{
+				"name": "Lint",
+				"command": "bun run check",
+				"blocking": true,
+				"description": "Biome lint and format check"
+			},
+			{
+				"name": "Tests",
+				"command": "bun run test",
+				"blocking": true,
+				"description": "Vitest test suite"
+			},
+			{
+				"name": "Build",
+				"command": "bun run build",
+				"blocking": true,
+				"description": "Production build check"
+			}
+		],
+		"testing": {
+			"framework": "vitest",
+			"coverage": 70,
+			"patterns": [
+				"Unit tests for types and utilities",
+				"Integration tests for API endpoints",
+				"E2E tests for critical paths"
+			]
+		},
+		"codeStyle": {
+			"linter": "biome",
+			"formatter": "biome",
+			"rules": "biome.json"
+		}
+	},
+
+	"workflow": {
+		"gitWorkflow": {
+			"branchNaming": "nomos/{feature-id}",
+			"commitFormat": "feat({feature-id}): {summary}",
+			"prTemplate": ".github/PULL_REQUEST_TEMPLATE.md",
+			"mainBranch": "main"
+		},
+		"featureWorkflow": {
+			"states": ["backlog", "in_progress", "waiting_approval", "verified"],
+			"transitions": [
+				{
+					"from": "backlog",
+					"to": "in_progress",
+					"trigger": "start",
+					"guard": "dependencies_verified"
+				},
+				{
+					"from": "in_progress",
+					"to": "waiting_approval",
+					"trigger": "complete",
+					"guard": "quality_gates_pass"
+				},
+				{ "from": "in_progress", "to": "backlog", "trigger": "cancel" },
+				{ "from": "waiting_approval", "to": "verified", "trigger": "approve" },
+				{
+					"from": "waiting_approval",
+					"to": "in_progress",
+					"trigger": "reject"
+				},
+				{ "from": "waiting_approval", "to": "backlog", "trigger": "reset" },
+				{ "from": "verified", "to": "backlog", "trigger": "reopen" }
+			]
+		}
+	},
+
+	"featureGeneration": {
+		"functional": {
+			"minimum": 150,
+			"target": 180,
+			"perRequirement": 3
+		},
+		"nonFunctional": {
+			"minimum": 50,
+			"target": 70,
+			"perCategory": 8
+		},
+		"total": {
+			"minimum": 200,
+			"maximum": 300
+		},
+		"sizing": {
+			"XS": 0.3,
+			"S": 0.35,
+			"M": 0.25,
+			"L": 0.08,
+			"XL": 0.02
+		}
+	}
+}

@@ -6,7 +6,7 @@ import {
 	worktreeAdd,
 	worktreeRemove,
 } from "../lib/git-utils";
-import type { EventService } from "./event-service";
+import type { IEventService } from "./event-service";
 
 /** Allowed base directories for project roots */
 const ALLOWED_ROOTS = ["/home", "/Users", "/tmp", "/var/projects"];
@@ -27,7 +27,7 @@ interface CreateWorktreeInput {
 }
 
 export class WorktreeService {
-	constructor(private events: EventService) {}
+	constructor(private events: IEventService) {}
 
 	async create(input: CreateWorktreeInput) {
 		const { featureId, branchName, baseBranch = "main" } = input;

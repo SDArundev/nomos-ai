@@ -14,8 +14,9 @@ import {
 } from "@nomos-ai/types";
 import { ORPCError } from "@orpc/server";
 import { loadProjectContext } from "../lib/context-loader";
+import { agentLogger } from "../lib/logger";
 import type { AgentProvider } from "./claude-provider";
-import type { EventService } from "./event-service";
+import type { IEventService } from "./event-service";
 import type { SessionService } from "./session-service";
 
 /** Max concurrent running sessions across all users */
@@ -168,7 +169,7 @@ export class AgentService {
 	private runningSessions = new Map<string, AbortController>();
 
 	constructor(
-		private events: EventService,
+		private events: IEventService,
 		private provider: AgentProvider,
 		private sessionService: SessionService,
 	) {}
@@ -350,7 +351,7 @@ export class AgentService {
 					error: errorMessage,
 				});
 			} catch (dbError) {
-				console.error("Failed to update session after error:", dbError);
+				agentLogger.error({ err: dbError, sessionId }, "Failed to update session after error");
 			}
 			this.events.emit("agent:error", {
 				sessionId,

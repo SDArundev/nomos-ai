@@ -1,6 +1,6 @@
 import { sessionRepository } from "@nomos-ai/db";
 import { SESSION_STATUS } from "@nomos-ai/types";
-import type { EventService } from "./event-service";
+import type { IEventService } from "./event-service";
 
 type SessionRecord = Awaited<ReturnType<typeof sessionRepository.create>>;
 
@@ -30,7 +30,7 @@ interface CostData {
 }
 
 export class SessionService {
-	constructor(private events: EventService) {}
+	constructor(private events: IEventService) {}
 
 	/** Create a session for an AutoMode pipeline run (starts immediately as RUNNING) */
 	async createPipelineSession(

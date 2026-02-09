@@ -14,6 +14,7 @@ Read `cp-01.json` from the output directory. Extract:
 - `env` (worktree_path, output_dir, project_root)
 - `flags` (plan_only, auto, test, etc.)
 - `feature_summary` (id, title, ac, category)
+- `learning` (patterns, antipatterns from learning system)
 - `data` (risk_level, patterns, antipatterns, key_files, stack_context)
 
 ---
@@ -41,6 +42,12 @@ architect_result = Task(
     Anti-patterns to avoid: {data.antipatterns}
     Key files: {data.key_files}
     Stack context: {data.stack_context}
+
+    Learning system patterns (proven approaches):
+    {learning.patterns}
+
+    Learning system antipatterns (known pitfalls):
+    {learning.antipatterns}
 
     Working directory: {env.project_root}
     Worktree: {env.worktree_path}

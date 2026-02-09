@@ -1,0 +1,330 @@
+{
+  "archived": "2026-02-09",
+  "reason": "aspirational phase-3/4 features",
+  "features": [
+    {
+      "id": "F064",
+      "title": "API authentication middleware",
+      "category": "CAT-SEC",
+      "description": "Implement Hono middleware to validate session on API requests. Return 401 for unauthenticated requests.",
+      "phase": "phase-1",
+      "priority": 64,
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F061",
+        "F015"
+      ],
+      "acceptanceCriteria": [
+        "Session validated on requests",
+        "401 for invalid sessions",
+        "User context available",
+        "Public endpoints excluded"
+      ],
+      "estimatedSize": "S",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F065",
+      "title": "Worktree path sandboxing",
+      "category": "CAT-SEC",
+      "description": "Validate all file operations stay within worktree boundaries. Block path traversal attempts, log violations.",
+      "phase": "phase-2",
+      "priority": 65,
+      "requirements": [
+        "REQ-GT-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
+      "acceptanceCriteria": [
+        "Paths validated against worktree",
+        "Traversal blocked",
+        "Violations logged",
+        "Clear error messages"
+      ],
+      "estimatedSize": "M",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite",
+      "release": "v1"
+    },
+    {
+      "id": "F066",
+      "title": "API key secure storage",
+      "category": "CAT-SEC",
+      "description": "Store Anthropic API key securely. Use system keychain on desktop, encrypted storage on web.",
+      "phase": "phase-2",
+      "priority": 66,
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F031"
+      ],
+      "acceptanceCriteria": [
+        "Key not in plain text",
+        "Keychain integration on desktop",
+        "Encrypted in database",
+        "Key rotation supported"
+      ],
+      "estimatedSize": "M",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite",
+      "release": "v1"
+    },
+    {
+      "id": "F067",
+      "title": "Input validation middleware",
+      "category": "CAT-SEC",
+      "description": "Validate all API inputs with Zod schemas. Reject malformed requests, sanitize strings, limit sizes.",
+      "phase": "phase-1",
+      "priority": 67,
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015",
+        "F002"
+      ],
+      "acceptanceCriteria": [
+        "All inputs validated",
+        "Zod errors formatted",
+        "String sanitization",
+        "Size limits enforced"
+      ],
+      "estimatedSize": "S",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite",
+      "release": "v1"
+    },
+    {
+      "id": "F068",
+      "title": "Security headers middleware",
+      "category": "CAT-SEC",
+      "description": "Add security headers to all responses: CSP, X-Frame-Options, X-Content-Type-Options, etc.",
+      "phase": "phase-1",
+      "priority": 68,
+      "requirements": [
+        "REQ-PM-001"
+      ],
+      "dependencies": [
+        "F015"
+      ],
+      "acceptanceCriteria": [
+        "CSP configured",
+        "Frame options set",
+        "Content-Type enforced",
+        "HSTS enabled"
+      ],
+      "estimatedSize": "S",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite",
+      "release": "v1"
+    },
+    {
+      "id": "F050",
+      "title": "Quality gate: Build check",
+      "category": "CAT-TST",
+      "description": "Implement quality gate that runs production build. Verify build succeeds, check bundle size, report warnings.",
+      "phase": "phase-2",
+      "priority": 50,
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F041"
+      ],
+      "acceptanceCriteria": [
+        "Build runs successfully",
+        "Bundle size reported",
+        "Warnings captured",
+        "Build artifacts valid"
+      ],
+      "estimatedSize": "S",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F051",
+      "title": "Quality gates pipeline runner",
+      "category": "CAT-TST",
+      "description": "Orchestrate quality gates in sequence: TypeScript, Lint, Test, Build. Stop on first failure, aggregate results.",
+      "phase": "phase-2",
+      "priority": 51,
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F047",
+        "F048",
+        "F049",
+        "F050"
+      ],
+      "acceptanceCriteria": [
+        "Gates run in order",
+        "Stops on failure",
+        "Results aggregated",
+        "Status emitted via WebSocket"
+      ],
+      "estimatedSize": "M",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite",
+      "release": "v1"
+    },
+    {
+      "id": "F052",
+      "title": "Quality gates results display",
+      "category": "CAT-TST",
+      "description": "Create component showing quality gate results with pass/fail status, duration, error details for each gate.",
+      "phase": "phase-2",
+      "priority": 52,
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F051"
+      ],
+      "acceptanceCriteria": [
+        "Each gate shown with status",
+        "Duration displayed",
+        "Errors expandable",
+        "Re-run button available"
+      ],
+      "estimatedSize": "S",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F082",
+      "title": "Learnings browser UI",
+      "category": "CAT-MEM",
+      "description": "Create UI to browse and manage extracted learnings. Filter by category, search, edit, delete.",
+      "phase": "phase-3",
+      "priority": 82,
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F079"
+      ],
+      "acceptanceCriteria": [
+        "Learnings listed",
+        "Filter by category",
+        "Search works",
+        "Edit/delete actions"
+      ],
+      "estimatedSize": "M",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F072",
+      "title": "Thinking level setting",
+      "category": "CAT-CFG",
+      "description": "Configure default thinking budget level: none, standard, extended, ultrathink. Show token estimates.",
+      "phase": "phase-2",
+      "priority": 72,
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F069",
+        "F031"
+      ],
+      "acceptanceCriteria": [
+        "Thinking level dropdown",
+        "Token estimates shown",
+        "Applied to new sessions",
+        "Per-feature override"
+      ],
+      "estimatedSize": "S",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F073",
+      "title": "Planning mode setting",
+      "category": "CAT-CFG",
+      "description": "Configure default planning mode: skip, lite, spec, full. Explain differences in UI.",
+      "phase": "phase-2",
+      "priority": 73,
+      "requirements": [
+        "REQ-AG-001"
+      ],
+      "dependencies": [
+        "F069"
+      ],
+      "acceptanceCriteria": [
+        "Planning mode dropdown",
+        "Mode descriptions shown",
+        "Default applied",
+        "Per-feature override"
+      ],
+      "estimatedSize": "S",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    },
+    {
+      "id": "F074",
+      "title": "Auto-mode settings panel",
+      "category": "CAT-CFG",
+      "description": "Configure auto-mode behavior: concurrency, failure threshold, pause conditions, queue behavior.",
+      "phase": "phase-3",
+      "priority": 74,
+      "requirements": [
+        "REQ-AM-001"
+      ],
+      "dependencies": [
+        "F069",
+        "F054"
+      ],
+      "acceptanceCriteria": [
+        "Concurrency configurable",
+        "Failure threshold adjustable",
+        "Pause conditions set",
+        "Queue rules defined"
+      ],
+      "estimatedSize": "M",
+      "status": "backlog",
+      "passes": false,
+      "model": "sonnet",
+      "thinkingLevel": "standard",
+      "planningMode": "lite"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { notificationRepository, projectRepository } from "@nomos-ai/db";
 import type { NotificationType } from "@nomos-ai/types";
-import type { EventService } from "./event-service";
+import type { IEventService } from "./event-service";
 
 interface CreateNotificationInput {
 	type: NotificationType;
@@ -11,7 +11,7 @@ interface CreateNotificationInput {
 }
 
 export class NotificationService {
-	constructor(private events: EventService) {}
+	constructor(private events: IEventService) {}
 
 	async create(input: CreateNotificationInput) {
 		const notification = await notificationRepository.create({

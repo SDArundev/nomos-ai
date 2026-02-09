@@ -1,4 +1,5 @@
-import type { EventService } from "./event-service";
+import { eventLogger } from "../lib/logger";
+import type { IEventService } from "./event-service";
 
 export interface WebSocketClient {
 	send(data: string): void;
@@ -15,13 +16,13 @@ export class EventBroadcaster {
 	private clients = new Map<WebSocketClient, TrackedClient>();
 	private unsubscribe: (() => void) | null = null;
 
-	constructor(private events: EventService) {
+	constructor(private events: IEventService) {
 		this.unsubscribe = this.events.subscribe((type, payload) => {
 			let data: string;
 			try {
 				data = JSON.stringify({ type, payload });
 			} catch (error) {
-				console.error("EventBroadcaster: JSON serialization failed", error);
+				eventLogger.error({ err: error }, "JSON serialization failed");
 				return;
 			}
 

@@ -10,6 +10,7 @@ import type {
 	ProviderMessage,
 } from "@nomos-ai/types";
 import { THINKING_TOKEN_BUDGET } from "@nomos-ai/types";
+import { agentLogger } from "../lib/logger";
 
 const MODEL_ALIASES: Record<string, string> = {
 	haiku: "claude-haiku-4-5-20251001",
@@ -99,7 +100,7 @@ function delayWithJitter(attempt: number): Promise<void> {
 /**
  * Extract cost data from an SDK result message using typed fields.
  */
-function extractCostData(
+export function extractCostData(
 	result: SDKResultMessage,
 ): ProviderMessage["costData"] {
 	if (result.total_cost_usd == null) return undefined;
@@ -116,7 +117,7 @@ function extractCostData(
  * Convert an SDK message to a ProviderMessage, returning undefined for
  * message types we don't forward (system, stream_event, tool_progress, etc.).
  */
-function toProviderMessage(message: SDKMessage): ProviderMessage | undefined {
+export function toProviderMessage(message: SDKMessage): ProviderMessage | undefined {
 	switch (message.type) {
 		case "assistant": {
 			const assistantMsg = message as SDKAssistantMessage;
@@ -233,8 +234,9 @@ export class ClaudeProvider implements AgentProvider {
 					);
 				}
 
-				console.warn(
-					`[claude-provider] Retryable error (attempt ${attempt + 1}/${MAX_RETRIES}): [${classified.category}] ${classified.message}`,
+				agentLogger.warn(
+					{ attempt: attempt + 1, maxRetries: MAX_RETRIES, category: classified.category },
+					classified.message,
 				);
 				await delayWithJitter(attempt);
 			}
