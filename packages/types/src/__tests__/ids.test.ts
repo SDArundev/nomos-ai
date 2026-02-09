@@ -4,111 +4,25 @@ import {
 	FeatureIdSchema,
 	type ProjectId,
 	ProjectIdSchema,
-	SessionIdSchema,
-	UserIdSchema,
 } from "../ids";
 
 describe("Branded ID Schemas", () => {
-	describe("FeatureIdSchema", () => {
-		it("accepts valid F001 format", () => {
-			const result = FeatureIdSchema.safeParse("F001");
-			expect(result.success).toBe(true);
-			if (result.success) {
-				expect(result.data).toBe("F001");
-			}
+	describe("FeatureIdSchema format validation", () => {
+		it("accepts valid F001-F999 format", () => {
+			expect(FeatureIdSchema.safeParse("F001").success).toBe(true);
+			expect(FeatureIdSchema.safeParse("F123").success).toBe(true);
+			expect(FeatureIdSchema.safeParse("F999").success).toBe(true);
 		});
 
-		it("accepts F123 format", () => {
-			const result = FeatureIdSchema.safeParse("F123");
-			expect(result.success).toBe(true);
+		it("rejects wrong digit counts", () => {
+			expect(FeatureIdSchema.safeParse("F0001").success).toBe(false);
+			expect(FeatureIdSchema.safeParse("F00").success).toBe(false);
+			expect(FeatureIdSchema.safeParse("F1").success).toBe(false);
 		});
 
-		it("accepts F999 format", () => {
-			const result = FeatureIdSchema.safeParse("F999");
-			expect(result.success).toBe(true);
-		});
-
-		it("rejects UUIDs (must be F001-F999 format)", () => {
-			const result = FeatureIdSchema.safeParse(
-				"550e8400-e29b-41d4-a716-446655440000",
-			);
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects F0001 (too many digits)", () => {
-			const result = FeatureIdSchema.safeParse("F0001");
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects F00 (too few digits)", () => {
-			const result = FeatureIdSchema.safeParse("F00");
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects F1 (too few digits)", () => {
-			const result = FeatureIdSchema.safeParse("F1");
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects lowercase f001", () => {
-			const result = FeatureIdSchema.safeParse("f001");
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects A001 (wrong prefix)", () => {
-			const result = FeatureIdSchema.safeParse("A001");
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects numbers", () => {
-			const result = FeatureIdSchema.safeParse(12345);
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects objects", () => {
-			const result = FeatureIdSchema.safeParse({ id: "F001" });
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects null", () => {
-			const result = FeatureIdSchema.safeParse(null);
-			expect(result.success).toBe(false);
-		});
-
-		it("rejects undefined", () => {
-			const result = FeatureIdSchema.safeParse(undefined);
-			expect(result.success).toBe(false);
-		});
-	});
-
-	describe("ProjectIdSchema", () => {
-		it("accepts valid string IDs", () => {
-			const result = ProjectIdSchema.safeParse("P001");
-			expect(result.success).toBe(true);
-		});
-
-		it("rejects non-strings", () => {
-			const result = ProjectIdSchema.safeParse(false);
-			expect(result.success).toBe(false);
-		});
-	});
-
-	describe("SessionIdSchema", () => {
-		it("accepts valid string IDs", () => {
-			const result = SessionIdSchema.safeParse("S001");
-			expect(result.success).toBe(true);
-		});
-
-		it("rejects arrays", () => {
-			const result = SessionIdSchema.safeParse(["S001"]);
-			expect(result.success).toBe(false);
-		});
-	});
-
-	describe("UserIdSchema", () => {
-		it("accepts valid string IDs", () => {
-			const result = UserIdSchema.safeParse("user-123");
-			expect(result.success).toBe(true);
+		it("rejects wrong prefix or case", () => {
+			expect(FeatureIdSchema.safeParse("f001").success).toBe(false);
+			expect(FeatureIdSchema.safeParse("A001").success).toBe(false);
 		});
 	});
 

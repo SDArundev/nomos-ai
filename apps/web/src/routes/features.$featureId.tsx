@@ -4,6 +4,7 @@ import { Pencil, Play, Save, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PipelineMonitor } from "@/components/auto-mode/pipeline-monitor";
+import { FeatureDiffViewer } from "@/components/git/feature-diff-viewer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,10 @@ function FeatureDetail() {
 	const queryClient = useQueryClient();
 	const feature = useQuery(
 		orpc.features.get.queryOptions({ input: { id: featureId } }),
+	);
+
+	const worktree = useQuery(
+		orpc.worktrees.getByFeature.queryOptions({ input: { featureId } }),
 	);
 
 	const [editing, setEditing] = useState(false);
@@ -315,6 +320,16 @@ function FeatureDetail() {
 							)}
 						</CardContent>
 					</Card>
+				)}
+
+				{worktree.data?.path && (
+					<FeatureDiffViewer
+						featureId={featureId}
+						projectRoot={worktree.data.path.replace(
+							`/.worktrees/${featureId}`,
+							"",
+						)}
+					/>
 				)}
 			</div>
 		</div>

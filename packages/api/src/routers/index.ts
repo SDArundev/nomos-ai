@@ -6,12 +6,14 @@ import { autoModeRouter } from "./auto-mode";
 import { eventsRouter } from "./events";
 import { featureRouter } from "./feature";
 import { fsRouter } from "./fs";
+import { gitRouter } from "./git";
 import { githubRouter } from "./github";
 import { learningRouter } from "./learning";
 import { modelsRouter } from "./models";
 import { notificationsRouter } from "./notifications";
 import { pipelineRouter } from "./pipeline";
 import { projectRouter } from "./project";
+import { qualityGateRouter } from "./quality-gate";
 import { sessionRouter } from "./session";
 import { settingsRouter } from "./settings";
 import { specRouter } from "./spec";
@@ -37,9 +39,11 @@ export const appRouter = {
 	autoMode: autoModeRouter,
 	worktrees: worktreeRouter,
 	pipeline: pipelineRouter,
+	qualityGate: qualityGateRouter,
 	terminal: terminalRouter,
 	settings: settingsRouter,
 	notifications: notificationsRouter,
+	git: gitRouter,
 	github: githubRouter,
 	fs: fsRouter,
 	models: modelsRouter,
