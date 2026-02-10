@@ -7,6 +7,7 @@ import { getEventService } from "@nomos-ai/api/routers/agent";
 import { appRouter } from "@nomos-ai/api/routers/index";
 import { getTerminalService } from "@nomos-ai/api/routers/terminal";
 import { EventBroadcaster } from "@nomos-ai/api/services/event-broadcaster";
+import { startEventPersister } from "@nomos-ai/api/services/event-persister";
 import { ingestPendingLearnings } from "@nomos-ai/api/services/learning-ingestion";
 import { RedisEventService } from "@nomos-ai/api/services/redis-event-service";
 import { auth } from "@nomos-ai/auth";
@@ -229,9 +230,10 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 app.use("/rpc/*", apiKeyAuthMiddleware);
 app.use("/api/*", apiKeyAuthMiddleware);
 
-// WebSocket event service + broadcaster + terminal
+// WebSocket event service + broadcaster + persistence + terminal
 const eventService = getEventService();
 const broadcaster = new EventBroadcaster(eventService);
+const stopPersister = startEventPersister(eventService);
 const terminalService = getTerminalService();
 const wsHandlers = createWebSocketHandlers(
 	broadcaster,
@@ -411,6 +413,7 @@ serverLogger.info({ port: env.PORT }, "Server ready");
 // Graceful shutdown
 const shutdown = async () => {
 	serverLogger.info("Shutting down...");
+	stopPersister();
 	terminalService.killAll();
 	await closeDatabase();
 	process.exit(0);

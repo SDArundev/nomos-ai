@@ -32,6 +32,30 @@ export const eventRepository = {
 			.orderBy(desc(event.createdAt));
 	},
 
+	async findByProjectId(
+		projectId: string,
+		limit = 50,
+	): Promise<EventSelect[]> {
+		return db
+			.select()
+			.from(event)
+			.where(eq(event.projectId, projectId))
+			.orderBy(desc(event.createdAt))
+			.limit(limit);
+	},
+
+	async findByTypePrefix(
+		prefix: string,
+		limit = 50,
+	): Promise<EventSelect[]> {
+		const rows = await db
+			.select()
+			.from(event)
+			.orderBy(desc(event.createdAt))
+			.limit(limit);
+		return rows.filter((e) => e.type.startsWith(prefix));
+	},
+
 	async findRecent(limit = 50): Promise<EventSelect[]> {
 		return db.select().from(event).orderBy(desc(event.createdAt)).limit(limit);
 	},
