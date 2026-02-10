@@ -28,7 +28,7 @@ export function createWebSocketHandlers(
 				};
 				const clients = terminalClients.get(sessionId);
 				if (clients) {
-					const msg = JSON.stringify({ type: "output", data });
+					const msg = JSON.stringify({ type: "terminal:output", payload: { data } });
 					for (const ws of clients) {
 						try {
 							// Only send to clients whose userId matches the session owner

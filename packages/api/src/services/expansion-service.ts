@@ -57,29 +57,54 @@ export class ExpansionService {
 
 		let resultText = "";
 
-		for await (const message of this.provider.executeQuery({
-			prompt,
-			model: "sonnet",
-			cwd: project.path,
-			systemPrompt: agentPrompt,
-			maxTurns: 1,
-			permissionMode: "plan",
-			thinkingLevel: "standard",
-			maxBudgetUsd: EXPANSION_BUDGET_USD,
-		})) {
-			if (message.type === "result" && message.result) {
-				resultText = message.result;
-			} else if (message.type === "assistant" && message.message?.content) {
-				for (const block of message.message.content) {
-					if (block.type === "text" && block.text) {
-						resultText += block.text;
+		try {
+			for await (const message of this.provider.executeQuery({
+				prompt,
+				model: "sonnet",
+				cwd: project.path,
+				systemPrompt: agentPrompt,
+				maxTurns: 1,
+				permissionMode: "plan",
+				thinkingLevel: "standard",
+				maxBudgetUsd: EXPANSION_BUDGET_USD,
+			})) {
+				if (message.type === "result" && message.result) {
+					resultText = message.result;
+				} else if (message.type === "assistant" && message.message?.content) {
+					for (const block of message.message.content) {
+						if (block.type === "text" && block.text) {
+							resultText += block.text;
+						}
 					}
+				} else if (message.type === "error") {
+					throw new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: `Expansion agent error: ${message.error ?? "Unknown error"}`,
+					});
 				}
-			} else if (message.type === "error") {
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: `Expansion agent error: ${message.error ?? "Unknown error"}`,
+			}
+		} catch (error) {
+			if (error instanceof ORPCError) throw error;
+
+			const msg = error instanceof Error ? error.message : String(error);
+			const lower = msg.toLowerCase();
+
+			if (
+				lower.includes("unauthorized") ||
+				lower.includes("401") ||
+				lower.includes("authentication") ||
+				lower.includes("credentials") ||
+				lower.includes("invalid api key") ||
+				lower.includes("auth")
+			) {
+				throw new ORPCError("UNAUTHORIZED", {
+					message:
+						"Claude CLI not authenticated. Set NOMOS_MOCK_AGENT=true in .env for development, or run 'claude login'.",
 				});
 			}
+
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: `Expansion failed: ${msg}`,
+			});
 		}
 
 		return this.parseAndValidate(resultText);

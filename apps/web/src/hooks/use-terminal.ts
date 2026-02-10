@@ -1,5 +1,6 @@
 import type { Terminal } from "@xterm/xterm";
 import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { createTerminalClient, type WebSocketClient } from "@/lib/websocket";
 
 interface UseTerminalOptions {
@@ -17,9 +18,18 @@ export function useTerminal({ sessionId, onData }: UseTerminalOptions) {
 			if (!sessionId) return;
 
 			// Dynamic imports to code-split xterm
-			const { Terminal } = await import("@xterm/xterm");
-			const { FitAddon } = await import("@xterm/addon-fit");
-			const { WebLinksAddon } = await import("@xterm/addon-web-links");
+			let Terminal: typeof import("@xterm/xterm").Terminal;
+			let FitAddon: typeof import("@xterm/addon-fit").FitAddon;
+			let WebLinksAddon: typeof import("@xterm/addon-web-links").WebLinksAddon;
+			try {
+				({ Terminal } = await import("@xterm/xterm"));
+				({ FitAddon } = await import("@xterm/addon-fit"));
+				({ WebLinksAddon } = await import("@xterm/addon-web-links"));
+			} catch (err) {
+				toast.error("Failed to load terminal modules");
+				console.error("Terminal module import failed:", err);
+				return;
+			}
 
 			const term = new Terminal({
 				cursorBlink: true,

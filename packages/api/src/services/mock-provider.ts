@@ -13,14 +13,90 @@ const MOCK_RESPONSES = [
 	"All acceptance criteria have been met. The feature is ready for review.",
 ];
 
+/**
+ * Detect whether this executeQuery call is for feature expansion
+ * by checking the prompt for keywords used by ExpansionService.
+ */
+function isExpansionRequest(options: ExecuteOptions): boolean {
+	const text = `${options.prompt} ${options.systemPrompt ?? ""}`.toLowerCase();
+	return (
+		text.includes("feature specification") ||
+		(text.includes("structured") && text.includes("json") && text.includes("feature"))
+	);
+}
+
+/**
+ * Extract a short title from the user's natural language input
+ * embedded in the expansion prompt (between --- USER INPUT --- markers).
+ */
+function extractUserInput(prompt: string): string {
+	const match = prompt.match(/--- USER INPUT ---\s*([\s\S]*?)\s*--- END USER INPUT ---/);
+	return match?.[1]?.trim() ?? "User-requested feature";
+}
+
+/**
+ * Build a mock ExpandedFeature JSON response that incorporates the user's input.
+ */
+function buildMockExpansionResponse(prompt: string): string {
+	const userInput = extractUserInput(prompt);
+	const title = userInput.length > 80 ? `${userInput.slice(0, 77)}...` : userInput;
+	const description =
+		userInput.length >= 20
+			? userInput.slice(0, 500)
+			: `${userInput}. This feature implements the requested functionality with proper error handling and tests.`;
+
+	return JSON.stringify({
+		title: title.length >= 5 ? title : `Implement ${title}`,
+		description: description.slice(0, 500),
+		category: "CAT-GEN",
+		phase: "phase-1",
+		estimatedSize: "M",
+		acceptanceCriteria: [
+			`${userInput.slice(0, 100)} works as described`,
+			"No regressions in existing functionality",
+			"Unit tests cover the new behavior",
+		],
+	});
+}
+
 export class MockProvider implements AgentProvider {
 	async *executeQuery(
-		_options: ExecuteOptions,
+		options: ExecuteOptions,
 	): AsyncGenerator<ProviderMessage> {
 		const sessionId = `mock-${crypto.randomUUID().slice(0, 8)}`;
 
 		// Simulate initial thinking delay
 		await sleep(200);
+
+		// If this is an expansion request, return valid JSON directly
+		if (isExpansionRequest(options)) {
+			const jsonResponse = buildMockExpansionResponse(options.prompt);
+
+			yield {
+				type: "assistant",
+				session_id: sessionId,
+				message: {
+					role: "assistant",
+					content: [{ type: "text", text: jsonResponse }],
+				},
+			} as ProviderMessage;
+
+			await sleep(100);
+			yield {
+				type: "result",
+				subtype: "success",
+				session_id: sessionId,
+				result: jsonResponse,
+				costData: {
+					totalCostUsd: 0.001,
+					inputTokens: 100,
+					outputTokens: 50,
+					cacheReadInputTokens: 0,
+					cacheCreationInputTokens: 0,
+				},
+			} as ProviderMessage;
+			return;
+		}
 
 		// Pick a random response
 		const response =
