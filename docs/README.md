@@ -41,7 +41,7 @@
 | File | Description |
 |------|-------------|
 | [app_spec.json](../.nomos/app_spec.json) | Application specification |
-| [features.json](../.nomos/features.json) | Feature backlog (220 features) |
+| [features.json](../.nomos/features.json) | Feature backlog (139 features) |
 
 ---
 
@@ -53,7 +53,7 @@
 | Monorepo | Turborepo |
 | Frontend | React 19 + TanStack Router + Zustand + Tailwind 4 |
 | Backend | Hono + oRPC + Drizzle |
-| Database | SQLite |
+| Database | PostgreSQL |
 | Auth | better-auth |
 | Desktop | Tauri |
 | AI | Claude Agent SDK |
@@ -72,7 +72,7 @@ nomos-ai/
 │   └── desktop/          # Tauri desktop app
 ├── packages/
 │   ├── types/            # Shared types
-│   ├── db/               # Database (Drizzle + SQLite)
+│   ├── db/               # Database (Drizzle + PostgreSQL)
 │   └── utils/            # Shared utilities
 ├── docs/                 # Project documentation
 ├── .nomos/               # NOMOS system

@@ -8,7 +8,7 @@ export interface SessionsSlice {
 
 export const createSessionsSlice: StateCreator<
 	AppStore,
-	[["zustand/devtools", never]],
+	[["zustand/devtools", never], ["zustand/persist", unknown]],
 	[],
 	SessionsSlice
 > = (set) => ({

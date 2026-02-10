@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 import { createFeaturesSlice, type FeaturesSlice } from "./slices/features";
 import { createProjectsSlice, type ProjectsSlice } from "./slices/projects";
 import { createSessionsSlice, type SessionsSlice } from "./slices/sessions";
@@ -9,12 +9,20 @@ export type AppStore = ProjectsSlice & FeaturesSlice & SessionsSlice & UISlice;
 
 export const useAppStore = create<AppStore>()(
 	devtools(
-		(...a) => ({
-			...createProjectsSlice(...a),
-			...createFeaturesSlice(...a),
-			...createSessionsSlice(...a),
-			...createUISlice(...a),
-		}),
+		persist(
+			(...a) => ({
+				...createProjectsSlice(...a),
+				...createFeaturesSlice(...a),
+				...createSessionsSlice(...a),
+				...createUISlice(...a),
+			}),
+			{
+				name: "nomos-store",
+				partialize: (state) => ({
+					selectedProjectId: state.selectedProjectId,
+				}),
+			},
+		),
 		{ name: "NomosStore" },
 	),
 );

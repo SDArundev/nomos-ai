@@ -16,7 +16,7 @@ NOMOS (**N**avigation · **O**rchestration · **M**emory · **O**bservation · *
 │                                                                          │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐              │
 │  │   BACKLOG    │───▶│  EXECUTION   │───▶│   LEARNING   │              │
-│  │  220 Features│    │  14 Steps    │    │   Patterns   │              │
+│  │  139 Features│    │  14 Steps    │    │   Patterns   │              │
 │  └──────────────┘    └──────────────┘    └──────────────┘              │
 │         │                   │                   │                       │
 │         ▼                   ▼                   ▼                       │
@@ -332,7 +332,7 @@ main
 nomos-ai/
 ├── .nomos/
 │   ├── app_spec.json           # Project specification
-│   ├── features.json           # Feature backlog (220 features)
+│   ├── features.json           # Feature backlog (139 features)
 │   ├── schemas/
 │   │   ├── app_spec.schema.json
 │   │   └── feature.schema.json
@@ -396,7 +396,7 @@ nomos-ai/
 | Monorepo | npm workspaces | Turborepo |
 | Backend | Express 5 | Hono |
 | Frontend | React 19 + Vite | React 19 + TanStack |
-| Database | JSON files | SQLite + Drizzle |
+| Database | JSON files | PostgreSQL + Drizzle |
 | Desktop | Electron | Tauri |
 | Auth | Custom | better-auth |
 

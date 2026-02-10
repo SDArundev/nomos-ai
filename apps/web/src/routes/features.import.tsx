@@ -12,6 +12,7 @@ import { useAppStore } from "@/store";
 import { orpc } from "@/utils/orpc";
 
 interface ImportFeature {
+	id?: string;
 	title: string;
 	description: string;
 	category: string;
@@ -99,6 +100,7 @@ function ImportComponent() {
 		setProgress({ done: 0, total: parsed.length });
 		bulkCreate.mutate({
 			features: parsed.map((f) => ({
+				...(f.id ? { id: f.id } : {}),
 				projectId: selectedProjectId,
 				title: f.title,
 				description: f.description,

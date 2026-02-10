@@ -41,6 +41,11 @@ export async function createWithId(
 		id = `${prefix}${"1".padStart(padWidth, "0")}`;
 	} else {
 		const num = Number.parseInt(maxId.slice(prefix.length), 10);
+		if (Number.isNaN(num)) {
+			throw new Error(
+				`Invalid existing ID format: "${maxId}" (expected prefix "${prefix}" followed by digits)`,
+			);
+		}
 		id = `${prefix}${String(num + 1).padStart(padWidth, "0")}`;
 	}
 	type InsertChain = {
@@ -90,6 +95,11 @@ async function getNextId(
 					return `${prefix}001`;
 				}
 				const num = Number.parseInt(maxId.slice(prefix.length), 10);
+				if (Number.isNaN(num)) {
+					throw new Error(
+						`Invalid existing ID format: "${maxId}" (expected prefix "${prefix}" followed by digits)`,
+					);
+				}
 				return `${prefix}${String(num + 1).padStart(3, "0")}`;
 			});
 		} catch (error) {

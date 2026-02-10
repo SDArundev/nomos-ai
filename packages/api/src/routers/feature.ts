@@ -229,7 +229,9 @@ export const featureRouter = {
 	bulkCreate: protectedProcedure
 		.input(
 			z.object({
-				features: z.array(createFeatureInput).min(1).max(500),
+				features: z.array(createFeatureInput.extend({
+					id: FeatureIdSchema.optional(),
+				})).min(1).max(500),
 			}),
 		)
 		.handler(async ({ input, context }) => {
@@ -238,6 +240,7 @@ export const featureRouter = {
 			for (const feat of input.features) {
 				try {
 					const created = await featureRepository.create({
+						...(feat.id ? { id: feat.id } : {}),
 						userId,
 						projectId: feat.projectId,
 						title: feat.title,
@@ -254,7 +257,7 @@ export const featureRouter = {
 					});
 					results.push({ id: created.id, success: true });
 				} catch {
-					results.push({ id: feat.title, success: false });
+					results.push({ id: feat.id ?? feat.title, success: false });
 				}
 			}
 			return results;

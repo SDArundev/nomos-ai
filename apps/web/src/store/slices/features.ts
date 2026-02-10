@@ -11,7 +11,7 @@ export interface FeaturesSlice {
 
 export const createFeaturesSlice: StateCreator<
 	AppStore,
-	[["zustand/devtools", never]],
+	[["zustand/devtools", never], ["zustand/persist", unknown]],
 	[],
 	FeaturesSlice
 > = (set) => ({

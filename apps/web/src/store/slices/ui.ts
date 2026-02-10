@@ -18,7 +18,7 @@ export interface UISlice {
 
 export const createUISlice: StateCreator<
 	AppStore,
-	[["zustand/devtools", never]],
+	[["zustand/devtools", never], ["zustand/persist", unknown]],
 	[],
 	UISlice
 > = (set) => ({

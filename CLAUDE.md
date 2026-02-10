@@ -21,7 +21,7 @@ Autonomous AI Development Studio - Watch AI agents implement features while you 
 | **Monorepo** | Turborepo |
 | **Frontend** | React 19 + TanStack Router + Zustand + Tailwind 4 |
 | **Backend** | Hono + oRPC + Drizzle |
-| **Database** | SQLite |
+| **Database** | PostgreSQL |
 | **Auth** | better-auth |
 | **Desktop** | Tauri |
 | **AI** | Claude Agent SDK |

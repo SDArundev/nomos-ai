@@ -7,6 +7,7 @@
 | Bun | 1.3+ | `bun --version` |
 | Git | 2.30+ | `git --version` |
 | Node.js | 22+ | `node --version` |
+| Docker | 24+ | `docker --version` |
 
 ---
 
@@ -55,7 +56,17 @@ git clone <repo-url> nomos-ai
 cd nomos-ai
 ```
 
-### Step 2: Verify NOMOS System
+### Step 2: Environment Setup
+
+```bash
+# Copy environment variables
+cp .env.example .env
+
+# Start database and cache
+docker compose up -d postgres redis
+```
+
+### Step 3: Verify NOMOS System
 
 ```bash
 # Check all components present
@@ -64,7 +75,7 @@ ls -la .claude/skills/nomos/
 ls -la .claude/agents/
 ```
 
-### Step 3: Start Foundation (F001)
+### Step 4: Start Foundation (F001)
 
 ```bash
 # This scaffolds the entire monorepo

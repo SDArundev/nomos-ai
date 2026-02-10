@@ -210,7 +210,7 @@ Outside NOMOS, generic git skills work normally.
 | Frontend | React 19 + Vite | React 19 + TanStack |
 | Backend | Express 5 | Hono |
 | ORM | None (JSON files) | Drizzle |
-| Database | None | SQLite |
+| Database | None | PostgreSQL |
 | Desktop | Electron | Tauri |
 | AI | Claude Agent SDK | Claude Agent SDK |
 | Monorepo | npm workspaces | Turborepo |
