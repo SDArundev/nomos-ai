@@ -25,7 +25,7 @@
 	},
 	"devDependencies": {
 		"typescript": "catalog:",
-		"tsdown": "^0.20.3",
+		"tsdown": "^0.21.1",
 		"@nomos-ai/config": "workspace:*",
 		"@types/bun": "catalog:"
 	}
