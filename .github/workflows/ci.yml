@@ -20,7 +20,7 @@ jobs:
       scaffolded: ${{ steps.check.outputs.scaffolded }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check if project is scaffolded
         id: check
@@ -40,7 +40,7 @@ jobs:
     if: needs.check-scaffold.outputs.scaffolded == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup project
         uses: ./.github/actions/setup-project
@@ -57,7 +57,7 @@ jobs:
     if: needs.check-scaffold.outputs.scaffolded == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup project
         uses: ./.github/actions/setup-project
@@ -86,7 +86,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup project
         uses: ./.github/actions/setup-project
@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload coverage artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/
@@ -117,7 +117,7 @@ jobs:
     if: needs.check-scaffold.outputs.scaffolded == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup project
         uses: ./.github/actions/setup-project
@@ -133,7 +133,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build Docker image
         run: docker build -t nomos-ai:ci --no-cache .
